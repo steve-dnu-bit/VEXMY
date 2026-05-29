@@ -19,9 +19,9 @@ Without these, login, signup, and password reset links can fail or redirect to t
 
 ## 3. Email (auth + studio notifications)
 
-Password reset and booking emails need SMTP. **Recommended: [Resend](https://resend.com)** with `hello@vexmy.com` after verifying the domain.
+Password reset and booking emails need SMTP. **Recommended: [Resend](https://resend.com)** with `no-reply@vexmy.com` after verifying the domain.
 
-Full steps: **[docs/email-setup.md](email-setup.md)**
+Full steps: **[docs/email-setup.md](email-setup.md)** · Dashboard paste list: **[docs/supabase-secrets-dashboard.md](supabase-secrets-dashboard.md)**
 
 - **Edge functions:** run `.\scripts\set-email-secrets.ps1` (or `supabase secrets set SMTP_* …`)
 - **Auth (forgot password):** Supabase Dashboard → **Authentication** → **SMTP Settings** → same Resend SMTP credentials

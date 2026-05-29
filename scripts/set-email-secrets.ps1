@@ -24,7 +24,7 @@ function Read-Secret([string]$Prompt, [string]$Default = "") {
 }
 
 $siteUrl = Read-Secret "SITE_URL (links in emails)" "https://vexmy.com"
-$supportEmail = Read-Secret "Support / reply-to email" "hello@vexmy.com"
+$supportEmail = Read-Secret "Support / reply-to email" "no-reply@vexmy.com"
 $shopName = Read-Secret "SHOP_NAME (email branding)" "VexMy"
 
 switch ($Provider) {
@@ -117,6 +117,7 @@ Write-Host ""
 Write-Host "Edge function secrets saved." -ForegroundColor Green
 Write-Host ""
 Write-Host "Next: Supabase Dashboard -> Authentication -> SMTP Settings" -ForegroundColor Yellow
-Write-Host "  Use the same SMTP host/user/password and hello@vexmy.com sender for password reset." -ForegroundColor Yellow
+Write-Host "  Use the same SMTP host/user/password and no-reply@vexmy.com sender for password reset." -ForegroundColor Yellow
+Write-Host "  Dashboard checklist: docs/supabase-secrets-dashboard.md" -ForegroundColor Gray
 Write-Host "  Full guide: docs/email-setup.md" -ForegroundColor Gray
 Write-Host ""

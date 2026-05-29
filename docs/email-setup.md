@@ -30,7 +30,7 @@ Consent PDF emails can optionally use **Resend API** (`RESEND_API_KEY`) in addit
 | **Microsoft 365 / Google Workspace** | You already pay for `you@vexmy.com` mailbox | OK for low volume; not ideal for bulk reminders |
 | **Hotmail personal SMTP** | Quick test only | Often blocked, rate-limited, poor “from” branding |
 
-Avoid sending production mail from `@hotmail.com` — use **`hello@vexmy.com`** or **`noreply@vexmy.com`** on your domain.
+Avoid sending production mail from `@hotmail.com` — use **`no-reply@vexmy.com`** on your verified domain.
 
 ---
 
@@ -52,7 +52,7 @@ Avoid sending production mail from `@hotmail.com` — use **`hello@vexmy.com`** 
 | `SMTP_PORT` | `465` (SSL) or `587` (STARTTLS) |
 | `SMTP_USER` | `resend` |
 | `SMTP_PASS` | Your Resend API key (`re_…`) |
-| `EMAIL_FROM` | `VexMy <hello@vexmy.com>` |
+| `EMAIL_FROM` | `VexMy <no-reply@vexmy.com>` |
 
 Use a verified address on your domain for `EMAIL_FROM`.
 
@@ -75,9 +75,9 @@ npx supabase secrets set `
   SMTP_PORT=465 `
   SMTP_USER=resend `
   SMTP_PASS=re_YOUR_API_KEY `
-  EMAIL_FROM="VexMy <hello@vexmy.com>" `
+  EMAIL_FROM="VexMy <no-reply@vexmy.com>" `
   SITE_URL=https://vexmy.com `
-  SHOP_SUPPORT_EMAIL=hello@vexmy.com `
+  SHOP_SUPPORT_EMAIL=no-reply@vexmy.com `
   SHOP_NAME="VexMy" `
   SHOP_WEBSITE_URL=https://vexmy.com
 ```
@@ -106,7 +106,7 @@ This fixes **Forgot password** on vexmy.com.
 | Port | `465` |
 | Username | `resend` |
 | Password | Resend API key |
-| Sender email | `hello@vexmy.com` |
+| Sender email | `no-reply@vexmy.com` |
 | Sender name | `VexMy` |
 
 4. **Authentication** → **URL Configuration** (if not done):
@@ -153,7 +153,7 @@ Check Supabase → **Edge Functions** → **Logs** if mail fails.
 
 ## Per-studio deployments (future)
 
-Each tenant studio can use its own `EMAIL_FROM` and `SHOP_*` secrets on their Supabase project. Platform mail (`hello@vexmy.com`) stays on the main VexMy marketing/auth instance.
+Each tenant studio can use its own `EMAIL_FROM` and `SHOP_*` secrets on their Supabase project. Platform mail (`no-reply@vexmy.com`) stays on the main VexMy marketing/auth instance.
 
 ---
 
