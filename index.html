@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VexMy | Tattoo Studio Booking Platform</title>
-    <meta name="description" content="VexMy — the all-in-one booking and studio management platform for tattoo shops. Scheduling, deposits, consent forms, and client communication." />
+    <title>VexMy | Tattoo Studio Management Platform</title>
+    <meta name="description" content="VexMy — the all-in-one booking and studio management platform for tattoo shops. Scheduling, deposits, consent forms, billing, and client communication." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -14,14 +14,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
     <meta name="author" content="VexMy" />
 
-    <meta property="og:title" content="VexMy | Tattoo Studio Booking Platform" />
-    <meta property="og:description" content="All-in-one booking and studio management for tattoo shops." />
+    <meta property="og:title" content="VexMy | Tattoo Studio Management Platform" />
+    <meta property="og:description" content="All-in-one scheduling, deposits, consent, and client management for tattoo studios." />
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
   </head>
 
   <body>
+    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="text" name="studio" />
+      <input type="text" name="plan" />
+      <textarea name="message"></textarea>
+    </form>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

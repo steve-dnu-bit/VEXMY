@@ -70,6 +70,24 @@ App runs at http://localhost:8080
 
 Each deployment can customize branding via environment variables (frontend `VITE_*` and edge function secrets). The `shop_settings` table stores shop details in the database for future multi-tenant expansion.
 
+## Documentation
+
+- **Product docs (web):** `/docs` on your deployed site — source in `src/lib/docsContent.ts`
+- **User guide index:** [docs/user-guide/README.md](docs/user-guide/README.md)
+- **Go-live checklist:** [docs/vexmy-go-live-checklist.md](docs/vexmy-go-live-checklist.md)
+
+## Marketing site
+
+Public routes on vexmy.com:
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Product landing page |
+| `/pricing` | Subscription plans |
+| `/docs` | Product documentation |
+| `/contact` | Contact & sales form |
+| `/auth` | Studio app login |
+
 ## Production (vexmy.com / Netlify)
 
 See **[docs/vexmy-go-live-checklist.md](docs/vexmy-go-live-checklist.md)** for login, Supabase redirect URLs, Netlify env vars, and edge function secrets.

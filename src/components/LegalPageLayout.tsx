@@ -19,7 +19,9 @@ const LegalPageLayout = ({
             <Link to="/terms" className="text-primary hover:underline">Terms</Link>
             <Link to="/privacy" className="text-primary hover:underline">Privacy</Link>
             <Link to="/cookies" className="text-primary hover:underline">Cookies</Link>
-            <Link to="/auth" className="text-primary hover:underline">Back to login</Link>
+            <Link to="/" className="text-primary hover:underline">Home</Link>
+            <Link to="/docs" className="text-primary hover:underline">Documentation</Link>
+            <Link to="/auth" className="text-primary hover:underline">Studio login</Link>
           </div>
         </div>
         <div className="space-y-5 text-sm leading-6 text-muted-foreground">{children}</div>

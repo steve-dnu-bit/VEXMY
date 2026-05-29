@@ -12,6 +12,10 @@ import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const LandingPage = lazy(() => import("./pages/marketing/LandingPage"));
+const PricingPage = lazy(() => import("./pages/marketing/PricingPage"));
+const ContactPage = lazy(() => import("./pages/marketing/ContactPage"));
+const DocsPage = lazy(() => import("./pages/docs/DocsPage"));
 const SchedulePage = lazy(() => import("./pages/SchedulePage"));
 const InboxPage = lazy(() => import("./pages/InboxPage"));
 const StencilPage = lazy(() => import("./pages/StencilPage"));
@@ -84,6 +88,11 @@ const App = () => (
           <BrowserRouter>
             <Suspense fallback={<PageFallback />}>
               <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/docs" element={<DocsPage />} />
+                <Route path="/docs/:slug" element={<DocsPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiePolicyPage />} />
@@ -108,7 +117,6 @@ const App = () => (
                 <Route path="/artist-profile-settings" element={<ProtectedRoute><ArtistProfileSettingsPage /></ProtectedRoute>} />
                 <Route path="/customer-profile-setup" element={<ProtectedRoute><CustomerProfileSetupPage /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/" element={<ProtectedRoute><AuthHomeRedirect /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
