@@ -92,6 +92,8 @@ Public routes on vexmy.com:
 
 See **[docs/vexmy-go-live-checklist.md](docs/vexmy-go-live-checklist.md)** for login, Supabase redirect URLs, Netlify env vars, and edge function secrets.
 
+**Branch + manual preview (save build credits):** **[docs/deploy-workflow.md](docs/deploy-workflow.md)** — push a feature branch, `npm run deploy:preview`, then `npm run deploy:prod` when ready.
+
 ## Platform roadmap
 
 Current architecture is single-tenant per Supabase project. Multi-tenant SaaS (subdomain routing, organization-scoped RLS, Stripe Connect per shop) is the next phase — the `shop_settings` table and env-driven branding are the foundation.

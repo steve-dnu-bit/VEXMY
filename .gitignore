@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.netlify
 
 # Environment variables (secrets — do not commit)
 .env

@@ -10,3 +10,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Manual deploy workflow: disable auto-builds in Netlify UI to save credits.
+# See docs/deploy-workflow.md — use npm run deploy:preview / deploy:prod
