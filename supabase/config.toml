@@ -1,0 +1,22 @@
+project_id = "tkremoxfkgoiuwghtzwd"
+
+[functions.booking-notifications]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.send-booking-reminders]
+verify_jwt = false
+
+[functions.send-aftercare-emails]
+verify_jwt = false
+
+[functions.create-stripe-checkout]
+verify_jwt = false
+
+[functions.generate-stencil]
+verify_jwt = true
+
+[functions.send-invoice]
+verify_jwt = false

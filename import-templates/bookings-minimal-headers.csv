@@ -1,0 +1,2 @@
+client_name,client_email,client_phone,artist_id,booking_type,status,starts_at,ends_at,deposit_paid,notes
+Example Client,client@example.com,+441234567890,00000000-0000-4000-8000-000000000001,consultation,confirmed,2026-01-01 12:00:00+00,2026-01-01 13:00:00+00,true,Replace artist_id with your Authentication User UID before import

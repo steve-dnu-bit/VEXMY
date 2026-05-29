@@ -1,0 +1,48 @@
+Inkaholics backup manifest — 2026-05-17 (before piercing email fix push)
+================================================================================
+
+FRONTEND / CODE (GitHub)
+------------------------
+1) Production baseline (what is on main now, before piercing-email changes):
+   - Tag:    backup/frontend-20260517-main
+   - Commit: 294004e — Schedule: show service on blocks and stack overlapping bookings
+
+2) Piercing email fix snapshot (not on main yet):
+   - Branch: backup/piercing-email-fix-20260517
+   - Commit: f2dcbbf — Backup: piercing aftercare email fix (pre-push snapshot)
+
+Restore frontend to baseline:
+  git fetch origin
+  git checkout main
+  git reset --hard backup/frontend-20260517-main
+
+Apply piercing fix from backup branch:
+  git checkout main
+  git merge backup/piercing-email-fix-20260517
+
+EDGE FUNCTION (already deployed separately)
+----------------------------------------
+send-aftercare-emails was deployed to Supabase project obxnxazrivonewlbyqap
+before this git push. To roll back the function, redeploy from tag
+backup/frontend-20260517-main:
+  git checkout backup/frontend-20260517-main -- supabase/functions/send-aftercare-emails
+  npx supabase functions deploy send-aftercare-emails --project-ref obxnxazrivonewlbyqap
+
+DATABASE
+--------
+A full .sql dump was not created on this machine (Supabase CLI requires Docker for pg_dump).
+
+Recommended database backup (pick one):
+A) Supabase Dashboard → Project → Database → Backups (if enabled on your plan)
+B) Install Docker Desktop, then from project root:
+     npx supabase db dump --linked -f backups/db-inkaholics-full.sql
+C) Supabase Dashboard → SQL → export critical tables (bookings, services, consent_signatures)
+
+After backup, apply migration when ready:
+  supabase/migrations/20260517120000_fix_piercing_booking_service_category.sql
+
+MIGRATION ROLLBACK (piercing category backfill only — safe to re-run)
+---------------------------------------------------------------------
+The migration only UPDATEs bookings.service_category; it does not delete data.
+To inspect affected rows before/after, run in SQL editor:
+  SELECT service_category, count(*) FROM bookings GROUP BY 1;

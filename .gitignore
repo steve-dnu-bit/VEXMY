@@ -1,0 +1,43 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment variables (secrets — do not commit)
+.env
+.env.*
+!.env.example
+
+# Supabase CLI local cache
+supabase/.temp/
+
+# Local database dumps (may contain PII; keep outside git)
+backups/*.sql
+
+# Local import dumps (PII; regenerate with scripts/merge_contacts_and_appointments_for_supabase_bookings.py)
+import-templates/merged-bookings-supabase.csv
+email_list.csv
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python
+__pycache__/
+*.pyc

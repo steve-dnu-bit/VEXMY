@@ -1,0 +1,534 @@
+import { useMemo, useState } from "react";
+import { addDays, format } from "date-fns";
+import { FilePlus, Plus, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+interface LineItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  legal_name?: string;
+}
+
+interface Props {
+  companies: Company[];
+  userId: string;
+  onCreated: () => void;
+}
+
+type PaymentMethod = "card" | "bank_transfer" | "cash";
+
+interface ClientSuggestion {
+  client_name: string;
+  client_email: string | null;
+  client_phone: string | null;
+}
+
+interface LineTemplate {
+  id: string;
+  description: string;
+  unit_price: number;
+  default_quantity: number;
+}
+
+const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
+  const defaultDueDate = useMemo(() => format(addDays(new Date(), 7), "yyyy-MM-dd"), []);
+  const defaultCompany = useMemo(() => companies[0] ?? null, [companies]);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientSearch, setClientSearch] = useState("");
+  const [suggestions, setSuggestions] = useState<ClientSuggestion[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [dueDate, setDueDate] = useState(defaultDueDate);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [notes, setNotes] = useState("");
+  const [taxRate, setTaxRate] = useState(0);
+  const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unit_price: 0 }]);
+  const [lineTemplates, setLineTemplates] = useState<LineTemplate[]>([]);
+
+  const addItem = () => setItems([...items, { description: "", quantity: 1, unit_price: 0 }]);
+  const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
+  const updateItem = (i: number, field: keyof LineItem, value: string | number) => {
+    setItems(items.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)));
+  };
+
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+  const taxAmount = (subtotal * taxRate) / 100;
+  const total = subtotal + taxAmount;
+
+  const generateInvoiceNumber = () => {
+    const prefix = "INV";
+    const date = new Date().toISOString().slice(2, 10).replace(/-/g, "");
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${prefix}-${date}-${rand}`;
+  };
+
+  const fetchClientSuggestions = async (query: string) => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    setSuggestionsLoading(true);
+    try {
+      const pattern = `%${q}%`;
+      const [byName, byEmail, importedByName, importedByEmail, customerRoles] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("client_name, client_email, client_phone")
+          .ilike("client_name", pattern)
+          .order("starts_at", { ascending: false })
+          .limit(25),
+        supabase
+          .from("bookings")
+          .select("client_name, client_email, client_phone")
+          .ilike("client_email", pattern)
+          .order("starts_at", { ascending: false })
+          .limit(25),
+        supabase
+          .from("contacts_import" as any)
+          .select("name, email, phone")
+          .ilike("name", pattern)
+          .limit(25),
+        supabase
+          .from("contacts_import" as any)
+          .select("name, email, phone")
+          .ilike("email", pattern)
+          .limit(25),
+        supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "customer"),
+      ]);
+      const map = new Map<string, ClientSuggestion>();
+      for (const row of [...(byName.data || []), ...(byEmail.data || [])]) {
+        const key = `${row.client_name}|${row.client_email || ""}|${row.client_phone || ""}`.toLowerCase();
+        if (!map.has(key) && row.client_name) {
+          map.set(key, {
+            client_name: row.client_name,
+            client_email: row.client_email,
+            client_phone: row.client_phone,
+          });
+        }
+      }
+      for (const row of [...(importedByName.data || []), ...(importedByEmail.data || [])]) {
+        const name = (row.name || "").trim();
+        if (!name) continue;
+        const email = row.email || null;
+        const phone = row.phone || null;
+        const key = `${name}|${email || ""}|${phone || ""}`.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, {
+            client_name: name,
+            client_email: email,
+            client_phone: phone,
+          });
+        }
+      }
+      const customerIds = (customerRoles.data || []).map((r) => r.user_id).filter(Boolean);
+      if (customerIds.length > 0) {
+        const { data: customerProfiles } = await supabase
+          .from("profiles")
+          .select("display_name, phone")
+          .in("user_id", customerIds)
+          .ilike("display_name", pattern)
+          .limit(25);
+        for (const profile of customerProfiles || []) {
+          const name = (profile.display_name || "").trim();
+          if (!name) continue;
+          const phone = profile.phone || null;
+          const key = `${name}||${phone || ""}`.toLowerCase();
+          if (!map.has(key)) {
+            map.set(key, {
+              client_name: name,
+              client_email: null,
+              client_phone: phone,
+            });
+          }
+        }
+      }
+      setSuggestions([...map.values()].slice(0, 12));
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  const fetchLineTemplates = async () => {
+    const { data, error } = await supabase
+      .from("invoice_line_item_templates" as any)
+      .select("id, description, unit_price, default_quantity")
+      .eq("created_by", userId)
+      .order("description");
+    if (error) return;
+    setLineTemplates((data || []) as LineTemplate[]);
+  };
+
+  const applyTemplate = (index: number, templateId: string) => {
+    const t = lineTemplates.find((x) => x.id === templateId);
+    if (!t) return;
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              description: t.description,
+              unit_price: Number(t.unit_price || 0),
+              quantity: Number(t.default_quantity || 1),
+            }
+          : item,
+      ),
+    );
+  };
+
+  const saveItemAsTemplate = async (index: number) => {
+    const row = items[index];
+    if (!row?.description?.trim()) {
+      toast.error("Type a line description first");
+      return;
+    }
+    const payload = {
+      created_by: userId,
+      description: row.description.trim(),
+      unit_price: Number(row.unit_price || 0),
+      default_quantity: Number(row.quantity || 1),
+    };
+    const { error } = await supabase
+      .from("invoice_line_item_templates" as any)
+      .upsert(payload, { onConflict: "created_by,description" });
+    if (error) {
+      toast.error(error.message || "Failed to save line item");
+      return;
+    }
+    toast.success("Line item saved");
+    fetchLineTemplates();
+  };
+
+  const applySuggestion = (s: ClientSuggestion) => {
+    setClientName(s.client_name);
+    setClientEmail(s.client_email || "");
+    setClientSearch(s.client_name);
+    setSuggestionsOpen(false);
+  };
+
+  const resetForm = () => {
+    setClientName("");
+    setClientEmail("");
+    setClientSearch("");
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+    setDueDate(defaultDueDate);
+    setPaymentMethod("card");
+    setNotes("");
+    setTaxRate(0);
+    setItems([{ description: "", quantity: 1, unit_price: 0 }]);
+    fetchLineTemplates();
+  };
+
+  const handleSave = async () => {
+    if (!clientName.trim()) {
+      toast.error("Client name is required");
+      return;
+    }
+    if (!clientEmail.trim()) {
+      toast.error("Client email is required to send the invoice");
+      return;
+    }
+    if (items.some((i) => !i.description.trim())) {
+      toast.error("All line items need a description");
+      return;
+    }
+
+    setSaving(true);
+    const { data: createdRows, error } = await supabase
+      .from("invoices" as any)
+      .insert({
+        invoice_number: generateInvoiceNumber(),
+        client_name: clientName,
+        client_email: clientEmail || null,
+        company_id: defaultCompany?.id || null,
+        items: items as any,
+        subtotal,
+        tax_rate: taxRate,
+        tax_amount: taxAmount,
+        total,
+        notes: notes || null,
+        due_date: dueDate || null,
+        payment_method: paymentMethod,
+        payment_term: "due",
+        created_by: userId,
+        status: "draft",
+      } as any)
+      .select("id")
+      .limit(1);
+
+    if (error) {
+      setSaving(false);
+      toast.error(error.message || "Failed to create invoice");
+      return;
+    }
+
+    const invoiceId = createdRows?.[0]?.id as string | undefined;
+    if (!invoiceId) {
+      setSaving(false);
+      toast.error("Invoice created but missing id");
+      return;
+    }
+
+    const { data: sendData, error: sendError } = await invokeEdgeFunctionJson("send-invoice", { invoiceId });
+    if (sendError || (sendData as any)?.error) {
+      setSaving(false);
+      toast.error((sendData as any)?.error || sendError?.message || "Invoice saved but failed to send");
+      return;
+    }
+    const emailSent = !!(sendData as any)?.emailSent;
+    const emailError = ((sendData as any)?.emailError as string | null | undefined) ?? null;
+    if (!emailSent) {
+      setSaving(false);
+      toast.error(`Invoice saved but email not sent: ${emailError || "Unknown email delivery error"}`);
+      return;
+    }
+
+    const { error: markError } = await supabase.from("invoices" as any).update({ status: "sent" }).eq("id", invoiceId);
+    if (markError) {
+      setSaving(false);
+      toast.error(markError.message || "Invoice sent but status update failed");
+      return;
+    }
+
+    setSaving(false);
+    toast.success("Invoice saved and sent");
+    setOpen(false);
+    resetForm();
+    onCreated();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (v) resetForm();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-2">
+          <FilePlus className="h-4 w-4" /> Create Invoice
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto mx-4">
+        <DialogHeader>
+          <DialogTitle>Create Invoice</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs">Search Client</Label>
+            <div className="relative mt-1">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={clientSearch}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setClientSearch(v);
+                  setSuggestionsOpen(v.trim().length >= 2);
+                  void fetchClientSuggestions(v);
+                }}
+                placeholder="Type name or email..."
+                className="pl-8"
+              />
+            </div>
+            {suggestionsOpen && (
+              <div className="mt-1 rounded-md border border-border bg-popover shadow-md">
+                {suggestionsLoading ? (
+                  <p className="px-3 py-2 text-xs text-muted-foreground">Searching…</p>
+                ) : suggestions.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-muted-foreground">No matches</p>
+                ) : (
+                  suggestions.map((s, i) => (
+                    <button
+                      type="button"
+                      key={`${s.client_name}-${s.client_email}-${i}`}
+                      onClick={() => applySuggestion(s)}
+                      className="w-full px-3 py-2 text-left hover:bg-accent text-sm"
+                    >
+                      <p className="font-medium">{s.client_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {[s.client_email, s.client_phone].filter(Boolean).join(" · ") || "No email/phone"}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Client info */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs">Client Name *</Label>
+              <Input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Client name" />
+            </div>
+            <div>
+              <Label className="text-xs">Client Email *</Label>
+              <Input value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} placeholder="email@example.com" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs">Company</Label>
+              <Input value={defaultCompany?.legal_name || "Your Studio Ltd"} readOnly />
+            </div>
+            <div>
+              <Label className="text-xs">Due Date</Label>
+              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs">Payment Method</Label>
+              <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {/* Line items */}
+          <div>
+            <Label className="text-xs mb-2 block">Line Items</Label>
+            <div className="space-y-2">
+              {items.map((item, i) => (
+                <div key={i} className="rounded-md border border-border p-2 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                    <div className="sm:col-span-2">
+                      <Label className="text-[10px] text-muted-foreground">Saved item</Label>
+                      <Select onValueChange={(v) => applyTemplate(i, v)}>
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder={lineTemplates.length ? "Choose saved item" : "No saved items yet"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {lineTemplates.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.description} · £{Number(t.unit_price).toFixed(2)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="sm:col-span-2 flex justify-start sm:justify-end pt-4 sm:pt-0">
+                      <Button type="button" variant="outline" size="sm" className="h-8 text-[10px]" onClick={() => saveItemAsTemplate(i)}>
+                        Save this item
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    className="flex-1"
+                    placeholder="Description"
+                    value={item.description}
+                    onChange={(e) => updateItem(i, "description", e.target.value)}
+                  />
+                  <Input
+                    className="w-16"
+                    type="number"
+                    min={1}
+                    placeholder="Qty"
+                    value={item.quantity || ""}
+                    onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value, 10) || 1)}
+                  />
+                  <Input
+                    className="w-24"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="£ Price"
+                    value={item.unit_price || ""}
+                    onChange={(e) => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
+                  />
+                  {items.length > 1 && (
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => removeItem(i)}>
+                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  )}
+                </div>
+                </div>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" className="mt-2 gap-1 text-xs" onClick={addItem}>
+              <Plus className="h-3 w-3" /> Add Line
+            </Button>
+          </div>
+
+          {/* Tax */}
+          <div className="flex items-center gap-3">
+            <Label className="text-xs whitespace-nowrap">VAT %</Label>
+            <Input
+              className="w-20"
+              type="number"
+              min={0}
+              value={taxRate}
+              onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+            />
+          </div>
+
+          {/* Totals */}
+          <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>£{subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">VAT ({taxRate}%)</span>
+              <span>£{taxAmount.toFixed(2)}</span>
+            </div>
+            <div className="mt-1 flex justify-between border-t border-border pt-1 font-bold">
+              <span>Total</span>
+              <span>£{total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label className="text-xs">Notes</Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Additional notes..."
+              rows={2}
+            />
+          </div>
+
+          <Button className="w-full" onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Create Invoice"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default CreateInvoiceDialog;
