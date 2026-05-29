@@ -1,8 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.15";
 import { jsonCorsHeaders, jsonResponse, requireCronAuth } from "../_shared/auth.ts";
-import { emailBrandHeaderLarge, getShopBranding } from "../_shared/branding.ts";
+import { getShopBranding } from "../_shared/branding.ts";
+import { requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import {
+  buildAppointmentReminderEmail,
+  buildDepositReminderEmail,
+  type BookingEmailDetails,
+} from "../_shared/email-templates.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -45,55 +50,6 @@ function isPiercingBooking(booking: { booking_type: string; service_category?: s
   return bt === "piercing-session" || bt.includes("piercing");
 }
 
-function fmtBookingWindow(startsAt: string, endsAt: string): string {
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
-  const date = start.toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "Europe/London",
-  });
-  const startTime = start.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/London",
-  });
-  const endTime = end.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/London",
-  });
-  return `${date}, ${startTime} - ${endTime}`;
-}
-
-async function sendMail(params: {
-  host: string | null;
-  port: string | null;
-  username: string | null;
-  password: string | null;
-  from: string | null;
-  to: string;
-  subject: string;
-  html: string;
-}) {
-  const { host, port, username, password, from, to, subject, html } = params;
-  if (!host || !port || !username || !password || !from) {
-    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
-  }
-  const portNum = Number(port);
-  if (!Number.isFinite(portNum)) throw new Error("SMTP_PORT must be a number.");
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNum,
-    secure: portNum === 465,
-    auth: { user: username, pass: password },
-    requireTLS: portNum !== 465,
-  });
-  await transporter.sendMail({ from, to, subject, html });
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -110,11 +66,7 @@ serve(async (req) => {
       });
     }
 
-    const smtpHost = Deno.env.get("SMTP_HOST") ?? null;
-    const smtpPort = Deno.env.get("SMTP_PORT") ?? null;
-    const smtpUser = Deno.env.get("SMTP_USER") ?? null;
-    const smtpPass = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-    const emailFrom = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
+    const smtp = requireSmtpConfig();
 
     const admin = createClient(supabaseUrl, serviceKey);
     const now = Date.now();
@@ -143,6 +95,12 @@ serve(async (req) => {
     }
 
     const artistIds = [...settingsByArtist.keys()];
+    const { data: artistProfiles } = await admin.from("profiles").select("user_id, display_name").in("user_id", artistIds);
+    const artistNameById = new Map<string, string>();
+    for (const p of artistProfiles || []) {
+      artistNameById.set(p.user_id, p.display_name || "Artist");
+    }
+
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
       .select("id, artist_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount")
@@ -220,38 +178,34 @@ serve(async (req) => {
           candidate.type === "deposit"
             ? `Deposit reminder — ${brand.shopName}`
             : `Appointment reminder — ${brand.shopName}`;
-        const body =
+
+        const bookingDetails: BookingEmailDetails = {
+          id: booking.id,
+          client_name: booking.client_name,
+          client_email: booking.client_email,
+          client_phone: null,
+          artistName: artistNameById.get(booking.artist_id) || "Artist",
+          booking_type: booking.booking_type,
+          service_category: booking.service_category,
+          status: "confirmed",
+          starts_at: booking.starts_at,
+          ends_at: booking.ends_at,
+          deposit_amount: booking.deposit_amount,
+          deposit_paid: booking.deposit_paid,
+        };
+
+        const built =
           candidate.type === "deposit"
-            ? `Your booking is coming up (${fmtBookingWindow(booking.starts_at, booking.ends_at)}). Please complete your deposit to secure your session.`
-            : `Just a reminder for your upcoming booking: ${fmtBookingWindow(booking.starts_at, booking.ends_at)}.`;
-        const html = `
-          <div style="margin:0;background:#0b0b0d;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:#ececec;">
-            <div style="max-width:640px;margin:0 auto;background:#121216;border:1px solid #222;border-radius:14px;overflow:hidden;">
-              <div style="padding:20px 24px;background:#141419;text-align:center;">
-                ${emailBrandHeaderLarge(brand)}
-                <div style="margin-top:6px;font-size:12px;color:#c7c7c7;">${candidate.type === "deposit" ? "Deposit Reminder" : "Appointment Reminder"}</div>
-              </div>
-              <div style="padding:22px;">
-                <p style="margin:0 0 10px;">Hi ${booking.client_name},</p>
-                <p style="margin:0 0 14px;line-height:1.6;color:#d7d7d7;">${body}</p>
-                <div style="border:1px solid #2a2a2e;background:#0d0d11;border-radius:10px;padding:12px 14px;">
-                  <p style="margin:0 0 8px;"><strong>Booking type:</strong> ${booking.booking_type}</p>
-                  <p style="margin:0;"><strong>Date & time:</strong> ${fmtBookingWindow(booking.starts_at, booking.ends_at)}</p>
-                </div>
-              </div>
-            </div>
-          </div>`;
+            ? buildDepositReminderEmail(bookingDetails)
+            : buildAppointmentReminderEmail(bookingDetails);
 
         try {
-          await sendMail({
-            host: smtpHost,
-            port: smtpPort,
-            username: smtpUser,
-            password: smtpPass,
-            from: emailFrom,
+          await sendTransactionalEmail({
+            smtp,
             to: booking.client_email,
             subject,
-            html,
+            html: built.html,
+            attachments: built.attachments,
           });
           sent += 1;
           await admin.from("booking_reminder_events").insert({

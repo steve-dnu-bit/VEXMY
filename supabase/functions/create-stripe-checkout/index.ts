@@ -1,8 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
-import nodemailer from "npm:nodemailer@6.9.15";
-import { emailBrandHeader, emailSupportLine, getShopBranding } from "../_shared/branding.ts";
+import { getShopBranding } from "../_shared/branding.ts";
+import { getSmtpConfig, requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import {
+  buildDepositReceiptEmail,
+  buildDepositRequestEmail,
+  type BookingEmailDetails,
+} from "../_shared/email-templates.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -18,116 +23,6 @@ function parseBearerJwt(req: Request): string | null {
 }
 
 type CheckoutType = "deposit" | "invoice";
-
-async function sendDepositEmail(params: {
-  host: string | null;
-  port: string | null;
-  username: string | null;
-  password: string | null;
-  from: string | null;
-  to: string;
-  clientName: string;
-  startsAt: string;
-  checkoutUrl: string;
-}) {
-  const { host, port, username, password, from, to, clientName, startsAt, checkoutUrl } = params;
-  if (!host || !port || !username || !password || !from) {
-    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
-  }
-  const portNum = Number(port);
-  if (!Number.isFinite(portNum)) throw new Error("SMTP_PORT must be a number.");
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNum,
-    secure: portNum === 465,
-    auth: { user: username, pass: password },
-    requireTLS: portNum !== 465,
-  });
-
-  const brand = getShopBranding();
-  const bookingDate = new Date(startsAt).toLocaleString("en-GB", { timeZone: "Europe/London" });
-  const safeName = clientName || "there";
-  const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#1f1f1f;background:#f2f2f2;padding:28px 12px;">
-      <div style="max-width:680px;margin:0 auto;background:#fff;border:1px solid #e7e7e7;border-radius:12px;overflow:hidden;">
-        <div style="background:#121212;padding:20px 24px;text-align:center;">
-          ${emailBrandHeader(brand)}
-          <div style="font-size:13px;color:#d4d4d4;margin-top:4px;">Deposit Payment Reminder</div>
-        </div>
-        <div style="padding:22px;">
-          <p style="margin:0 0 12px;font-size:15px;">Hi ${safeName},</p>
-          <p style="margin:0 0 14px;font-size:14px;">Your session on <strong>${bookingDate}</strong> has a pending deposit. Please use the secure link below to complete payment.</p>
-          <p style="margin:18px 0;">
-            <a href="${checkoutUrl}" style="display:inline-block;background:#f4c24d;color:#121212;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:8px;">Pay deposit securely</a>
-          </p>
-          <p style="margin:8px 0 0;font-size:12px;color:#5c5c5c;">If the button does not work, copy this link: <a href="${checkoutUrl}">${checkoutUrl}</a></p>
-          ${emailSupportLine(brand)}
-        </div>
-      </div>
-    </div>
-  `;
-
-  await transporter.sendMail({
-    from,
-    to,
-    subject: `Deposit payment reminder — ${brand.shopName}`,
-    html,
-  });
-}
-
-async function sendDepositReceiptEmail(params: {
-  host: string | null;
-  port: string | null;
-  username: string | null;
-  password: string | null;
-  from: string | null;
-  to: string;
-  clientName: string;
-  startsAt: string;
-  amountGbp: number;
-}) {
-  const { host, port, username, password, from, to, clientName, startsAt, amountGbp } = params;
-  if (!host || !port || !username || !password || !from) {
-    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
-  }
-  const portNum = Number(port);
-  if (!Number.isFinite(portNum)) throw new Error("SMTP_PORT must be a number.");
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNum,
-    secure: portNum === 465,
-    auth: { user: username, pass: password },
-    requireTLS: portNum !== 465,
-  });
-
-  const brand = getShopBranding();
-  const bookingDate = new Date(startsAt).toLocaleString("en-GB", { timeZone: "Europe/London" });
-  const safeName = clientName || "there";
-  const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#1f1f1f;background:#f2f2f2;padding:28px 12px;">
-      <div style="max-width:680px;margin:0 auto;background:#fff;border:1px solid #e7e7e7;border-radius:12px;overflow:hidden;">
-        <div style="background:#121212;padding:20px 24px;text-align:center;">
-          ${emailBrandHeader(brand)}
-          <div style="font-size:13px;color:#d4d4d4;margin-top:4px;">Deposit Payment Confirmation</div>
-        </div>
-        <div style="padding:22px;">
-          <p style="margin:0 0 12px;font-size:15px;">Hi ${safeName},</p>
-          <p style="margin:0 0 14px;font-size:14px;">We've received your deposit payment of <strong>£${amountGbp.toFixed(2)}</strong>.</p>
-          <p style="margin:0 0 12px;font-size:14px;">Booking date: <strong>${bookingDate}</strong></p>
-          <p style="margin:0;font-size:13px;color:#555;">Thanks for securing your session. If you have any questions, reply to this email.</p>
-        </div>
-      </div>
-    </div>
-  `;
-
-  await transporter.sendMail({
-    from,
-    to,
-    subject: `Deposit received — ${brand.shopName}`,
-    html,
-  });
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -152,11 +47,7 @@ serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const smtpHost = Deno.env.get("SMTP_HOST") ?? null;
-    const smtpPort = Deno.env.get("SMTP_PORT") ?? null;
-    const smtpUser = Deno.env.get("SMTP_USER") ?? null;
-    const smtpPass = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-    const emailFrom = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
+    const smtpConfig = getSmtpConfig();
 
     const { data: authData, error: authError } = await admin.auth.getUser(token);
     const user = authData.user;
@@ -209,7 +100,7 @@ serve(async (req) => {
 
       const { data: booking, error } = await admin
         .from("bookings")
-        .select("id, client_user_id, client_name, client_email, starts_at, deposit_amount, deposit_paid, vip_client")
+        .select("id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid, vip_client")
         .eq("id", bookingId)
         .single();
       if (error || !booking) {
@@ -275,18 +166,39 @@ serve(async (req) => {
           .limit(1);
         const newlyMarkedPaid = (updatedRows?.length || 0) > 0;
         const receiptTo = booking.client_email || session.customer_details?.email || session.customer_email || null;
-        if (newlyMarkedPaid && receiptTo) {
+        if (newlyMarkedPaid && receiptTo && smtpConfig) {
           try {
-            await sendDepositReceiptEmail({
-              host: smtpHost,
-              port: smtpPort,
-              username: smtpUser,
-              password: smtpPass,
-              from: emailFrom,
-              to: receiptTo,
+            const { data: artistProfile } = await admin
+              .from("profiles")
+              .select("display_name")
+              .eq("user_id", booking.artist_id)
+              .maybeSingle();
+            const bookingDetails: BookingEmailDetails = {
+              id: booking.id,
+              client_name: booking.client_name,
+              client_email: booking.client_email,
+              client_phone: null,
+              artistName: artistProfile?.display_name || "Artist",
+              booking_type: booking.booking_type,
+              service_category: booking.service_category,
+              status: booking.status || "confirmed",
+              starts_at: booking.starts_at,
+              ends_at: booking.ends_at,
+              deposit_amount: booking.deposit_amount,
+              deposit_paid: true,
+            };
+            const receipt = buildDepositReceiptEmail({
               clientName: booking.client_name || "there",
               startsAt: booking.starts_at,
               amountGbp: Number(booking.deposit_amount ?? 50),
+              booking: bookingDetails,
+            });
+            await sendTransactionalEmail({
+              smtp: smtpConfig,
+              to: receiptTo,
+              subject: `Deposit received — ${getShopBranding().shopName}`,
+              html: receipt.html,
+              attachments: receipt.attachments,
             });
           } catch (receiptError) {
             console.error("Deposit receipt email failed from confirm flow", {
@@ -355,16 +267,18 @@ serve(async (req) => {
           emailError = "Checkout URL missing";
         } else {
           try {
-            await sendDepositEmail({
-              host: smtpHost,
-              port: smtpPort,
-              username: smtpUser,
-              password: smtpPass,
-              from: emailFrom,
-              to: booking.client_email,
+            const smtp = requireSmtpConfig();
+            const html = buildDepositRequestEmail({
               clientName: booking.client_name,
               startsAt: booking.starts_at,
               checkoutUrl: session.url,
+              depositAmount: booking.deposit_amount,
+            });
+            await sendTransactionalEmail({
+              smtp,
+              to: booking.client_email,
+              subject: `Deposit payment reminder — ${getShopBranding().shopName}`,
+              html,
             });
             emailSent = true;
           } catch (mailErr) {

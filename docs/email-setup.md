@@ -113,9 +113,36 @@ This fixes **Forgot password** on vexmy.com.
    - Site URL: `https://vexmy.com`
    - Redirect URLs: `https://vexmy.com/**`
 
-5. **Authentication** → **Email Templates** — optional: edit copy to say “VexMy” instead of generic Supabase text.
+5. **Authentication** → **Email Templates** — paste HTML that matches the VexMy dark/gold style (see `docs/supabase-auth-email-templates.html`).
 
 6. Send a **test email** from SMTP settings if available, or trigger forgot-password on `/auth`.
+
+---
+
+## Unified transactional templates (edge functions)
+
+All studio emails share one layout in `supabase/functions/_shared/email.ts` and `email-templates.ts`:
+
+| Email | Includes `.ics` calendar file |
+|-------|-------------------------------|
+| Booking confirmed / updated / cancelled | Yes |
+| Appointment reminder | Yes |
+| Deposit reminder | Yes |
+| Deposit request (Stripe checkout link) | No |
+| Deposit receipt | Yes |
+| Invoice (PDF attached) | No |
+| Chat update | No |
+| Tattoo / piercing aftercare | No |
+| Artist / customer invite | No |
+
+Booking `.ics` files work with Apple Calendar, Google Calendar, and Outlook. Customers can open the attachment to add or update the appointment.
+
+After changing template code, redeploy affected edge functions:
+
+```powershell
+cd inkaholics-29cc97fa-main
+npx supabase functions deploy booking-notifications send-booking-reminders create-stripe-checkout stripe-webhook send-chat-update-email send-invoice send-aftercare-emails invite-user --project-ref tkremoxfkgoiuwghtzwd
+```
 
 ---
 

@@ -26,7 +26,7 @@ interface ReminderSettings {
 }
 
 const defaultSettings: ReminderSettings = {
-  bookingConfirmation: false,
+  bookingConfirmation: true,
   depositReminder: false,
   appointmentReminder: false,
   depositReminderTiming: "24h",

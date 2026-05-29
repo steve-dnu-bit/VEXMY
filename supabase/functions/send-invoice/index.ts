@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.15";
 import Stripe from "npm:stripe@16.12.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
-import { emailBrandHeader, emailSupportLine, getShopBranding } from "../_shared/branding.ts";
+import { getShopBranding } from "../_shared/branding.ts";
+import { requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { buildInvoiceEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -18,51 +19,9 @@ function parseBearerJwt(req: Request): string | null {
   return m ? m[1].trim() : null;
 }
 
-async function trySendEmail(params: {
-  host: string | null;
-  port: string | null;
-  username: string | null;
-  password: string | null;
-  from: string | null;
-  to: string;
-  subject: string;
-  html: string;
-  attachments?: Array<{ filename: string; content: string; encoding: "base64"; contentType: string }>;
-}): Promise<void> {
-  const { host, port, username, password, from, to, subject, html, attachments } = params;
-  if (!host || !port || !username || !password || !from) {
-    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
-  }
-
-  const portNum = Number(port);
-  if (!Number.isFinite(portNum)) {
-    throw new Error("SMTP_PORT must be a number.");
-  }
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNum,
-    secure: portNum === 465,
-    auth: {
-      user: username,
-      pass: password,
-    },
-    requireTLS: portNum !== 465,
-  });
-
-  await transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-    attachments,
-  });
-}
-
 function toCurrency(n: number): string {
   return `£${Number(n).toFixed(2)}`;
 }
-
 
 async function createInvoiceCheckoutUrl(params: {
   stripeSecret: string;
@@ -301,11 +260,7 @@ serve(async (req) => {
       });
     }
 
-    const smtpHost = Deno.env.get("SMTP_HOST") ?? null;
-    const smtpPort = Deno.env.get("SMTP_PORT") ?? null;
-    const smtpUser = Deno.env.get("SMTP_USER") ?? null;
-    const smtpPass = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-    const emailFrom = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
+    const smtp = requireSmtpConfig();
 
     const issueText = new Date().toLocaleDateString("en-GB");
     const dueText = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString("en-GB") : "N/A";
@@ -355,36 +310,19 @@ serve(async (req) => {
     }
 
     const brand = getShopBranding();
-    const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.5;color:#1f1f1f;background:#f2f2f2;padding:28px 12px;">
-        <div style="max-width:700px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.06);">
-          <div style="background:#121212;padding:20px 24px;text-align:center;">
-            ${emailBrandHeader(brand)}
-            <div style="font-size:13px;color:#d4d4d4;margin-top:3px;">Invoice ${invoice.invoice_number}</div>
-            <div style="font-size:12px;color:#d4d4d4;margin-top:4px;">Legal name: ${brand.legalName}</div>
-            <div style="font-size:12px;color:#d4d4d4;">Trading name: ${brand.tradingName}</div>
-          </div>
-          <div style="padding:24px;text-align:center;">
-            <p style="margin:0 0 12px;font-size:16px;">Hi ${firstName},</p>
-            <p style="margin:0 0 16px;font-size:15px;">Your personalised invoice from <strong>${brand.shopName}</strong> is ready. A detailed PDF copy is attached.</p>
-            <div style="display:inline-block;min-width:360px;max-width:100%;text-align:left;border:1px solid #ececec;border-radius:10px;padding:14px 16px;background:#fafafa;margin-bottom:14px;">
-              <div style="display:flex;justify-content:space-between;font-size:14px;"><span>Invoice number</span><strong>${invoice.invoice_number}</strong></div>
-              <div style="display:flex;justify-content:space-between;font-size:14px;"><span>Issue date</span><strong>${issueText}</strong></div>
-              <div style="display:flex;justify-content:space-between;font-size:14px;"><span>Due date</span><strong>${dueText}</strong></div>
-              <div style="display:flex;justify-content:space-between;font-size:14px;"><span>Subtotal</span><strong>${toCurrency(Number(invoice.subtotal))}</strong></div>
-              <div style="display:flex;justify-content:space-between;font-size:14px;"><span>VAT</span><strong>${toCurrency(Number(invoice.tax_amount))}</strong></div>
-              <div style="display:flex;justify-content:space-between;font-size:17px;margin-top:5px;border-top:1px solid #ddd;padding-top:7px;"><span>Total due</span><strong>${toCurrency(Number(invoice.total))}</strong></div>
-              <div style="margin-top:8px;font-size:13px;color:#444;"><strong>Payment method:</strong> ${paymentMethodLabel}<br/><strong>Payment option:</strong> ${paymentTermLabel}</div>
-            </div>
-            ${invoice.notes ? `<p style="margin:12px auto 0;max-width:520px;text-align:left;background:#fff8e8;border:1px solid #f0dca8;border-radius:8px;padding:10px 12px;"><strong>Note from studio:</strong> ${invoice.notes}</p>` : ""}
-            ${payUrl ? `<p style="margin:16px 0 0;"><a href="${payUrl}" style="display:inline-block;background:#f4c24d;color:#121212;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:8px;">Pay this invoice securely</a></p><p style="margin:8px 0 0;font-size:12px;color:#666;">If the button does not work, copy this link: <a href="${payUrl}">${payUrl}</a></p>` : ""}
-            <p style="margin:18px 0 0;font-size:14px;">Please use <strong>${invoice.invoice_number}</strong> as your payment reference.</p>
-            ${emailSupportLine(brand)}
-            <p style="margin:14px 0 0;">Thanks again,<br/><strong>${brand.shopName} Team</strong></p>
-          </div>
-        </div>
-      </div>
-    `;
+    const html = buildInvoiceEmail({
+      clientFirstName: firstName,
+      invoiceNumber: invoice.invoice_number,
+      issueText,
+      dueText,
+      subtotal: Number(invoice.subtotal),
+      taxAmount: Number(invoice.tax_amount),
+      total: Number(invoice.total),
+      paymentMethodLabel,
+      paymentTermLabel,
+      notes: invoice.notes,
+      payUrl,
+    });
 
     const pdfBase64 = await buildInvoicePdf({
       invoiceNumber: invoice.invoice_number,
@@ -417,12 +355,8 @@ serve(async (req) => {
     let emailSent = false;
     let emailError: string | null = null;
     try {
-      await trySendEmail({
-        host: smtpHost,
-        port: smtpPort,
-        username: smtpUser,
-        password: smtpPass,
-        from: emailFrom,
+      await sendTransactionalEmail({
+        smtp,
         to: invoice.client_email,
         subject: `Invoice ${invoice.invoice_number} — ${brand.shopName}`,
         html,

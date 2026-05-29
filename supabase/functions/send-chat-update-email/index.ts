@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.15";
-import { emailBrandHeader, getShopBranding } from "../_shared/branding.ts";
+import { getShopBranding } from "../_shared/branding.ts";
+import { requireSmtpConfig, sendTransactionalEmail, siteUrl } from "../_shared/email.ts";
+import { buildChatUpdateEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -14,39 +15,6 @@ function parseBearerJwt(req: Request): string | null {
   if (!authHeader) return null;
   const m = /^Bearer\s+(.+)$/i.exec(authHeader.trim());
   return m ? m[1].trim() : null;
-}
-
-async function sendEmail(params: {
-  host: string | null;
-  port: string | null;
-  username: string | null;
-  password: string | null;
-  from: string | null;
-  to: string;
-  subject: string;
-  html: string;
-}) {
-  const { host, port, username, password, from, to, subject, html } = params;
-  if (!host || !port || !username || !password || !from) {
-    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
-  }
-  const portNum = Number(port);
-  if (!Number.isFinite(portNum)) throw new Error("SMTP_PORT must be a number.");
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNum,
-    secure: portNum === 465,
-    auth: { user: username, pass: password },
-    requireTLS: portNum !== 465,
-  });
-
-  await transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-  });
 }
 
 serve(async (req) => {
@@ -132,52 +100,28 @@ serve(async (req) => {
       });
     }
 
-    const smtpHost = Deno.env.get("SMTP_HOST") ?? null;
-    const smtpPort = Deno.env.get("SMTP_PORT") ?? null;
-    const smtpUser = Deno.env.get("SMTP_USER") ?? null;
-    const smtpPass = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-    const emailFrom = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
-    const siteUrl = (Deno.env.get("SITE_URL") || "http://localhost:5173").replace(/\/$/, "");
-
+    const baseUrl = siteUrl();
     const isArtistRecipient = recipientId === thread.artist_id;
     const chatPath = isArtistRecipient
       ? `/inbox?customerId=${encodeURIComponent(thread.customer_id)}`
       : "/account/chats";
-    const chatUrl = `${siteUrl}${chatPath}`;
+    const chatUrl = `${baseUrl}${chatPath}`;
 
     const senderName = senderProfile?.display_name || sender.email || "Someone";
     const recipientName = recipientProfile?.display_name || "there";
-
     const brand = getShopBranding();
-    const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.55;color:#1f1f1f;background:#f2f2f2;padding:28px 12px;">
-        <div style="max-width:680px;margin:0 auto;background:#fff;border:1px solid #e7e7e7;border-radius:12px;overflow:hidden;">
-          <div style="background:#121212;padding:20px 24px;text-align:center;">
-            ${emailBrandHeader(brand)}
-            <div style="font-size:13px;color:#d4d4d4;margin-top:4px;">New Chat Update</div>
-          </div>
-          <div style="padding:22px;">
-            <p style="margin:0 0 12px;font-size:15px;">Hi ${recipientName},</p>
-            <p style="margin:0 0 14px;font-size:14px;"><strong>${senderName}</strong> has posted a new chat update.</p>
-            <p style="margin:0 0 14px;font-size:14px;background:#faf7ea;border:1px solid #efe1b2;border-radius:8px;padding:10px 12px;">${previewText}</p>
-            <p style="margin:18px 0;">
-              <a href="${chatUrl}" style="display:inline-block;background:#f4c24d;color:#121212;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:8px;">Open chat</a>
-            </p>
-            <p style="margin:8px 0 0;font-size:12px;color:#5c5c5c;">If the button does not work, copy this link: <a href="${chatUrl}">${chatUrl}</a></p>
-            <p style="margin:14px 0 0;font-size:13px;color:#555;">Please sign in first if prompted.</p>
-          </div>
-        </div>
-      </div>
-    `;
 
-    await sendEmail({
-      host: smtpHost,
-      port: smtpPort,
-      username: smtpUser,
-      password: smtpPass,
-      from: emailFrom,
+    const html = buildChatUpdateEmail({
+      recipientName,
+      senderName,
+      previewText,
+      chatUrl,
+    });
+
+    await sendTransactionalEmail({
+      smtp: requireSmtpConfig(),
       to: recipientEmail,
-      subject: `New chat update - ${brand.shopName}`,
+      subject: `New chat update — ${brand.shopName}`,
       html,
     });
 

@@ -119,6 +119,10 @@ type BookingNotificationPayload = {
 type BookingNotificationResult = {
   ok?: boolean;
   sent?: number;
+  attempted?: number;
+  emailAttempted?: boolean;
+  failedCount?: number;
+  skipped?: string;
   failed?: Array<{ email?: string; message?: string }>;
 };
 
@@ -572,13 +576,25 @@ const BookingDialog = ({
     });
     if (error) {
       const status = (error as any)?.context?.status ?? (error as any)?.status;
+      const errBody = (error as any)?.context?.body;
+      let errMsg = error.message;
+      if (typeof errBody === "string") {
+        try {
+          const parsed = JSON.parse(errBody);
+          if (parsed?.error) errMsg = parsed.error;
+          if (parsed?.hint) errMsg += ` — ${parsed.hint}`;
+        } catch { /* ignore */ }
+      }
       if (status === 401) {
         toast.warning("Booking saved, but session expired (401). Please sign in again.");
         return;
       }
-      // Booking CRUD should succeed even if notification delivery fails.
+      if (status === 503) {
+        toast.warning(`Booking saved, but email is not configured: ${errMsg}`);
+        return;
+      }
       console.error("Booking notification failed:", error);
-      toast.warning("Booking saved, but email notification could not be sent.");
+      toast.warning(`Booking saved, but email notification could not be sent: ${errMsg}`);
       return;
     }
 
@@ -587,6 +603,22 @@ const BookingDialog = ({
       const details = first?.email ? `${first.email}: ${first.message || "send failed"}` : first?.message || "send failed";
       toast.warning(`Booking saved, but some emails failed (${details}).`);
       return;
+    }
+
+    if (data?.skipped === "booking_confirmation_disabled") {
+      toast.warning("Booking saved, but confirmation emails are turned off. Enable them in Settings → Reminders.");
+      return;
+    }
+
+    if (data?.emailAttempted === false && (data.sent ?? 0) === 0) {
+      if (!booking.client_email?.trim()) {
+        toast.warning("Booking saved, but no client email was provided — add an email to send confirmations.");
+      }
+      return;
+    }
+
+    if ((data?.sent ?? 0) > 0) {
+      toast.success(`Booking email sent (${data.sent} recipient${data.sent === 1 ? "" : "s"}). Check inbox and spam.`);
     }
 
     notificationCooldownRef.current.set(dedupeKey, now);

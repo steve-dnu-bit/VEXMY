@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.15";
 import {
   callerHasStaffAccess,
   callerIsAdmin,
@@ -9,6 +8,7 @@ import {
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
+import { getSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -26,32 +26,21 @@ function withCustomerMigrationHint(message: string, inviteType: string): string 
   return message;
 }
 
-async function trySendEmail(params: {
-  host: string | null;
-  port: string | null;
-  username: string | null;
-  password: string | null;
-  from: string | null;
+async function sendInviteEmail(params: {
   to: string;
   subject: string;
   html: string;
 }): Promise<void> {
-  const { host, port, username, password, from, to, subject, html } = params;
-  if (!host || !port || !username || !password || !from) {
+  const smtp = getSmtpConfig();
+  if (!smtp) {
     throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
   }
-  const portNum = Number(port);
-  if (!Number.isFinite(portNum)) throw new Error("SMTP_PORT must be a number.");
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNum,
-    secure: portNum === 465,
-    auth: { user: username, pass: password },
-    requireTLS: portNum !== 465,
+  await sendTransactionalEmail({
+    smtp,
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
   });
-
-  await transporter.sendMail({ from, to, subject, html });
 }
 
 function escapeHtml(value: string): string {
@@ -300,19 +289,8 @@ serve(async (req) => {
         inviteData = fallback.data;
         inviteErr = fallback.error;
       } else {
-        const smtpHost = Deno.env.get("SMTP_HOST") ?? null;
-        const smtpPort = Deno.env.get("SMTP_PORT") ?? null;
-        const smtpUser = Deno.env.get("SMTP_USER") ?? null;
-        const smtpPass = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-        const emailFrom = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
-
         try {
-          await trySendEmail({
-            host: smtpHost,
-            port: smtpPort,
-            username: smtpUser,
-            password: smtpPass,
-            from: emailFrom,
+          await sendInviteEmail({
             to: email,
             subject: `You are invited to ${getShopBranding().shopName} (Magic Link)`,
             html: buildArtistInviteHtml({ magicLink: linkData.properties.action_link }),
@@ -347,19 +325,8 @@ serve(async (req) => {
         inviteData = fallback.data;
         inviteErr = fallback.error;
       } else {
-        const smtpHost = Deno.env.get("SMTP_HOST") ?? null;
-        const smtpPort = Deno.env.get("SMTP_PORT") ?? null;
-        const smtpUser = Deno.env.get("SMTP_USER") ?? null;
-        const smtpPass = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-        const emailFrom = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
-
         try {
-          await trySendEmail({
-            host: smtpHost,
-            port: smtpPort,
-            username: smtpUser,
-            password: smtpPass,
-            from: emailFrom,
+          await sendInviteEmail({
             to: email,
             subject: `Your ${getShopBranding().shopName} invite — magic link to set up your profile`,
             html: buildCustomerInviteHtml({ magicLink: linkData.properties.action_link }),
