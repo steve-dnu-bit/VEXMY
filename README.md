@@ -70,6 +70,10 @@ App runs at http://localhost:8080
 
 Each deployment can customize branding via environment variables (frontend `VITE_*` and edge function secrets). The `shop_settings` table stores shop details in the database for future multi-tenant expansion.
 
+## Production (vexmy.com / Netlify)
+
+See **[docs/vexmy-go-live-checklist.md](docs/vexmy-go-live-checklist.md)** for login, Supabase redirect URLs, Netlify env vars, and edge function secrets.
+
 ## Platform roadmap
 
 Current architecture is single-tenant per Supabase project. Multi-tenant SaaS (subdomain routing, organization-scoped RLS, Stripe Connect per shop) is the next phase — the `shop_settings` table and env-driven branding are the foundation.

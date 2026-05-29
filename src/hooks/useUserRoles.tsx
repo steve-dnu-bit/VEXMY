@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
+import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 
 export type AppRole = "admin" | "artist" | "customer";
 
@@ -53,6 +55,29 @@ export async function fetchHasStaffRole(userId: string): Promise<boolean> {
     const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     if (error) return false;
     return (data ?? []).some((r) => r.role === "admin" || r.role === "artist");
+  } catch {
+    return false;
+  }
+}
+
+/** Where to send a user immediately after sign-in (matches AuthHomeRedirect). */
+export async function resolvePostLoginPath(userId: string, rawNext: string | null): Promise<string> {
+  if (await needsArtistProfileSetup(userId)) return "/artist-profile-settings";
+  if (await needsCustomerProfileSetup(userId)) return "/customer-profile-setup";
+  const next = getSafeNextPath(rawNext);
+  if (next) return next;
+  if (await fetchHasNoAppRoles(userId)) return "/account";
+  if (await fetchIsOnlyCustomer(userId)) return "/account";
+  if (await fetchHasStaffAccess(userId)) return "/schedule";
+  return "/account";
+}
+
+/** Signed-in user with no rows in user_roles (e.g. mistaken signup email). */
+export async function fetchHasNoAppRoles(userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    if (error) return false;
+    return (data?.length ?? 0) === 0;
   } catch {
     return false;
   }

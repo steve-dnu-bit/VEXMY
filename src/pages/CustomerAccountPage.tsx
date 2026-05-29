@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
-import { fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
+import { fetchHasStaffAccess } from "@/hooks/useUserRoles";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Calendar, MessageSquare, Receipt, Star, User, Moon, Sun } from "lucide-react";
@@ -118,8 +118,7 @@ const CustomerAccountPage = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const only = await fetchIsOnlyCustomer(user.id);
-      if (!only) {
+      if (await fetchHasStaffAccess(user.id)) {
         navigate("/schedule", { replace: true });
         return;
       }

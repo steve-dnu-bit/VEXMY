@@ -5,6 +5,18 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+/** Call before auth — surfaces missing Netlify env vars in production builds. */
+export function getSupabaseConfigError(): string | null {
+  if (!SUPABASE_URL?.trim()) return "VITE_SUPABASE_URL is not set (add in Netlify → Environment variables, then redeploy).";
+  if (!SUPABASE_PUBLISHABLE_KEY?.trim()) {
+    return "VITE_SUPABASE_PUBLISHABLE_KEY is not set (use the Supabase anon public key, then redeploy).";
+  }
+  if (!SUPABASE_URL.includes("supabase.co")) {
+    return "VITE_SUPABASE_URL does not look like a Supabase project URL.";
+  }
+  return null;
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

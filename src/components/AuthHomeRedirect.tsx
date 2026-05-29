@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
-import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
-import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
+import { resolvePostLoginPath } from "@/hooks/useUserRoles";
 
 /** After login: customers → /account, staff → /schedule */
 const AuthHomeRedirect = () => {
@@ -13,25 +11,11 @@ const AuthHomeRedirect = () => {
 
   useEffect(() => {
     if (!user) return;
-    const next = getSafeNextPath(searchParams.get("next"));
     (async () => {
       try {
-        if (await needsArtistProfileSetup(user.id)) {
-          setPath("/artist-profile-settings");
-          return;
-        }
-        if (await needsCustomerProfileSetup(user.id)) {
-          setPath("/customer-profile-setup");
-          return;
-        }
-        if (next) {
-          setPath(next);
-          return;
-        }
-        const only = await fetchIsOnlyCustomer(user.id);
-        setPath(only ? "/account" : "/schedule");
+        setPath(await resolvePostLoginPath(user.id, searchParams.get("next")));
       } catch {
-        setPath("/schedule");
+        setPath("/account");
       }
     })();
   }, [searchParams, user]);

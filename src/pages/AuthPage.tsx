@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseConfigError, supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import MFAVerify from "@/components/auth/MFAVerify";
-import { fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
-import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
-import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
+import { resolvePostLoginPath } from "@/hooks/useUserRoles";
 import { Mail } from "lucide-react";
 import PasswordField from "@/components/auth/PasswordField";
 import { BRANDING } from "@/lib/branding";
@@ -29,6 +27,19 @@ const AuthPage = () => {
   const recoveryMode =
     searchParams.get("mode") === "recovery" ||
     (typeof window !== "undefined" && window.location.hash.includes("type=recovery"));
+
+  const configError = getSupabaseConfigError();
+
+  const authErrorMessage = (error: { message?: string }) => {
+    const msg = error.message || "Something went wrong";
+    if (/invalid login credentials/i.test(msg)) {
+      return "Invalid email or password. VexMy uses a new database — your old Inkaholics password will not work until you set a new one with “Forgot your password?”.";
+    }
+    if (/email not confirmed/i.test(msg)) {
+      return "Please confirm your email first (check your inbox), then try again.";
+    }
+    return msg;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,22 +62,10 @@ const AuthPage = () => {
         }
 
         if (data.user) {
-          if (await needsArtistProfileSetup(data.user.id)) {
-            navigate("/artist-profile-settings");
-            return;
-          }
-          if (await needsCustomerProfileSetup(data.user.id)) {
-            navigate("/customer-profile-setup");
-            return;
-          }
-          const safeNext = getSafeNextPath(searchParams.get("next"));
-          if (safeNext) {
-            navigate(safeNext);
-            return;
-          }
-          const only = await fetchIsOnlyCustomer(data.user.id);
-          navigate(only ? "/account" : "/schedule");
-        } else navigate("/schedule");
+          navigate(await resolvePostLoginPath(data.user.id, searchParams.get("next")));
+        } else {
+          navigate("/account");
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -85,7 +84,7 @@ const AuthPage = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: authErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -96,22 +95,10 @@ const AuthPage = () => {
   const handleMFAVerified = async () => {
     const { data: { user: u } } = await supabase.auth.getUser();
     if (u) {
-      if (await needsArtistProfileSetup(u.id)) {
-        navigate("/artist-profile-settings");
-        return;
-      }
-      if (await needsCustomerProfileSetup(u.id)) {
-        navigate("/customer-profile-setup");
-        return;
-      }
-      const safeNext = getSafeNextPath(searchParams.get("next"));
-      if (safeNext) {
-        navigate(safeNext);
-        return;
-      }
-      const only = await fetchIsOnlyCustomer(u.id);
-      navigate(only ? "/account" : "/schedule");
-    } else navigate("/schedule");
+      navigate(await resolvePostLoginPath(u.id, searchParams.get("next")));
+    } else {
+      navigate("/account");
+    }
   };
 
   const handleMFACancel = async () => {
@@ -201,6 +188,12 @@ const AuthPage = () => {
           <div className="mx-auto mt-2 h-px w-36 bg-gradient-to-r from-transparent via-[#d4af37]/80 to-transparent" />
           <p className="mt-1.5 text-[10px] tracking-[0.3em] text-[#d4af37]/85">{BRANDING.platformTagline.toUpperCase()}</p>
         </div>
+
+        {configError ? (
+          <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {configError}
+          </div>
+        ) : null}
 
         <div className="rounded-2xl border border-[#d4af37]/40 bg-[#101216]/82 p-5 shadow-[0_14px_32px_rgba(0,0,0,0.48)] backdrop-blur-sm">
           {mfaFactorId ? (

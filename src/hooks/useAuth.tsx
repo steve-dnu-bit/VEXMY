@@ -14,37 +14,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let settled = false;
-    const finish = (nextUser: User | null) => {
-      if (settled) return;
-      settled = true;
+    let cancelled = false;
+
+    const syncUser = (nextUser: User | null) => {
+      if (cancelled) return;
       setUser(nextUser);
       setLoading(false);
     };
 
-    const timeout = window.setTimeout(() => finish(null), 8000);
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      window.clearTimeout(timeout);
-      finish(session?.user ?? null);
+      syncUser(session?.user ?? null);
     });
 
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
-        window.clearTimeout(timeout);
-        finish(session?.user ?? null);
+        syncUser(session?.user ?? null);
       })
       .catch(() => {
-        window.clearTimeout(timeout);
-        finish(null);
+        syncUser(null);
       });
 
     return () => {
-      settled = true;
-      window.clearTimeout(timeout);
+      cancelled = true;
       subscription.unsubscribe();
     };
   }, []);
