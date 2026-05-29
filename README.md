@@ -33,7 +33,7 @@ Set edge function secrets in Supabase (Dashboard → Edge Functions → Secrets)
 | Secret | Purpose |
 |--------|---------|
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Payments |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | Email |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | Email (edge functions + see [docs/email-setup.md](docs/email-setup.md)) |
 | `SITE_URL` | App URL for links in emails |
 | `CRON_SECRET` | Secures scheduled reminder/aftercare jobs |
 | `SHOP_NAME`, `SHOP_LEGAL_NAME`, `SHOP_TRADING_NAME` | Shop branding in emails/PDFs |
