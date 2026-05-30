@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { format, parseISO, startOfDay } from "date-fns";
 import { toast } from "sonner";
 import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
+import { useTranslation } from "react-i18next";
 
 type BookingDepositRow = {
   id: string;
@@ -21,6 +22,7 @@ type BookingDepositRow = {
 const DEPOSIT_GBP = 50;
 
 const CustomerDepositsPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,7 +38,7 @@ const CustomerDepositsPage = () => {
       .eq("client_user_id", user.id)
       .order("starts_at", { ascending: true });
     if (error) {
-      toast.error(error.message || "Could not load deposits");
+      toast.error(error.message || t("customer.couldNotLoadDeposits"));
       setLoading(false);
       return;
     }
@@ -87,7 +89,7 @@ const CustomerDepositsPage = () => {
     };
 
     if (status === "success") {
-      toast.success("Payment received. Confirming your deposit...");
+      toast.success(t("customer.paymentReceivedConfirming"));
       if (bookingId && user) {
         const confirmFromStripe = async () => {
           if (!sessionId) return false;
@@ -104,15 +106,15 @@ const CustomerDepositsPage = () => {
         void confirmFromStripe().then((confirmedNow) => {
           if (confirmedNow) {
             void loadDeposits({ silent: true });
-            toast.success("Deposit confirmed.");
+            toast.success(t("customer.depositConfirmed"));
             return;
           }
           void waitForDepositConfirmation(bookingId).then((confirmed) => {
             if (confirmed) {
-              toast.success("Deposit confirmed.");
+              toast.success(t("customer.depositConfirmed"));
               return;
             }
-            toast.message("Payment succeeded, but confirmation is still processing. This page will update automatically.");
+            toast.message(t("customer.paymentSucceededProcessing"));
             void loadDeposits({ silent: true });
           });
         });
@@ -127,7 +129,7 @@ const CustomerDepositsPage = () => {
         return next;
       }, { replace: true });
     } else if (status === "cancel") {
-      toast.info("Deposit payment cancelled.");
+      toast.info(t("customer.depositPaymentCancelled"));
       void loadDeposits({ silent: true });
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
@@ -148,20 +150,20 @@ const CustomerDepositsPage = () => {
     <CustomerLayout>
       <div className="space-y-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">Deposit payment</h1>
-          <p className="text-sm text-muted-foreground mt-1">Pay your £{DEPOSIT_GBP} deposit to secure your booking</p>
+          <h1 className="font-display text-2xl font-bold text-gradient-gold">{t("customer.depositPayment")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("customer.depositSubtitle", { amount: DEPOSIT_GBP })}</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Upcoming deposits</CardTitle>
-            <CardDescription>Only bookings with an unpaid deposit are shown here.</CardDescription>
+            <CardTitle className="text-base">{t("customer.upcomingDepositsTitle")}</CardTitle>
+            <CardDescription>{t("customer.upcomingDepositsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
+              <p className="text-sm text-muted-foreground">{t("customer.loadingPortal")}</p>
             ) : upcomingUnpaid.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-3">No unpaid deposits right now.</p>
+              <p className="text-sm text-muted-foreground py-3">{t("customer.noUnpaidDeposits")}</p>
             ) : (
               upcomingUnpaid.map((b) => (
                 <div key={b.id} className="rounded-lg border border-border p-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -180,7 +182,7 @@ const CustomerDepositsPage = () => {
                       className="shrink-0 self-start sm:self-center"
                       onClick={() => navigate(`/deposit-payment/checkout?bookingId=${encodeURIComponent(b.id)}`)}
                     >
-                      Pay £{DEPOSIT_GBP}
+                      {t("customer.payAmount", { amount: DEPOSIT_GBP })}
                     </Button>
                   )}
                 </div>
@@ -188,7 +190,7 @@ const CustomerDepositsPage = () => {
             )}
 
             <Button variant="outline" className="w-full" onClick={() => navigate("/account")}>
-              Back to account
+              {t("customer.backToAccount")}
             </Button>
           </CardContent>
         </Card>

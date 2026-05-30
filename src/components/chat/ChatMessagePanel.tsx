@@ -1,6 +1,7 @@
 import { Archive, ImagePlus, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 import type { Thread, MessageRow } from "./UnifiedChatWorkspace";
 
 export interface ChatMessagePanelProps {
@@ -39,13 +40,15 @@ const ChatMessagePanel = ({
   uploading,
   onSend,
   onUpload,
-}: ChatMessagePanelProps) => (
+}: ChatMessagePanelProps) => {
+  const { t } = useTranslation();
+  return (
   <div className="border rounded-lg bg-card flex flex-col relative z-10">
     <div className="p-3 border-b flex items-center justify-between gap-2">
       <div>
-        <p className="text-sm font-semibold">{activeThread ? labelForThread(activeThread) : "Select chat"}</p>
+        <p className="text-sm font-semibold">{activeThread ? labelForThread(activeThread) : t("chat.selectChat")}</p>
         {typingUsers.length > 0 ? (
-          <p className="text-xs text-muted-foreground">{typingUsers.join(", ")} typing...</p>
+          <p className="text-xs text-muted-foreground">{typingUsers.join(", ")} {t("chat.typing")}</p>
         ) : null}
       </div>
       {activeThread ? (
@@ -57,10 +60,10 @@ const ChatMessagePanel = ({
             disabled={!selectedThreadId || emailNotifying}
             className="h-8 text-xs"
           >
-            {emailNotifying ? "Sending email..." : "Notify by email"}
+            {emailNotifying ? t("chat.sendingEmail") : t("chat.notifyByEmail")}
           </Button>
           <Button variant="outline" size="sm" className="gap-1" onClick={onArchive}>
-            <Archive className="h-3.5 w-3.5" /> Archive
+            <Archive className="h-3.5 w-3.5" /> {t("chat.archive")}
           </Button>
         </div>
       ) : null}
@@ -71,7 +74,7 @@ const ChatMessagePanel = ({
           <p>{m.body}</p>
           <p className="text-[10px] text-muted-foreground mt-1">
             {new Date(m.created_at).toLocaleTimeString()}
-            {m.sender_id === userId ? ` · ${new Date(m.created_at).getTime() <= otherLastReadAt ? "Read" : "Sent"}` : ""}
+            {m.sender_id === userId ? ` · ${new Date(m.created_at).getTime() <= otherLastReadAt ? t("chat.read") : t("chat.sent")}` : ""}
           </p>
         </div>
       ))}
@@ -95,13 +98,14 @@ const ChatMessagePanel = ({
       <Input
         value={messageText}
         onChange={(e) => onMessageChange(e.target.value)}
-        placeholder="Type message..."
+        placeholder={t("chat.typeMessage")}
       />
       <Button size="icon" onClick={onSend} disabled={sending || uploading}>
         <Send className="h-4 w-4" />
       </Button>
     </div>
   </div>
-);
+  );
+};
 
 export default ChatMessagePanel;

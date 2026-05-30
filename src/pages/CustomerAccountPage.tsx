@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { CLIENT_CONDUCT_THRESHOLDS } from "@/lib/clientConduct";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { bookingEligibleForConsent } from "@/lib/bookingTypes";
+import { useTranslation } from "react-i18next";
 
 type BookingRow = {
   id: string;
@@ -52,6 +53,7 @@ interface ClientConductRow {
 }
 
 const CustomerAccountPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { theme, setTheme } = useThemePreference();
   const navigate = useNavigate();
@@ -167,7 +169,7 @@ const CustomerAccountPage = () => {
   useEffect(() => {
     const invoiceStatus = searchParams.get("invoice");
     if (invoiceStatus === "success") {
-      toast.success("Invoice payment received. Thank you.");
+      toast.success(t("customer.invoicePaymentReceived"));
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         next.delete("invoice");
@@ -176,7 +178,7 @@ const CustomerAccountPage = () => {
         return next;
       }, { replace: true });
     } else if (invoiceStatus === "cancel") {
-      toast.info("Invoice payment cancelled.");
+      toast.info(t("customer.invoicePaymentCancelled"));
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         next.delete("invoice");
@@ -192,11 +194,11 @@ const CustomerAccountPage = () => {
     const nextEmail = (user.email || "").trim().toLowerCase();
     const nextPhone = phone.trim();
     if (!nextName || !nextPhone || !nextEmail) {
-      toast.error("Full name, email, and phone are required");
+      toast.error(t("customer.completeRequiredFields"));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
-      toast.error("Invite email is invalid");
+      toast.error(t("customer.invalidInviteEmail"));
       return;
     }
 
@@ -207,9 +209,9 @@ const CustomerAccountPage = () => {
         .update({ display_name: nextName, phone: nextPhone, public_contact_email: nextEmail })
         .eq("user_id", user.id);
       if (error) throw error;
-      toast.success("Profile updated");
+      toast.success(t("customer.profileUpdated"));
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Could not update profile");
+      toast.error(err instanceof Error ? err.message : t("customer.couldNotSave"));
     } finally {
       setSaving(false);
     }
@@ -218,7 +220,7 @@ const CustomerAccountPage = () => {
   if (checking || !user || permLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("customer.loadingPortal")}</p>
       </div>
     );
   }
@@ -228,8 +230,8 @@ const CustomerAccountPage = () => {
       <CustomerLayout portalBrand={portalBrand}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Access limited</CardTitle>
-            <CardDescription>Your account doesn&apos;t include the bookings portal. Contact the studio if this is a mistake.</CardDescription>
+            <CardTitle className="text-base">{t("customer.accessLimited")}</CardTitle>
+            <CardDescription>{t("customer.accessLimitedDesc")}</CardDescription>
           </CardHeader>
         </Card>
       </CustomerLayout>
@@ -251,7 +253,7 @@ const CustomerAccountPage = () => {
       <div className="space-y-8">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-gradient-gold">My account</h1>
+            <h1 className="font-display text-2xl font-bold text-gradient-gold">{t("customer.myAccountTitle")}</h1>
             {isVipClient ? (
               <Badge className="gap-1 bg-yellow-500/15 text-yellow-200 border-yellow-500/35 font-medium">
                 <Star className="h-3 w-3 fill-yellow-400/80 text-yellow-300" />
@@ -259,20 +261,20 @@ const CustomerAccountPage = () => {
               </Badge>
             ) : null}
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Your profile and appointments</p>
+            <p className="text-sm text-muted-foreground mt-1">{t("customer.profileAppointments")}</p>
         </div>
 
         <Card className="border-primary/35 bg-primary/5">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Messages</CardTitle>
+              <CardTitle className="text-base">{t("customer.messagesTitle")}</CardTitle>
             </div>
-            <CardDescription>Chat directly with your artist from your dashboard.</CardDescription>
+            <CardDescription>{t("customer.messagesDesc", { defaultValue: "Chat directly with your artist from your dashboard." })}</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate("/account/chats")}>
-              Open messages
+              {t("customer.openMessages")}
             </Button>
           </CardContent>
         </Card>
@@ -280,9 +282,9 @@ const CustomerAccountPage = () => {
         {unpaidDepositUpcoming.length > 0 ? (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Deposit payment</CardTitle>
+              <CardTitle className="text-base">{t("customer.depositCardTitle")}</CardTitle>
               <CardDescription>
-              Secure your upcoming booking by paying the £50 deposit (not required for VIP appointments).
+              {t("customer.depositCardDesc")}
             </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -303,7 +305,7 @@ const CustomerAccountPage = () => {
                       className="shrink-0 self-start sm:self-center"
                       onClick={() => navigate(`/deposit-payment/checkout?bookingId=${encodeURIComponent(b.id)}`)}
                     >
-                      Pay £50
+                      {t("customer.payAmount", { amount: 50 })}
                     </Button>
                   )}
                 </div>
@@ -314,8 +316,8 @@ const CustomerAccountPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">App theme</CardTitle>
-            <CardDescription>Choose light or dark mode for your account dashboard.</CardDescription>
+            <CardTitle className="text-base">{t("customer.appThemeTitle")}</CardTitle>
+            <CardDescription>{t("customer.appThemeDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="flex gap-2">
             <Button
@@ -325,7 +327,7 @@ const CustomerAccountPage = () => {
               onClick={() => void setTheme("dark")}
             >
               <Moon className="h-4 w-4" />
-              Dark
+              {t("common.dark")}
             </Button>
             <Button
               type="button"
@@ -334,7 +336,7 @@ const CustomerAccountPage = () => {
               onClick={() => void setTheme("light")}
             >
               <Sun className="h-4 w-4" />
-              Light
+              {t("common.light")}
             </Button>
           </CardContent>
         </Card>
@@ -343,24 +345,24 @@ const CustomerAccountPage = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Invoices</CardTitle>
+              <CardTitle className="text-base">{t("customer.invoicesTitle")}</CardTitle>
             </div>
-            <CardDescription>Pay outstanding invoices securely online.</CardDescription>
+            <CardDescription>{t("customer.invoicesDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {invoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">No invoices yet.</p>
+              <p className="text-sm text-muted-foreground py-2">{t("customer.noInvoicesYet")}</p>
             ) : (
               invoices.slice(0, 8).map((inv) => (
                 <div key={inv.id} className="rounded-lg border border-border p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium">{inv.invoice_number}</p>
                     <p className="text-xs text-muted-foreground">
-                      £{Number(inv.total || 0).toFixed(2)} · {inv.due_date ? `Due ${format(parseISO(inv.due_date), "d MMM yyyy")}` : "No due date"}
+                      £{Number(inv.total || 0).toFixed(2)} · {inv.due_date ? t("customer.dueDate", { date: format(parseISO(inv.due_date), "d MMM yyyy") }) : t("customer.noDueDate")}
                     </p>
                   </div>
                   {inv.status === "paid" ? (
-                    <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-500/30 w-fit">Paid</Badge>
+                    <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-500/30 w-fit">{t("customer.paid")}</Badge>
                   ) : (
                     <Button
                       size="sm"
@@ -374,34 +376,34 @@ const CustomerAccountPage = () => {
                         });
                         if (error || !(data as any)?.checkoutUrl) {
                           setPayingInvoiceId(null);
-                          toast.error((data as any)?.error || error?.message || "Could not start Stripe checkout");
+                          toast.error((data as any)?.error || error?.message || t("subscribe.checkoutFailed"));
                           return;
                         }
                         window.location.href = (data as any).checkoutUrl as string;
                       }}
                     >
-                      {payingInvoiceId === inv.id ? "Redirecting..." : "Pay now"}
+                      {payingInvoiceId === inv.id ? t("customer.redirecting") : t("customer.payNow")}
                     </Button>
                   )}
                 </div>
               ))
             )}
             {unpaidInvoices.length === 0 && invoices.length > 0 ? (
-              <p className="text-xs text-muted-foreground">All invoices are paid.</p>
+              <p className="text-xs text-muted-foreground">{t("customer.allInvoicesPaid")}</p>
             ) : null}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Attendance score</CardTitle>
-            <CardDescription>Manual reliability score managed by your artist.</CardDescription>
+            <CardTitle className="text-base">{t("customer.attendanceScoreTitle")}</CardTitle>
+            <CardDescription>{t("customer.attendanceScoreDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="rounded-md border border-border p-3 space-y-1 text-sm">
-              <p>No-shows: <span className="font-medium">{Number(conduct?.no_shows_count || 0)}/{CLIENT_CONDUCT_THRESHOLDS.noShows}</span></p>
-              <p>Late cancellations: <span className="font-medium">{Number(conduct?.late_cancellations_count || 0)}/{CLIENT_CONDUCT_THRESHOLDS.lateCancellations}</span></p>
-              <p>Reschedules: <span className="font-medium">{Number(conduct?.reschedules_count || 0)}/{CLIENT_CONDUCT_THRESHOLDS.reschedules}</span></p>
+              <p>{t("customer.noShows")}: <span className="font-medium">{Number(conduct?.no_shows_count || 0)}/{CLIENT_CONDUCT_THRESHOLDS.noShows}</span></p>
+              <p>{t("customer.lateCancellations")}: <span className="font-medium">{Number(conduct?.late_cancellations_count || 0)}/{CLIENT_CONDUCT_THRESHOLDS.lateCancellations}</span></p>
+              <p>{t("customer.reschedules")}: <span className="font-medium">{Number(conduct?.reschedules_count || 0)}/{CLIENT_CONDUCT_THRESHOLDS.reschedules}</span></p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge
@@ -411,10 +413,10 @@ const CustomerAccountPage = () => {
                     : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
                 }
               >
-                {conduct?.is_banned ? "Banned" : "Active"}
+                {conduct?.is_banned ? t("customer.banned") : t("customer.active")}
               </Badge>
               {conduct?.ban_reason ? (
-                <p className="text-xs text-muted-foreground">Reason: {conduct.ban_reason}</p>
+                <p className="text-xs text-muted-foreground">{t("customer.reason")}: {conduct.ban_reason}</p>
               ) : null}
             </div>
           </CardContent>
@@ -424,35 +426,35 @@ const CustomerAccountPage = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2 flex-wrap">
               <User className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Profile</CardTitle>
+              <CardTitle className="text-base">{t("customer.profileTitle")}</CardTitle>
               {isVipClient ? (
                 <Badge variant="outline" className="gap-1 border-yellow-500/40 text-yellow-200 text-xs">
                   <Star className="h-3 w-3" />
-                  VIP client
+                  {t("customer.vipClient")}
                 </Badge>
               ) : null}
             </div>
             <CardDescription>
-              Your full name and contact details · matches bookings when your email is on the appointment
-              {isVipClient ? " · The studio has marked you as VIP on at least one booking." : ""}
+              {t("customer.profileDesc")}
+              {isVipClient ? ` · ${t("customer.profileVipNote")}` : ""}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label className="text-xs text-muted-foreground">Email</Label>
+              <Label className="text-xs text-muted-foreground">{t("common.email")}</Label>
               <Input type="email" value={email} disabled className="mt-1 bg-secondary/50" required />
-              <p className="text-[11px] text-muted-foreground mt-1">Locked to the invitation email for this account.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{t("customer.emailLocked")}</p>
             </div>
             <div>
-              <Label htmlFor="dn">Full name</Label>
+              <Label htmlFor="dn">{t("customer.fullName")}</Label>
               <Input id="dn" value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-secondary" required />
             </div>
             <div>
-              <Label htmlFor="ph">Phone</Label>
+              <Label htmlFor="ph">{t("schedule.phone")}</Label>
               <Input id="ph" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-secondary" required />
             </div>
             <Button size="sm" onClick={saveProfile} disabled={saving}>
-              {saving ? "Saving…" : "Save profile"}
+              {saving ? t("settings.saving") : t("customer.saveProfile")}
             </Button>
           </CardContent>
         </Card>
@@ -461,12 +463,12 @@ const CustomerAccountPage = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-teal-500" />
-              <CardTitle className="text-base">Upcoming</CardTitle>
+              <CardTitle className="text-base">{t("customer.upcomingTitle")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {upcoming.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No upcoming appointments. We&apos;ll show them here when your email is on a booking.</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("customer.noUpcoming")}</p>
             ) : (
               upcoming.map((b) => (
                 <div key={b.id} className="rounded-lg border border-border p-3 space-y-2">
@@ -479,10 +481,10 @@ const CustomerAccountPage = () => {
                   <p className="text-sm text-muted-foreground">
                     {b.booking_type} · {(b.service_category || "tattoo").replace(/^./, (c) => c.toUpperCase())} · {b.status}
                   </p>
-                  {b.tattoo_style && <p className="text-xs text-muted-foreground">Style: {b.tattoo_style}</p>}
+                  {b.tattoo_style && <p className="text-xs text-muted-foreground">{t("clients.stylePrefix", { style: b.tattoo_style })}</p>}
                   {hasPermission("customer_consent") && bookingEligibleForConsent(b) ? (
                     <Button asChild variant="gold-outline" size="sm" className="w-full sm:w-auto mt-1">
-                      <Link to={`/consent?bookingId=${encodeURIComponent(b.id)}`}>Fill in consent form</Link>
+                      <Link to={`/consent?bookingId=${encodeURIComponent(b.id)}`}>{t("customer.fillConsentForm")}</Link>
                     </Button>
                   ) : null}
                 </div>
@@ -493,11 +495,11 @@ const CustomerAccountPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Past visits</CardTitle>
+            <CardTitle className="text-base">{t("customer.pastVisitsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {past.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No past appointments yet.</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("customer.noPastVisits")}</p>
             ) : (
               past.slice(0, 20).map((b) => (
                 <div key={b.id} className="rounded-lg border border-border/60 bg-secondary/20 p-3 text-sm">

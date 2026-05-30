@@ -14,6 +14,7 @@ import { format, parseISO } from "date-fns";
 import { Package, Plus, CheckCircle, Clock, XCircle, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import PlanFeatureGate from "@/components/subscription/PlanFeatureGate";
+import { useTranslation } from "react-i18next";
 
 interface StockItem {
   id: string;
@@ -59,6 +60,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 const StockPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [items, setItems] = useState<StockItem[]>([]);
   const [requests, setRequests] = useState<StockRequest[]>([]);
@@ -128,7 +130,7 @@ const StockPage = () => {
       try {
         normalizedSupplierUrl = new URL(supplierUrl.trim()).toString();
       } catch {
-        toast.error("Please enter a valid supplier URL");
+        toast.error(t("stock.invalidSupplierUrl"));
         return;
       }
     }
@@ -142,7 +144,7 @@ const StockPage = () => {
       supplier_url: normalizedSupplierUrl,
     });
     if (error) {
-      toast.error("Failed to submit request");
+      toast.error(t("stock.submitFailed"));
       return;
     }
     if (saveSupplierLink && normalizedSupplierUrl) {
@@ -154,7 +156,7 @@ const StockPage = () => {
         is_active: true,
       }, { onConflict: "stock_item_id,supplier_url" });
     }
-    toast.success("Stock request submitted");
+    toast.success(t("stock.requestSubmitted"));
     setDialogOpen(false);
     setSelectedItem("");
     setQuantity("1");
@@ -169,22 +171,22 @@ const StockPage = () => {
     if (!user) return;
     const { error } = await supabase.from("stock_requests").update({ status, reviewed_by: user.id }).eq("id", requestId);
     if (error) {
-      toast.error("Failed to update");
+      toast.error(t("stock.updateFailed"));
       return;
     }
-    toast.success(`Request ${status}`);
+    toast.success(t("stock.requestStatusUpdated", { status }));
   };
 
   const handleDeleteRequest = async (requestId: string) => {
     if (!user) return;
-    const ok = window.confirm("Delete this stock request?");
+    const ok = window.confirm(t("stock.deleteConfirm"));
     if (!ok) return;
     const { error } = await supabase.from("stock_requests").delete().eq("id", requestId);
     if (error) {
-      toast.error(error.message || "Failed to delete request");
+      toast.error(error.message || t("stock.deleteFailed"));
       return;
     }
-    toast.success("Request deleted");
+    toast.success(t("stock.requestDeleted"));
     await fetchRequests();
   };
 
@@ -229,28 +231,28 @@ const StockPage = () => {
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold">Stock & Supplies</h1>
-            <p className="text-sm text-muted-foreground mt-1">Request supplies from the catalog</p>
+            <h1 className="font-display text-2xl font-bold">{t("stock.title")}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t("stock.subtitle")}</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1">
-                <Plus className="h-4 w-4" /> New Request
+                <Plus className="h-4 w-4" /> {t("stock.newRequest")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request Supplies</DialogTitle>
+                <DialogTitle>{t("stock.requestSupplies")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-2">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.category")}</label>
                   <Select value={filterCategory} onValueChange={setFilterCategory}>
                     <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="all">{t("stock.allCategories")}</SelectItem>
                       {categories.map((c) => (
                         <SelectItem key={c} value={c}>{categoryLabels[c] || c}</SelectItem>
                       ))}
@@ -258,10 +260,10 @@ const StockPage = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Item</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.item")}</label>
                   <Select value={selectedItem} onValueChange={setSelectedItem}>
                     <SelectTrigger className="text-sm">
-                      <SelectValue placeholder="Select an item" />
+                      <SelectValue placeholder={t("stock.selectItem")} />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredItems.map((item) => (
@@ -273,11 +275,11 @@ const StockPage = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Quantity</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.quantity")}</label>
                   <Input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Saved supplier links</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.savedSupplierLinks")}</label>
                   <Select
                     value={selectedSavedLinkId}
                     onValueChange={(value) => {
@@ -290,10 +292,10 @@ const StockPage = () => {
                     }}
                   >
                     <SelectTrigger className="text-sm">
-                      <SelectValue placeholder={linksForSelectedItem.length ? "Pick a saved link" : "No saved links yet"} />
+                      <SelectValue placeholder={linksForSelectedItem.length ? t("stock.pickSavedLink") : t("stock.noSavedLinksYet")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No saved link</SelectItem>
+                      <SelectItem value="none">{t("stock.noSavedLink")}</SelectItem>
                       {linksForSelectedItem.map((link) => (
                         <SelectItem key={link.id} value={link.id}>
                           {link.supplier_name || link.supplier_url}
@@ -303,12 +305,12 @@ const StockPage = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Supplier name (optional)</label>
-                  <Input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="e.g. Killer Ink" className="text-sm" />
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.supplierNameOptional")}</label>
+                  <Input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder={t("stock.supplierNamePlaceholder")} className="text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Supplier product link (optional)</label>
-                  <Input value={supplierUrl} onChange={(e) => setSupplierUrl(e.target.value)} placeholder="https://supplier.com/product/..." className="text-sm" />
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.supplierLinkOptional")}</label>
+                  <Input value={supplierUrl} onChange={(e) => setSupplierUrl(e.target.value)} placeholder={t("stock.supplierLinkPlaceholder")} className="text-sm" />
                 </div>
                 <label className="flex items-center gap-2 text-xs text-muted-foreground">
                   <input
@@ -316,14 +318,14 @@ const StockPage = () => {
                     checked={saveSupplierLink}
                     onChange={(e) => setSaveSupplierLink(e.target.checked)}
                   />
-                  Save this supplier link for future requests
+                  {t("stock.saveSupplierLink")}
                 </label>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Notes (optional)</label>
-                  <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. Need urgently for Saturday" className="text-sm" />
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("stock.notesOptional")}</label>
+                  <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("stock.notesPlaceholder")} className="text-sm" />
                 </div>
                 <Button onClick={handleSubmit} disabled={!selectedItem} className="w-full">
-                  Submit Request
+                  {t("stock.submitRequest")}
                 </Button>
               </div>
             </DialogContent>
@@ -334,22 +336,22 @@ const StockPage = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Package className="h-4 w-4" /> Requests {pendingCount > 0 && <Badge className="bg-amber-500/15 text-amber-300 border-amber-500/25 text-[10px]">{pendingCount} pending</Badge>}
+              <Package className="h-4 w-4" /> {t("stock.requestsTitle")} {pendingCount > 0 && <Badge className="bg-amber-500/15 text-amber-300 border-amber-500/25 text-[10px]">{t("stock.pendingCount", { count: pendingCount })}</Badge>}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {requests.length === 0 ? (
-              <p className="text-sm text-muted-foreground p-4">No requests yet — click "New Request" to get started</p>
+              <p className="text-sm text-muted-foreground p-4">{t("stock.noRequests")}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead className="hidden md:table-cell">Requested By</TableHead>
-                    <TableHead className="hidden md:table-cell">Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("stock.itemCol")}</TableHead>
+                    <TableHead>{t("stock.qtyCol")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("stock.requestedByCol")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("stock.dateCol")}</TableHead>
+                    <TableHead>{t("stock.statusCol")}</TableHead>
+                    <TableHead className="text-right">{t("stock.actionsCol")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -366,7 +368,7 @@ const StockPage = () => {
                               rel="noreferrer"
                               className="text-[10px] text-primary mt-0.5 inline-flex items-center gap-1"
                             >
-                              {r.supplier_name || "Supplier link"} <ExternalLink className="h-3 w-3" />
+                              {r.supplier_name || t("stock.supplierLink")} <ExternalLink className="h-3 w-3" />
                             </a>
                           )}
                         </div>
@@ -384,13 +386,13 @@ const StockPage = () => {
                           {isAdmin && r.status === "pending" && (
                             <>
                               <Button size="sm" variant="default" className="h-6 text-[10px] px-2" onClick={() => handleUpdateStatus(r.id, "approved")}>
-                                Approve
+                                {t("stock.approve")}
                               </Button>
                               <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => handleUpdateStatus(r.id, "ordered")}>
-                                Ordered
+                                {t("stock.ordered")}
                               </Button>
                               <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2 text-destructive" onClick={() => handleUpdateStatus(r.id, "denied")}>
-                                Deny
+                                {t("stock.deny")}
                               </Button>
                             </>
                           )}
@@ -399,7 +401,7 @@ const StockPage = () => {
                               size="sm"
                               variant="ghost"
                               className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                              title="Delete request"
+                              title={t("stock.deleteRequestTitle")}
                               onClick={() => void handleDeleteRequest(r.id)}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -418,26 +420,26 @@ const StockPage = () => {
         {/* Recently saved supplier links */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Recently saved supplier links</CardTitle>
+            <CardTitle className="text-base">{t("stock.recentLinksTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {recentSavedLinks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No saved links yet — save one from a new request.</p>
+              <p className="text-sm text-muted-foreground">{t("stock.noRecentLinks")}</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {recentSavedLinks.map((link) => {
                   const item = items.find((i) => i.id === link.stock_item_id);
                   return (
                     <div key={link.id} className="rounded-lg border border-border bg-card/40 p-3">
-                      <p className="text-xs text-muted-foreground line-clamp-2">{item?.name || "Unknown item"}</p>
-                      <p className="text-sm font-medium mt-1 line-clamp-2">{link.supplier_name || "Saved link"}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{item?.name || t("stock.unknownItem")}</p>
+                      <p className="text-sm font-medium mt-1 line-clamp-2">{link.supplier_name || t("stock.savedLink")}</p>
                       <a
                         href={link.supplier_url}
                         target="_blank"
                         rel="noreferrer"
                         className="text-[11px] text-primary mt-2 inline-flex items-center gap-1 break-all"
                       >
-                        Open <ExternalLink className="h-3 w-3 shrink-0" />
+                        {t("stock.open")} <ExternalLink className="h-3 w-3 shrink-0" />
                       </a>
                     </div>
                   );

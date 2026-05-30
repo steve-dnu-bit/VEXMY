@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 function passwordChecks(pwd: string) {
   const minLen = pwd.length >= 8;
@@ -19,6 +20,7 @@ function passwordChecks(pwd: string) {
 }
 
 const CustomerSecurityPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
@@ -40,12 +42,12 @@ const CustomerSecurityPage = () => {
 
   const savePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("auth.passwordsMismatch"));
       return;
     }
     const checks = passwordChecks(newPassword);
     if (!checks.ok) {
-      toast.error("Use at least 8 characters with a capital letter, number, and symbol");
+      toast.error(t("customer.passwordRulesError"));
       return;
     }
 
@@ -54,19 +56,19 @@ const CustomerSecurityPage = () => {
     setUpdatingPassword(false);
 
     if (error) {
-      toast.error(error.message || "Could not update password");
+      toast.error(error.message || t("auth.couldNotUpdatePassword"));
       return;
     }
 
     setNewPassword("");
     setConfirmPassword("");
-    toast.success("Password updated");
+    toast.success(t("auth.passwordUpdated"));
   };
 
   if (checking || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("customer.loadingPortal")}</p>
       </div>
     );
   }
@@ -75,40 +77,40 @@ const CustomerSecurityPage = () => {
     <CustomerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">Security</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your account password.</p>
+          <h1 className="font-display text-2xl font-bold text-gradient-gold">{t("customer.securityTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("customer.securitySubtitle")}</p>
         </div>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Change password</CardTitle>
-            <CardDescription>Use a strong password with at least 8 characters.</CardDescription>
+            <CardTitle className="text-base">{t("customer.changePasswordTitle")}</CardTitle>
+            <CardDescription>{t("customer.changePasswordDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label htmlFor="new-password">New password</Label>
+              <Label htmlFor="new-password">{t("customer.newPassword")}</Label>
               <Input
                 id="new-password"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="mt-1 bg-secondary"
-                placeholder="At least 8 chars, capital, number, symbol"
+                placeholder={t("customer.newPasswordPlaceholder")}
               />
             </div>
             <div>
-              <Label htmlFor="confirm-password">Confirm new password</Label>
+              <Label htmlFor="confirm-password">{t("customer.confirmNewPassword")}</Label>
               <Input
                 id="confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="mt-1 bg-secondary"
-                placeholder="Repeat new password"
+                placeholder={t("customer.confirmPasswordPlaceholder")}
               />
             </div>
             <Button size="sm" variant="outline" onClick={savePassword} disabled={updatingPassword}>
-              {updatingPassword ? "Updating..." : "Save password"}
+              {updatingPassword ? t("customer.updating") : t("customer.savePassword")}
             </Button>
           </CardContent>
         </Card>

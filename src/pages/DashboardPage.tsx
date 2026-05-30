@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Calendar, Users, MessageSquare, FileSignature, Eye, CreditCard, Receipt, CheckCircle2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/AppLayout";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const DashboardPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [bookingCount, setBookingCount] = useState(0);
   const [messageCount, setMessageCount] = useState(0);
@@ -144,8 +146,8 @@ const DashboardPage = () => {
   };
 
   const stats = [
-    { label: "Today's Bookings", value: String(bookingCount), icon: Calendar },
-    { label: "Unread Messages", value: String(messageCount), icon: MessageSquare },
+    { label: t("dashboard.todaysBookings"), value: String(bookingCount), icon: Calendar },
+    { label: t("dashboard.unreadMessages"), value: String(messageCount), icon: MessageSquare },
   ];
 
   return (
@@ -153,9 +155,9 @@ const DashboardPage = () => {
       <div className="p-4 md:p-6">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-gold">Dashboard</span>
+            <span className="text-gradient-gold">{t("dashboard.title")}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">Welcome back. Here's your overview.</p>
+          <p className="text-sm text-muted-foreground">{t("dashboard.welcome")}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -173,9 +175,9 @@ const DashboardPage = () => {
         </div>
 
         <div className="rounded-xl border border-border bg-card p-5">
-          <h2 className="font-display text-lg font-semibold mb-4">Today's Bookings</h2>
+          <h2 className="font-display text-lg font-semibold mb-4">{t("dashboard.todaysBookings")}</h2>
           {recentBookings.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No bookings today</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("dashboard.noBookingsToday")}</p>
           ) : (
             <div className="space-y-2">
               {recentBookings.map((b) => (
@@ -200,10 +202,10 @@ const DashboardPage = () => {
 
         <div className="rounded-xl border border-border bg-card p-5 mt-6">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="font-display text-lg font-semibold">Stripe Verification</h2>
+            <h2 className="font-display text-lg font-semibold">{t("dashboard.stripeVerification")}</h2>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <CheckCircle2 className="h-4 w-4" />
-              Last 30 days
+              {t("dashboard.last30Days")}
             </div>
           </div>
 
@@ -211,21 +213,21 @@ const DashboardPage = () => {
             <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Receipt className="h-4 w-4" />
-                Paid invoices
+                {t("dashboard.paidInvoices")}
               </div>
               <p className="font-display text-2xl font-bold mt-1">{stripeInvoicePaidCount}</p>
             </div>
             <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CreditCard className="h-4 w-4" />
-                Invoice value paid
+                {t("dashboard.invoiceValuePaid")}
               </div>
               <p className="font-display text-2xl font-bold mt-1">£{stripeInvoicePaidValue.toFixed(2)}</p>
             </div>
             <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                Deposits paid
+                {t("dashboard.depositsPaid")}
               </div>
               <p className="font-display text-2xl font-bold mt-1">{stripeDepositPaidCount}</p>
             </div>
@@ -233,9 +235,9 @@ const DashboardPage = () => {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-lg border border-border bg-secondary/20 p-3">
-              <p className="text-sm font-semibold mb-2">Recent paid invoices</p>
+              <p className="text-sm font-semibold mb-2">{t("dashboard.recentPaidInvoices")}</p>
               {recentPaidInvoices.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No paid invoices in the last 30 days.</p>
+                <p className="text-xs text-muted-foreground">{t("dashboard.noPaidInvoices")}</p>
               ) : (
                 <div className="space-y-2">
                   {recentPaidInvoices.map((inv) => (
@@ -243,13 +245,13 @@ const DashboardPage = () => {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{inv.invoice_number} · {inv.client_name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {inv.paid_at ? new Date(inv.paid_at).toLocaleString() : "Paid"}
+                          {inv.paid_at ? new Date(inv.paid_at).toLocaleString() : t("dashboard.paid")}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold">£{Number(inv.total || 0).toFixed(2)}</p>
                         <Badge variant={inv.stripe_payment_intent_id ? "default" : "outline"} className="text-[10px]">
-                          {inv.stripe_payment_intent_id ? "Stripe" : "Manual"}
+                          {inv.stripe_payment_intent_id ? t("dashboard.stripe") : t("dashboard.manual")}
                         </Badge>
                       </div>
                     </div>
@@ -259,9 +261,9 @@ const DashboardPage = () => {
             </div>
 
             <div className="rounded-lg border border-border bg-secondary/20 p-3">
-              <p className="text-sm font-semibold mb-2">Recent paid deposits</p>
+              <p className="text-sm font-semibold mb-2">{t("dashboard.recentPaidDeposits")}</p>
               {recentPaidDeposits.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No paid deposits in the last 30 days.</p>
+                <p className="text-xs text-muted-foreground">{t("dashboard.noPaidDeposits")}</p>
               ) : (
                 <div className="space-y-2">
                   {recentPaidDeposits.map((dep) => (
@@ -276,7 +278,7 @@ const DashboardPage = () => {
                           variant={dep.deposit_payment_id && !dep.deposit_payment_id.startsWith("manual_") ? "default" : "outline"}
                           className="text-[10px]"
                         >
-                          {dep.deposit_payment_id && !dep.deposit_payment_id.startsWith("manual_") ? "Stripe" : "Manual"}
+                          {dep.deposit_payment_id && !dep.deposit_payment_id.startsWith("manual_") ? t("dashboard.stripe") : t("dashboard.manual")}
                         </Badge>
                       </div>
                     </div>
@@ -289,15 +291,15 @@ const DashboardPage = () => {
 
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="font-display text-lg font-semibold">Consents</h2>
+            <h2 className="font-display text-lg font-semibold">{t("dashboard.consents")}</h2>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <FileSignature className="h-4 w-4" />
-              Latest submissions
+              {t("dashboard.latestSubmissions")}
             </div>
           </div>
 
           {recentConsents.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No consent submissions yet</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("dashboard.noConsents")}</p>
           ) : (
             <div className="space-y-2">
               {recentConsents.map((c) => {
@@ -311,11 +313,11 @@ const DashboardPage = () => {
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate">{c.full_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {bookingTime ? bookingTime.toLocaleDateString() : "Booking"} ·{" "}
-                        {c.artistName ? c.artistName : "Artist"}
+                        {bookingTime ? bookingTime.toLocaleDateString() : t("dashboard.booking")} ·{" "}
+                        {c.artistName ? c.artistName : t("dashboard.artist")}
                       </p>
                       <p className="text-[11px] text-muted-foreground break-all">
-                        {c.email || c.phone || "—"} · Submitted {submitted.toLocaleDateString()}{" "}
+                        {c.email || c.phone || "—"} · {t("dashboard.submitted")} {submitted.toLocaleDateString()}{" "}
                       </p>
                     </div>
 
@@ -323,11 +325,11 @@ const DashboardPage = () => {
                       <a href={c.consent_pdf_url} target="_blank" rel="noreferrer">
                         <Button size="sm" variant="outline" className="h-8">
                           <Eye className="h-4 w-4 mr-2" />
-                          View PDF
+                          {t("dashboard.viewPdf")}
                         </Button>
                       </a>
                     ) : (
-                      <div className="text-xs text-muted-foreground whitespace-nowrap">PDF pending</div>
+                      <div className="text-xs text-muted-foreground whitespace-nowrap">{t("dashboard.pdfPending")}</div>
                     )}
                   </div>
                 );

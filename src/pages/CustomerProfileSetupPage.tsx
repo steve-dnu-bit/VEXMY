@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 function passwordChecks(pwd: string) {
   const minLen = pwd.length >= 8;
@@ -18,6 +19,7 @@ function passwordChecks(pwd: string) {
 }
 
 const CustomerProfileSetupPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -74,7 +76,7 @@ const CustomerProfileSetupPage = () => {
     const emailValue = (user.email || "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
       toast({
-        title: "Invite email is invalid",
+        title: t("customer.invalidInviteEmail"),
         variant: "destructive",
       });
       return;
@@ -82,14 +84,14 @@ const CustomerProfileSetupPage = () => {
     if (!fullName.trim() || !phone.trim()) {
       toast({
         title: "Complete all required fields",
-        description: "Full name, email, phone, and password are required.",
+        description: t("customer.requiredFieldsDesc"),
         variant: "destructive",
       });
       return;
     }
     if (password !== confirmPassword) {
       toast({
-        title: "Passwords do not match",
+        title: t("auth.passwordsMismatch"),
         variant: "destructive",
       });
       return;
@@ -97,8 +99,8 @@ const CustomerProfileSetupPage = () => {
     const pwd = passwordChecks(password);
     if (!pwd.ok) {
       toast({
-        title: "Password is too weak",
-        description: "Use at least 8 characters, with a capital letter, a number, and a symbol.",
+        title: t("customer.passwordTooWeak"),
+        description: t("customer.passwordTooWeakDesc"),
         variant: "destructive",
       });
       return;
@@ -124,13 +126,13 @@ const CustomerProfileSetupPage = () => {
 
       if (profileError) throw profileError;
 
-      toast({ title: "Profile completed" });
+      toast({ title: t("customer.profileCompleted") });
       navigate("/account");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : undefined;
       toast({
-        title: "Could not save",
-        description: message ?? "Please try again.",
+        title: t("customer.couldNotSave"),
+        description: message ?? t("customer.pleaseTryAgain"),
         variant: "destructive",
       });
     } finally {
@@ -141,19 +143,19 @@ const CustomerProfileSetupPage = () => {
   return (
     <CustomerLayout>
       <div className="flex flex-col gap-4 p-4 md:p-6 max-w-2xl">
-        <h1 className="font-display text-2xl font-bold">Set up your account</h1>
+        <h1 className="font-display text-2xl font-bold">{t("customer.setUpAccountTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          Finish your invite by confirming your customer profile details.
+          {t("customer.setUpAccountSubtitle")}
         </p>
 
         <Card className="p-4 md:p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Full name</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("customer.fullName")}</Label>
               <Input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Your full name"
+                placeholder={t("customer.fullName")}
                 className="bg-secondary border-border"
                 disabled={loading}
                 required
@@ -161,7 +163,7 @@ const CustomerProfileSetupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Email</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("common.email")}</Label>
               <Input
                 type="email"
                 value={email}
@@ -169,15 +171,15 @@ const CustomerProfileSetupPage = () => {
                 disabled
                 required
               />
-              <p className="text-[11px] text-muted-foreground">Locked to the invitation email for this account.</p>
+              <p className="text-[11px] text-muted-foreground">{t("customer.emailLocked")}</p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Phone</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.phone")}</Label>
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="Your phone number"
+                placeholder={t("schedule.phone")}
                 className="bg-secondary border-border"
                 disabled={loading}
                 required
@@ -185,12 +187,12 @@ const CustomerProfileSetupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Create password</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("customer.createPassword")}</Label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 chars, capital, number, symbol"
+                placeholder={t("customer.newPasswordPlaceholder")}
                 className="bg-secondary border-border"
                 disabled={loading}
                 required
@@ -198,12 +200,12 @@ const CustomerProfileSetupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Confirm password</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("customer.confirmPassword")}</Label>
               <Input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repeat password"
+                placeholder={t("customer.confirmPasswordPlaceholder")}
                 className="bg-secondary border-border"
                 disabled={loading}
                 required
@@ -211,7 +213,7 @@ const CustomerProfileSetupPage = () => {
             </div>
 
             <Button type="submit" variant="gold" className="w-full" disabled={!canSubmit}>
-              {saving ? "Saving..." : "Save & continue"}
+              {saving ? t("billing.saving") : t("customer.saveContinue")}
             </Button>
           </form>
         </Card>

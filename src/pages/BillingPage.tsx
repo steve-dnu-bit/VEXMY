@@ -16,6 +16,7 @@ import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import PlanFeatureGate from "@/components/subscription/PlanFeatureGate";
+import { useTranslation } from "react-i18next";
 
 interface Company {
   id: string;
@@ -44,6 +45,7 @@ interface Invoice {
 }
 
 const BillingPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -78,23 +80,23 @@ const BillingPage = () => {
   const handleResendInvoice = async (invoiceId: string) => {
     const { data, error } = await invokeEdgeFunctionJson("send-invoice", { invoiceId, action: "send" });
     if (error || (data as any)?.error) {
-      toast.error((data as any)?.error || error?.message || "Failed to resend invoice");
+      toast.error((data as any)?.error || error?.message || t("billing.failedResend"));
       return;
     }
     const emailSent = !!(data as any)?.emailSent;
     const emailError = ((data as any)?.emailError as string | null | undefined) ?? null;
     if (!emailSent) {
-      toast.error(`Invoice email not sent: ${emailError || "Unknown email delivery error"}`);
+      toast.error(t("billing.emailNotSent", { reason: emailError || t("billing.genericUnknownEmailError", { defaultValue: "Unknown email delivery error" }) }));
       return;
     }
-    toast.success("Invoice resent");
+    toast.success(t("billing.invoiceResent"));
     fetchInvoices();
   };
 
   const handleDownloadInvoice = async (invoiceId: string, invoiceNumber: string) => {
     const { data, error } = await invokeEdgeFunctionJson("send-invoice", { invoiceId, action: "pdf" });
     if (error || !(data as any)?.pdfBase64) {
-      toast.error((data as any)?.error || error?.message || "Failed to generate PDF");
+      toast.error((data as any)?.error || error?.message || t("billing.failedGeneratePdf"));
       return;
     }
     const base64 = (data as any).pdfBase64 as string;
@@ -113,23 +115,23 @@ const BillingPage = () => {
     const update: any = { status };
     if (status === "paid") update.paid_at = new Date().toISOString();
     const { error } = await supabase.from("invoices" as any).update(update).eq("id", id);
-    if (error) { toast.error("Failed to update invoice"); return; }
-    toast.success(`Invoice marked as ${status}`);
+    if (error) { toast.error(t("billing.failedUpdateInvoice")); return; }
+    toast.success(t("billing.invoiceMarkedAs", { status }));
     fetchInvoices();
   };
 
   const handleCreateInvoicePayLink = async (invoiceId: string) => {
     const { data, error } = await invokeEdgeFunctionJson("create-stripe-checkout", { type: "invoice", invoiceId });
     if (error || !(data as any)?.checkoutUrl) {
-      toast.error((data as any)?.error || error?.message || "Could not generate Stripe payment link");
+      toast.error((data as any)?.error || error?.message || t("billing.failedCreatePaymentLink"));
       return;
     }
     const checkoutUrl = (data as any).checkoutUrl as string;
     try {
       await navigator.clipboard.writeText(checkoutUrl);
-      toast.success("Invoice payment link copied");
+      toast.success(t("billing.paymentLinkCopied"));
     } catch {
-      toast.success("Invoice payment link created");
+      toast.success(t("billing.paymentLinkCreated"));
     }
     fetchInvoices();
   };
@@ -175,7 +177,7 @@ const BillingPage = () => {
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
           <AlertCircle className="h-10 w-10 text-muted-foreground" />
-          <p className="text-muted-foreground">Admin access required</p>
+          <p className="text-muted-foreground">{t("billing.adminRequired")}</p>
         </div>
       </AppLayout>
     );
@@ -189,8 +191,8 @@ const BillingPage = () => {
       <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-bold">Billing & Payments</h1>
-            <p className="text-sm text-muted-foreground mt-1">Track payments and outstanding balances</p>
+            <h1 className="font-display text-2xl font-bold">{t("billing.title")}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t("billing.subtitle")}</p>
           </div>
           {user && <CreateInvoiceDialog companies={companies} userId={user.id} onCreated={fetchInvoices} />}
         </div>
@@ -201,7 +203,7 @@ const BillingPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-xs">Total Revenue</span>
+                <span className="text-xs">{t("billing.totalRevenue")}</span>
               </div>
               <p className="text-2xl font-bold text-emerald-400">£{allStats.totalRevenue}</p>
             </CardContent>
@@ -210,7 +212,7 @@ const BillingPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <PoundSterling className="h-4 w-4" />
-                <span className="text-xs">Outstanding</span>
+                <span className="text-xs">{t("billing.outstanding")}</span>
               </div>
               <p className="text-2xl font-bold text-amber-400">£{allStats.outstanding}</p>
             </CardContent>
@@ -219,7 +221,7 @@ const BillingPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <CheckCircle2 className="h-4 w-4" />
-                <span className="text-xs">Paid</span>
+                <span className="text-xs">{t("billing.paid")}</span>
               </div>
               <p className="text-2xl font-bold">{allStats.paidCount}</p>
             </CardContent>
@@ -228,7 +230,7 @@ const BillingPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <XCircle className="h-4 w-4" />
-                <span className="text-xs">Overdue</span>
+                <span className="text-xs">{t("billing.overdue")}</span>
               </div>
               <p className="text-2xl font-bold text-destructive">{allStats.overdueCount}</p>
             </CardContent>
@@ -250,15 +252,15 @@ const BillingPage = () => {
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-emerald-500/10 rounded-md p-2">
                       <p className="text-lg font-bold text-emerald-400">£{stats.totalRevenue}</p>
-                      <p className="text-[10px] text-muted-foreground">Collected</p>
+                      <p className="text-[10px] text-muted-foreground">{t("billing.collected")}</p>
                     </div>
                     <div className="bg-amber-500/10 rounded-md p-2">
                       <p className="text-lg font-bold text-amber-400">£{stats.outstanding}</p>
-                      <p className="text-[10px] text-muted-foreground">Outstanding</p>
+                      <p className="text-[10px] text-muted-foreground">{t("billing.outstanding")}</p>
                     </div>
                     <div className="bg-destructive/10 rounded-md p-2">
                       <p className="text-lg font-bold text-destructive">{stats.overdueCount}</p>
-                      <p className="text-[10px] text-muted-foreground">Overdue</p>
+                      <p className="text-[10px] text-muted-foreground">{t("billing.overdue")}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -270,25 +272,25 @@ const BillingPage = () => {
         {/* Invoices section */}
         <div>
           <h2 className="font-display text-lg font-bold flex items-center gap-2 mb-1">
-            <FileText className="h-5 w-5 text-primary" /> Invoices
+            <FileText className="h-5 w-5 text-primary" /> {t("billing.invoicesTitle")}
           </h2>
-          <p className="text-xs text-muted-foreground mb-3">Recent issued invoices are listed first. You can edit, download PDF, and resend directly.</p>
+          <p className="text-xs text-muted-foreground mb-3">{t("billing.invoicesSubtitle")}</p>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
             <Input
               className="md:col-span-2"
-              placeholder="Search invoice #, client, or email..."
+              placeholder={t("billing.searchPlaceholder")}
               value={invoiceSearch}
               onChange={(e) => setInvoiceSearch(e.target.value)}
             />
             <Select value={invoiceStatusFilter} onValueChange={(v) => setInvoiceStatusFilter(v as any)}>
               <SelectTrigger>
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("billing.status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="all">{t("billing.allStatuses")}</SelectItem>
+                <SelectItem value="draft">{t("billing.statusDraft")}</SelectItem>
+                <SelectItem value="sent">{t("billing.statusSent")}</SelectItem>
+                <SelectItem value="paid">{t("billing.statusPaid")}</SelectItem>
               </SelectContent>
             </Select>
             <Input type="date" value={invoiceFromDate} onChange={(e) => setInvoiceFromDate(e.target.value)} />
@@ -297,7 +299,7 @@ const BillingPage = () => {
           {filteredInvoices.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
-                <p className="text-sm text-muted-foreground">No invoices match your filters.</p>
+                <p className="text-sm text-muted-foreground">{t("billing.noInvoicesMatch")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -306,14 +308,14 @@ const BillingPage = () => {
                 <Table className="min-w-[780px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t("billing.invoiceNumber")}</TableHead>
+                      <TableHead>{t("billing.client")}</TableHead>
+                      <TableHead>{t("billing.company")}</TableHead>
+                      <TableHead>{t("billing.total")}</TableHead>
+                      <TableHead>{t("billing.dueDate")}</TableHead>
+                      <TableHead>{t("billing.created")}</TableHead>
+                      <TableHead>{t("billing.status")}</TableHead>
+                      <TableHead>{t("billing.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -342,27 +344,27 @@ const BillingPage = () => {
                             <EditInvoiceDialog
                               invoice={inv}
                               onSaved={fetchInvoices}
-                              trigger={<Button size="sm" variant="outline" className="h-7 text-[10px]">Edit</Button>}
+                              trigger={<Button size="sm" variant="outline" className="h-7 text-[10px]">{t("billing.edit")}</Button>}
                             />
                             <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => handleDownloadInvoice(inv.id, inv.invoice_number)}>
-                              Download
+                              {t("billing.download")}
                             </Button>
                             <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => handleResendInvoice(inv.id)}>
-                              Resend
+                              {t("billing.resend")}
                             </Button>
                             {inv.status !== "paid" && (
                               <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => handleCreateInvoicePayLink(inv.id)}>
-                                Copy Pay Link
+                                {t("billing.copyPayLink")}
                               </Button>
                             )}
                             {inv.status === "draft" && (
                               <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => handleInvoiceStatus(inv.id, "sent")}>
-                                Mark Sent
+                                {t("billing.markSent")}
                               </Button>
                             )}
                             {inv.status !== "paid" && (
                               <Button size="sm" variant="default" className="h-7 text-[10px]" onClick={() => handleInvoiceStatus(inv.id, "paid")}>
-                                Mark Paid
+                                {t("billing.markPaid")}
                               </Button>
                             )}
                           </div>
@@ -380,9 +382,9 @@ const BillingPage = () => {
           <CardContent className="p-4 flex items-start gap-3">
             <PoundSterling className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium">Stripe invoices enabled</p>
+              <p className="text-sm font-medium">{t("billing.stripeEnabledTitle")}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                "Resend" now includes a Stripe payment button in email. "Copy Pay Link" creates a fresh checkout URL for the invoice.
+                {t("billing.stripeEnabledDesc")}
               </p>
             </div>
           </CardContent>

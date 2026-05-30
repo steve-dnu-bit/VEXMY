@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getSupabaseConfigError, supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,10 @@ import { resolvePostLoginPath } from "@/hooks/useUserRoles";
 import { Mail } from "lucide-react";
 import PasswordField from "@/components/auth/PasswordField";
 import { BRANDING } from "@/lib/branding";
+import LanguageSelector from "@/components/i18n/LanguageSelector";
 
 const AuthPage = () => {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,12 +34,12 @@ const AuthPage = () => {
   const configError = getSupabaseConfigError();
 
   const authErrorMessage = (error: { message?: string }) => {
-    const msg = error.message || "Something went wrong";
+    const msg = error.message || t("common.error");
     if (/invalid login credentials/i.test(msg)) {
-      return "Invalid email or password. VexMy uses a new database — your old Inkaholics password will not work until you set a new one with “Forgot your password?”.";
+      return t("auth.invalidCredentialsHint");
     }
     if (/email not confirmed/i.test(msg)) {
-      return "Please confirm your email first (check your inbox), then try again.";
+      return t("auth.emailNotConfirmed");
     }
     return msg;
   };
@@ -77,13 +80,13 @@ const AuthPage = () => {
         });
         if (error) throw error;
         toast({
-          title: "Check your email",
-          description: "We sent you a confirmation link to verify your account.",
+          title: t("auth.checkEmail"),
+          description: t("auth.confirmEmailSent"),
         });
       }
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t("common.error"),
         description: authErrorMessage(error),
         variant: "destructive",
       });
@@ -109,8 +112,8 @@ const AuthPage = () => {
   const handleForgotPassword = async () => {
     if (!email.trim()) {
       toast({
-        title: "Email required",
-        description: "Enter your email address first, then try again.",
+        title: t("auth.emailRequired"),
+        description: t("auth.emailRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -123,13 +126,13 @@ const AuthPage = () => {
       });
       if (error) throw error;
       toast({
-        title: "Reset email sent",
-        description: "Check your inbox for your password reset link.",
+        title: t("auth.resetEmailSent"),
+        description: t("auth.resetEmailSentDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Could not send reset email",
-        description: error?.message ?? "Please try again.",
+        title: t("auth.couldNotSendReset"),
+        description: error?.message ?? t("common.error"),
         variant: "destructive",
       });
     } finally {
@@ -141,16 +144,16 @@ const AuthPage = () => {
     e.preventDefault();
     if (!recoveryPassword || recoveryPassword.length < 6) {
       toast({
-        title: "Password too short",
-        description: "Use at least 6 characters.",
+        title: t("auth.passwordTooShort"),
+        description: t("auth.passwordTooShortDesc"),
         variant: "destructive",
       });
       return;
     }
     if (recoveryPassword !== recoveryPasswordConfirm) {
       toast({
-        title: "Passwords do not match",
-        description: "Please re-enter and try again.",
+        title: t("auth.passwordsNoMatch"),
+        description: t("auth.passwordsNoMatchDesc"),
         variant: "destructive",
       });
       return;
@@ -161,14 +164,14 @@ const AuthPage = () => {
       const { error } = await supabase.auth.updateUser({ password: recoveryPassword });
       if (error) throw error;
       toast({
-        title: "Password updated",
-        description: "You can now sign in with your new password.",
+        title: t("auth.passwordUpdated"),
+        description: t("auth.passwordUpdatedDesc"),
       });
       navigate("/schedule");
     } catch (error: any) {
       toast({
-        title: "Could not update password",
-        description: error?.message ?? "Please try again.",
+        title: t("auth.couldNotUpdatePassword"),
+        description: error?.message ?? t("common.error"),
         variant: "destructive",
       });
     } finally {
@@ -204,14 +207,12 @@ const AuthPage = () => {
             />
           ) : recoveryMode ? (
             <>
-              <h2 className="font-display text-xl font-semibold mb-2">Set New Password</h2>
-              <p className="text-xs text-muted-foreground mb-6">
-                Choose a new password for your account.
-              </p>
+              <h2 className="font-display text-xl font-semibold mb-2">{t("auth.setNewPassword")}</h2>
+              <p className="text-xs text-muted-foreground mb-6">{t("auth.setNewPasswordDesc")}</p>
               <form onSubmit={handleRecoveryPasswordUpdate} className="space-y-4">
                 <div>
                   <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-                    New Password
+                    {t("auth.newPassword")}
                   </Label>
                   <PasswordField
                     value={recoveryPassword}
@@ -227,7 +228,7 @@ const AuthPage = () => {
                 </div>
                 <div>
                   <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-                    Confirm Password
+                    {t("auth.confirmPassword")}
                   </Label>
                   <PasswordField
                     value={recoveryPasswordConfirm}
@@ -242,30 +243,28 @@ const AuthPage = () => {
                   />
                 </div>
                 <Button type="submit" variant="gold" className="w-full" disabled={loading}>
-                  {loading ? "Updating..." : "Update Password"}
+                  {loading ? t("auth.updating") : t("auth.updatePassword")}
                 </Button>
               </form>
             </>
           ) : (
             <>
               <h2 className="mb-1.5 text-center font-display text-3xl font-semibold text-white">
-                {isLogin ? "Sign In" : "Create Account"}
+                {isLogin ? t("common.signIn") : t("auth.createAccount")}
               </h2>
               <div className="mx-auto mb-4 h-px w-20 bg-gradient-to-r from-transparent via-[#d4af37]/80 to-transparent" />
-              <p className="mb-4 text-center text-[11px] leading-[1.4] text-zinc-300">
-                Custom booking and customer management system. Creating an account helps streamline communication and the booking process.
-              </p>
+              <p className="mb-4 text-center text-[11px] leading-[1.4] text-zinc-300">{t("auth.authSubtitle")}</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <div>
                     <Label className="text-xs uppercase tracking-widest text-[#d4af37]">
-                      Display Name
+                      {t("auth.displayName")}
                     </Label>
                     <Input
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Your name"
+                      placeholder={t("auth.yourName")}
                       className="mt-2 h-11 border-[#d4af37]/20 bg-black/30 text-zinc-100 placeholder:text-zinc-500"
                       required
                     />
@@ -273,7 +272,7 @@ const AuthPage = () => {
                 )}
                 <div>
                   <Label className="text-xs uppercase tracking-widest text-[#d4af37]">
-                    Email
+                    {t("common.email")}
                   </Label>
                   <div className="relative mt-2">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#d4af37]/85" />
@@ -281,7 +280,7 @@ const AuthPage = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder={t("auth.enterEmail")}
                       className="h-11 border-[#d4af37]/20 bg-black/30 pl-10 text-zinc-100 placeholder:text-zinc-500"
                       required
                     />
@@ -289,12 +288,12 @@ const AuthPage = () => {
                 </div>
                 <div>
                   <Label className="text-xs uppercase tracking-widest text-[#d4af37]">
-                    Password
+                    {t("common.password")}
                   </Label>
                   <PasswordField
                     value={password}
                     onChange={setPassword}
-                    placeholder="Enter your password"
+                    placeholder={t("auth.enterPassword")}
                     className="mt-2"
                     inputClassName="h-11 border-[#d4af37]/20 bg-black/30 text-zinc-100 placeholder:text-zinc-500"
                     required
@@ -303,13 +302,13 @@ const AuthPage = () => {
                   />
                 </div>
                 <Button type="submit" variant="gold" className="h-11 w-full text-sm tracking-[0.12em]" disabled={loading}>
-                  {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+                  {loading ? t("common.loading") : isLogin ? t("common.signIn") : t("auth.signUp")}
                 </Button>
                 {isLogin ? (
                   <>
                     <div className="flex items-center gap-3 py-1">
                       <div className="h-px flex-1 bg-zinc-700/70" />
-                      <span className="text-xs text-zinc-500">or</span>
+                      <span className="text-xs text-zinc-500">{t("auth.or")}</span>
                       <div className="h-px flex-1 bg-zinc-700/70" />
                     </div>
                     <button
@@ -318,39 +317,40 @@ const AuthPage = () => {
                       onClick={() => void handleForgotPassword()}
                       disabled={forgotPasswordLoading}
                     >
-                      {forgotPasswordLoading ? "Sending reset email..." : "Forgot your password?"}
+                      {forgotPasswordLoading ? t("auth.sendingReset") : t("auth.forgotPassword")}
                     </button>
                   </>
                 ) : null}
               </form>
 
               <p className="mt-5 text-center text-sm text-zinc-400">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+                {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}
                 <button
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-[#d4af37] hover:underline"
                 >
-                  {isLogin ? "Sign Up" : "Sign In"}
+                  {isLogin ? t("auth.signUp") : t("common.signIn")}
                 </button>
               </p>
             </>
           )}
         </div>
         <p className="mt-4 text-center text-[11px] text-zinc-500">
-          By continuing you agree to our{" "}
-          <Link to="/terms" className="underline underline-offset-2 hover:text-zinc-200">Terms</Link>,{" "}
-          <Link to="/privacy" className="underline underline-offset-2 hover:text-zinc-200">Privacy Notice</Link>, and{" "}
-          <Link to="/cookies" className="underline underline-offset-2 hover:text-zinc-200">Cookie Policy</Link>.
+          {t("auth.termsAgree")}{" "}
+          <Link to="/terms" className="underline underline-offset-2 hover:text-zinc-200">{t("common.terms")}</Link>,{" "}
+          <Link to="/privacy" className="underline underline-offset-2 hover:text-zinc-200">{t("auth.privacyNotice")}</Link>, {t("common.and")}{" "}
+          <Link to="/cookies" className="underline underline-offset-2 hover:text-zinc-200">{t("auth.cookiePolicy")}</Link>.
         </p>
-        <p className="mt-2 text-center text-[11px]">
+        <div className="mt-3 flex flex-col items-center gap-2">
+          <LanguageSelector compact className="w-[160px]" />
           <button
             type="button"
-            className="text-primary hover:underline"
+            className="text-[11px] text-primary hover:underline"
             onClick={() => window.dispatchEvent(new CustomEvent("cookie-consent:open"))}
           >
-            Cookie settings
+            {t("common.cookieSettings")}
           </button>
-        </p>
+        </div>
       </div>
     </div>
   );

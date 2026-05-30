@@ -14,6 +14,7 @@ import { pickServiceIdForBooking } from "@/lib/bookingService";
 import BookingClientSearch, { type ClientPick } from "./BookingClientSearch";
 import BookingLinkAccount from "./BookingLinkAccount";
 import BookingConsentSection from "./BookingConsentSection";
+import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 
 /** Escape user text for PostgREST ilike patterns */
 function escapeIlike(s: string) {
@@ -28,7 +29,10 @@ function emptyToNull(s: string): string | null {
 const EMAIL_FOR_MATCH = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Resolve portal customer id for an email: latest booking link, else profile public_contact_email (customer role). */
-async function resolvePortalCustomerByEmail(emailRaw: string): Promise<{ user_id: string; display_name: string } | null> {
+async function resolvePortalCustomerByEmail(
+  emailRaw: string,
+  customerLabel = "Customer",
+): Promise<{ user_id: string; display_name: string } | null> {
   const email = emailRaw.trim().toLowerCase();
   if (!EMAIL_FOR_MATCH.test(email)) return null;
   const literal = escapeIlike(email);
@@ -45,7 +49,7 @@ async function resolvePortalCustomerByEmail(emailRaw: string): Promise<{ user_id
   const uidBooking = fromBooking?.client_user_id?.trim();
   if (uidBooking) {
     const { data: prof } = await supabase.from("profiles").select("display_name").eq("user_id", uidBooking).maybeSingle();
-    return { user_id: uidBooking, display_name: (prof?.display_name || "").trim() || "Customer" };
+    return { user_id: uidBooking, display_name: (prof?.display_name || "").trim() || customerLabel };
   }
 
   const { data: profs } = await supabase
@@ -60,7 +64,7 @@ async function resolvePortalCustomerByEmail(emailRaw: string): Promise<{ user_id
   const ok = new Set((roleRows ?? []).map((r) => r.user_id));
   const hit = profs.find((p) => ok.has(p.user_id));
   if (!hit) return null;
-  return { user_id: hit.user_id, display_name: (hit.display_name || "").trim() || "Customer" };
+  return { user_id: hit.user_id, display_name: (hit.display_name || "").trim() || customerLabel };
 }
 
 function timeEqualIso(a: string, b: string): boolean {
@@ -168,6 +172,7 @@ const BookingDialog = ({
   bookingToEdit,
   onSaved,
 }: BookingDialogProps) => {
+  const { t } = useScheduleI18n();
   const defaultDate = format(prefillDate || new Date(), "yyyy-MM-dd");
   const defaultStartTime = prefillHour !== undefined
     ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
@@ -327,12 +332,12 @@ const BookingDialog = ({
     const email = form.client_email.trim().toLowerCase();
     if (!EMAIL_FOR_MATCH.test(email)) return;
     if (clientUserId.trim() !== "") return;
-    const resolved = await resolvePortalCustomerByEmail(email);
+    const resolved = await resolvePortalCustomerByEmail(email, t("schedule.customer"));
     if (!resolved || skipAutoLinkFromEmailRef.current) return;
     setClientUserId(resolved.user_id);
     suppressLinkSearchRef.current = true;
     setLinkAccountInput(resolved.display_name);
-  }, [open, bookingToEdit, form.client_email, clientUserId]);
+  }, [open, bookingToEdit, form.client_email, clientUserId, t]);
 
   useEffect(() => {
     if (!open || bookingToEdit) return;
@@ -561,7 +566,7 @@ const BookingDialog = ({
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     const token = session?.access_token ?? null;
     if (sessionError || !token) {
-      toast.warning("Booking saved, but your session expired. Sign in again to send booking emails.");
+      toast.warning(t("schedule.notifications.sessionExpired"));
       return;
     }
 
@@ -586,39 +591,44 @@ const BookingDialog = ({
         } catch { /* ignore */ }
       }
       if (status === 401) {
-        toast.warning("Booking saved, but session expired (401). Please sign in again.");
+        toast.warning(t("schedule.notifications.sessionExpired401"));
         return;
       }
       if (status === 503) {
-        toast.warning(`Booking saved, but email is not configured: ${errMsg}`);
+        toast.warning(t("schedule.notifications.emailNotConfigured", { msg: errMsg }));
         return;
       }
       console.error("Booking notification failed:", error);
-      toast.warning(`Booking saved, but email notification could not be sent: ${errMsg}`);
+      toast.warning(t("schedule.notifications.emailFailed", { msg: errMsg }));
       return;
     }
 
     if (data?.failed && data.failed.length > 0) {
       const first = data.failed[0];
       const details = first?.email ? `${first.email}: ${first.message || "send failed"}` : first?.message || "send failed";
-      toast.warning(`Booking saved, but some emails failed (${details}).`);
+      toast.warning(t("schedule.notifications.someEmailsFailed", { details }));
       return;
     }
 
     if (data?.skipped === "booking_confirmation_disabled") {
-      toast.warning("Booking saved, but confirmation emails are turned off. Enable them in Settings → Reminders.");
+      toast.warning(t("schedule.notifications.confirmationsOff"));
       return;
     }
 
     if (data?.emailAttempted === false && (data.sent ?? 0) === 0) {
       if (!booking.client_email?.trim()) {
-        toast.warning("Booking saved, but no client email was provided — add an email to send confirmations.");
+        toast.warning(t("schedule.notifications.noClientEmail"));
       }
       return;
     }
 
     if ((data?.sent ?? 0) > 0) {
-      toast.success(`Booking email sent (${data.sent} recipient${data.sent === 1 ? "" : "s"}). Check inbox and spam.`);
+      toast.success(
+        t("schedule.notifications.emailSent", {
+          count: data.sent,
+          suffix: data.sent === 1 ? "" : "s",
+        }),
+      );
     }
 
     notificationCooldownRef.current.set(dedupeKey, now);
@@ -631,7 +641,7 @@ const BookingDialog = ({
       const startsAtLocal = new Date(`${form.date}T${form.start_time}:00`);
       const endsAtLocal = new Date(`${form.date}T${endTime}:00`);
       if (Number.isNaN(startsAtLocal.getTime()) || Number.isNaN(endsAtLocal.getTime())) {
-        toast.error("Invalid date/time selected");
+        toast.error(t("schedule.invalidDateTime"));
         return;
       }
       const starts_at = startsAtLocal.toISOString();
@@ -658,7 +668,7 @@ const BookingDialog = ({
         const baseline = editBaselineRef.current;
         const patch = baseline ? diffBookingPayload(nextPayload, baseline) : nextPayload;
         if (Object.keys(patch).length === 0) {
-          toast.info("No changes to save");
+          toast.info(t("schedule.noChanges"));
           return;
         }
         const { data: updatedBooking, error } = await supabase
@@ -668,7 +678,7 @@ const BookingDialog = ({
           })
           .single();
         if (error || !updatedBooking) {
-          toast.error(error?.message || "Could not save booking");
+          toast.error(error?.message || t("schedule.couldNotSave"));
           return;
         }
 
@@ -705,7 +715,7 @@ const BookingDialog = ({
           })
           .single();
         if (error || !createdBooking) {
-          toast.error(error?.message || "Could not save booking");
+          toast.error(error?.message || t("schedule.couldNotSave"));
           return;
         }
 
@@ -723,7 +733,7 @@ const BookingDialog = ({
         });
       }
 
-      toast.success(bookingToEdit ? "Booking updated" : "Booking created");
+      toast.success(bookingToEdit ? t("schedule.bookingUpdated") : t("schedule.bookingCreated"));
       onOpenChange(false);
       onSaved?.();
       setForm({
@@ -739,13 +749,13 @@ const BookingDialog = ({
   const handleDelete = async () => {
     if (isSaving || isDeleting) return;
     if (!bookingToEdit) return;
-    const yes = window.confirm("Delete this booking?");
+    const yes = window.confirm(t("schedule.deleteConfirm"));
     if (!yes) return;
     setIsDeleting(true);
     try {
       const { data: bookingSnapshot, error } = await supabase.rpc("staff_delete_booking", { p_id: bookingToEdit.id }).single();
       if (error || !bookingSnapshot) {
-        toast.error(error?.message || "Could not delete booking");
+        toast.error(error?.message || t("schedule.couldNotDelete"));
         return;
       }
 
@@ -762,7 +772,7 @@ const BookingDialog = ({
         notes: bookingSnapshot.notes,
       });
 
-      toast.success("Booking deleted");
+      toast.success(t("schedule.bookingDeleted"));
       onOpenChange(false);
       onSaved?.();
     } finally {
@@ -774,14 +784,14 @@ const BookingDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">{bookingToEdit ? "Edit Booking" : "New Booking"}</DialogTitle>
+          <DialogTitle className="font-display text-lg">{bookingToEdit ? t("schedule.editBooking") : t("schedule.newBooking")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 mt-2">
           <div>
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground">Artist *</Label>
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.artistRequired")}</Label>
             <Select value={artistId} onValueChange={setArtistId}>
               <SelectTrigger className="mt-1 bg-secondary border-border">
-                <SelectValue placeholder="Select artist" />
+                <SelectValue placeholder={t("schedule.selectArtist")} />
               </SelectTrigger>
               <SelectContent>
                 {(artists || []).map((a) => (
@@ -793,10 +803,10 @@ const BookingDialog = ({
             </Select>
           </div>
           <div>
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground">Service *</Label>
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.serviceRequired")}</Label>
             <Select value={serviceId} onValueChange={setServiceId}>
               <SelectTrigger className="mt-1 bg-secondary border-border">
-                <SelectValue placeholder="Select service" />
+                <SelectValue placeholder={t("schedule.select")} />
               </SelectTrigger>
               <SelectContent>
                 {services.map((s) => (
@@ -819,7 +829,7 @@ const BookingDialog = ({
           />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Phone</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.phone")}</Label>
               <Input value={form.client_phone} onChange={(e) => update("client_phone", e.target.value)} className="mt-1 bg-secondary border-border" />
             </div>
             <div>
@@ -850,65 +860,65 @@ const BookingDialog = ({
           />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Style</Label>
-              <Input value={form.tattoo_style} onChange={(e) => update("tattoo_style", e.target.value)} className="mt-1 bg-secondary border-border" placeholder="e.g. Realism" />
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.style")}</Label>
+              <Input value={form.tattoo_style} onChange={(e) => update("tattoo_style", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("schedule.stylePlaceholder")} />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Size</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.size")}</Label>
               <Select value={form.tattoo_size} onValueChange={(v) => update("tattoo_size", v)}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.select")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="small">Small (2-4")</SelectItem>
-                  <SelectItem value="medium">Medium (4-6")</SelectItem>
-                  <SelectItem value="large">Large (6-10")</SelectItem>
-                  <SelectItem value="xlarge">X-Large (10"+)</SelectItem>
+                  <SelectItem value="small">{t("schedule.tattooSizes.small")}</SelectItem>
+                  <SelectItem value="medium">{t("schedule.tattooSizes.medium")}</SelectItem>
+                  <SelectItem value="large">{t("schedule.tattooSizes.large")}</SelectItem>
+                  <SelectItem value="xlarge">{t("schedule.tattooSizes.xlarge")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div>
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground">Placement</Label>
-            <Input value={form.tattoo_placement} onChange={(e) => update("tattoo_placement", e.target.value)} className="mt-1 bg-secondary border-border" placeholder="e.g. Forearm" />
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.placement")}</Label>
+            <Input value={form.tattoo_placement} onChange={(e) => update("tattoo_placement", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("schedule.placementPlaceholder")} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Date</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.date")}</Label>
               <Input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} className="mt-1 bg-secondary border-border" />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Start Time</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.startTime")}</Label>
               <Input type="time" value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 bg-secondary border-border" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Status</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.status")}</Label>
               <Select value={form.status} onValueChange={(v) => update("status", v)}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.status")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="no-show">No show</SelectItem>
+                  <SelectItem value="confirmed">{t("schedule.statusOptions.confirmed")}</SelectItem>
+                  <SelectItem value="completed">{t("schedule.statusOptions.completed")}</SelectItem>
+                  <SelectItem value="cancelled">{t("schedule.statusOptions.cancelled")}</SelectItem>
+                  <SelectItem value="no-show">{t("schedule.statusOptions.no-show")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Deposit</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.deposit")}</Label>
               <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder="Deposit" /></SelectTrigger>
+                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.deposit")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
+                  <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="text-xs text-muted-foreground">
-            Duration: {duration}min → ends at {endTime}
+            {t("schedule.durationEnds", { duration, endTime })}
           </div>
           <div>
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground">Notes</Label>
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.notes")}</Label>
             <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="mt-1 bg-secondary border-border" rows={2} />
           </div>
           {bookingToEdit ? (
@@ -923,15 +933,15 @@ const BookingDialog = ({
           {bookingToEdit ? (
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" className="w-full" onClick={handleDelete} disabled={isSaving || isDeleting}>
-                {isDeleting ? "Deleting..." : "Delete"}
+                {isDeleting ? t("schedule.deleting") : t("schedule.delete")}
               </Button>
               <Button variant="gold" className="w-full" onClick={handleSave} disabled={isSaving || isDeleting || !artistId || !form.client_name || !serviceId}>
-                {isSaving ? "Saving..." : "Save Changes"}
+                {isSaving ? t("schedule.saving") : t("schedule.saveChanges")}
               </Button>
             </div>
           ) : (
             <Button variant="gold" className="w-full" onClick={handleSave} disabled={isSaving || isDeleting || !artistId || !form.client_name || !serviceId}>
-              {isSaving ? "Creating..." : "Create Booking"}
+              {isSaving ? t("schedule.creating") : t("schedule.createBooking")}
             </Button>
           )}
         </div>

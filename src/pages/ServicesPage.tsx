@@ -14,6 +14,7 @@ import {
   CALENDAR_TYPE_OPTIONS,
   defaultServiceCategoryForBookingType,
 } from "@/lib/bookingTypes";
+import { useTranslation } from "react-i18next";
 
 interface Service {
   id: string;
@@ -43,6 +44,7 @@ const COLOR_OPTIONS = [
 const getColorClass = (color: string) => COLOR_OPTIONS.find((c) => c.value === color)?.class || "bg-blue-500";
 
 const ServicesPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -104,10 +106,10 @@ const ServicesPage = () => {
     if (editing) {
       const { error } = await supabase.from("services").update(payload).eq("id", editing.id);
       if (error) {
-        toast({ title: "Error updating service", description: error.message, variant: "destructive" });
+        toast({ title: t("services.errorUpdating"), description: error.message, variant: "destructive" });
         return;
       }
-      toast({ title: "Service updated" });
+      toast({ title: t("services.serviceUpdated") });
     } else {
       const { error } = await supabase.from("services").insert({
         ...payload,
@@ -115,10 +117,10 @@ const ServicesPage = () => {
         sort_order: services.length,
       });
       if (error) {
-        toast({ title: "Error creating service", description: error.message, variant: "destructive" });
+        toast({ title: t("services.errorCreating"), description: error.message, variant: "destructive" });
         return;
       }
-      toast({ title: "Service created" });
+      toast({ title: t("services.serviceCreated") });
     }
     setDialogOpen(false);
     fetchServices();
@@ -127,10 +129,10 @@ const ServicesPage = () => {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("services").delete().eq("id", id);
     if (error) {
-      toast({ title: "Error deleting service", description: error.message, variant: "destructive" });
+      toast({ title: t("services.errorDeleting"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Service deleted" });
+    toast({ title: t("services.serviceDeleted") });
     fetchServices();
   };
 
@@ -150,12 +152,12 @@ const ServicesPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl font-bold">
-              <span className="text-gradient-gold">Services</span>
+              <span className="text-gradient-gold">{t("services.title")}</span>
             </h1>
-            <p className="text-sm text-muted-foreground">Manage your booking services and pricing</p>
+            <p className="text-sm text-muted-foreground">{t("services.subtitle")}</p>
           </div>
           <Button variant="gold" size="sm" className="gap-1.5" onClick={openNew}>
-            <Plus className="h-4 w-4" /> New Service
+            <Plus className="h-4 w-4" /> {t("services.newService")}
           </Button>
         </div>
 
@@ -173,7 +175,7 @@ const ServicesPage = () => {
                 <p className="text-xs text-muted-foreground">
                   {s.duration}min · {s.booking_type} · {s.service_category || "tattoo"}
                   {s.price != null && ` · £${s.price}`}
-                  {!s.is_active && " · Inactive"}
+                  {!s.is_active && ` · ${t("services.inactive")}`}
                 </p>
               </div>
               <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => openEdit(s)}>
@@ -185,7 +187,7 @@ const ServicesPage = () => {
             </div>
           ))}
           {services.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">No services yet. Create one to get started.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("services.noServices")}</p>
           )}
         </div>
       </div>
@@ -193,26 +195,26 @@ const ServicesPage = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-card border-border sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">{editing ? "Edit Service" : "New Service"}</DialogTitle>
+            <DialogTitle className="font-display">{editing ? t("services.editService") : t("services.newService")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">Name *</Label>
-              <Input value={form.name} onChange={(e) => update("name", e.target.value)} className="mt-1 bg-secondary border-border" placeholder="e.g. Full Sleeve Session" />
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.nameLabel")}</Label>
+              <Input value={form.name} onChange={(e) => update("name", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("services.namePlaceholder")} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Duration (min)</Label>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.durationLabel")}</Label>
                 <Input type="number" value={form.duration} onChange={(e) => update("duration", e.target.value)} className="mt-1 bg-secondary border-border" />
               </div>
               <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Price (£)</Label>
-                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} className="mt-1 bg-secondary border-border" placeholder="Optional" />
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.priceLabel")}</Label>
+                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("services.pricePlaceholder")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Calendar type</Label>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.calendarTypeLabel")}</Label>
                 <Select value={form.booking_type} onValueChange={(v) => update("booking_type", v)}>
                   <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -225,21 +227,21 @@ const ServicesPage = () => {
                 </Select>
               </div>
               <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Service category</Label>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.serviceCategoryLabel")}</Label>
                 <Select value={form.service_category} onValueChange={(v) => update("service_category", v)}>
                   <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tattoo">Tattoo</SelectItem>
-                    <SelectItem value="piercing">Piercing</SelectItem>
-                    <SelectItem value="laser">Laser</SelectItem>
-                    <SelectItem value="consultation">Consultation</SelectItem>
+                    <SelectItem value="tattoo">{t("services.categoryTattoo")}</SelectItem>
+                    <SelectItem value="piercing">{t("services.categoryPiercing")}</SelectItem>
+                    <SelectItem value="laser">{t("services.categoryLaser")}</SelectItem>
+                    <SelectItem value="consultation">{t("services.categoryConsultation")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Color</Label>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.colorLabel")}</Label>
                 <Select value={form.color} onValueChange={(v) => update("color", v)}>
                   <SelectTrigger className="mt-1 bg-secondary border-border">
                     <div className="flex items-center gap-2">
@@ -260,14 +262,14 @@ const ServicesPage = () => {
                 </Select>
               </div>
               <div className="flex flex-col justify-end gap-2">
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Active</Label>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.activeLabel")}</Label>
                 <div className="flex h-10 items-center">
                   <Switch checked={form.is_active} onCheckedChange={(v) => update("is_active", v)} />
                 </div>
               </div>
             </div>
             <Button variant="gold" className="w-full" onClick={handleSave} disabled={!form.name.trim()}>
-              {editing ? "Save Changes" : "Create Service"}
+              {editing ? t("services.saveChanges") : t("services.createService")}
             </Button>
           </div>
         </DialogContent>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 type StencilCompareProps = {
   beforeSrc: string;
@@ -9,6 +10,7 @@ type StencilCompareProps = {
 };
 
 export function StencilCompare({ beforeSrc, afterSrc, className }: StencilCompareProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState(50);
   const [dragging, setDragging] = useState(false);
@@ -60,7 +62,7 @@ export function StencilCompare({ beforeSrc, afterSrc, className }: StencilCompar
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <img src={afterSrc} alt="Stencil" loading="lazy" className="absolute inset-0 h-full w-full object-contain" draggable={false} />
+      <img src={afterSrc} alt={t("stencil.stencilLabel")} loading="lazy" className="absolute inset-0 h-full w-full object-contain" draggable={false} />
 
       <div
         className="absolute inset-y-0 left-0 overflow-hidden"
@@ -68,7 +70,7 @@ export function StencilCompare({ beforeSrc, afterSrc, className }: StencilCompar
       >
         <img
           src={beforeSrc}
-          alt="Original"
+          alt={t("stencil.originalLabel")}
           loading="lazy"
           className="absolute inset-y-0 left-0 h-full max-w-none object-contain"
           style={{ width: containerWidth || "100%" }}
@@ -92,13 +94,13 @@ export function StencilCompare({ beforeSrc, afterSrc, className }: StencilCompar
       </div>
 
       <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-        Original
+        {t("stencil.originalLabel")}
       </div>
       <div
         className="pointer-events-none absolute bottom-2 rounded bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
         style={{ left: `calc(${position}% + 8px)` }}
       >
-        Stencil
+        {t("stencil.stencilLabel")}
       </div>
     </div>
   );

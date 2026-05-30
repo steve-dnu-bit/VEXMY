@@ -18,7 +18,8 @@ import {
   normalizeClientPhone,
 } from "@/lib/clientConduct";
 import { consentPdfBasename, downloadConsentPdf, printConsentPdf } from "@/lib/consentPdfActions";
-import { BOOKING_TYPE_BADGE_STYLES, bookingTypeLabel } from "@/lib/bookingTypes";
+import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
+import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 
 interface Booking {
   id: string;
@@ -60,6 +61,7 @@ type ClientConductRow = {
 };
 
 const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDetailPanelProps) => {
+  const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
   const { user } = useAuth();
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
   const [conductLoading, setConductLoading] = useState(true);
@@ -162,7 +164,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
   const saveConduct = async () => {
     if (!user) return;
     if (isBanned && !banReason.trim()) {
-      toast.error("Add a ban reason");
+      toast.error(t("schedule.addBanReason"));
       return;
     }
     setSavingConduct(true);
@@ -186,20 +188,20 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
       .single();
     setSavingConduct(false);
     if (error) {
-      toast.error(error.message || "Failed to save client conduct");
+      toast.error(error.message || t("schedule.conductSaveFailed"));
       return;
     }
     setConduct(data as ClientConductRow);
-    toast.success("Client conduct updated");
+    toast.success(t("schedule.conductUpdated"));
   };
 
   const sendDepositReminder = async () => {
     if (booking.deposit_paid) {
-      toast.info("Deposit is already marked as paid");
+      toast.info(t("schedule.depositAlreadyPaid"));
       return;
     }
     if (!booking.client_email) {
-      toast.error("No client email on this booking. Deposit reminder email cannot be sent.");
+      toast.error(t("schedule.noClientEmailDeposit"));
       return;
     }
 
@@ -218,7 +220,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
     setSendingDepositReminder(false);
 
     if (error || !data?.checkoutUrl) {
-      toast.error(data?.error || error?.message || "Failed to generate deposit link");
+      toast.error(data?.error || error?.message || t("schedule.depositLinkFailed"));
       return;
     }
 
@@ -230,22 +232,32 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
     try {
       await navigator.clipboard.writeText(data.checkoutUrl);
       if (emailSent) {
-        toast.success("Deposit reminder email sent and checkout link copied");
+        toast.success(t("schedule.depositReminderSentCopied"));
       } else {
         toast.error(
           emailAttempted
-            ? `Deposit link created and copied, but email was not sent: ${emailFailureMessage}`
-            : "Deposit link created and copied, but email send was not attempted.",
+            ? t("schedule.depositLinkCopiedEmailFailed", {
+                defaultValue: "Deposit link created and copied, but email was not sent: {{msg}}",
+                msg: emailFailureMessage,
+              })
+            : t("schedule.depositLinkCopiedEmailNotAttempted", {
+                defaultValue: "Deposit link created and copied, but email send was not attempted.",
+              }),
         );
       }
     } catch {
       if (emailSent) {
-        toast.success("Deposit reminder email sent");
+        toast.success(t("schedule.depositReminderSent"));
       } else {
         toast.error(
           emailAttempted
-            ? `Deposit link created, but email was not sent: ${emailFailureMessage}`
-            : "Deposit link created, but email send was not attempted.",
+            ? t("schedule.depositLinkCreatedEmailFailed", {
+                defaultValue: "Deposit link created, but email was not sent: {{msg}}",
+                msg: emailFailureMessage,
+              })
+            : t("schedule.depositLinkCreatedEmailNotAttempted", {
+                defaultValue: "Deposit link created, but email send was not attempted.",
+              }),
         );
       }
       toast.message(data.checkoutUrl);
@@ -258,7 +270,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
       <div className="fixed inset-0 bg-background/60 z-30 md:hidden" onClick={onClose} />
       <div className="fixed inset-y-0 right-0 z-40 w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right">
         <div className="flex items-center justify-between p-3 border-b border-border">
-          <h3 className="font-display text-sm font-semibold">Booking Details</h3>
+          <h3 className="font-display text-sm font-semibold">{t("schedule.bookingDetails")}</h3>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -266,7 +278,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
         <div className="px-3 pt-2">
           <Button variant="outline" size="sm" className="w-full gap-2" onClick={onEdit}>
             <Pencil className="h-3.5 w-3.5" />
-            Edit booking
+            {t("schedule.editBookingBtn")}
           </Button>
         </div>
 
@@ -280,7 +292,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
               <div className="mt-2 flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
                 <Badge className={isBanned ? "bg-destructive/20 text-destructive border-destructive/30 text-[10px]" : "bg-amber-500/15 text-amber-200 border-amber-500/25 text-[10px]"}>
-                  {isBanned ? "Banned" : "High Risk"}
+                  {isBanned ? t("schedule.banned") : t("schedule.highRisk")}
                 </Badge>
               </div>
             )}
@@ -303,7 +315,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
 
           {(booking.client_phone || booking.client_email) && (
             <div className="space-y-1.5 pt-2 border-t border-border">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Contact</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.contact")}</p>
               {booking.client_phone && (
                 <div className="flex items-center gap-2">
                   <Phone className="h-3.5 w-3.5 text-muted-foreground" />
@@ -321,12 +333,12 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
 
           {(booking.tattoo_style || booking.tattoo_size || booking.tattoo_placement) && (
             <div className="space-y-1.5 pt-2 border-t border-border">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Tattoo</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.tattoo")}</p>
               {booking.tattoo_style && (
                 <div className="flex items-center gap-2"><Palette className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs">{booking.tattoo_style}</p></div>
               )}
               {booking.tattoo_size && (
-                <div className="flex items-center gap-2"><Ruler className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs capitalize">{booking.tattoo_size}</p></div>
+                <div className="flex items-center gap-2"><Ruler className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs">{tattooSizeLabel(booking.tattoo_size)}</p></div>
               )}
               {booking.tattoo_placement && (
                 <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs">{booking.tattoo_placement}</p></div>
@@ -336,7 +348,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
 
           {booking.notes && (
             <div className="space-y-1.5 pt-2 border-t border-border">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Notes</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.notes")}</p>
               <div className="flex items-start gap-2">
                 <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
                 <p className="text-xs text-muted-foreground">{booking.notes}</p>
@@ -345,9 +357,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
           )}
 
           <div className="pt-2 border-t border-border">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Deposit</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.deposit")}</p>
             <Badge variant={booking.deposit_paid ? "default" : "outline"} className="text-[10px]">
-              {booking.deposit_paid ? "£50 Paid" : "£50 Pending"}
+              {booking.deposit_paid ? t("schedule.depositPaidBadge") : t("schedule.depositPendingBadge")}
             </Badge>
             <Button
               size="sm"
@@ -357,20 +369,20 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
               disabled={sendingDepositReminder || !!booking.deposit_paid}
             >
               <Send className="h-3 w-3" />
-              {sendingDepositReminder ? "Sending..." : "Send reminder"}
+              {sendingDepositReminder ? t("schedule.sending") : t("schedule.sendReminder")}
             </Button>
           </div>
 
           <div className="pt-2 border-t border-border">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Consent</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.consent")}</p>
             {consentLoading ? (
-              <p className="text-xs text-muted-foreground">Checking consent…</p>
+              <p className="text-xs text-muted-foreground">{t("schedule.checkingConsent")}</p>
             ) : consentRows.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No consent</p>
+              <p className="text-xs text-muted-foreground">{t("schedule.noConsent")}</p>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Signed {format(parseISO(consentRows[0].created_at), "d MMM yyyy, HH:mm")}
+                  {t("schedule.signedAt", { date: format(parseISO(consentRows[0].created_at), "d MMM yyyy, HH:mm") })}
                 </p>
                 {consentRows[0].consent_pdf_url ? (
                   <div className="grid grid-cols-2 gap-2">
@@ -381,7 +393,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                       onClick={() => printConsentPdf(consentRows[0].consent_pdf_url!)}
                     >
                       <Printer className="h-3 w-3 shrink-0" />
-                      Print consent
+                      {t("schedule.printConsent")}
                     </Button>
                     <Button
                       size="sm"
@@ -395,7 +407,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                           const base = consentPdfBasename(booking.client_name, consentRows[0].created_at);
                           const ok = await downloadConsentPdf(url, base);
                           if (!ok) {
-                            toast.info("Opened consent in a new tab — use Save as to download if needed.");
+                            toast.info(t("schedule.consentOpenTab"));
                           }
                         } finally {
                           setConsentDownloadBusy(false);
@@ -403,49 +415,58 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                       }}
                     >
                       <Download className="h-3 w-3 shrink-0" />
-                      {consentDownloadBusy ? "Downloading…" : "Download consent"}
+                      {consentDownloadBusy ? t("schedule.downloading") : t("schedule.downloadConsent")}
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Consent signed, PDF unavailable.</p>
+                  <p className="text-xs text-muted-foreground">{t("schedule.consentPdfUnavailable")}</p>
                 )}
               </>
             )}
           </div>
 
           <div className="pt-2 border-t border-border space-y-2">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Client conduct</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.clientConduct")}</p>
             {conductLoading ? (
-              <p className="text-xs text-muted-foreground">Loading conduct...</p>
+              <p className="text-xs text-muted-foreground">{t("schedule.loadingConduct")}</p>
             ) : (
               <>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">No-shows ({noShowsCount}/{CLIENT_CONDUCT_THRESHOLDS.noShows})</Label>
+                  <Label className="text-[10px] text-muted-foreground">
+                    {t("schedule.noShows", { count: noShowsCount, max: CLIENT_CONDUCT_THRESHOLDS.noShows })}
+                  </Label>
                   <Input type="number" min={0} value={noShowsCount} onChange={(e) => setNoShowsCount(Math.max(0, parseInt(e.target.value || "0", 10) || 0))} className="h-8 mt-1 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">Late cancellations ({lateCancellationsCount}/{CLIENT_CONDUCT_THRESHOLDS.lateCancellations})</Label>
+                  <Label className="text-[10px] text-muted-foreground">
+                    {t("schedule.lateCancellations", {
+                      count: lateCancellationsCount,
+                      max: CLIENT_CONDUCT_THRESHOLDS.lateCancellations,
+                    })}
+                  </Label>
                   <Input type="number" min={0} value={lateCancellationsCount} onChange={(e) => setLateCancellationsCount(Math.max(0, parseInt(e.target.value || "0", 10) || 0))} className="h-8 mt-1 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">Reschedules ({reschedulesCount}/{CLIENT_CONDUCT_THRESHOLDS.reschedules})</Label>
+                  <Label className="text-[10px] text-muted-foreground">
+                    {t("schedule.reschedules", { count: reschedulesCount, max: CLIENT_CONDUCT_THRESHOLDS.reschedules })}
+                  </Label>
                   <Input type="number" min={0} value={reschedulesCount} onChange={(e) => setReschedulesCount(Math.max(0, parseInt(e.target.value || "0", 10) || 0))} className="h-8 mt-1 text-xs" />
                 </div>
                 <div className="flex items-center justify-between rounded-md border border-border p-2">
-                  <Label htmlFor={`ban-${booking.id}`} className="text-xs">Banned</Label>
+                  <Label htmlFor={`ban-${booking.id}`} className="text-xs">{t("schedule.banned")}</Label>
                   <Switch id={`ban-${booking.id}`} checked={isBanned} onCheckedChange={setIsBanned} />
                 </div>
                 {isBanned ? (
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Ban reason</Label>
-                    <Input value={banReason} onChange={(e) => setBanReason(e.target.value)} placeholder="Why is this client banned?" className="h-8 mt-1 text-xs" />
+                    <Label className="text-[10px] text-muted-foreground">{t("schedule.banReason")}</Label>
+                    <Input value={banReason} onChange={(e) => setBanReason(e.target.value)} placeholder={t("schedule.banReasonPlaceholder")} className="h-8 mt-1 text-xs" />
                   </div>
                 ) : null}
                 {conduct?.updated_by ? (
-                  <p className="text-[10px] text-muted-foreground">Manual score saved by staff.</p>
+                  <p className="text-[10px] text-muted-foreground">{t("schedule.conductSavedByStaff")}</p>
                 ) : null}
                 <Button size="sm" className="w-full h-8 text-xs" onClick={saveConduct} disabled={savingConduct}>
-                  {savingConduct ? "Saving..." : "Save conduct"}
+                  {savingConduct ? t("schedule.saving") : t("schedule.saveConduct")}
                 </Button>
               </>
             )}

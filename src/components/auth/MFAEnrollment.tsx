@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, ShieldCheck, ShieldOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const MFAEnrollment = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [factors, setFactors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
@@ -36,7 +38,7 @@ const MFAEnrollment = () => {
     setEnrolling(true);
     const { data, error } = await supabase.auth.mfa.enroll({
       factorType: "totp",
-      friendlyName: "Authenticator App",
+      friendlyName: t("mfa.authenticatorApp"),
     });
     if (error) {
       toast.error(error.message);
@@ -70,12 +72,12 @@ const MFAEnrollment = () => {
       code: verifyCode,
     });
     if (verifyError) {
-      toast.error("Invalid code. Please try again.");
+      toast.error(t("mfa.invalidCode"));
       setVerifying(false);
       return;
     }
 
-    toast.success("MFA enabled successfully!");
+    toast.success(t("mfa.enabledSuccess"));
     setQrCode(null);
     setSecret(null);
     setFactorId(null);
@@ -90,7 +92,7 @@ const MFAEnrollment = () => {
       toast.error(error.message);
       return;
     }
-    toast.success("MFA disabled");
+    toast.success(t("mfa.disable"));
     loadFactors();
   };
 
@@ -112,10 +114,10 @@ const MFAEnrollment = () => {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <CardTitle className="text-base">Two-Factor Authentication</CardTitle>
+          <CardTitle className="text-base">{t("mfa.title")}</CardTitle>
         </div>
         <CardDescription>
-          Add an extra layer of security using an authenticator app (Google Authenticator, Authy, etc.)
+          {t("mfa.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -123,13 +125,13 @@ const MFAEnrollment = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-emerald-400">
               <ShieldCheck className="h-4 w-4" />
-              <span className="text-sm font-medium">MFA is enabled</span>
+              <span className="text-sm font-medium">{t("mfa.enabled")}</span>
             </div>
             {verifiedFactors.map((f) => (
               <div key={f.id} className="flex items-center justify-between rounded-lg border border-border bg-secondary p-3">
                 <div>
-                  <p className="text-sm font-medium">{f.friendly_name || "Authenticator App"}</p>
-                  <p className="text-[11px] text-muted-foreground">Added {new Date(f.created_at).toLocaleDateString()}</p>
+                  <p className="text-sm font-medium">{f.friendly_name || t("mfa.authenticatorApp")}</p>
+                  <p className="text-[11px] text-muted-foreground">{t("mfa.addedOn", { date: new Date(f.created_at).toLocaleDateString() })}</p>
                 </div>
                 <Button
                   variant="outline"
@@ -137,7 +139,7 @@ const MFAEnrollment = () => {
                   className="text-destructive border-destructive/30 hover:bg-destructive/10"
                   onClick={() => unenroll(f.id)}
                 >
-                  <ShieldOff className="h-3.5 w-3.5 mr-1" /> Remove
+                  <ShieldOff className="h-3.5 w-3.5 mr-1" /> {t("mfa.remove")}
                 </Button>
               </div>
             ))}
@@ -148,11 +150,11 @@ const MFAEnrollment = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <ShieldOff className="h-4 w-4" />
-              <span className="text-sm">MFA is not enabled</span>
+              <span className="text-sm">{t("mfa.disabled")}</span>
             </div>
             <Button onClick={startEnroll} disabled={enrolling} variant="gold" className="w-full">
               {enrolling ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Shield className="h-4 w-4 mr-2" />}
-              Enable MFA
+              {t("mfa.enable")}
             </Button>
           </div>
         )}
@@ -160,22 +162,22 @@ const MFAEnrollment = () => {
         {qrCode && (
           <div className="space-y-4">
             <div className="text-sm text-muted-foreground">
-              <p className="font-medium text-foreground mb-2">Step 1: Scan this QR code</p>
-              <p>Open your authenticator app and scan the code below:</p>
+              <p className="font-medium text-foreground mb-2">{t("mfa.step1Title")}</p>
+              <p>{t("mfa.step1Desc")}</p>
             </div>
             <div className="flex justify-center p-4 bg-white rounded-lg">
-              <img src={qrCode} alt="MFA QR Code" loading="lazy" className="w-48 h-48" />
+              <img src={qrCode} alt={t("mfa.title")} loading="lazy" className="w-48 h-48" />
             </div>
             {secret && (
               <div className="text-center">
-                <p className="text-[11px] text-muted-foreground mb-1">Or enter this code manually:</p>
+                <p className="text-[11px] text-muted-foreground mb-1">{t("mfa.manualCodeLabel")}</p>
                 <code className="text-xs bg-secondary px-3 py-1.5 rounded border border-border select-all">
                   {secret}
                 </code>
               </div>
             )}
             <div>
-              <p className="text-sm font-medium text-foreground mb-2">Step 2: Enter verification code</p>
+              <p className="text-sm font-medium text-foreground mb-2">{t("mfa.step2Title")}</p>
               <div className="flex gap-2">
                 <Input
                   value={verifyCode}
@@ -189,7 +191,7 @@ const MFAEnrollment = () => {
                   disabled={verifyCode.length !== 6 || verifying}
                   variant="gold"
                 >
-                  {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+                  {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : t("mfa.verify")}
                 </Button>
               </div>
             </div>
@@ -204,7 +206,7 @@ const MFAEnrollment = () => {
                 setVerifyCode("");
               }}
             >
-              Cancel
+              {t("mfa.cancel")}
             </Button>
           </div>
         )}

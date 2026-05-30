@@ -16,6 +16,7 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { Link } from "react-router-dom";
 import { useArtistSeats } from "@/hooks/useSubscription";
 import { getPlanById } from "@/lib/pricingPlans";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   user_id: string;
@@ -72,6 +73,7 @@ const customerFeatureLabels: Record<string, string> = {
 };
 
 const AdminPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { data: seatUsage, refetch: refetchSeats } = useArtistSeats();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -166,10 +168,10 @@ const AdminPage = () => {
       .from("user_permissions")
       .upsert({ user_id: userId, feature, granted: !current }, { onConflict: "user_id,feature" });
     if (error) {
-      toast.error("Failed to update permission");
+      toast.error(t("admin.failedUpdatePermission"));
       return;
     }
-    toast.success(`${!current ? "Granted" : "Revoked"} ${feature}`);
+    toast.success(!current ? t("admin.grantedFeature", { feature }) : t("admin.revokedFeature", { feature }));
     fetchData();
   };
 
@@ -177,10 +179,10 @@ const AdminPage = () => {
     const upserts = STAFF_FEATURES.map((f) => ({ user_id: userId, feature: f, granted: grant }));
     const { error } = await supabase.from("user_permissions").upsert(upserts, { onConflict: "user_id,feature" });
     if (error) {
-      toast.error("Failed to update permissions");
+      toast.error(t("admin.failedUpdatePermissions"));
       return;
     }
-    toast.success(grant ? "Granted all staff features" : "Revoked all staff features");
+    toast.success(grant ? t("admin.grantedAllStaffFeatures") : t("admin.revokedAllStaffFeatures"));
     fetchData();
   };
 
@@ -189,14 +191,14 @@ const AdminPage = () => {
       .from("permission_role_defaults")
       .upsert({ role_template: roleTemplate, feature, granted }, { onConflict: "role_template,feature" });
     if (error) {
-      toast.error("Failed to save default");
+      toast.error(t("admin.failedSaveDefault"));
       return;
     }
     setDefaults((d) => {
       const next = d.filter((x) => !(x.role_template === roleTemplate && x.feature === feature));
       return [...next, { role_template: roleTemplate, feature, granted }];
     });
-    toast.success("Default updated — applies to new invites only");
+    toast.success(t("admin.defaultUpdated"));
   };
 
   const defaultGranted = (roleTemplate: string, feature: string) =>
@@ -205,7 +207,7 @@ const AdminPage = () => {
   const sendInvite = async () => {
     const email = inviteEmail.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Enter a valid email");
+      toast.error(t("admin.invalidEmail"));
       return;
     }
     setInviting(true);
@@ -218,18 +220,18 @@ const AdminPage = () => {
         },
       });
       if (error) {
-        toast.error(error.message || "Invite failed");
+        toast.error(error.message || t("admin.inviteFailed"));
         return;
       }
       if (data?.error) {
         toast.error(data.error);
         return;
       }
-      toast.success(`Artist invite sent to ${email}`);
+      toast.success(t("admin.inviteSent", { email }));
       setInviteEmail("");
       void refetchSeats();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Invite failed");
+      toast.error(e instanceof Error ? e.message : t("admin.inviteFailed"));
     } finally {
       setInviting(false);
     }
@@ -255,7 +257,7 @@ const AdminPage = () => {
     a.download = `schedule-admin-${new Date().toISOString().slice(0, 10)}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success(`Exported ${rows.length} booking(s)`);
+    toast.success(t("admin.exportedBookings", { count: rows.length }));
   };
 
   const importSchedule = async (file: File) => {
@@ -264,7 +266,7 @@ const AdminPage = () => {
     try {
       rows = file.name.endsWith(".csv") ? parseScheduleCSV(text) : parseScheduleJSON(text);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Invalid file");
+      toast.error(e instanceof Error ? e.message : t("admin.failedImportExport"));
       return;
     }
     const batch = rows.map((r) => ({
@@ -290,11 +292,11 @@ const AdminPage = () => {
     if (insertedBookings?.length) {
       await Promise.allSettled(insertedBookings.map((b) => sendBookingNotification("created", b as BookingNotificationPayload)));
     }
-    toast.success(`Imported ${batch.length} booking(s)`);
+    toast.success(t("admin.importedBookings", { count: batch.length }));
   };
 
   const resetSchedule = async () => {
-    if (!window.confirm("Delete ALL bookings from schedule?")) return;
+    if (!window.confirm(t("admin.deleteAllBookingsConfirm"))) return;
     const { data: snapshots } = await supabase
       .from("bookings")
       .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes");
@@ -304,14 +306,14 @@ const AdminPage = () => {
     if (snapshots?.length) {
       await Promise.allSettled(snapshots.map((b) => sendBookingNotification("deleted", b as BookingNotificationPayload)));
     }
-    toast.success("Schedule reset");
+    toast.success(t("admin.scheduleReset"));
   };
   if (!isAdmin && !loading) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
           <AlertCircle className="h-10 w-10 text-muted-foreground" />
-          <p className="text-muted-foreground">Admin access required</p>
+          <p className="text-muted-foreground">{t("admin.accessRequired")}</p>
         </div>
       </AppLayout>
     );
@@ -322,30 +324,30 @@ const AdminPage = () => {
       <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto overflow-x-hidden pb-24">
         <div>
           <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" /> Admin
+            <Shield className="h-6 w-6 text-primary" /> {t("admin.title")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Default roles and per-user access</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("admin.subtitle")}</p>
         </div>
 
         <Card className="border-teal-900/30 bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-teal-500" />
-              <CardTitle className="text-base">Send magic link (new account)</CardTitle>
+              <CardTitle className="text-base">{t("admin.inviteTitle")}</CardTitle>
             </div>
             <CardDescription>
-              Invite artists/staff accounts. Customer invites are now managed from Schedule.
+              {t("admin.inviteDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-w-md">
             {seatUsage && seatUsage.max != null ? (
               <div className="rounded-lg border border-border/70 bg-secondary/70 px-3 py-2 text-sm">
                 <p className="font-medium">
-                  Artist seats: {seatUsage.used} / {seatUsage.max}
+                  {t("admin.artistSeats", { used: seatUsage.used, max: seatUsage.max })}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {getPlanById(seatUsage.planId ?? "")?.name ?? "Current"} plan
-                  {!seatUsage.canAdd ? " — limit reached" : ""}
+                  {!seatUsage.canAdd ? t("admin.limitReached") : ""}
                 </p>
                 {!seatUsage.canAdd ? (
                   <Button variant="link" className="h-auto p-0 mt-2 text-[#d4af37]" asChild>
@@ -358,14 +360,14 @@ const AdminPage = () => {
                             : "/contact"
                       }
                     >
-                      Upgrade for more seats
+                      {t("admin.upgradeSeats")}
                     </Link>
                   </Button>
                 ) : null}
               </div>
             ) : null}
             <div>
-              <Label htmlFor="inv-email">Email</Label>
+              <Label htmlFor="inv-email">{t("common.email")}</Label>
               <Input
                 id="inv-email"
                 type="email"
@@ -377,15 +379,15 @@ const AdminPage = () => {
             </div>
             <Button onClick={sendInvite} disabled={inviting || seatUsage?.canAdd === false} className="gap-2">
               <UserPlus className="h-4 w-4" />
-              {inviting ? "Sending…" : seatUsage?.canAdd === false ? "Seat limit reached" : "Send artist invite"}
+              {inviting ? t("contact.sending") : seatUsage?.canAdd === false ? t("admin.seatLimitReached") : t("admin.sendArtistInvite")}
             </Button>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-base">Schedule admin tools</CardTitle>
-            <CardDescription>Import, export, or reset schedule data</CardDescription>
+            <CardTitle className="text-base">{t("admin.scheduleToolsTitle")}</CardTitle>
+            <CardDescription>{t("admin.scheduleToolsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <input
@@ -400,30 +402,30 @@ const AdminPage = () => {
               }}
             />
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => exportSchedule("json")}>Export JSON</Button>
-              <Button variant="outline" onClick={() => exportSchedule("csv")}>Export CSV</Button>
-              <Button variant="outline" onClick={() => importInputRef.current?.click()}>Import</Button>
-              <Button variant="destructive" onClick={resetSchedule}>Reset schedule</Button>
+              <Button variant="outline" onClick={() => exportSchedule("json")}>{t("admin.exportJson")}</Button>
+              <Button variant="outline" onClick={() => exportSchedule("csv")}>{t("admin.exportCsv")}</Button>
+              <Button variant="outline" onClick={() => importInputRef.current?.click()}>{t("admin.import")}</Button>
+              <Button variant="destructive" onClick={resetSchedule}>{t("admin.resetSchedule")}</Button>
             </div>
           </CardContent>
         </Card>
         <Tabs defaultValue="defaults" className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="defaults">New-user defaults</TabsTrigger>
-            <TabsTrigger value="staff">Staff matrix</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
-            <TabsTrigger value="consents">Consents</TabsTrigger>
+            <TabsTrigger value="defaults">{t("admin.tabDefaults")}</TabsTrigger>
+            <TabsTrigger value="staff">{t("admin.tabStaff")}</TabsTrigger>
+            <TabsTrigger value="customers">{t("admin.tabCustomers")}</TabsTrigger>
+            <TabsTrigger value="consents">{t("admin.tabConsents")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              Defaults apply when someone accepts an invite as <strong>Customer</strong> or <strong>Artist</strong>. Existing users are unchanged.
+              {t("admin.defaultsApplyNote")}
             </p>
             <div className="grid md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Users className="h-4 w-4" /> Customer defaults
+                    <Users className="h-4 w-4" /> {t("admin.customerDefaults")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -445,7 +447,7 @@ const AdminPage = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Shield className="h-4 w-4" /> Artist defaults
+                    <Shield className="h-4 w-4" /> {t("admin.artistDefaults")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 max-h-[320px] overflow-y-auto">
@@ -464,7 +466,7 @@ const AdminPage = () => {
                   ))}
                   {CUSTOMER_FEATURES.map((f) => (
                     <div key={`a-${f}`} className="flex items-center justify-between gap-2 py-0.5 border-t border-border mt-2 pt-2">
-                      <span className="text-xs text-muted-foreground">{customerFeatureLabels[f]} (nav)</span>
+                      <span className="text-xs text-muted-foreground">{customerFeatureLabels[f]} ({t("admin.customerNav")})</span>
                       <Button
                         size="sm"
                         variant={defaultGranted("artist", f) ? "default" : "outline"}
@@ -483,20 +485,20 @@ const AdminPage = () => {
           <TabsContent value="staff" className="mt-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Staff feature access</CardTitle>
-                <CardDescription>Artists and admins — not customer-only accounts</CardDescription>
+                <CardTitle className="text-base">{t("admin.staffFeatureAccess")}</CardTitle>
+                <CardDescription>{t("admin.staffFeatureAccessDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 bg-card z-10 min-w-[120px]">User</TableHead>
+                      <TableHead className="sticky left-0 bg-card z-10 min-w-[120px]">{t("admin.user")}</TableHead>
                       {STAFF_FEATURES.map((f) => (
                         <TableHead key={f} className="text-center text-[10px] px-1 min-w-[56px]">
                           {staffFeatureLabels[f]}
                         </TableHead>
                       ))}
-                      <TableHead className="text-center text-[10px] px-2">All</TableHead>
+                      <TableHead className="text-center text-[10px] px-2">{t("admin.all")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -527,7 +529,7 @@ const AdminPage = () => {
                               className="h-7 text-[10px] px-2"
                               onClick={() => toggleAllStaff(profile.user_id, !allGranted)}
                             >
-                              {allGranted ? "Revoke" : "Grant all"}
+                              {allGranted ? t("admin.revoke") : t("admin.grantAll")}
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -542,19 +544,19 @@ const AdminPage = () => {
           <TabsContent value="customers" className="mt-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Customer accounts</CardTitle>
-                <CardDescription>Portal access: bookings/profile and consent link</CardDescription>
+                <CardTitle className="text-base">{t("admin.customerAccountsTitle")}</CardTitle>
+                <CardDescription>{t("admin.customerAccountsDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 {customerProfiles.length === 0 ? (
-                  <p className="p-6 text-sm text-muted-foreground text-center">No customer-only accounts yet. Invite with “Customer”.</p>
+                  <p className="p-6 text-sm text-muted-foreground text-center">{t("admin.noCustomerAccounts")}</p>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead className="text-center">My bookings</TableHead>
-                        <TableHead className="text-center">Consent</TableHead>
+                        <TableHead>{t("common.name")}</TableHead>
+                        <TableHead className="text-center">{t("admin.myBookings")}</TableHead>
+                        <TableHead className="text-center">{t("admin.consent")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useState, type CSSProperties } from "react";
 import { BRANDING } from "@/lib/branding";
+import { useTranslation } from "react-i18next";
 
 export interface PortalBrandProfile {
   display_name?: string | null;
@@ -29,14 +30,15 @@ const CustomerLayout = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { hasPermission } = usePermissions();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const items = [
-    hasPermission("my_bookings") && { label: "My bookings", path: "/account", icon: Calendar },
-    hasPermission("my_bookings") && { label: "Deposit payment", path: "/deposit-payment", icon: CreditCard },
-    hasPermission("my_bookings") && { label: "Messages", path: "/account/chats", icon: MessageSquare },
-    hasPermission("my_bookings") && { label: "Security", path: "/account/security", icon: Shield },
-    hasPermission("customer_consent") && { label: "Sign consent", path: "/consent", icon: FileSignature },
+    hasPermission("my_bookings") && { label: t("customer.myBookings"), path: "/account", icon: Calendar },
+    hasPermission("my_bookings") && { label: t("customer.depositPayment"), path: "/deposit-payment", icon: CreditCard },
+    hasPermission("my_bookings") && { label: t("customer.messages"), path: "/account/chats", icon: MessageSquare },
+    hasPermission("my_bookings") && { label: t("nav.security"), path: "/account/security", icon: Shield },
+    hasPermission("customer_consent") && { label: t("customer.signConsent"), path: "/consent", icon: FileSignature },
   ].filter(Boolean) as Array<{ label: string; path: string; icon: typeof Calendar }>;
 
   const handleLogout = async () => {
@@ -56,7 +58,7 @@ const CustomerLayout = ({
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="flex h-14 items-center justify-between px-4 max-w-lg mx-auto w-full">
           <span className="font-display font-bold text-gradient-gold">{BRANDING.platformName.toUpperCase()}</span>
-          <button type="button" className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label="Menu">
+          <button type="button" className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label={t("customer.menu")}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <nav className="hidden md:flex items-center gap-1">
@@ -76,7 +78,7 @@ const CustomerLayout = ({
               );
             })}
             <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-1 text-muted-foreground">
-              <LogOut className="h-4 w-4" /> Out
+              <LogOut className="h-4 w-4" /> {t("customer.out")}
             </Button>
           </nav>
         </div>
@@ -95,7 +97,7 @@ const CustomerLayout = ({
             ))}
             <p className="text-xs text-muted-foreground pt-2 truncate">{user?.email}</p>
             <Button variant="outline" size="sm" className="w-full mt-2 gap-2" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" /> Sign out
+              <LogOut className="h-4 w-4" /> {t("customer.signOut")}
             </Button>
           </div>
         )}
@@ -105,7 +107,7 @@ const CustomerLayout = ({
           <div className="mb-4 rounded-lg border border-border bg-card/90 p-3">
             <div className="flex items-start gap-3">
               {portalBrand.avatar_url ? (
-                <img src={portalBrand.avatar_url} alt="Artist" loading="lazy" className="h-12 w-12 rounded-full object-cover border border-border" />
+                <img src={portalBrand.avatar_url} alt={t("schedule.artist")} loading="lazy" className="h-12 w-12 rounded-full object-cover border border-border" />
               ) : null}
               <div className="min-w-0">
                 {portalBrand.display_name ? <p className="font-medium">{portalBrand.display_name}</p> : null}
@@ -126,16 +128,16 @@ const CustomerLayout = ({
         {children}
         <div className="mt-8 border-t border-border pt-4 text-xs text-muted-foreground space-y-2">
           <div className="flex flex-wrap gap-3">
-            <Link to="/terms" className="hover:underline">Terms</Link>
-            <Link to="/privacy" className="hover:underline">Privacy</Link>
-            <Link to="/cookies" className="hover:underline">Cookies</Link>
+            <Link to="/terms" className="hover:underline">{t("common.terms")}</Link>
+            <Link to="/privacy" className="hover:underline">{t("common.privacy")}</Link>
+            <Link to="/cookies" className="hover:underline">{t("common.cookies")}</Link>
           </div>
           <button
             type="button"
             className="text-primary hover:underline"
             onClick={() => window.dispatchEvent(new CustomEvent("cookie-consent:open"))}
           >
-            Cookie settings
+            {t("common.cookieSettings")}
           </button>
         </div>
       </main>

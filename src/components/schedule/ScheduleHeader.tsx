@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, ChevronLeft, ChevronRight, PanelLeftOpen, PanelLeftClose, Users, Loader2, User } from "lucide-react";
 import { format, addDays, addWeeks, subWeeks, startOfWeek } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,13 +66,14 @@ const ScheduleHeader = ({
   inviting,
   onInviteClient,
 }: ScheduleHeaderProps) => {
+  const { t } = useScheduleI18n();
   const [inviteSearchResults, setInviteSearchResults] = useState<InviteSearchRow[]>([]);
   const [inviteSearchLoading, setInviteSearchLoading] = useState(false);
   const [inviteMenuOpen, setInviteMenuOpen] = useState(false);
   const inviteDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inviteWrapRef = useRef<HTMLDivElement>(null);
 
-  const safeName = (name?: string | null) => (name && name.trim().length > 0 ? name : "Unknown");
+  const safeName = (name?: string | null) => (name && name.trim().length > 0 ? name : t("schedule.unknown"));
   const allSelected = selectedArtists.length === 0;
   const singleArtistId = selectedArtists.length === 1 ? selectedArtists[0] : null;
 
@@ -107,7 +109,7 @@ const ScheduleHeader = ({
 
       const map = new Map<string, InviteSearchRow>();
       for (const r of (cRes.data as Array<{ name?: string | null; email?: string | null }> | null) ?? []) {
-        const name = (r.name || "").trim() || "Customer";
+        const name = (r.name || "").trim() || t("schedule.customer");
         const em = (r.email || "").trim().toLowerCase();
         if (isValidEmail(em) && !map.has(em)) map.set(em, { name, email: em });
       }
@@ -118,7 +120,7 @@ const ScheduleHeader = ({
         const em = (b.client_email || "").trim().toLowerCase();
         if (!isValidEmail(em)) continue;
         if (!map.has(em)) {
-          map.set(em, { name: (b.client_name || "").trim() || "Customer", email: em });
+          map.set(em, { name: (b.client_name || "").trim() || t("schedule.customer"), email: em });
         }
       }
 
@@ -128,7 +130,7 @@ const ScheduleHeader = ({
     } finally {
       setInviteSearchLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const q = inviteEmail;
@@ -163,10 +165,10 @@ const ScheduleHeader = ({
   const selectArtist = (id: string) => setSelectedArtists([id]);
 
   const selectedLabel = allSelected
-    ? "All artists"
+    ? t("schedule.allArtists")
     : singleArtistId
-      ? safeName(profiles.find((p) => p.user_id === singleArtistId)?.display_name) || "1 artist"
-      : "All artists";
+      ? safeName(profiles.find((p) => p.user_id === singleArtistId)?.display_name) || t("schedule.oneArtist")
+      : t("schedule.allArtists");
   const goToday = () => setCurrentDate(new Date());
   const goPrev = () => setCurrentDate(view === "day" ? addDays(currentDate, -1) : subWeeks(currentDate, 1));
   const goNext = () => setCurrentDate(view === "day" ? addDays(currentDate, 1) : addWeeks(currentDate, 1));
@@ -194,8 +196,8 @@ const ScheduleHeader = ({
             {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
           </Button>
           <div className="min-w-0">
-            <h1 className="font-display text-lg md:text-xl font-bold text-gradient-gold">Schedule</h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest hidden sm:block">Calendar · Team · Services</p>
+            <h1 className="font-display text-lg md:text-xl font-bold text-gradient-gold">{t("schedule.title")}</h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest hidden sm:block">{t("schedule.subtitle")}</p>
           </div>
         </div>
 
@@ -209,10 +211,10 @@ const ScheduleHeader = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="text-xs">Filter artists</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs">{t("schedule.filterArtists")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem checked={allSelected} onCheckedChange={() => selectAll()}>
-                All artists ({profiles.length})
+                {t("schedule.allArtistsCount", { count: profiles.length })}
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               {profiles.map((p) => (
@@ -242,7 +244,7 @@ const ScheduleHeader = ({
                 onFocus={() => {
                   if (inviteEmail.trim().length >= 2) setInviteMenuOpen(true);
                 }}
-                placeholder="Name or email…"
+                placeholder={t("schedule.invitePlaceholder")}
                 className="h-8 w-full min-w-0 text-xs bg-secondary border-border pr-8"
                 autoComplete="off"
               />
@@ -278,17 +280,17 @@ const ScheduleHeader = ({
             )}
             {inviteMenuOpen && inviteEmail.trim().length >= 2 && !inviteSearchLoading && inviteSearchResults.length === 0 && (
               <p className="absolute z-[100] left-0 top-full mt-1 w-[min(100vw-2rem,280px)] rounded-md border border-border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-md">
-                No match — try another name or type the full email
+                {t("schedule.noInviteMatch")}
               </p>
             )}
             </div>
             <Button size="sm" className="h-8 text-xs" onClick={onInviteClient} disabled={inviting}>
-              {inviting ? "..." : "Invite"}
+              {inviting ? "..." : t("schedule.invite")}
             </Button>
           </div>
 
           <Button variant="gold" size="sm" className="gap-1.5 text-xs h-8" onClick={onNewBooking}>
-            <Plus className="h-3.5 w-3.5" /> Book
+            <Plus className="h-3.5 w-3.5" /> {t("schedule.book")}
           </Button>
         </div>
       </div>
@@ -299,7 +301,7 @@ const ScheduleHeader = ({
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <button type="button" onClick={goToday} className="px-2 py-1 text-xs font-medium hover:bg-secondary rounded-md transition-colors">
-            Today
+            {t("schedule.today")}
           </button>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={goNext}>
             <ChevronRight className="h-4 w-4" />
@@ -315,7 +317,7 @@ const ScheduleHeader = ({
               view === "day" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
-            Day
+            {t("schedule.day")}
           </button>
           <button
             type="button"
@@ -324,7 +326,7 @@ const ScheduleHeader = ({
               view === "week" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
-            Week
+            {t("schedule.week")}
           </button>
         </div>
       </div>

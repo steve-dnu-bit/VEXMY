@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "react-i18next";
 
 interface LineItem {
   description: string;
@@ -45,6 +46,7 @@ interface LineTemplate {
 }
 
 const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
+  const { t } = useTranslation();
   const defaultDueDate = useMemo(() => format(addDays(new Date(), 7), "yyyy-MM-dd"), []);
   const defaultCompany = useMemo(() => companies[0] ?? null, [companies]);
   const [open, setOpen] = useState(false);
@@ -199,7 +201,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
   const saveItemAsTemplate = async (index: number) => {
     const row = items[index];
     if (!row?.description?.trim()) {
-      toast.error("Type a line description first");
+      toast.error(t("billing.lineItemSaveFirst"));
       return;
     }
     const payload = {
@@ -212,10 +214,10 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
       .from("invoice_line_item_templates" as any)
       .upsert(payload, { onConflict: "created_by,description" });
     if (error) {
-      toast.error(error.message || "Failed to save line item");
+      toast.error(error.message || t("billing.lineItemSaveFailed"));
       return;
     }
-    toast.success("Line item saved");
+    toast.success(t("billing.lineItemSaved"));
     fetchLineTemplates();
   };
 
@@ -242,15 +244,15 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
 
   const handleSave = async () => {
     if (!clientName.trim()) {
-      toast.error("Client name is required");
+      toast.error(t("billing.clientNameRequired"));
       return;
     }
     if (!clientEmail.trim()) {
-      toast.error("Client email is required to send the invoice");
+      toast.error(t("billing.clientEmailRequired"));
       return;
     }
     if (items.some((i) => !i.description.trim())) {
-      toast.error("All line items need a description");
+      toast.error(t("billing.lineDescriptionRequired"));
       return;
     }
 
@@ -279,40 +281,40 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
 
     if (error) {
       setSaving(false);
-      toast.error(error.message || "Failed to create invoice");
+      toast.error(error.message || t("billing.failedCreateInvoice"));
       return;
     }
 
     const invoiceId = createdRows?.[0]?.id as string | undefined;
     if (!invoiceId) {
       setSaving(false);
-      toast.error("Invoice created but missing id");
+      toast.error(t("billing.invoiceMissingId"));
       return;
     }
 
     const { data: sendData, error: sendError } = await invokeEdgeFunctionJson("send-invoice", { invoiceId });
     if (sendError || (sendData as any)?.error) {
       setSaving(false);
-      toast.error((sendData as any)?.error || sendError?.message || "Invoice saved but failed to send");
+      toast.error((sendData as any)?.error || sendError?.message || t("billing.savedFailedSend"));
       return;
     }
     const emailSent = !!(sendData as any)?.emailSent;
     const emailError = ((sendData as any)?.emailError as string | null | undefined) ?? null;
     if (!emailSent) {
       setSaving(false);
-      toast.error(`Invoice saved but email not sent: ${emailError || "Unknown email delivery error"}`);
+      toast.error(t("billing.savedEmailNotSent", { reason: emailError || "Unknown email delivery error" }));
       return;
     }
 
     const { error: markError } = await supabase.from("invoices" as any).update({ status: "sent" }).eq("id", invoiceId);
     if (markError) {
       setSaving(false);
-      toast.error(markError.message || "Invoice sent but status update failed");
+      toast.error(markError.message || t("billing.sentStatusUpdateFailed"));
       return;
     }
 
     setSaving(false);
-    toast.success("Invoice saved and sent");
+    toast.success(t("billing.invoiceSavedSent"));
     setOpen(false);
     resetForm();
     onCreated();
@@ -328,17 +330,17 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
     >
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
-          <FilePlus className="h-4 w-4" /> Create Invoice
+          <FilePlus className="h-4 w-4" /> {t("billing.createInvoice")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto mx-4">
         <DialogHeader>
-          <DialogTitle>Create Invoice</DialogTitle>
+          <DialogTitle>{t("billing.createInvoice")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label className="text-xs">Search Client</Label>
+            <Label className="text-xs">{t("billing.searchClient")}</Label>
             <div className="relative mt-1">
               <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -349,16 +351,16 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                   setSuggestionsOpen(v.trim().length >= 2);
                   void fetchClientSuggestions(v);
                 }}
-                placeholder="Type name or email..."
+                placeholder={t("billing.searchPlaceholder")}
                 className="pl-8"
               />
             </div>
             {suggestionsOpen && (
               <div className="mt-1 rounded-md border border-border bg-popover shadow-md">
                 {suggestionsLoading ? (
-                  <p className="px-3 py-2 text-xs text-muted-foreground">Searching…</p>
+                  <p className="px-3 py-2 text-xs text-muted-foreground">{t("billing.searching")}</p>
                 ) : suggestions.length === 0 ? (
-                  <p className="px-3 py-2 text-xs text-muted-foreground">No matches</p>
+                  <p className="px-3 py-2 text-xs text-muted-foreground">{t("billing.noMatches")}</p>
                 ) : (
                   suggestions.map((s, i) => (
                     <button
@@ -369,7 +371,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                     >
                       <p className="font-medium">{s.client_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {[s.client_email, s.client_phone].filter(Boolean).join(" · ") || "No email/phone"}
+                        {[s.client_email, s.client_phone].filter(Boolean).join(" · ") || t("billing.noEmailPhone")}
                       </p>
                     </button>
                   ))
@@ -381,53 +383,53 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
           {/* Client info */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <Label className="text-xs">Client Name *</Label>
-              <Input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Client name" />
+              <Label className="text-xs">{t("billing.clientName")}</Label>
+              <Input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder={t("billing.client")} />
             </div>
             <div>
-              <Label className="text-xs">Client Email *</Label>
+              <Label className="text-xs">{t("billing.clientEmail")}</Label>
               <Input value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} placeholder="email@example.com" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <Label className="text-xs">Company</Label>
-              <Input value={defaultCompany?.legal_name || "Your Studio Ltd"} readOnly />
+              <Label className="text-xs">{t("billing.companyLabel")}</Label>
+              <Input value={defaultCompany?.legal_name || t("billing.yourStudio")} readOnly />
             </div>
             <div>
-              <Label className="text-xs">Due Date</Label>
+              <Label className="text-xs">{t("billing.dueDateLabel")}</Label>
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <Label className="text-xs">Payment Method</Label>
+              <Label className="text-xs">{t("billing.paymentMethod")}</Label>
               <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="card">Card</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="card">{t("billing.card")}</SelectItem>
+                  <SelectItem value="bank_transfer">{t("billing.bankTransfer")}</SelectItem>
+                  <SelectItem value="cash">{t("billing.cash")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           {/* Line items */}
           <div>
-            <Label className="text-xs mb-2 block">Line Items</Label>
+            <Label className="text-xs mb-2 block">{t("billing.lineItems")}</Label>
             <div className="space-y-2">
               {items.map((item, i) => (
                 <div key={i} className="rounded-md border border-border p-2 space-y-2">
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
                     <div className="sm:col-span-2">
-                      <Label className="text-[10px] text-muted-foreground">Saved item</Label>
+                      <Label className="text-[10px] text-muted-foreground">{t("billing.savedItem")}</Label>
                       <Select onValueChange={(v) => applyTemplate(i, v)}>
                         <SelectTrigger className="h-8">
-                          <SelectValue placeholder={lineTemplates.length ? "Choose saved item" : "No saved items yet"} />
+                          <SelectValue placeholder={lineTemplates.length ? t("billing.chooseSavedItem") : t("billing.noSavedItems")} />
                         </SelectTrigger>
                         <SelectContent>
                           {lineTemplates.map((t) => (
@@ -440,7 +442,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                     </div>
                     <div className="sm:col-span-2 flex justify-start sm:justify-end pt-4 sm:pt-0">
                       <Button type="button" variant="outline" size="sm" className="h-8 text-[10px]" onClick={() => saveItemAsTemplate(i)}>
-                        Save this item
+                        {t("billing.saveThisItem")}
                       </Button>
                     </div>
                   </div>
@@ -448,7 +450,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                   <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                   <Input
                     className="flex-1"
-                    placeholder="Description"
+                    placeholder={t("billing.description")}
                     value={item.description}
                     onChange={(e) => updateItem(i, "description", e.target.value)}
                   />
@@ -456,7 +458,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                     className="w-16"
                     type="number"
                     min={1}
-                    placeholder="Qty"
+                    placeholder={t("billing.qty")}
                     value={item.quantity || ""}
                     onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value, 10) || 1)}
                   />
@@ -465,7 +467,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                     type="number"
                     min={0}
                     step={0.01}
-                    placeholder="£ Price"
+                    placeholder={t("billing.price")}
                     value={item.unit_price || ""}
                     onChange={(e) => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
                   />
@@ -479,13 +481,13 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
               ))}
             </div>
             <Button variant="outline" size="sm" className="mt-2 gap-1 text-xs" onClick={addItem}>
-              <Plus className="h-3 w-3" /> Add Line
+              <Plus className="h-3 w-3" /> {t("billing.addLine")}
             </Button>
           </div>
 
           {/* Tax */}
           <div className="flex items-center gap-3">
-            <Label className="text-xs whitespace-nowrap">VAT %</Label>
+            <Label className="text-xs whitespace-nowrap">{t("billing.vatPercent")}</Label>
             <Input
               className="w-20"
               type="number"
@@ -498,32 +500,32 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
           {/* Totals */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t("billing.subtotal")}</span>
               <span>£{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">VAT ({taxRate}%)</span>
+              <span className="text-muted-foreground">{t("billing.vatWithRate", { rate: taxRate })}</span>
               <span>£{taxAmount.toFixed(2)}</span>
             </div>
             <div className="mt-1 flex justify-between border-t border-border pt-1 font-bold">
-              <span>Total</span>
+              <span>{t("billing.total")}</span>
               <span>£{total.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <Label className="text-xs">Notes</Label>
+            <Label className="text-xs">{t("billing.notes")}</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional notes..."
+              placeholder={t("billing.additionalNotes")}
               rows={2}
             />
           </div>
 
           <Button className="w-full" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Create Invoice"}
+            {saving ? t("billing.saving") : t("billing.createInvoice")}
           </Button>
         </div>
       </DialogContent>

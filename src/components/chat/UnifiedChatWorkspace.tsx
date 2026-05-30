@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { useTranslation } from "react-i18next";
 import ChatThreadList from "./ChatThreadList";
 import ChatMessagePanel from "./ChatMessagePanel";
 import ChatGalleryPanel from "./ChatGalleryPanel";
@@ -65,6 +66,7 @@ interface Props {
 
 const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageRow[]>([]);
@@ -94,7 +96,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   const threadMap = useMemo(() => new Map(threads.map((t) => [t.id, t])), [threads]);
 
   const labelForThread = (thread: Thread): string => {
-    if (!user) return "Chat";
+    if (!user) return t("chat.threadLabelFallback");
     const otherId = mode === "staff" ? thread.customer_id : thread.artist_id;
     return profileNames[otherId] || otherId;
   };
@@ -201,7 +203,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       .filter((id) => id !== user.id)
       .map((id) => ({
         id,
-        name: profilesById.get(id)?.display_name || "Artist",
+        name: profilesById.get(id)?.display_name || t("chat.artistFallback"),
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
     setArtists(list);
@@ -360,7 +362,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       .select("id")
       .single();
     if (error || !data?.id) {
-      toast.error(error?.message || "Could not start chat");
+      toast.error(error?.message || t("chat.startChatFailed"));
       return null;
     }
     await fetchThreads();
@@ -390,7 +392,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       .select("id")
       .single();
     if (error || !data?.id) {
-      toast.error(error?.message || "Could not start customer chat");
+      toast.error(error?.message || t("chat.startCustomerChatFailed"));
       return null;
     }
     await fetchThreads();
@@ -399,7 +401,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
 
   const handleStartStaffChat = async () => {
     if (!selectedCustomerId) {
-      toast.error("Choose a customer first");
+      toast.error(t("chat.chooseCustomerFirst"));
       return;
     }
     const threadId = await ensureStaffThread(selectedCustomerId);
@@ -419,19 +421,19 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
 
   const requestBrowserNotifications = async () => {
     if (!notificationSupported) {
-      toast.error("Browser notifications are not supported on this device.");
+      toast.error(t("chat.notificationsNotSupported"));
       return;
     }
     try {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
       if (permission === "granted") {
-        toast.success("Browser notifications enabled.");
+        toast.success(t("chat.notificationsEnabled"));
       } else {
-        toast.error("Notifications were blocked. Enable them from your browser settings.");
+        toast.error(t("chat.notificationsBlocked"));
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to request notification permission";
+      const message = error instanceof Error ? error.message : t("chat.requestPermissionFailed");
       toast.error(message);
     }
   };
@@ -477,9 +479,9 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     playIncomingSignal();
 
     if (!notificationSupported || notificationPermission !== "granted") return;
-    const senderLabel = profileNames[message.sender_id] || "someone";
-    const notification = new Notification(`New message from ${senderLabel}`, {
-      body: message.body || "You received a new message",
+    const senderLabel = profileNames[message.sender_id] || t("chat.someone");
+    const notification = new Notification(t("chat.newMessageFrom", { name: senderLabel }), {
+      body: message.body || t("chat.newMessageFallback"),
       tag: `chat-${message.thread_id}`,
       vibrate: [120, 60, 120],
     });
@@ -533,7 +535,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     } as any);
     setSending(false);
     if (error) {
-      toast.error(error.message || "Could not send message");
+      toast.error(error.message || t("chat.sendFailed"));
       return;
     }
     setMessageText("");
@@ -557,7 +559,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     const { error: upErr } = await supabase.storage.from("chat-media").upload(path, file, { upsert: false });
     if (upErr) {
       setUploading(false);
-      toast.error(upErr.message || "Upload failed");
+      toast.error(upErr.message || t("chat.uploadFailed"));
       return;
     }
     const { data: msgData, error: msgErr } = await supabase
@@ -567,7 +569,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       .single();
     if (msgErr || !msgData?.id) {
       setUploading(false);
-      toast.error(msgErr?.message || "Could not create media message");
+      toast.error(msgErr?.message || t("chat.createMediaMessageFailed"));
       return;
     }
     const { error: mediaErr } = await supabase.from("chat_media" as any).insert({
@@ -581,7 +583,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     } as any);
     setUploading(false);
     if (mediaErr) {
-      toast.error(mediaErr.message || "Could not save media");
+      toast.error(mediaErr.message || t("chat.saveMediaFailed"));
       return;
     }
     await fetchThreadData(threadId);
@@ -590,21 +592,22 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
 
   const handleSendEmailUpdate = async () => {
     if (!selectedThreadId) {
-      toast.error("Select a chat first");
+      toast.error(t("chat.selectChatFirst"));
       return;
     }
     setEmailNotifying(true);
-    const latestMessage = [...messages].reverse().find((m) => m.sender_id === user?.id)?.body || "There is a new update in the chat.";
+    const latestMessage =
+      [...messages].reverse().find((m) => m.sender_id === user?.id)?.body || t("chat.newUpdateFallback");
     const { error } = await invokeEdgeFunctionJson<{ ok?: boolean; error?: string }>("send-chat-update-email", {
       threadId: selectedThreadId,
       previewText: latestMessage,
     });
     setEmailNotifying(false);
     if (error) {
-      toast.error(error.message || "Could not send email update");
+      toast.error(error.message || t("chat.emailUpdateFailed"));
       return;
     }
-    toast.success("Email update sent");
+    toast.success(t("chat.emailUpdateSent"));
   };
 
   const activeThread = selectedThreadId ? threadMap.get(selectedThreadId) || null : null;
@@ -628,10 +631,10 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     const field = mode === "staff" ? "archived_by_artist" : "archived_by_customer";
     const { error } = await supabase.from("chat_threads" as any).update({ [field]: true } as any).eq("id", selectedThreadId);
     if (error) {
-      toast.error(error.message || "Could not archive chat");
+      toast.error(error.message || t("chat.archiveFailed"));
       return;
     }
-    toast.success("Chat archived");
+    toast.success(t("chat.chatArchived"));
     setSelectedThreadId(null);
     await fetchThreads();
   };

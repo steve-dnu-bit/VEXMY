@@ -37,6 +37,11 @@ export function bookingTypeLabel(value: string): string {
   return CALENDAR_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? value.replace(/-/g, " ");
 }
 
+/** i18n-aware label — pass result of useScheduleI18n().bookingTypeLabel when in React. */
+export function bookingTypeLabelWith(value: string, labelFn: (v: string) => string): string {
+  return labelFn(value);
+}
+
 /** Default service_category when staff picks a calendar type. */
 export function defaultServiceCategoryForBookingType(bookingType: string): string {
   switch (bookingType) {

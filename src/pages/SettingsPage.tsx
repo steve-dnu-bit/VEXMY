@@ -118,7 +118,7 @@ const SettingsPage = () => {
   const consentUrl = typeof window !== "undefined" ? `${window.location.origin}/consent` : "/consent";
   const copyConsentLink = () => {
     void navigator.clipboard.writeText(consentUrl);
-    toast({ title: "Link copied", description: "Share this URL with clients before their appointment." });
+    toast({ title: t("settings.linkCopied"), description: t("settings.linkCopiedDesc") });
   };
 
   const saveSettings = async () => {
@@ -139,15 +139,15 @@ const SettingsPage = () => {
     );
     setSaving(false);
     if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      toast({ title: t("settings.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Settings saved", description: "Reminder preferences are now stored server-side." });
+    toast({ title: t("settings.settingsSaved"), description: t("settings.settingsSavedDesc") });
   };
 
   const sendTestEmail = async () => {
     if (!user?.email) {
-      toast({ title: "No email on account", description: "Sign in with an email address to run the test.", variant: "destructive" });
+      toast({ title: t("settings.noEmail"), description: t("settings.noEmailDesc"), variant: "destructive" });
       return;
     }
     setTestingEmail(true);
@@ -155,7 +155,7 @@ const SettingsPage = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       if (!token) {
-        toast({ title: "Session expired", description: "Sign in again and retry.", variant: "destructive" });
+        toast({ title: t("settings.sessionExpired"), description: t("settings.sessionExpiredDesc"), variant: "destructive" });
         return;
       }
       const { data, error } = await supabase.functions.invoke("send-test-email", {
@@ -163,7 +163,7 @@ const SettingsPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (error) {
-        toast({ title: "Email test failed", description: error.message, variant: "destructive" });
+        toast({ title: t("settings.emailTestFailed"), description: error.message, variant: "destructive" });
         return;
       }
       const result = data as {
@@ -208,9 +208,9 @@ const SettingsPage = () => {
       const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
       if (updateError) throw updateError;
       setAvatarUrl(publicUrl);
-      toast({ title: "Profile picture updated" });
+      toast({ title: t("settings.profileUpdated") });
     } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+      toast({ title: t("settings.uploadFailed"), description: err.message, variant: "destructive" });
     } finally {
       setUploadingAvatar(false);
     }
@@ -257,9 +257,9 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Camera className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">Profile Picture</CardTitle>
+                <CardTitle className="text-base">{t("settings.profilePicture")}</CardTitle>
               </div>
-              <CardDescription>Upload a photo so your team can recognise you on the schedule</CardDescription>
+              <CardDescription>{t("settings.profilePictureDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
@@ -269,9 +269,9 @@ const SettingsPage = () => {
                 </Avatar>
                 <div className="space-y-1">
                   <Button variant="outline" size="sm" disabled={uploadingAvatar} onClick={() => fileInputRef.current?.click()}>
-                    {uploadingAvatar ? "Uploading..." : "Change photo"}
+                    {uploadingAvatar ? t("settings.uploading") : t("settings.changePhoto")}
                   </Button>
-                  <p className="text-[10px] text-muted-foreground">JPG, PNG or WebP. Max 2 MB.</p>
+                  <p className="text-[10px] text-muted-foreground">{t("settings.photoFormats")}</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -293,23 +293,21 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Palette className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">Artist profile customization</CardTitle>
+                <CardTitle className="text-base">{t("settings.artistProfileTitle")}</CardTitle>
               </div>
-              <CardDescription>
-                Update your public profile details, theme colors, profile photo and background image.
-              </CardDescription>
+              <CardDescription>{t("settings.artistProfileDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline">
-                <Link to="/artist-profile-settings">Open profile customization</Link>
+                <Link to="/artist-profile-settings">{t("settings.openProfileCustomization")}</Link>
               </Button>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">App theme</CardTitle>
-              <CardDescription>Choose your preferred app appearance. Your artist profile customization remains unchanged.</CardDescription>
+              <CardTitle className="text-base">{t("settings.appTheme")}</CardTitle>
+              <CardDescription>{t("settings.appThemeDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="flex gap-2">
               <Button
@@ -319,7 +317,7 @@ const SettingsPage = () => {
                 onClick={() => void setTheme("dark")}
               >
                 <Moon className="h-4 w-4" />
-                Dark
+                {t("common.dark")}
               </Button>
               <Button
                 type="button"
@@ -328,7 +326,7 @@ const SettingsPage = () => {
                 onClick={() => void setTheme("light")}
               >
                 <Sun className="h-4 w-4" />
-                Light
+                {t("common.light")}
               </Button>
             </CardContent>
           </Card>
@@ -337,27 +335,25 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <FileSignature className="h-5 w-5 text-teal-500" />
-                <CardTitle className="text-base">Client consent form</CardTitle>
+                <CardTitle className="text-base">{t("settings.consentFormTitle")}</CardTitle>
               </div>
-              <CardDescription>Clients open this page to read and sign your waiver (no login required).</CardDescription>
+              <CardDescription>{t("settings.consentFormDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input readOnly value={consentUrl} className="font-mono text-xs bg-secondary border-border" />
                 <div className="flex gap-2 shrink-0">
                   <Button type="button" variant="outline" size="sm" onClick={copyConsentLink} className="gap-1">
-                    <Copy className="h-4 w-4" /> Copy
+                    <Copy className="h-4 w-4" /> {t("settings.copy")}
                   </Button>
                   <Button type="button" variant="outline" size="sm" asChild className="gap-1">
                     <a href="/consent" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" /> Open
+                      <ExternalLink className="h-4 w-4" /> {t("settings.open")}
                     </a>
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Run the latest Supabase migration if submissions fail. Recent signatures appear below.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("settings.consentMigrationHint")}</p>
               {consentRows.length > 0 ? (
                 <ul className="rounded-lg border border-border divide-y divide-border max-h-48 overflow-y-auto text-sm">
                   {consentRows.map((r) => (
@@ -366,10 +362,10 @@ const SettingsPage = () => {
                         <p className="font-medium truncate">{r.full_name}</p>
                         {r.consent_pdf_url ? (
                           <a href={r.consent_pdf_url} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline">
-                            Open PDF
+                            {t("settings.openPdf")}
                           </a>
                         ) : (
-                          <p className="text-[11px] text-muted-foreground">No PDF</p>
+                          <p className="text-[11px] text-muted-foreground">{t("settings.noPdf")}</p>
                         )}
                       </div>
                       <span className="text-muted-foreground text-xs shrink-0">{format(new Date(r.created_at), "d MMM yyyy, HH:mm")}</span>
@@ -377,7 +373,7 @@ const SettingsPage = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-muted-foreground">No consent submissions yet.</p>
+                <p className="text-xs text-muted-foreground">{t("settings.noConsentYet")}</p>
               )}
             </CardContent>
           </Card>
@@ -387,13 +383,13 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Mail className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">Booking Confirmations</CardTitle>
+                <CardTitle className="text-base">{t("settings.bookingConfirmations")}</CardTitle>
               </div>
-              <CardDescription>Automatically send a confirmation when a new booking is created</CardDescription>
+              <CardDescription>{t("settings.bookingConfirmationsDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="booking-confirm">Enable booking confirmations</Label>
+                <Label htmlFor="booking-confirm">{t("settings.enableBookingConfirmations")}</Label>
                 <Switch
                   id="booking-confirm"
                   checked={settings.bookingConfirmation}
@@ -402,10 +398,10 @@ const SettingsPage = () => {
               </div>
               <div className="rounded-lg border border-border p-3 space-y-2">
                 <p className="text-xs text-muted-foreground">
-                  Send a test email to <strong>{user?.email || "your account email"}</strong> to verify Resend/SMTP secrets on Supabase.
+                  {t("settings.testEmailHint", { email: user?.email || t("common.email") })}
                 </p>
                 <Button type="button" variant="outline" size="sm" onClick={sendTestEmail} disabled={testingEmail}>
-                  {testingEmail ? "Sending…" : "Send test email"}
+                  {testingEmail ? t("settings.saving") : t("settings.sendTestEmail")}
                 </Button>
               </div>
             </CardContent>
@@ -416,16 +412,14 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">Deposit Reminders</CardTitle>
+                <CardTitle className="text-base">{t("settings.depositReminders")}</CardTitle>
               </div>
-              <CardDescription>Send reminders for unpaid deposits before tattoo and other appointments</CardDescription>
+              <CardDescription>{t("settings.depositRemindersDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-xs text-muted-foreground">
-                Automatic deposit reminders are not sent for piercing bookings. You can still send one manually from a booking or the Deposits page.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("settings.depositRemindersNote")}</p>
               <div className="flex items-center justify-between">
-                <Label htmlFor="deposit-reminder">Enable deposit reminders</Label>
+                <Label htmlFor="deposit-reminder">{t("settings.enableDepositReminders")}</Label>
                 <Switch
                   id="deposit-reminder"
                   checked={settings.depositReminder}
@@ -434,17 +428,17 @@ const SettingsPage = () => {
               </div>
               {settings.depositReminder && (
                 <div className="flex items-center justify-between">
-                  <Label>Send reminder</Label>
+                  <Label>{t("settings.sendReminder")}</Label>
                   <Select value={settings.depositReminderTiming} onValueChange={(v) => update("depositReminderTiming", v)}>
                     <SelectTrigger className="w-48 bg-secondary border-border">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="12h">12 hours before</SelectItem>
-                      <SelectItem value="24h">24 hours before</SelectItem>
-                      <SelectItem value="48h">48 hours before</SelectItem>
-                      <SelectItem value="72h">72 hours before</SelectItem>
-                      <SelectItem value="1w">1 week before</SelectItem>
+                      <SelectItem value="12h">{t("settings.timing12h")}</SelectItem>
+                      <SelectItem value="24h">{t("settings.timing24h")}</SelectItem>
+                      <SelectItem value="48h">{t("settings.timing48h")}</SelectItem>
+                      <SelectItem value="72h">{t("settings.timing72h")}</SelectItem>
+                      <SelectItem value="1w">{t("settings.timing1w")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -457,13 +451,13 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">Appointment Reminders</CardTitle>
+                <CardTitle className="text-base">{t("settings.appointmentReminders")}</CardTitle>
               </div>
-              <CardDescription>Send reminders to clients before their scheduled appointments</CardDescription>
+              <CardDescription>{t("settings.appointmentRemindersDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="appt-reminder">Enable appointment reminders</Label>
+                <Label htmlFor="appt-reminder">{t("settings.enableAppointmentReminders")}</Label>
                 <Switch
                   id="appt-reminder"
                   checked={settings.appointmentReminder}
@@ -472,17 +466,17 @@ const SettingsPage = () => {
               </div>
               {settings.appointmentReminder && (
                 <div className="flex items-center justify-between">
-                  <Label>Send reminder</Label>
+                  <Label>{t("settings.sendReminder")}</Label>
                   <Select value={settings.appointmentReminderTiming} onValueChange={(v) => update("appointmentReminderTiming", v)}>
                     <SelectTrigger className="w-48 bg-secondary border-border">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1h">1 hour before</SelectItem>
-                      <SelectItem value="3h">3 hours before</SelectItem>
-                      <SelectItem value="12h">12 hours before</SelectItem>
-                      <SelectItem value="24h">24 hours before</SelectItem>
-                      <SelectItem value="48h">48 hours before</SelectItem>
+                      <SelectItem value="1h">{t("settings.timing1h")}</SelectItem>
+                      <SelectItem value="3h">{t("settings.timing3h")}</SelectItem>
+                      <SelectItem value="12h">{t("settings.timing12h")}</SelectItem>
+                      <SelectItem value="24h">{t("settings.timing24h")}</SelectItem>
+                      <SelectItem value="48h">{t("settings.timing48h")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -495,21 +489,21 @@ const SettingsPage = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">Notification Channel</CardTitle>
+                <CardTitle className="text-base">{t("settings.notificationChannel")}</CardTitle>
               </div>
-              <CardDescription>Choose how reminders are sent to clients</CardDescription>
+              <CardDescription>{t("settings.notificationChannelDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <Label>Send via</Label>
+                <Label>{t("settings.sendVia")}</Label>
                 <Select value={settings.reminderChannel} onValueChange={(v) => update("reminderChannel", v)}>
                   <SelectTrigger className="w-48 bg-secondary border-border">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="email">Email only</SelectItem>
-                    <SelectItem value="sms">SMS only</SelectItem>
-                    <SelectItem value="both">Email & SMS</SelectItem>
+                    <SelectItem value="email">{t("settings.emailOnly")}</SelectItem>
+                    <SelectItem value="sms">{t("settings.smsOnly")}</SelectItem>
+                    <SelectItem value="both">{t("settings.emailAndSms")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -517,7 +511,7 @@ const SettingsPage = () => {
           </Card>
 
           <Button onClick={saveSettings} disabled={saving} className="w-full">
-            {saving ? "Saving..." : "Save Settings"}
+            {saving ? t("settings.saving") : t("settings.saveSettings")}
           </Button>
         </div>
       </div>

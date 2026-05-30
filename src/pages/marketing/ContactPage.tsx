@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BRANDING } from "@/lib/branding";
-import { getPlanById, PRICING_PLANS } from "@/lib/pricingPlans";
+import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 import { CheckCircle2, Mail, MessageSquare, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +17,8 @@ const encodeFormBody = (data: Record<string, string>) =>
   new URLSearchParams({ "form-name": FORM_NAME, ...data }).toString();
 
 const ContactPage = () => {
+  const { t } = useTranslation();
+  const pricingPlans = usePricingPlansI18n();
   const [searchParams] = useSearchParams();
   const preselectedPlan = searchParams.get("plan") || "";
   const { toast } = useToast();
@@ -27,6 +30,8 @@ const ContactPage = () => {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const selectedPlan = pricingPlans.find((p) => p.id === preselectedPlan);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,13 +52,13 @@ const ContactPage = () => {
       if (!res.ok) throw new Error("Submit failed");
       setSubmitted(true);
       toast({
-        title: "Message sent",
-        description: "We'll get back to you as soon as we can.",
+        title: t("contact.messageSent"),
+        description: t("contact.messageSentDesc"),
       });
     } catch {
       toast({
-        title: "Could not send",
-        description: `Please email us directly at ${BRANDING.supportEmail}.`,
+        title: t("contact.couldNotSend"),
+        description: t("contact.couldNotSendDesc", { email: BRANDING.supportEmail }),
         variant: "destructive",
       });
     } finally {
@@ -66,17 +71,14 @@ const ContactPage = () => {
       <section className="px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <h1 className="font-display text-4xl font-bold sm:text-5xl">Get in touch</h1>
-            <p className="mt-4 text-muted-foreground leading-relaxed">
-              Request a demo, ask about pricing, or tell us about your studio. We typically respond within one
-              business day.
-            </p>
+            <h1 className="font-display text-4xl font-bold sm:text-5xl">{t("contact.title")}</h1>
+            <p className="mt-4 text-muted-foreground leading-relaxed">{t("contact.subtitle")}</p>
 
             <ul className="mt-10 space-y-5">
               <li className="flex gap-3 text-sm">
                 <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af37]" />
                 <div>
-                  <p className="font-medium">Email</p>
+                  <p className="font-medium">{t("common.email")}</p>
                   <a href={`mailto:${BRANDING.supportEmail}`} className="text-[#d4af37] hover:underline">
                     {BRANDING.supportEmail}
                   </a>
@@ -85,29 +87,26 @@ const ContactPage = () => {
               <li className="flex gap-3 text-sm">
                 <Clock className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af37]" />
                 <div>
-                  <p className="font-medium">Response time</p>
-                  <p className="text-muted-foreground">Within 1 business day</p>
+                  <p className="font-medium">{t("contact.responseTime")}</p>
+                  <p className="text-muted-foreground">{t("contact.withinOneDay")}</p>
                 </div>
               </li>
               <li className="flex gap-3 text-sm">
                 <MessageSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af37]" />
                 <div>
-                  <p className="font-medium">Already a customer?</p>
+                  <p className="font-medium">{t("contact.alreadyCustomer")}</p>
                   <Link to="/auth" className="text-[#d4af37] hover:underline">
-                    Sign in to your studio app
+                    {t("contact.signInApp")}
                   </Link>
                 </div>
               </li>
             </ul>
 
             <div className="mt-10 rounded-xl border border-[#d4af37]/20 bg-[#101216]/60 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">Popular request</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Most studios start with the <strong className="text-foreground">Studio</strong> plan — book a walkthrough
-                and we&apos;ll provision your instance with branding and your first artists.
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">{t("contact.popularRequest")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("contact.popularRequestBody")}</p>
               <Button variant="gold-outline" size="sm" className="mt-4" asChild>
-                <Link to="/pricing">Compare plans</Link>
+                <Link to="/pricing">{t("common.comparePlans")}</Link>
               </Button>
             </div>
           </div>
@@ -116,12 +115,10 @@ const ContactPage = () => {
             {submitted ? (
               <div className="rounded-2xl border border-[#d4af37]/30 bg-[#101216]/80 p-10 text-center">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-[#d4af37]" />
-                <h2 className="mt-4 font-display text-2xl font-bold">Thanks — we&apos;ve got your message</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  We&apos;ll reply to <span className="text-foreground">{email}</span> soon.
-                </p>
+                <h2 className="mt-4 font-display text-2xl font-bold">{t("contact.thanksTitle")}</h2>
+                <p className="mt-2 text-sm text-muted-foreground">{t("contact.thanksBody", { email })}</p>
                 <Button variant="gold" className="mt-8" asChild>
-                  <Link to="/">Back to home</Link>
+                  <Link to="/">{t("contact.backHome")}</Link>
                 </Button>
               </div>
             ) : (
@@ -142,18 +139,11 @@ const ContactPage = () => {
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="contact-name">Your name</Label>
-                    <Input
-                      id="contact-name"
-                      name="name"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Jane Smith"
-                    />
+                    <Label htmlFor="contact-name">{t("contact.yourName")}</Label>
+                    <Input id="contact-name" name="name" required value={name} onChange={(e) => setName(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contact-email">Email</Label>
+                    <Label htmlFor="contact-email">{t("common.email")}</Label>
                     <Input
                       id="contact-email"
                       name="email"
@@ -161,24 +151,17 @@ const ContactPage = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@studio.com"
                     />
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="contact-studio">Studio name</Label>
-                    <Input
-                      id="contact-studio"
-                      name="studio"
-                      value={studio}
-                      onChange={(e) => setStudio(e.target.value)}
-                      placeholder="Black Ink Collective"
-                    />
+                    <Label htmlFor="contact-studio">{t("common.studioName")}</Label>
+                    <Input id="contact-studio" name="studio" value={studio} onChange={(e) => setStudio(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contact-plan">Interested in</Label>
+                    <Label htmlFor="contact-plan">{t("contact.interestedIn")}</Label>
                     <select
                       id="contact-plan"
                       name="plan"
@@ -186,10 +169,10 @@ const ContactPage = () => {
                       onChange={(e) => setPlan(e.target.value)}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      <option value="">Not sure yet</option>
-                      {PRICING_PLANS.map((p) => (
+                      <option value="">{t("contact.notSureYet")}</option>
+                      {pricingPlans.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.name} {p.price !== "Custom" ? `(${p.price}${p.period})` : ""}
+                          {p.name} ({p.price}{p.period})
                         </option>
                       ))}
                     </select>
@@ -197,7 +180,7 @@ const ContactPage = () => {
                 </div>
 
                 <div className="mt-5 space-y-2">
-                  <Label htmlFor="contact-message">Message</Label>
+                  <Label htmlFor="contact-message">{t("contact.message")}</Label>
                   <Textarea
                     id="contact-message"
                     name="message"
@@ -206,23 +189,23 @@ const ContactPage = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder={
-                      preselectedPlan && getPlanById(preselectedPlan)
-                        ? `I'd like to learn more about the ${getPlanById(preselectedPlan)!.name} plan…`
-                        : "Tell us about your studio, number of artists, and what you're looking for…"
+                      selectedPlan
+                        ? t("contact.messagePlaceholderPlan", { plan: selectedPlan.name })
+                        : t("contact.messagePlaceholder")
                     }
                   />
                 </div>
 
                 <p className="mt-4 text-xs text-muted-foreground">
-                  By submitting, you agree we may contact you about VexMy. See our{" "}
+                  {t("contact.submitAgree")}{" "}
                   <Link to="/privacy" className="text-[#d4af37] hover:underline">
-                    Privacy Policy
+                    {t("common.privacy")}
                   </Link>
                   .
                 </p>
 
                 <Button type="submit" variant="gold" size="lg" className="mt-6 w-full sm:w-auto" disabled={submitting}>
-                  {submitting ? "Sending…" : "Send message"}
+                  {submitting ? t("contact.sending") : t("contact.sendMessage")}
                 </Button>
               </form>
             )}

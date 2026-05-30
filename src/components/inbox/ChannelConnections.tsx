@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface ChannelConfig {
   id: string;
@@ -84,6 +85,7 @@ interface ChannelConnectionsProps {
 
 const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [connectedChannels, setConnectedChannels] = useState<Record<string, boolean>>({});
   const [expandedChannel, setExpandedChannel] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<Record<string, Record<string, string>>>({});
@@ -131,7 +133,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
     if (!channelConfig) return;
     const missing = channelConfig.fields.filter((f) => !creds[f.key] || creds[f.key] === "••••••••" || !creds[f.key].trim());
     if (missing.length > 0) {
-      toast({ title: "Missing fields", description: `Please fill in: ${missing.map((f) => f.label).join(", ")}`, variant: "destructive" });
+      toast({ title: t("channel.missingFields", { defaultValue: "Missing fields" }), description: t("channel.fillFields", { fields: missing.map((f) => f.label).join(", "), defaultValue: `Please fill in: ${missing.map((f) => f.label).join(", ")}` }), variant: "destructive" });
       return;
     }
 
@@ -143,13 +145,13 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
     setSaving(false);
 
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
       return;
     }
 
     setConnectedChannels((prev) => ({ ...prev, [channelId]: true }));
     setExpandedChannel(null);
-    toast({ title: `${channelConfig.name} connected`, description: "Your credentials have been saved securely." });
+    toast({ title: t("channel.connectedTitle", { name: channelConfig.name, defaultValue: `${channelConfig.name} connected` }), description: t("channel.connectedDesc", { defaultValue: "Your credentials have been saved securely." }) });
   };
 
   const handleDisconnect = async (channelId: string) => {
@@ -159,7 +161,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
     setSaving(false);
     setConnectedChannels((prev) => ({ ...prev, [channelId]: false }));
     setFormValues((prev) => { const n = { ...prev }; delete n[channelId]; return n; });
-    toast({ title: "Disconnected", description: `Channel removed.` });
+    toast({ title: t("channel.disconnected", { defaultValue: "Disconnected" }), description: t("channel.channelRemoved", { defaultValue: "Channel removed." }) });
   };
 
   const updateField = (channelId: string, fieldKey: string, value: string) => {
@@ -175,7 +177,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10">
           <div className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold">My Channel Connections</h2>
+            <h2 className="font-display text-lg font-semibold">{t("channel.title", { defaultValue: "My Channel Connections" })}</h2>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -184,7 +186,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
 
         <div className="p-4 space-y-3">
           <p className="text-sm text-muted-foreground">
-            Connect your personal messaging accounts. Each artist manages their own channels independently.
+            {t("channel.subtitle", { defaultValue: "Connect your personal messaging accounts. Each artist manages their own channels independently." })}
           </p>
 
           {loading ? (
@@ -214,7 +216,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
                         <>
                           <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                           <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={() => handleDisconnect(ch.id)} disabled={saving}>
-                            Disconnect
+                            {t("channel.disconnect", { defaultValue: "Disconnect" })}
                           </Button>
                         </>
                       ) : (
@@ -224,7 +226,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
                           className="text-xs"
                           onClick={() => setExpandedChannel(expanded ? null : ch.id)}
                         >
-                          {expanded ? "Cancel" : "Connect"}
+                          {expanded ? t("common.cancel") : t("channel.connect", { defaultValue: "Connect" })}
                         </Button>
                       )}
                     </div>
@@ -249,10 +251,10 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
                       <div className="flex items-center gap-2">
                         <Button variant="gold" size="sm" className="flex-1" onClick={() => handleConnect(ch.id)} disabled={saving}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                          Connect {ch.name}
+                          {t("channel.connectWithName", { name: ch.name, defaultValue: `Connect ${ch.name}` })}
                         </Button>
                         <Button variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground">
-                          <ExternalLink className="h-3 w-3" /> Setup Guide
+                          <ExternalLink className="h-3 w-3" /> {t("channel.setupGuide", { defaultValue: "Setup Guide" })}
                         </Button>
                       </div>
                     </div>
@@ -265,7 +267,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
           <div className="rounded-lg border border-border bg-secondary/20 p-3 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-xs text-muted-foreground">
-              Your credentials are stored securely per-artist. Each team member connects their own accounts independently.
+              {t("channel.securityNote", { defaultValue: "Your credentials are stored securely per-artist. Each team member connects their own accounts independently." })}
             </p>
           </div>
         </div>

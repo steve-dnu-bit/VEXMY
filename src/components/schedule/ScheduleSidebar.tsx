@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { type Service, getServiceDotClass } from "./ServicePresets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 
 interface Profile {
   user_id: string;
@@ -31,6 +32,7 @@ const ScheduleSidebar = ({
   currentDate,
   setCurrentDate,
 }: ScheduleSidebarProps) => {
+  const { t } = useScheduleI18n();
   const filteredProfiles = profiles.filter((p) => p.display_name.toLowerCase().includes(teamSearch.toLowerCase()));
   const selectedId = selectedArtists.length === 0 ? "all" : selectedArtists[0];
   const selectedProfile = profiles.find((p) => p.user_id === selectedId) ?? null;
@@ -46,7 +48,7 @@ const ScheduleSidebar = ({
       <div className="min-w-0 p-3 border-b border-border">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
           <CalendarDays className="h-3.5 w-3.5" />
-          Pick a date
+          {t("schedule.pickDate")}
         </p>
         <div className="rounded-xl border border-border bg-secondary/35 px-2 py-1 backdrop-blur-sm">
           <Calendar
@@ -72,7 +74,7 @@ const ScheduleSidebar = ({
       </div>
 
       <div className="min-w-0 p-3 border-b border-border">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">Services</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t("schedule.services")}</p>
         <div className="space-y-1 min-w-0">
           {services.map((s) => (
             <div
@@ -84,16 +86,16 @@ const ScheduleSidebar = ({
               <span className="ml-auto text-muted-foreground text-[10px] tabular-nums">{s.duration} min</span>
             </div>
           ))}
-          {services.length === 0 && <p className="text-[11px] text-muted-foreground">Add services in Services page</p>}
+          {services.length === 0 && <p className="text-[11px] text-muted-foreground">{t("schedule.addServicesHint")}</p>}
         </div>
       </div>
 
       <div className="min-w-0 p-3 flex-1 pb-6 md:pb-3">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">Team</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t("schedule.team")}</p>
         <div className="relative mb-2">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search artists..."
+            placeholder={t("schedule.searchArtists")}
             value={teamSearch}
             onChange={(e) => setTeamSearch(e.target.value)}
             className="pl-8 h-9 text-xs bg-secondary border-border"
@@ -107,12 +109,12 @@ const ScheduleSidebar = ({
           }}
         >
           <SelectTrigger className="h-9 text-xs bg-secondary border-border">
-            <SelectValue placeholder="Select artist">
-              {selectedId === "all" ? `All artists (${profiles.length})` : selectedProfile?.display_name || "Artist"}
+            <SelectValue placeholder={t("schedule.selectArtist")}>
+              {selectedId === "all" ? t("schedule.allArtistsCount", { count: profiles.length }) : selectedProfile?.display_name || t("schedule.artist")}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All artists</SelectItem>
+            <SelectItem value="all">{t("schedule.allArtists")}</SelectItem>
             {filteredWithSelected
               .slice()
               .sort((a, b) => a.display_name.localeCompare(b.display_name))

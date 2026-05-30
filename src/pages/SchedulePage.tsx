@@ -11,6 +11,7 @@ import BookingDetailPanel from "@/components/schedule/BookingDetailPanel";
 import { useServices } from "@/components/schedule/ServicePresets";
 import { toast } from "sonner";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
+import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -64,6 +65,7 @@ function isHardHiddenScheduleArtist(p: Profile): boolean {
 }
 
 const SchedulePage = () => {
+  const { t } = useScheduleI18n();
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -152,7 +154,7 @@ const SchedulePage = () => {
 
     const { data, error } = await supabase.from("bookings").select("*").gte("starts_at", from).lt("starts_at", to).order("starts_at");
     if (error) {
-      toast.error(error.message || "Could not load bookings");
+      toast.error(error.message || t("schedule.couldNotLoadBookings", { defaultValue: "Could not load bookings" }));
       return;
     }
     setBookings((data || []) as Booking[]);
@@ -165,7 +167,7 @@ const SchedulePage = () => {
     ]);
 
     if (profilesErr) {
-      toast.error(profilesErr.message || "Could not load team profiles");
+      toast.error(profilesErr.message || t("schedule.couldNotLoadTeamProfiles", { defaultValue: "Could not load team profiles" }));
       setProfilesReady(true);
       return;
     }
@@ -221,7 +223,7 @@ const SchedulePage = () => {
     setProfilesReady(true);
   };
 
-  const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || "Unknown";
+  const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || t("schedule.unknown");
 
   const handleSlotClick = (date: Date, hour: number, minute?: number) => {
     setPrefillDate(date);
@@ -234,7 +236,7 @@ const SchedulePage = () => {
   const sendClientInvite = async () => {
     const email = inviteEmail.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Enter a valid client email");
+      toast.error(t("schedule.enterValidClientEmail", { defaultValue: "Enter a valid client email" }));
       return;
     }
     setInviting(true);
@@ -247,10 +249,10 @@ const SchedulePage = () => {
     });
     setInviting(false);
     if (error || data?.error) {
-      toast.error((data as any)?.error || error?.message || "Invite failed");
+      toast.error((data as any)?.error || error?.message || t("schedule.inviteFailed"));
       return;
     }
-    toast.success(`Client invite sent to ${email}`);
+    toast.success(t("schedule.inviteSent"));
     setInviteEmail("");
   };
 

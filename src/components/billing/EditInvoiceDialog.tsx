@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 type PaymentMethod = "card" | "bank_transfer" | "cash";
 type PaymentTerm = "paid_in_full" | "due";
@@ -35,6 +36,7 @@ interface Props {
 }
 
 const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clientName, setClientName] = useState(invoice.client_name);
@@ -62,9 +64,9 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
   const total = subtotal;
 
   const save = async () => {
-    if (!clientName.trim()) return toast.error("Client name is required");
-    if (!clientEmail.trim()) return toast.error("Client email is required");
-    if (items.some((i) => !i.description?.trim())) return toast.error("Each line needs a description");
+    if (!clientName.trim()) return toast.error(t("billing.clientNameRequired"));
+    if (!clientEmail.trim()) return toast.error(t("billing.clientEmailRequired"));
+    if (items.some((i) => !i.description?.trim())) return toast.error(t("billing.lineNeedsDescription"));
     setSaving(true);
     const { error } = await supabase
       .from("invoices" as any)
@@ -83,59 +85,59 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
       } as any)
       .eq("id", invoice.id);
     setSaving(false);
-    if (error) return toast.error(error.message || "Failed to save invoice");
-    toast.success("Invoice updated");
+    if (error) return toast.error(error.message || t("billing.failedSaveInvoice"));
+    toast.success(t("billing.invoiceUpdated"));
     setOpen(false);
     onSaved();
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger || <Button variant="outline" size="sm">Edit</Button>}</DialogTrigger>
+      <DialogTrigger asChild>{trigger || <Button variant="outline" size="sm">{t("billing.edit")}</Button>}</DialogTrigger>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Invoice</DialogTitle>
+          <DialogTitle>{t("billing.editInvoice")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Client Name</Label>
+              <Label className="text-xs">{t("billing.client")}</Label>
               <Input value={clientName} onChange={(e) => setClientName(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Client Email</Label>
+              <Label className="text-xs">{t("billing.clientEmail")}</Label>
               <Input value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <Label className="text-xs">Due Date</Label>
+              <Label className="text-xs">{t("billing.dueDate")}</Label>
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Payment Method</Label>
+              <Label className="text-xs">{t("billing.paymentMethod")}</Label>
               <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="card">Card</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="card">{t("billing.card")}</SelectItem>
+                  <SelectItem value="bank_transfer">{t("billing.bankTransfer")}</SelectItem>
+                  <SelectItem value="cash">{t("billing.cash")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-xs">Payment Option</Label>
+              <Label className="text-xs">{t("billing.paymentOption")}</Label>
               <Select value={paymentTerm} onValueChange={(v) => setPaymentTerm(v as PaymentTerm)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="due">Due</SelectItem>
-                  <SelectItem value="paid_in_full">Paid in Full</SelectItem>
+                  <SelectItem value="due">{t("billing.due")}</SelectItem>
+                  <SelectItem value="paid_in_full">{t("billing.paidInFull")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div>
-            <Label className="text-xs mb-2 block">Line Items</Label>
+            <Label className="text-xs mb-2 block">{t("billing.lineItems")}</Label>
             <div className="space-y-2">
               {items.map((item, i) => (
                 <div key={i} className="flex gap-2 items-center">
@@ -146,13 +148,13 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
                 </div>
               ))}
             </div>
-            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addItem}>Add Line</Button>
+            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addItem}>{t("billing.addLine")}</Button>
           </div>
           <div>
-            <Label className="text-xs">Notes</Label>
+            <Label className="text-xs">{t("billing.notes")}</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
-          <Button className="w-full" onClick={save} disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button>
+          <Button className="w-full" onClick={save} disabled={saving}>{saving ? t("billing.saving") : t("billing.saveChanges")}</Button>
         </div>
       </DialogContent>
     </Dialog>

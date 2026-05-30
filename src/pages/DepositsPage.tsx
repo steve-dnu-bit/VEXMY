@@ -11,6 +11,7 @@ import { Send, CheckCircle, Clock, AlertCircle, Star } from "lucide-react";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import PlanFeatureGate from "@/components/subscription/PlanFeatureGate";
+import { useTranslation } from "react-i18next";
 
 interface BookingWithDeposit {
   id: string;
@@ -30,6 +31,7 @@ interface BookingWithDeposit {
 type TimeFilter = "all" | "upcoming" | "past";
 
 const DepositsPage = () => {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState<BookingWithDeposit[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
@@ -64,7 +66,7 @@ const DepositsPage = () => {
       .gte("starts_at", from.toISOString())
       .order("starts_at", { ascending: true });
     if (error) {
-      toast.error(error.message || "Could not load bookings");
+      toast.error(error.message || t("deposits.loadFailed"));
       setBookings([]);
       setLoading(false);
       return;
@@ -75,11 +77,11 @@ const DepositsPage = () => {
 
   const handleSendDepositLink = async (booking: BookingWithDeposit) => {
     if (!booking.client_email && !booking.client_phone) {
-      toast.error("No contact info — add email or phone to send deposit link");
+      toast.error(t("deposits.noContactInfo"));
       return;
     }
     if (!booking.client_email) {
-      toast.error("No client email on this booking. Deposit reminder email cannot be sent.");
+      toast.error(t("deposits.noEmailForBooking"));
       return;
     }
     const { data, error } = await invokeEdgeFunctionJson("create-stripe-checkout", {
@@ -88,7 +90,7 @@ const DepositsPage = () => {
       sendEmail: true,
     });
     if (error || !(data as any)?.checkoutUrl) {
-      toast.error((data as any)?.error || error?.message || "Failed to generate deposit link");
+      toast.error((data as any)?.error || error?.message || t("deposits.failedGenerateLink"));
       return;
     }
     const checkoutUrl = (data as any).checkoutUrl as string;
@@ -101,21 +103,22 @@ const DepositsPage = () => {
       await navigator.clipboard.writeText(checkoutUrl);
       if (emailSent) {
         toast.success("Deposit reminder email sent and checkout link copied");
+        toast.success(t("deposits.sentAndCopied"));
       } else {
         toast.error(
           emailAttempted
-            ? `Deposit link created and copied, but email was not sent: ${emailFailureMessage}`
-            : "Deposit link created and copied, but email send was not attempted.",
+            ? t("deposits.copiedButEmailFailed", { reason: emailFailureMessage })
+            : t("deposits.copiedEmailNotAttempted"),
         );
       }
     } catch {
       if (emailSent) {
-        toast.success("Deposit reminder email sent");
+        toast.success(t("deposits.sentEmailOnly"));
       } else {
         toast.error(
           emailAttempted
-            ? `Deposit link created, but email was not sent: ${emailFailureMessage}`
-            : "Deposit link created, but email send was not attempted.",
+            ? t("deposits.createdButEmailFailed", { reason: emailFailureMessage })
+            : t("deposits.createdEmailNotAttempted"),
         );
       }
       toast.message(checkoutUrl);
@@ -129,7 +132,7 @@ const DepositsPage = () => {
       .from("bookings")
       .update({ deposit_paid: true, deposit_payment_id: stripeReference } as any)
       .eq("id", bookingId);
-    toast.success("Deposit marked as paid");
+    toast.success(t("deposits.markedPaid"));
     fetchBookings();
   };
 
@@ -138,7 +141,7 @@ const DepositsPage = () => {
       .from("bookings")
       .update({ deposit_paid: false } as any)
       .eq("id", bookingId);
-    toast.success("Deposit marked as unpaid");
+    toast.success(t("deposits.markedUnpaid"));
     fetchBookings();
   };
 
@@ -146,10 +149,10 @@ const DepositsPage = () => {
     const nextVip = !booking.vip_client;
     const { error } = await supabase.from("bookings").update({ vip_client: nextVip } as any).eq("id", booking.id);
     if (error) {
-      toast.error(error.message || "Could not update VIP");
+      toast.error(error.message || t("deposits.failedVipUpdate"));
       return;
     }
-    toast.success(nextVip ? "Marked VIP for this booking" : "VIP removed");
+    toast.success(nextVip ? t("deposits.markedVip") : t("deposits.vipRemoved"));
     fetchBookings();
   };
 
@@ -192,11 +195,11 @@ const DepositsPage = () => {
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold">Deposits</h1>
-            <p className="text-sm text-muted-foreground mt-1">Manage booking deposits — send payment links via email or SMS</p>
+            <h1 className="font-display text-2xl font-bold">{t("deposits.title")}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t("deposits.subtitle")}</p>
             {!loading && (
               <p className="text-xs text-muted-foreground mt-1">
-                Showing appointments from <span className="text-foreground font-medium">{daysBack} days</span> ago through future (not the whole client import history).
+                {t("deposits.windowInfo", { days: daysBack })}
               </p>
             )}
           </div>
@@ -206,7 +209,7 @@ const DepositsPage = () => {
             className="shrink-0"
             onClick={() => setDaysBack((d) => (d === 14 ? 90 : 14))}
           >
-            {daysBack === 14 ? "Wider window (90 days)" : "Default window (14 days)"}
+            {daysBack === 14 ? t("deposits.widerWindow") : t("deposits.defaultWindow")}
           </Button>
         </div>
 
@@ -214,25 +217,25 @@ const DepositsPage = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">In window</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("deposits.inWindow")}</p>
               <p className="text-2xl font-display font-bold mt-1">{bookings.length}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Deposits Paid</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("deposits.depositsPaid")}</p>
               <p className="text-2xl font-display font-bold text-emerald-400 mt-1">{paidCount}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Pending</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("deposits.pending")}</p>
               <p className="text-2xl font-display font-bold text-amber-400 mt-1">{unpaidCount}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Upcoming</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("deposits.upcoming")}</p>
               <p className="text-2xl font-display font-bold mt-1">{upcomingCount}</p>
             </CardContent>
           </Card>
@@ -241,62 +244,63 @@ const DepositsPage = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-400" /> Deposits List
+              <Clock className="h-4 w-4 text-amber-400" /> {t("deposits.listTitle")}
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              One row per appointment. Deposit shows paid or pending. Sort is nearest to today first.
+              {t("deposits.listDesc")}
             </p>
             <Tabs value={timeFilter} onValueChange={(v) => setTimeFilter(v as TimeFilter)} className="mt-3 w-full max-w-md">
               <TabsList className="grid w-full grid-cols-3 h-9">
                 <TabsTrigger value="upcoming" className="text-xs sm:text-sm">
-                  Upcoming
+                  {t("deposits.tabUpcoming")}
                 </TabsTrigger>
                 <TabsTrigger value="past" className="text-xs sm:text-sm">
-                  Past
+                  {t("deposits.tabPast")}
                 </TabsTrigger>
                 <TabsTrigger value="all" className="text-xs sm:text-sm">
-                  All
+                  {t("deposits.tabAll")}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
             <p className="text-[11px] text-muted-foreground mt-2">
-              Showing {filteredBookings.length} of {bookings.length} in the date window
-              {timeFilter === "upcoming" ? " · next appointment first" : timeFilter === "past" ? " · most recent past first" : " · closest to today first"}
+              {t("deposits.showingCount", { filtered: filteredBookings.length, total: bookings.length })}
+              {" · "}
+              {timeFilter === "upcoming" ? t("deposits.sortUpcoming") : timeFilter === "past" ? t("deposits.sortPast") : t("deposits.sortAll")}
             </p>
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
-              <p className="text-sm text-muted-foreground p-4">Loading bookings…</p>
+              <p className="text-sm text-muted-foreground p-4">{t("deposits.loadingBookings")}</p>
             ) : bookings.length === 0 ? (
               <div className="p-4 space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  No appointments in this date window. Try “Wider window (90 days)” or add a booking on Schedule.
+                  {t("deposits.noInWindow")}
                 </p>
                 {daysBack === 14 ? (
                   <Button size="sm" variant="secondary" onClick={() => setDaysBack(90)}>
-                    Load last 90 days + future
+                    {t("deposits.load90Days")}
                   </Button>
                 ) : null}
               </div>
             ) : filteredBookings.length === 0 ? (
               <p className="text-sm text-muted-foreground p-4">
                 {timeFilter === "upcoming"
-                  ? "No upcoming appointments in this window."
+                  ? t("deposits.noUpcomingInWindow")
                   : timeFilter === "past"
-                    ? "No past appointments in this window."
-                    : "No appointments to show."}
+                    ? t("deposits.noPastInWindow")
+                    : t("deposits.noAppointments")}
               </p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>When</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead className="hidden sm:table-cell">Type</TableHead>
-                    <TableHead>Deposit</TableHead>
-                    <TableHead className="hidden md:table-cell">Contact</TableHead>
-                    <TableHead>Paid?</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("deposits.when")}</TableHead>
+                    <TableHead>{t("deposits.client")}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t("deposits.type")}</TableHead>
+                    <TableHead>{t("deposits.deposit")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("deposits.contact")}</TableHead>
+                    <TableHead>{t("deposits.paidQuestion")}</TableHead>
+                    <TableHead className="text-right">{t("deposits.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -310,11 +314,11 @@ const DepositsPage = () => {
                           <div className="text-[10px]">{format(start, "HH:mm")}</div>
                           {isFuture ? (
                             <Badge variant="outline" className="text-[9px] mt-1 border-teal-500/30 text-teal-300">
-                              Upcoming
+                              {t("deposits.badgeUpcoming")}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-[9px] mt-1">
-                              Past
+                              {t("deposits.badgePast")}
                             </Badge>
                           )}
                         </TableCell>
@@ -322,7 +326,7 @@ const DepositsPage = () => {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span>{b.client_name}</span>
                             {b.vip_client ? (
-                              <Badge className="text-[10px] bg-yellow-500/15 text-yellow-300 border-yellow-500/30">VIP</Badge>
+                              <Badge className="text-[10px] bg-yellow-500/15 text-yellow-300 border-yellow-500/30">{t("deposits.badgeVip")}</Badge>
                             ) : null}
                           </div>
                         </TableCell>
@@ -330,33 +334,33 @@ const DepositsPage = () => {
                         <TableCell>£{b.deposit_amount ?? 50}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex gap-1 flex-wrap">
-                            {b.client_email && <Badge variant="outline" className="text-[10px]">Email</Badge>}
-                            {b.client_phone && <Badge variant="outline" className="text-[10px]">SMS</Badge>}
+                            {b.client_email && <Badge variant="outline" className="text-[10px]">{t("deposits.badgeEmail")}</Badge>}
+                            {b.client_phone && <Badge variant="outline" className="text-[10px]">{t("deposits.badgeSms")}</Badge>}
                             {!b.client_email && !b.client_phone && (
-                              <span className="text-[10px] text-destructive">No contact</span>
+                              <span className="text-[10px] text-destructive">{t("deposits.noContact")}</span>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
                           {b.deposit_paid ? (
-                            <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-500/25 text-[10px]">Paid</Badge>
+                            <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-500/25 text-[10px]">{t("deposits.badgePaid")}</Badge>
                           ) : (
-                            <Badge className="bg-amber-500/15 text-amber-200 border-amber-500/25 text-[10px]">Pending</Badge>
+                            <Badge className="bg-amber-500/15 text-amber-200 border-amber-500/25 text-[10px]">{t("deposits.badgePending")}</Badge>
                           )}
                           {b.deposit_link_sent && !b.deposit_paid ? (
-                            <div className="text-[10px] text-muted-foreground mt-0.5">Link sent</div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5">{t("deposits.linkSent")}</div>
                           ) : null}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end flex-col sm:flex-row">
                             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleSendDepositLink(b)}>
-                              <Send className="h-3 w-3" /> Reminder
+                              <Send className="h-3 w-3" /> {t("deposits.reminder")}
                             </Button>
                             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleMarkPaid(b.id)} disabled={!!b.deposit_paid}>
-                              <CheckCircle className="h-3 w-3" /> Paid
+                              <CheckCircle className="h-3 w-3" /> {t("deposits.paid")}
                             </Button>
                             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleMarkUnpaid(b.id)} disabled={!b.deposit_paid}>
-                              Unpaid
+                              {t("deposits.unpaid")}
                             </Button>
                             <Button
                               size="sm"
@@ -364,7 +368,7 @@ const DepositsPage = () => {
                               className="h-7 text-xs gap-1"
                               onClick={() => handleToggleVip(b)}
                             >
-                              <Star className="h-3 w-3" /> VIP
+                              <Star className="h-3 w-3" /> {t("deposits.badgeVip")}
                             </Button>
                           </div>
                         </TableCell>
@@ -382,9 +386,9 @@ const DepositsPage = () => {
           <CardContent className="p-4 flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium">Stripe deposit links enabled</p>
+              <p className="text-sm font-medium">{t("deposits.stripeEnabledTitle")}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                "Reminder" creates a live Stripe checkout URL and emails it to the client (if SMTP is configured). Payments are auto-reconciled when Stripe webhook is configured.
+                {t("deposits.stripeEnabledDesc")}
               </p>
             </div>
           </CardContent>

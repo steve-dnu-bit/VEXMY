@@ -17,10 +17,12 @@ import {
   type StencilSession,
 } from "@/lib/stencilStorage";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTranslation } from "react-i18next";
 
 const StencilPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [stencilUrl, setStencilUrl] = useState<string | null>(null);
@@ -84,13 +86,13 @@ const StencilPage = () => {
       sessionRef.current = stored;
       setStencilUrl(generated);
       toast({
-        title: "Stencil generated",
-        description: "Drag the slider to compare. Files are removed from the server after you download.",
+        title: t("stencil.generatedTitle"),
+        description: t("stencil.generatedDesc"),
       });
     } catch (error: unknown) {
       toast({
         title: "Generation failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
+        description: error instanceof Error ? error.message : t("stencil.genericFailure"),
         variant: "destructive",
       });
     } finally {
@@ -107,13 +109,13 @@ const StencilPage = () => {
       await downloadStencilAndDelete(session, stencilUrl);
       clearStencilState();
       toast({
-        title: "Download started",
-        description: "Original and stencil have been removed from storage.",
+        title: t("stencil.downloadStartedTitle"),
+        description: t("stencil.downloadStartedDesc"),
       });
     } catch (error: unknown) {
       toast({
-        title: "Download failed",
-        description: error instanceof Error ? error.message : "Could not complete download",
+        title: t("stencil.downloadFailedTitle"),
+        description: error instanceof Error ? error.message : t("stencil.downloadFailedDesc"),
         variant: "destructive",
       });
     } finally {
@@ -126,24 +128,24 @@ const StencilPage = () => {
       <div className="p-4 md:p-6 max-w-3xl mx-auto">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-gold">Stencil Generator</span>
+            <span className="text-gradient-gold">{t("stencil.title")}</span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Upload a reference and generate a black line-art stencil in your browser — no external API.
+            {t("stencil.subtitle")}
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-6">
             <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-              Original Image
+              {t("stencil.originalImage")}
             </h3>
             {preview ? (
               <div className="space-y-4">
-                <img src={preview} alt="Original" loading="lazy" className="w-full rounded-lg object-cover aspect-square" />
+                <img src={preview} alt={t("stencil.originalLabel")} loading="lazy" className="w-full rounded-lg object-cover aspect-square" />
                 <label className="block">
                   <Button variant="ghost" size="sm" className="w-full" asChild>
-                    <span>Change Image</span>
+                    <span>{t("stencil.changeImage")}</span>
                   </Button>
                   <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
                 </label>
@@ -152,9 +154,9 @@ const StencilPage = () => {
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-secondary p-12 transition-colors hover:border-primary/50 aspect-square">
                 <Upload className="mb-3 h-10 w-10 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground text-center">
-                  Drop an image here or click to upload
+                  {t("stencil.dropOrUpload")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("stencil.fileHint")}</p>
                 <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
               </label>
             )}
@@ -163,7 +165,7 @@ const StencilPage = () => {
               <div className="space-y-3 mt-4">
                 <div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Line detail</span>
+                    <span>{t("stencil.lineDetail")}</span>
                     <span>{settings.detail}</span>
                   </div>
                   <input
@@ -177,7 +179,7 @@ const StencilPage = () => {
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Line sensitivity</span>
+                    <span>{t("stencil.lineSensitivity")}</span>
                     <span>{settings.sensitivity}</span>
                   </div>
                   <input
@@ -193,10 +195,10 @@ const StencilPage = () => {
                 <Button variant="gold" className="w-full gap-2" onClick={handleGenerate} disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+                      <Loader2 className="h-4 w-4 animate-spin" /> {t("stencil.generating")}
                     </>
                   ) : (
-                    "Generate stencil"
+                    t("stencil.generateStencil")
                   )}
                 </Button>
 
@@ -204,13 +206,13 @@ const StencilPage = () => {
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="w-full gap-2 text-muted-foreground">
                       <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
-                      Fine tune
+                      {t("stencil.fineTune")}
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-3 pt-2">
                     <div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Smoothing</span>
+                        <span>{t("stencil.smoothing")}</span>
                         <span>{settings.smoothing}</span>
                       </div>
                       <input
@@ -224,7 +226,7 @@ const StencilPage = () => {
                     </div>
                     <div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Contrast</span>
+                        <span>{t("stencil.contrast")}</span>
                         <span>{settings.contrast}</span>
                       </div>
                       <input
@@ -238,7 +240,7 @@ const StencilPage = () => {
                     </div>
                     <div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Tone steps</span>
+                        <span>{t("stencil.toneSteps")}</span>
                         <span>{settings.posterize}</span>
                       </div>
                       <input
@@ -252,7 +254,7 @@ const StencilPage = () => {
                     </div>
                     <div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Line thickness</span>
+                        <span>{t("stencil.lineThickness")}</span>
                         <span>{settings.lineWidth}</span>
                       </div>
                       <input
@@ -266,7 +268,7 @@ const StencilPage = () => {
                     </div>
                     <div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Noise cleanup</span>
+                        <span>{t("stencil.noiseCleanup")}</span>
                         <span>{settings.cleanup}</span>
                       </div>
                       <input
@@ -279,7 +281,7 @@ const StencilPage = () => {
                       />
                     </div>
                     <label className="flex items-center justify-between text-sm">
-                      <span>Fill dark areas</span>
+                      <span>{t("stencil.fillDarkAreas")}</span>
                       <input
                         type="checkbox"
                         checked={settings.fillShadows}
@@ -289,7 +291,7 @@ const StencilPage = () => {
                     {settings.fillShadows && (
                       <div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Shadow fill</span>
+                          <span>{t("stencil.shadowFill")}</span>
                           <span>{settings.shadowThreshold}</span>
                         </div>
                         <input
@@ -303,7 +305,7 @@ const StencilPage = () => {
                       </div>
                     )}
                     <label className="flex items-center justify-between text-sm">
-                      <span>Invert</span>
+                      <span>{t("stencil.invert")}</span>
                       <input
                         type="checkbox"
                         checked={settings.invert}
@@ -311,7 +313,7 @@ const StencilPage = () => {
                       />
                     </label>
                     <Button variant="outline" size="sm" className="w-full" onClick={resetDefaults}>
-                      Reset to defaults
+                      {t("stencil.resetDefaults")}
                     </Button>
                   </CollapsibleContent>
                 </Collapsible>
@@ -321,13 +323,13 @@ const StencilPage = () => {
 
           <div className="rounded-xl border border-border bg-card p-6">
             <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-              Stencil Output
+              {t("stencil.outputTitle")}
             </h3>
             {stencilUrl && preview ? (
               <div className="space-y-4">
                 <StencilCompare beforeSrc={preview} afterSrc={stencilUrl} />
                 <p className="text-xs text-center text-muted-foreground">
-                  Drag the slider to compare original vs stencil
+                  {t("stencil.dragCompare")}
                 </p>
                 <Button
                   variant="gold-outline"
@@ -338,24 +340,24 @@ const StencilPage = () => {
                 >
                   {downloading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Downloading...
+                      <Loader2 className="h-4 w-4 animate-spin" /> {t("stencil.downloading")}
                     </>
                   ) : (
                     <>
-                      <Download className="h-4 w-4" /> Download Stencil
+                      <Download className="h-4 w-4" /> {t("stencil.downloadStencil")}
                     </>
                   )}
                 </Button>
                 <p className="text-[11px] text-center text-muted-foreground">
-                  Download removes the original and stencil from cloud storage.
+                  {t("stencil.downloadRemovesFiles")}
                 </p>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-secondary aspect-square">
                 <p className="text-sm text-muted-foreground px-4 text-center">
                   {loading
-                    ? "Extracting clean lines..."
-                    : "Upload an image and generate — compare original vs stencil here"}
+                    ? t("stencil.extractingLines")
+                    : t("stencil.uploadPromptOutput")}
                 </p>
                 {loading && <Loader2 className="mt-3 h-6 w-6 animate-spin text-primary" />}
               </div>

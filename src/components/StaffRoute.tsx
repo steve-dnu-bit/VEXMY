@@ -3,10 +3,12 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchHasStaffAccess, fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
+import { useTranslation } from "react-i18next";
 
 /** Customers without a staff role cannot access staff apps (schedule, admin, …). */
 const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
   const [redirect, setRedirect] = useState<"account" | "customer-profile-setup" | null | "wait">("wait");
 
   useEffect(() => {
@@ -49,7 +51,7 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading || redirect === "wait") {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("staff.loading")}</p>
       </div>
     );
   }

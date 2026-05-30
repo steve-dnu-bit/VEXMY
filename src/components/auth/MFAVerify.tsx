@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shield, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface MFAVerifyProps {
   factorId: string;
@@ -15,6 +16,7 @@ const MFAVerify = ({ factorId, onVerified, onCancel }: MFAVerifyProps) => {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleVerify = async () => {
     if (code.length !== 6) return;
@@ -25,7 +27,7 @@ const MFAVerify = ({ factorId, onVerified, onCancel }: MFAVerifyProps) => {
     });
 
     if (challengeError) {
-      toast({ title: "Error", description: challengeError.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: challengeError.message, variant: "destructive" });
       setLoading(false);
       return;
     }
@@ -37,7 +39,7 @@ const MFAVerify = ({ factorId, onVerified, onCancel }: MFAVerifyProps) => {
     });
 
     if (verifyError) {
-      toast({ title: "Invalid code", description: "Please check your authenticator app and try again.", variant: "destructive" });
+      toast({ title: t("mfa.invalidCode"), description: t("mfa.verifyPrompt"), variant: "destructive" });
       setCode("");
       setLoading(false);
       return;
@@ -52,8 +54,8 @@ const MFAVerify = ({ factorId, onVerified, onCancel }: MFAVerifyProps) => {
         <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
           <Shield className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="font-display text-xl font-semibold">Two-Factor Authentication</h2>
-        <p className="text-sm text-muted-foreground mt-1">Enter the 6-digit code from your authenticator app</p>
+        <h2 className="font-display text-xl font-semibold">{t("mfa.title")}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t("mfa.verifyPrompt")}</p>
       </div>
 
       <div className="space-y-3">
@@ -73,10 +75,10 @@ const MFAVerify = ({ factorId, onVerified, onCancel }: MFAVerifyProps) => {
           className="w-full"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-          Verify
+          {t("mfa.verify")}
         </Button>
         <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onCancel}>
-          Sign in with a different account
+          {t("mfa.signInDifferent")}
         </Button>
       </div>
     </div>

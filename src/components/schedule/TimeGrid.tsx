@@ -7,6 +7,7 @@ import { layoutStackedBookingBlocks } from "@/lib/scheduleBookingLayout";
 import { BOOKING_TYPE_STYLES } from "@/lib/bookingTypes";
 import { getArtistBookingBlockStyle } from "@/lib/themePresets";
 import type { ArtistColorMap } from "@/lib/artistThemeCache";
+import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 
 interface Booking {
   id: string;
@@ -129,11 +130,13 @@ function ArtistColumnHeader({
   safeName,
   portalBgColor,
   onQuickAdd,
+  newBookingTooltip,
 }: {
   col: ColumnDef;
   safeName: (name?: string | null) => string;
   portalBgColor?: string | null;
   onQuickAdd: () => void;
+  newBookingTooltip: string;
 }) {
   const avatarTheme = getArtistBookingBlockStyle(portalBgColor);
   return (
@@ -159,7 +162,7 @@ function ArtistColumnHeader({
         type="button"
         onClick={(e) => { e.stopPropagation(); onQuickAdd(); }}
         className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center opacity-0 group-hover/col:opacity-100 transition-opacity shadow-sm hover:scale-110"
-        title="New booking"
+        title={newBookingTooltip}
       >
         <Plus className="h-3 w-3" />
       </button>
@@ -200,7 +203,8 @@ const TimeGrid = ({
   onSlotClick,
   view,
 }: TimeGridProps) => {
-  const safeName = (name?: string | null) => (name && name.trim().length > 0 ? name : "Unknown");
+  const { t } = useScheduleI18n();
+  const safeName = (name?: string | null) => (name && name.trim().length > 0 ? name : t("schedule.unknown"));
   const profileById = new Map(profiles.map((p) => [p.user_id, p]));
   const artistPortalColor = (artistId: string) =>
     profileById.get(artistId)?.portal_bg_color ?? artistColorCache[artistId] ?? null;
@@ -213,7 +217,7 @@ const TimeGrid = ({
   const visibleArtistIds = selectedArtists.length === 0 ? allKnownArtistIds : selectedArtists;
   const visibleProfiles = visibleArtistIds.map((artistId) => ({
     user_id: artistId,
-    display_name: profileById.get(artistId)?.display_name ?? "Unknown artist",
+    display_name: profileById.get(artistId)?.display_name ?? t("schedule.unknownArtist"),
   }));
   const columns: ColumnDef[] =
     view === "week"
@@ -317,7 +321,7 @@ const TimeGrid = ({
                     onSlotClick(day, qh, qm);
                   }}
                   className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25 transition-colors shrink-0"
-                  title="New booking"
+                  title={t("schedule.newBookingTooltip")}
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
@@ -329,7 +333,7 @@ const TimeGrid = ({
                     onClick={() => onSlotClick(day, 10, 30)}
                     className="w-full text-left rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted-foreground hover:bg-secondary/30 transition-colors"
                   >
-                    No appointments. Tap to add one.
+                    {t("schedule.noAppointmentsTapToAdd", { defaultValue: "No appointments. Tap to add one." })}
                   </button>
                 ) : (
                   items.map((b) => {
@@ -354,7 +358,7 @@ const TimeGrid = ({
                         </p>
                         <p className="text-xs text-muted-foreground mt-1 truncate">
                           {artistName}
-                          {b.deposit_paid ? " · Deposit paid" : ""}
+                          {b.deposit_paid ? ` · ${t("schedule.depositPaid", { defaultValue: "Deposit paid" })}` : ""}
                         </p>
                       </button>
                     );
@@ -390,7 +394,7 @@ const TimeGrid = ({
                       type="button"
                       onClick={(e) => { e.stopPropagation(); onSlotClick(day, qh, qm); }}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center opacity-0 group-hover/col:opacity-100 transition-opacity shadow-sm hover:scale-110"
-                      title="New booking"
+                      title={t("schedule.newBookingTooltip")}
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -406,6 +410,7 @@ const TimeGrid = ({
                       safeName={safeName}
                       portalBgColor={artistPortalColor(col.user_id)}
                       onQuickAdd={() => onSlotClick(col.day, qh, qm)}
+                      newBookingTooltip={t("schedule.newBookingTooltip")}
                     />
                   </div>
                 );

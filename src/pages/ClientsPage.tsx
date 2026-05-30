@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "react-i18next";
 
 interface BookingClient {
   /** Stable key for React lists and dedupe (never collapse different people on same first name). */
@@ -127,6 +128,7 @@ function importedContactGroupKey(c: { name: string; email: string | null; phone:
 }
 
 const ClientsPage = () => {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<BookingClient[]>([]);
   const [search, setSearch] = useState("");
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -313,12 +315,12 @@ const ClientsPage = () => {
       .eq("booking_type", "consultation");
     const { error } = await supabase.from("bookings").delete().eq("booking_type", "consultation");
     if (error) {
-      toast({ title: "Failed to delete clients", description: error.message, variant: "destructive" });
+      toast({ title: t("clients.failedDeleteClients"), description: error.message, variant: "destructive" });
     } else {
       if (snapshots?.length) {
         await Promise.allSettled(snapshots.map((b) => sendBookingNotification("deleted", b as BookingNotificationPayload)));
       }
-      toast({ title: "Imported client records deleted" });
+      toast({ title: t("clients.importedDeleted") });
       fetchClients();
     }
   };
@@ -335,10 +337,16 @@ const ClientsPage = () => {
 
   const exportCSV = () => {
     if (clients.length === 0) {
-      toast({ title: "No clients to export", variant: "destructive" });
+      toast({ title: t("clients.noClientsToExport"), variant: "destructive" });
       return;
     }
-    const headers = ["Name", "Email", "Phone", "Bookings", "Last Style"];
+    const headers = [
+      t("clients.csvHeadersName"),
+      t("clients.csvHeadersEmail"),
+      t("clients.csvHeadersPhone"),
+      t("clients.csvHeadersBookings"),
+      t("clients.csvHeadersStyle"),
+    ];
     const rows = clients.map((c) => [
       c.client_name,
       c.client_email || "",
@@ -348,12 +356,12 @@ const ClientsPage = () => {
     ]);
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     downloadBlob(csv, `clients-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv");
-    toast({ title: `Exported ${clients.length} clients (CSV)` });
+    toast({ title: t("clients.exportedCsv", { count: clients.length }) });
   };
 
   const exportJSON = () => {
     if (clients.length === 0) {
-      toast({ title: "No clients to export", variant: "destructive" });
+      toast({ title: t("clients.noClientsToExport"), variant: "destructive" });
       return;
     }
     const payload = {
@@ -369,7 +377,7 @@ const ClientsPage = () => {
       })),
     };
     downloadBlob(JSON.stringify(payload, null, 2), `clients-${new Date().toISOString().slice(0, 10)}.json`, "application/json");
-    toast({ title: `Exported ${clients.length} clients (JSON)` });
+    toast({ title: t("clients.exportedJson", { count: clients.length }) });
   };
 
   const importCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -380,7 +388,7 @@ const ClientsPage = () => {
       const text = ev.target?.result as string;
       const allRows = parseCsvRecords(text);
       if (allRows.length < 2) {
-        toast({ title: "CSV file is empty or invalid", variant: "destructive" });
+        toast({ title: t("clients.csvInvalid"), variant: "destructive" });
         return;
       }
 
@@ -393,7 +401,7 @@ const ClientsPage = () => {
       const styleIndex = headers.findIndex((h) => h.includes("style") || h.includes("tattoo_style"));
 
       if (nameIndex < 0) {
-        toast({ title: "CSV is missing a Name column", variant: "destructive" });
+        toast({ title: t("clients.csvMissingName"), variant: "destructive" });
         return;
       }
 
@@ -402,7 +410,7 @@ const ClientsPage = () => {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        toast({ title: "You must be logged in to import", variant: "destructive" });
+        toast({ title: t("clients.mustBeLoggedInImport"), variant: "destructive" });
         return;
       }
 
@@ -448,7 +456,7 @@ const ClientsPage = () => {
       }
 
       if (toInsert.length === 0) {
-        toast({ title: "No valid client rows found in CSV", variant: "destructive" });
+        toast({ title: t("clients.noValidRows"), variant: "destructive" });
         return;
       }
 
@@ -473,12 +481,12 @@ const ClientsPage = () => {
 
       if (errors.length) {
         toast({
-          title: `Imported ${imported} of ${toInsert.length} rows`,
+          title: t("clients.importedPartial", { imported, total: toInsert.length }),
           description: errors.slice(0, 2).join(" · "),
           variant: imported ? "default" : "destructive",
         });
       } else {
-        toast({ title: `Imported ${imported} clients from CSV` });
+        toast({ title: t("clients.importedFromCsv", { count: imported }) });
       }
       fetchClients();
     };
@@ -495,14 +503,14 @@ const ClientsPage = () => {
         const raw = JSON.parse(ev.target?.result as string) as { clients?: Array<Record<string, unknown>> };
         const list = Array.isArray(raw.clients) ? raw.clients : Array.isArray(raw) ? (raw as unknown[]) : [];
         if (list.length === 0) {
-          toast({ title: "No clients array in JSON", variant: "destructive" });
+          toast({ title: t("clients.noClientsArray"), variant: "destructive" });
           return;
         }
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          toast({ title: "You must be logged in to import", variant: "destructive" });
+          toast({ title: t("clients.mustBeLoggedInImport"), variant: "destructive" });
           return;
         }
         let imported = 0;
@@ -532,10 +540,10 @@ const ClientsPage = () => {
             await sendBookingNotification("created", inserted as BookingNotificationPayload);
           }
         }
-        toast({ title: `Imported ${imported} clients from JSON` });
+        toast({ title: t("clients.importedFromJson", { count: imported }) });
         fetchClients();
       } catch {
-        toast({ title: "Invalid JSON file", variant: "destructive" });
+        toast({ title: t("clients.invalidJsonFile"), variant: "destructive" });
       }
     };
     reader.readAsText(file);
@@ -558,15 +566,15 @@ const ClientsPage = () => {
         <div className="flex flex-col gap-3 mb-6">
           <div>
             <h1 className="font-display text-2xl font-bold">
-              <span className="text-gradient-gold">Clients</span>
+              <span className="text-gradient-gold">{t("clients.title")}</span>
             </h1>
-            <p className="text-sm text-muted-foreground">From bookings + signed-up customers · import/export for backups or mail merge</p>
+            <p className="text-sm text-muted-foreground">{t("clients.subtitle")}</p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search clients..."
+                placeholder={t("clients.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 bg-secondary border-border min-h-11"
@@ -580,19 +588,19 @@ const ClientsPage = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex-1 sm:flex-none min-h-11 sm:min-h-9 gap-1">
                     <Upload className="h-4 w-4 shrink-0" />
-                    Import
+                    {t("clients.import")}
                     <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel className="text-xs">Import clients</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-xs">{t("clients.importClients")}</DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => csvInputRef.current?.click()}>
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    CSV file
+                    {t("clients.csvFile")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => jsonInputRef.current?.click()}>
                     <FileJson className="h-4 w-4 mr-2" />
-                    JSON file
+                    {t("clients.jsonFile")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -601,19 +609,19 @@ const ClientsPage = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex-1 sm:flex-none min-h-11 sm:min-h-9 gap-1">
                     <Download className="h-4 w-4 shrink-0" />
-                    Export
+                    {t("clients.export")}
                     <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel className="text-xs">Export clients</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-xs">{t("clients.exportClients")}</DropdownMenuLabel>
                   <DropdownMenuItem onClick={exportCSV}>
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    Download CSV
+                    {t("clients.downloadCsv")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={exportJSON}>
                     <FileJson className="h-4 w-4 mr-2" />
-                    Download JSON
+                    {t("clients.downloadJson")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -622,19 +630,19 @@ const ClientsPage = () => {
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="min-h-11 sm:min-h-9" disabled={clients.length === 0}>
                     <Trash2 className="h-4 w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Reset imports</span>
+                    <span className="hidden sm:inline">{t("clients.resetImports")}</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete all imported clients?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("clients.deleteImportedTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Removes consultation-type records created by import. Session bookings are not deleted.
+                      {t("clients.deleteImportedDesc")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={deleteAllClients}>Delete All</AlertDialogAction>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteAllClients}>{t("clients.deleteAll")}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -647,18 +655,18 @@ const ClientsPage = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/70 bg-secondary/70">
-                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Name</th>
-                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Email</th>
-                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Phone</th>
-                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Bookings</th>
-                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Style</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableName")}</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableEmail")}</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tablePhone")}</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableBookings")}</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableStyle")}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                      {clients.length === 0 ? "No clients yet. Add bookings or import CSV/JSON." : "No matches."}
+                      {clients.length === 0 ? t("clients.noClientsYet") : t("clients.noMatches")}
                     </td>
                   </tr>
                 ) : (
@@ -682,7 +690,7 @@ const ClientsPage = () => {
         <div className="md:hidden space-y-2">
           {filtered.length === 0 ? (
             <p className="text-center text-muted-foreground py-12 text-sm">
-              {clients.length === 0 ? "No clients yet. Import CSV or JSON from the buttons above." : "No matches."}
+              {clients.length === 0 ? t("clients.noClientsMobile") : t("clients.noMatches")}
             </p>
           ) : (
             filtered.map((c) => (
@@ -690,12 +698,12 @@ const ClientsPage = () => {
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold">{c.client_name}</p>
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary shrink-0">
-                    {c.booking_count} appt{c.booking_count !== 1 ? "s" : ""}
+                    {c.booking_count} {t("clients.appointmentsShort")}{c.booking_count !== 1 ? t("clients.appointmentsPlural") : ""}
                   </span>
                 </div>
                 {c.client_email && <p className="text-sm text-muted-foreground break-all">{c.client_email}</p>}
                 {c.client_phone && <p className="text-sm text-muted-foreground">{c.client_phone}</p>}
-                {c.tattoo_style && <p className="text-xs text-muted-foreground">Style: {c.tattoo_style}</p>}
+                {c.tattoo_style && <p className="text-xs text-muted-foreground">{t("clients.stylePrefix", { style: c.tattoo_style })}</p>}
               </div>
             ))
           )}
@@ -704,16 +712,16 @@ const ClientsPage = () => {
         {/* Mobile sticky action bar */}
         <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border md:hidden">
           <Button variant="outline" className="flex-1 gap-1" size="sm" onClick={() => csvInputRef.current?.click()}>
-            <Upload className="h-4 w-4" /> CSV
+            <Upload className="h-4 w-4" /> {t("clients.mobileCsv")}
           </Button>
           <Button variant="outline" className="flex-1 gap-1" size="sm" onClick={() => jsonInputRef.current?.click()}>
-            <Upload className="h-4 w-4" /> JSON
+            <Upload className="h-4 w-4" /> {t("clients.mobileJson")}
           </Button>
           <Button variant="default" className="flex-1 gap-1" size="sm" onClick={exportCSV}>
-            <Download className="h-4 w-4" /> CSV
+            <Download className="h-4 w-4" /> {t("clients.mobileCsv")}
           </Button>
           <Button variant="default" className="flex-1 gap-1" size="sm" onClick={exportJSON}>
-            <Download className="h-4 w-4" /> JSON
+            <Download className="h-4 w-4" /> {t("clients.mobileJson")}
           </Button>
         </div>
       </div>

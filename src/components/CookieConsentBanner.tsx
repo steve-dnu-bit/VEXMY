@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,7 @@ import { getStoredCookieConsent, saveCookieConsent } from "@/lib/cookieConsent";
 import { logCookieConsentAudit } from "@/lib/consentAudit";
 
 const CookieConsentBanner = () => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [preferences, setPreferences] = useState(false);
@@ -58,6 +60,7 @@ const CookieConsentBanner = () => {
       marketing: false,
     });
     void logCookieConsentAudit(consent);
+    setManageOpen(false);
     setVisible(false);
   };
 
@@ -78,19 +81,17 @@ const CookieConsentBanner = () => {
       {visible ? (
         <div className="fixed inset-x-0 bottom-0 z-[80] border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85">
           <div className="mx-auto max-w-5xl px-4 py-3">
-            <p className="text-sm text-foreground">
-              We use cookies and similar technologies for core functionality and, with your consent, to improve performance and marketing.
-              You can change your choice at any time in Cookie Settings.
-            </p>
+            <p className="text-sm text-foreground">{t("cookies.bannerText")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Read our <Link to="/privacy" className="underline underline-offset-2">Privacy Notice</Link>,{" "}
-              <Link to="/cookies" className="underline underline-offset-2">Cookie Policy</Link>, and{" "}
-              <Link to="/terms" className="underline underline-offset-2">Terms</Link>.
+              {t("cookies.readOur")}{" "}
+              <Link to="/privacy" className="underline underline-offset-2">{t("auth.privacyNotice")}</Link>,{" "}
+              <Link to="/cookies" className="underline underline-offset-2">{t("auth.cookiePolicy")}</Link>, {t("common.and")}{" "}
+              <Link to="/terms" className="underline underline-offset-2">{t("common.terms")}</Link>.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" variant="gold" onClick={handleAcceptAll}>Accept all</Button>
-              <Button size="sm" variant="outline" onClick={handleRejectNonEssential}>Reject non-essential</Button>
-              <Button size="sm" variant="secondary" onClick={() => setManageOpen(true)}>Manage choices</Button>
+              <Button size="sm" variant="gold" onClick={handleAcceptAll}>{t("cookies.acceptAll")}</Button>
+              <Button size="sm" variant="outline" onClick={handleRejectNonEssential}>{t("cookies.rejectNonEssential")}</Button>
+              <Button size="sm" variant="secondary" onClick={() => setManageOpen(true)}>{t("cookies.manageChoices")}</Button>
             </div>
           </div>
         </div>
@@ -99,43 +100,41 @@ const CookieConsentBanner = () => {
       <Dialog open={manageOpen} onOpenChange={setManageOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cookie preferences</DialogTitle>
-            <DialogDescription>
-              Necessary cookies are always active. You can choose whether optional categories are enabled.
-            </DialogDescription>
+            <DialogTitle>{t("cookies.preferencesTitle")}</DialogTitle>
+            <DialogDescription>{t("cookies.preferencesDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-md border border-border p-3">
               <div>
-                <Label className="text-sm">Strictly necessary</Label>
-                <p className="text-xs text-muted-foreground">Required for login, security, and core app features.</p>
+                <Label className="text-sm">{t("cookies.strictlyNecessary")}</Label>
+                <p className="text-xs text-muted-foreground">{t("cookies.strictlyNecessaryDesc")}</p>
               </div>
-              <Switch checked disabled aria-label="Strictly necessary cookies enabled" />
+              <Switch checked disabled aria-label={t("cookies.strictlyNecessary")} />
             </div>
             <div className="flex items-center justify-between rounded-md border border-border p-3">
               <div>
-                <Label htmlFor="cookie-pref" className="text-sm">Preferences</Label>
-                <p className="text-xs text-muted-foreground">Remember settings and improve your experience.</p>
+                <Label htmlFor="cookie-pref" className="text-sm">{t("cookies.preferences")}</Label>
+                <p className="text-xs text-muted-foreground">{t("cookies.preferencesDesc")}</p>
               </div>
               <Switch id="cookie-pref" checked={preferences} onCheckedChange={setPreferences} />
             </div>
             <div className="flex items-center justify-between rounded-md border border-border p-3">
               <div>
-                <Label htmlFor="cookie-analytics" className="text-sm">Analytics</Label>
-                <p className="text-xs text-muted-foreground">Help us understand app usage and performance.</p>
+                <Label htmlFor="cookie-analytics" className="text-sm">{t("cookies.analytics")}</Label>
+                <p className="text-xs text-muted-foreground">{t("cookies.analyticsDesc")}</p>
               </div>
               <Switch id="cookie-analytics" checked={analytics} onCheckedChange={setAnalytics} />
             </div>
             <div className="flex items-center justify-between rounded-md border border-border p-3">
               <div>
-                <Label htmlFor="cookie-marketing" className="text-sm">Marketing</Label>
-                <p className="text-xs text-muted-foreground">Personalized promotions and campaign measurement.</p>
+                <Label htmlFor="cookie-marketing" className="text-sm">{t("cookies.marketing")}</Label>
+                <p className="text-xs text-muted-foreground">{t("cookies.marketingDesc")}</p>
               </div>
               <Switch id="cookie-marketing" checked={marketing} onCheckedChange={setMarketing} />
             </div>
             <div className="flex gap-2">
-              <Button className="flex-1" onClick={handleSavePreferences}>Save preferences</Button>
-              <Button variant="outline" onClick={handleRejectNonEssential}>Reject non-essential</Button>
+              <Button className="flex-1" onClick={handleSavePreferences}>{t("cookies.savePreferences")}</Button>
+              <Button variant="outline" onClick={handleRejectNonEssential}>{t("cookies.rejectNonEssential")}</Button>
             </div>
           </div>
         </DialogContent>

@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -53,10 +54,12 @@ const ChatThreadList = ({
   selectedCustomerId,
   setSelectedCustomerId,
   handleStartStaffChat,
-}: ChatThreadListProps) => (
+}: ChatThreadListProps) => {
+  const { t } = useTranslation();
+  return (
   <div className="border rounded-lg bg-card overflow-y-auto relative z-20">
     <div className="p-3 border-b">
-      <p className="font-semibold text-sm">{mode === "staff" ? "Customer chats" : "Your chats"}</p>
+      <p className="font-semibold text-sm">{mode === "staff" ? t("chat.customerChats") : t("chat.yourChats")}</p>
       {notificationSupported && notificationPermission !== "granted" ? (
         <Button
           size="sm"
@@ -65,15 +68,15 @@ const ChatThreadList = ({
           onClick={requestBrowserNotifications}
         >
           <Bell className="h-3.5 w-3.5" />
-          Enable notifications
+          {t("chat.enableNotifications")}
         </Button>
       ) : null}
       {mode === "customer" ? (
         <div className="mt-3 space-y-2">
-          <Label className="text-xs">Start chat with artist</Label>
+          <Label className="text-xs">{t("chat.startChatWithArtist")}</Label>
           <Select value={selectedArtistId} onValueChange={setSelectedArtistId}>
             <SelectTrigger className="h-8">
-              <SelectValue placeholder="Choose artist" />
+              <SelectValue placeholder={t("chat.chooseArtist")} />
             </SelectTrigger>
             <SelectContent className="z-[70]">
               {artists.map((a) => (
@@ -86,10 +89,10 @@ const ChatThreadList = ({
         </div>
       ) : (
         <div className="mt-3 space-y-2">
-          <Label className="text-xs">Start chat with customer</Label>
+          <Label className="text-xs">{t("chat.startChatWithCustomer")}</Label>
           <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
             <SelectTrigger className="h-8">
-              <SelectValue placeholder="Choose customer" />
+              <SelectValue placeholder={t("chat.chooseCustomer")} />
             </SelectTrigger>
             <SelectContent className="z-[70]">
               {customers.map((c) => (
@@ -100,17 +103,17 @@ const ChatThreadList = ({
             </SelectContent>
           </Select>
           <Button size="sm" variant="outline" className="w-full h-8 text-xs" onClick={handleStartStaffChat}>
-            Start chat
+            {t("chat.startChat")}
           </Button>
         </div>
       )}
     </div>
     {threads.length === 0 ? (
-      <p className="p-3 text-xs text-muted-foreground">No chats yet.</p>
+      <p className="p-3 text-xs text-muted-foreground">{t("chat.noChatsYet")}</p>
     ) : (
       threads.map((t) => {
         const label = labelForThread(t);
-        const preview = latestByThread[t.id]?.body || "No messages yet";
+        const preview = latestByThread[t.id]?.body || t("chat.noMessagesYet");
         const unread = unreadByThread[t.id] || 0;
         return (
           <button
@@ -129,6 +132,7 @@ const ChatThreadList = ({
       })
     )}
   </div>
-);
+  );
+};
 
 export default ChatThreadList;
