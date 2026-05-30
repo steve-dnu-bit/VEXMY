@@ -18,7 +18,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="relative min-h-screen bg-[#090a0f] text-foreground">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(212,175,55,0.08),transparent_45%),linear-gradient(180deg,#07080d_0%,#0d0f17_100%)]" />
 
-      <header className="sticky top-0 z-50 border-b border-[#d4af37]/15 bg-[#090a0f]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-[#d4af37]/30 bg-[#090a0f]/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="group flex flex-col leading-none">
             <span className="font-display text-xl font-bold tracking-[0.12em] text-[#d4af37]">
@@ -59,7 +59,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         {mobileOpen ? (
-          <div className="border-t border-[#d4af37]/15 bg-[#090a0f] px-4 py-4 md:hidden">
+          <div className="border-t border-[#d4af37]/30 bg-[#090a0f] px-4 py-4 md:hidden">
             <div className="flex flex-col gap-3">
               {navLinks.map((link) => (
                 <Link
@@ -84,7 +84,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
 
       <main className="relative z-10">{children}</main>
 
-      <footer className="relative z-10 border-t border-[#d4af37]/15 bg-[#07080d]">
+      <footer className="relative z-10 border-t border-[#d4af37]/30 bg-[#07080d]">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
             <p className="font-display text-lg font-semibold text-gradient-gold">{BRANDING.platformName}</p>
