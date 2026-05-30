@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import { getShopBranding } from "../_shared/branding.ts";
-import { requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildInvoiceEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders: Record<string, string> = {
@@ -260,7 +260,7 @@ serve(async (req) => {
       });
     }
 
-    const smtp = requireSmtpConfig();
+    requireEmailDeliveryConfig();
 
     const issueText = new Date().toLocaleDateString("en-GB");
     const dueText = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString("en-GB") : "N/A";
@@ -356,7 +356,6 @@ serve(async (req) => {
     let emailError: string | null = null;
     try {
       await sendTransactionalEmail({
-        smtp,
         to: invoice.client_email,
         subject: `Invoice ${invoice.invoice_number} — ${brand.shopName}`,
         html,

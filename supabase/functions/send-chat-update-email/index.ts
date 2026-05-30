@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getShopBranding } from "../_shared/branding.ts";
-import { requireSmtpConfig, sendTransactionalEmail, siteUrl } from "../_shared/email.ts";
+import { requireEmailDeliveryConfig, sendTransactionalEmail, siteUrl } from "../_shared/email.ts";
 import { buildChatUpdateEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders: Record<string, string> = {
@@ -100,6 +100,8 @@ serve(async (req) => {
       });
     }
 
+    requireEmailDeliveryConfig();
+
     const baseUrl = siteUrl();
     const isArtistRecipient = recipientId === thread.artist_id;
     const chatPath = isArtistRecipient
@@ -119,7 +121,6 @@ serve(async (req) => {
     });
 
     await sendTransactionalEmail({
-      smtp: requireSmtpConfig(),
       to: recipientEmail,
       subject: `New chat update — ${brand.shopName}`,
       html,

@@ -13,7 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildScheduleCSV, buildScheduleJSON, parseScheduleCSV, parseScheduleJSON, type ScheduleBookingPayload } from "@/lib/schedule-io";
 import { endOfMonth, startOfMonth } from "date-fns";
-import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
+import { Link } from "react-router-dom";
+import { useArtistSeats } from "@/hooks/useSubscription";
+import { getPlanById } from "@/lib/pricingPlans";
 
 interface Profile {
   user_id: string;
@@ -71,6 +73,7 @@ const customerFeatureLabels: Record<string, string> = {
 
 const AdminPage = () => {
   const { user } = useAuth();
+  const { data: seatUsage, refetch: refetchSeats } = useArtistSeats();
   const [isAdmin, setIsAdmin] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -224,6 +227,7 @@ const AdminPage = () => {
       }
       toast.success(`Artist invite sent to ${email}`);
       setInviteEmail("");
+      void refetchSeats();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Invite failed");
     } finally {
@@ -334,6 +338,32 @@ const AdminPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-w-md">
+            {seatUsage && seatUsage.max != null ? (
+              <div className="rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-sm">
+                <p className="font-medium">
+                  Artist seats: {seatUsage.used} / {seatUsage.max}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {getPlanById(seatUsage.planId ?? "")?.name ?? "Current"} plan
+                  {!seatUsage.canAdd ? " — limit reached" : ""}
+                </p>
+                {!seatUsage.canAdd ? (
+                  <Button variant="link" className="h-auto p-0 mt-2 text-[#d4af37]" asChild>
+                    <Link
+                      to={
+                        seatUsage.planId === "starter"
+                          ? "/subscribe?plan=studio"
+                          : seatUsage.planId === "studio"
+                            ? "/subscribe?plan=enterprise"
+                            : "/contact"
+                      }
+                    >
+                      Upgrade for more seats
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
             <div>
               <Label htmlFor="inv-email">Email</Label>
               <Input
@@ -345,9 +375,9 @@ const AdminPage = () => {
                 className="mt-1 bg-secondary"
               />
             </div>
-            <Button onClick={sendInvite} disabled={inviting} className="gap-2">
+            <Button onClick={sendInvite} disabled={inviting || seatUsage?.canAdd === false} className="gap-2">
               <UserPlus className="h-4 w-4" />
-              {inviting ? "Sending…" : "Send artist invite"}
+              {inviting ? "Sending…" : seatUsage?.canAdd === false ? "Seat limit reached" : "Send artist invite"}
             </Button>
           </CardContent>
         </Card>

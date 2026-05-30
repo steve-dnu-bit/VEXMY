@@ -50,18 +50,34 @@ npx supabase secrets set `
     SMTP_PORT=465 `
     SMTP_USER=resend `
     "SMTP_PASS=$key" `
-    "EMAIL_FROM=VexMy <no-reply@vexmy.com>" `
-    SITE_URL=https://vexmy.com `
-    SHOP_SUPPORT_EMAIL=no-reply@vexmy.com `
+    "RESEND_API_KEY=$key" `
+    "BOOKINGS_EMAIL_FROM=VexMy <bookings@vexmy.com>" `
+    "NOTIFICATIONS_EMAIL_FROM=VexMy <notifications@vexmy.com>" `
+    SHOP_SUPPORT_EMAIL=bookings@vexmy.com `
     SHOP_NAME=VexMy `
     SHOP_WEBSITE_URL=https://vexmy.com `
-    "RESEND_API_KEY=$key"
+    SITE_URL=https://vexmy.com `
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Secrets failed. Try: npx supabase login" -ForegroundColor Red
     exit 1
 }
 Write-Host "Edge secrets OK." -ForegroundColor Green
+
+# --- Step 3b: CRON_SECRET (database trigger + reminder crons) ---
+$cronSecret = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
+Write-Host ""
+Write-Host "Step 3b/4: Setting CRON_SECRET for booking email trigger..." -ForegroundColor Yellow
+npx supabase secrets set "CRON_SECRET=$cronSecret"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "CRON_SECRET failed — set manually in Supabase secrets." -ForegroundColor Yellow
+} else {
+    Write-Host "CRON_SECRET OK." -ForegroundColor Green
+    Write-Host "Run this SQL once in Supabase SQL Editor (Dashboard -> SQL):" -ForegroundColor Cyan
+    Write-Host @"
+SELECT vault.create_secret('$cronSecret', 'cron_secret', 'Cron auth for booking emails and reminders');
+"@ -ForegroundColor White
+}
 
 # --- Step 4: Auth SMTP (password reset) via Management API ---
 Write-Host ""

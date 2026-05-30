@@ -16,13 +16,13 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: "£49",
+    price: "£29.50",
     period: "/ month",
-    tagline: "Solo artist",
-    description: "Everything you need to leave spreadsheets behind and run bookings professionally.",
-    seats: "1 artist seat",
+    tagline: "Small team",
+    description: "Run bookings professionally with up to 3 artists on your schedule.",
+    seats: "Up to 3 artist seats",
     features: [
-      "Multi-artist schedule (1 seat)",
+      "Multi-artist schedule (up to 3 seats)",
       "Client CRM & CSV import",
       "Digital consent forms",
       "Customer portal",
@@ -30,17 +30,17 @@ export const PRICING_PLANS: PricingPlan[] = [
       "Documentation & email support",
     ],
     cta: "Start with Starter",
-    ctaHref: "/contact?plan=starter",
+    ctaHref: "/subscribe?plan=starter",
     highlighted: false,
   },
   {
     id: "studio",
     name: "Studio",
-    price: "£99",
+    price: "£39.50",
     period: "/ month",
     tagline: "Growing shop",
-    description: "The full VexMy toolkit for busy studios with multiple artists and front-desk staff.",
-    seats: "Up to 5 artist seats",
+    description: "The full VexMy toolkit for busy studios — up to 6 artists and front-desk staff.",
+    seats: "Up to 6 artist seats",
     features: [
       "Everything in Starter",
       "Stripe deposits & invoice payments",
@@ -50,28 +50,28 @@ export const PRICING_PLANS: PricingPlan[] = [
       "Billing & company records",
       "Priority email support",
     ],
-    cta: "Book a demo",
-    ctaHref: "/contact?plan=studio",
+    cta: "Start free trial",
+    ctaHref: "/subscribe?plan=studio",
     highlighted: true,
   },
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "Custom",
-    period: "",
-    tagline: "Multi-location",
-    description: "For studio groups, franchises, and shops that need hands-on onboarding.",
-    seats: "Unlimited seats",
+    price: "£59.50",
+    period: "/ month",
+    tagline: "Large studio",
+    description: "For established shops with larger teams — up to 10 artists plus priority support.",
+    seats: "Up to 10 artist seats",
     features: [
       "Everything in Studio",
+      "Up to 10 artist seats",
       "Dedicated setup & migration help",
       "Custom branding & domain guidance",
       "SLA & priority support",
       "Training for your team",
-      "Volume pricing",
     ],
-    cta: "Talk to sales",
-    ctaHref: "/contact?plan=enterprise",
+    cta: "Start with Enterprise",
+    ctaHref: "/subscribe?plan=enterprise",
     highlighted: false,
   },
 ];
@@ -79,7 +79,7 @@ export const PRICING_PLANS: PricingPlan[] = [
 export const PRICING_FAQ = [
   {
     q: "Is there a free trial?",
-    a: "Studio plans include a 14-day trial once your instance is provisioned. Contact us to get set up — we'll configure your studio and send login details.",
+    a: "All plans include a 14-day free trial. Choose a plan on the subscribe page — you'll enter card details on Stripe but won't be charged until the trial ends.",
   },
   {
     q: "What's included in every plan?",
@@ -91,7 +91,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Can I switch plans later?",
-    a: "Yes. Upgrade or downgrade as your team grows. Enterprise customers can add locations and seats under a custom agreement.",
+    a: "Yes. Upgrade or downgrade as your team grows — Starter (3 artists), Studio (6), or Enterprise (10).",
   },
   {
     q: "Do you help migrate from my current system?",
@@ -100,7 +100,8 @@ export const PRICING_FAQ = [
 ];
 
 export const COMPARISON_ROWS: { label: string; starter: string; studio: string; enterprise: string }[] = [
-  { label: "Artist seats", starter: "1", studio: "Up to 5", enterprise: "Unlimited" },
+  { label: "Monthly price (GBP)", starter: "£29.50", studio: "£39.50", enterprise: "£59.50" },
+  { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
   { label: "Schedule & CRM", starter: "✓", studio: "✓", enterprise: "✓" },
   { label: "Consent forms", starter: "✓", studio: "✓", enterprise: "✓" },
   { label: "Customer portal", starter: "✓", studio: "✓", enterprise: "✓" },

@@ -1,7 +1,10 @@
 project_id = "tkremoxfkgoiuwghtzwd"
 
-[functions.booking-notifications]
+[functions.send-test-email]
 verify_jwt = true
+
+[functions.booking-notifications]
+verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
@@ -13,6 +16,12 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.create-stripe-checkout]
+verify_jwt = false
+
+[functions.create-platform-checkout]
+verify_jwt = false
+
+[functions.create-billing-portal]
 verify_jwt = false
 
 [functions.generate-stencil]

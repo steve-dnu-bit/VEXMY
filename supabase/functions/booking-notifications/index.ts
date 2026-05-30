@@ -2,12 +2,14 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import {
   callerHasStaffAccess,
+  isCronAuthorized,
   jsonCorsHeaders,
   jsonResponse,
+  parseBearerToken,
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
-import { requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildBookingNotificationEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 
 const corsHeaders = jsonCorsHeaders;
@@ -40,6 +42,33 @@ function isValidEmail(value: string | null | undefined): value is string {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function hasRequiredBookingFields(value: BookingPayload | null | undefined): value is BookingPayload {
+  return !!value?.id && !!value?.artist_id && !!value?.starts_at && !!value?.ends_at;
+}
+
+async function authorizeBookingNotification(
+  adminClient: ReturnType<typeof createClient>,
+  req: Request,
+): Promise<{ ok: true } | { status: number; body: Record<string, unknown> }> {
+  if (isCronAuthorized(req)) return { ok: true };
+
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const bearer = parseBearerToken(req);
+  if (serviceKey && bearer && bearer === serviceKey) return { ok: true };
+
+  const authResult = await requireAuthenticatedUser(adminClient, req);
+  if ("status" in authResult) {
+    return { status: authResult.status, body: authResult.body as Record<string, unknown> };
+  }
+
+  const canNotify = await callerHasStaffAccess(adminClient, authResult.user.id);
+  if (!canNotify) {
+    return { status: 403, body: { error: "Forbidden" } };
+  }
+
+  return { ok: true };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -57,13 +86,9 @@ serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceKey);
 
-    const authResult = await requireAuthenticatedUser(adminClient, req);
-    if ("status" in authResult) {
-      return jsonResponse(authResult.body, authResult.status);
-    }
-    const canNotify = await callerHasStaffAccess(adminClient, authResult.user.id);
-    if (!canNotify) {
-      return jsonResponse({ error: "Forbidden" }, 403);
+    const auth = await authorizeBookingNotification(adminClient, req);
+    if (!("ok" in auth)) {
+      return jsonResponse(auth.body, auth.status);
     }
 
     const body = await req.json().catch(() => ({}));
@@ -74,24 +99,52 @@ serve(async (req) => {
       return jsonResponse({ error: "Invalid payload. action and booking.id are required." }, 400);
     }
 
-    const { data: bookingRow, error: bookingLoadErr } = await adminClient
+    const { data: bookingRow } = await adminClient
       .from("bookings")
       .select(
         "id, artist_id, client_name, client_email, client_phone, booking_type, service_category, status, starts_at, ends_at, notes, tattoo_style, tattoo_size, tattoo_placement, deposit_amount, deposit_paid",
       )
       .eq("id", bookingPayload.id)
-      .single();
-    if (bookingLoadErr || !bookingRow) {
-      return jsonResponse({ error: bookingLoadErr?.message ?? "Booking not found" }, 404);
-    }
-    const booking = bookingRow as BookingPayload;
+      .maybeSingle();
 
-    let smtp;
+    let booking: BookingPayload;
+    if (bookingRow) {
+      booking = bookingRow as BookingPayload;
+    } else if (action === "deleted" && hasRequiredBookingFields(bookingPayload)) {
+      booking = bookingPayload;
+    } else {
+      return jsonResponse({ error: "Booking not found" }, 404);
+    }
+
     try {
-      smtp = requireSmtpConfig();
+      requireEmailDeliveryConfig();
     } catch (smtpErr) {
-      const message = smtpErr instanceof Error ? smtpErr.message : "SMTP not configured";
-      return jsonResponse({ ok: false, emailAttempted: false, error: message, hint: "Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM in Supabase Edge Function secrets." }, 503);
+      const message = smtpErr instanceof Error ? smtpErr.message : "Email not configured";
+      return jsonResponse({
+        ok: false,
+        emailAttempted: false,
+        error: message,
+        hint: "Password reset uses Auth SMTP. Booking emails need Edge Function secrets: RESEND_API_KEY (or SMTP_PASS) and EMAIL_FROM. Run .\\scripts\\setup-email-now.ps1",
+      }, 503);
+    }
+
+    const { data: recentSent } = await adminClient
+      .from("booking_notification_events")
+      .select("id")
+      .eq("booking_id", booking.id)
+      .eq("action", action)
+      .eq("status", "sent")
+      .gte("sent_at", new Date(Date.now() - 90_000).toISOString())
+      .limit(1);
+    if (recentSent?.length) {
+      return jsonResponse({
+        ok: true,
+        emailAttempted: false,
+        skipped: "duplicate_recent_send",
+        attempted: 0,
+        sent: 0,
+        failedCount: 0,
+      });
     }
 
     const [artistUserRes, artistProfileRes] = await Promise.all([
@@ -106,8 +159,13 @@ serve(async (req) => {
       .maybeSingle();
     const bookingConfirmationEnabled = reminderSettings?.booking_confirmation ?? true;
     if (action === "created" && bookingConfirmationEnabled === false) {
-      return new Response(JSON.stringify({ ok: true, emailAttempted: false, attempted: 0, sent: 0, failedCount: 0, skipped: "booking_confirmation_disabled" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return jsonResponse({
+        ok: true,
+        emailAttempted: false,
+        attempted: 0,
+        sent: 0,
+        failedCount: 0,
+        skipped: "booking_confirmation_disabled",
       });
     }
 
@@ -155,14 +213,14 @@ serve(async (req) => {
           includeCalendarHint: recipient.role === "customer" || action !== "deleted",
         });
 
-        await sendTransactionalEmail({
-          smtp,
+        const delivery = await sendTransactionalEmail({
           to: email,
           subject,
           html,
           attachments,
+          fromKind: "booking",
         });
-        return { ok: true, email, role: recipient.role, subject };
+        return { ok: true, email, role: recipient.role, subject, provider: delivery.provider };
       } catch (e) {
         const message = e instanceof Error ? e.message : "Unknown email send error";
         console.error("Booking notification send failed", { email, message });
@@ -171,15 +229,13 @@ serve(async (req) => {
     });
 
     if (sendJobs.length === 0) {
-      return new Response(JSON.stringify({
+      return jsonResponse({
         ok: true,
         emailAttempted: false,
         attempted: 0,
         sent: 0,
         failedCount: 0,
         skipped: !isValidEmail(customerEmailRaw) && !isValidEmail(artistEmailRaw) ? "no_valid_recipient_email" : "no_recipients",
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -207,14 +263,16 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ ok: failedCount === 0, emailAttempted: true, attempted, sent, failedCount, failed }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return jsonResponse({
+      ok: failedCount === 0,
+      emailAttempted: true,
+      attempted,
+      sent,
+      failedCount,
+      failed,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: msg }, 500);
   }
 });

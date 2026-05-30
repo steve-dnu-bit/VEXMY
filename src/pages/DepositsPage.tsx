@@ -10,6 +10,7 @@ import { format, isAfter, parseISO, startOfDay, subDays } from "date-fns";
 import { Send, CheckCircle, Clock, AlertCircle, Star } from "lucide-react";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import PlanFeatureGate from "@/components/subscription/PlanFeatureGate";
 
 interface BookingWithDeposit {
   id: string;
@@ -187,6 +188,7 @@ const DepositsPage = () => {
 
   return (
     <AppLayout>
+      <PlanFeatureGate feature="stripe_deposits">
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -388,6 +390,7 @@ const DepositsPage = () => {
           </CardContent>
         </Card>
       </div>
+      </PlanFeatureGate>
     </AppLayout>
   );
 };

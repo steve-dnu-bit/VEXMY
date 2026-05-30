@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
 import { getShopBranding } from "../_shared/branding.ts";
-import { getSmtpConfig, requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { getEmailDeliveryStatus, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
   buildDepositReceiptEmail,
   buildDepositRequestEmail,
@@ -47,7 +47,8 @@ serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const smtpConfig = getSmtpConfig();
+    const emailReady = getEmailDeliveryStatus();
+    const canSendEmail = emailReady.from && (emailReady.resendApi || emailReady.smtp);
 
     const { data: authData, error: authError } = await admin.auth.getUser(token);
     const user = authData.user;
@@ -166,7 +167,7 @@ serve(async (req) => {
           .limit(1);
         const newlyMarkedPaid = (updatedRows?.length || 0) > 0;
         const receiptTo = booking.client_email || session.customer_details?.email || session.customer_email || null;
-        if (newlyMarkedPaid && receiptTo && smtpConfig) {
+        if (newlyMarkedPaid && receiptTo && canSendEmail) {
           try {
             const { data: artistProfile } = await admin
               .from("profiles")
@@ -194,11 +195,11 @@ serve(async (req) => {
               booking: bookingDetails,
             });
             await sendTransactionalEmail({
-              smtp: smtpConfig,
               to: receiptTo,
               subject: `Deposit received — ${getShopBranding().shopName}`,
               html: receipt.html,
               attachments: receipt.attachments,
+              fromKind: "booking",
             });
           } catch (receiptError) {
             console.error("Deposit receipt email failed from confirm flow", {
@@ -267,7 +268,7 @@ serve(async (req) => {
           emailError = "Checkout URL missing";
         } else {
           try {
-            const smtp = requireSmtpConfig();
+            requireEmailDeliveryConfig();
             const html = buildDepositRequestEmail({
               clientName: booking.client_name,
               startsAt: booking.starts_at,
@@ -275,10 +276,10 @@ serve(async (req) => {
               depositAmount: booking.deposit_amount,
             });
             await sendTransactionalEmail({
-              smtp,
               to: booking.client_email,
               subject: `Deposit payment reminder — ${getShopBranding().shopName}`,
               html,
+              fromKind: "booking",
             });
             emailSent = true;
           } catch (mailErr) {

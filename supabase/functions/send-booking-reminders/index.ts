@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, jsonResponse, requireCronAuth } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
-import { requireSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
   buildAppointmentReminderEmail,
   buildDepositReminderEmail,
@@ -66,7 +66,7 @@ serve(async (req) => {
       });
     }
 
-    const smtp = requireSmtpConfig();
+    requireEmailDeliveryConfig();
 
     const admin = createClient(supabaseUrl, serviceKey);
     const now = Date.now();
@@ -201,11 +201,11 @@ serve(async (req) => {
 
         try {
           await sendTransactionalEmail({
-            smtp,
             to: booking.client_email,
             subject,
             html: built.html,
             attachments: built.attachments,
+            fromKind: "booking",
           });
           sent += 1;
           await admin.from("booking_reminder_events").insert({

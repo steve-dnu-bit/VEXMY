@@ -24,7 +24,7 @@ export function getSmtpConfig(): SmtpConfig | null {
   const port = Deno.env.get("SMTP_PORT") ?? null;
   const username = Deno.env.get("SMTP_USER") ?? null;
   const password = Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? null;
-  const from = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
+  const from = Deno.env.get("NOTIFICATIONS_EMAIL_FROM") ?? Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
   if (!host || !port || !username || !password || !from) return null;
   return { host, port, username, password, from };
 }
@@ -152,8 +152,85 @@ export function emailLayout(params: {
 </html>`;
 }
 
-export async function sendTransactionalEmail(params: {
+export type EmailFromKind = "booking" | "notification";
+
+export function getEmailFrom(kind: EmailFromKind = "notification"): string | null {
+  const legacy = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
+  if (kind === "booking") {
+    return Deno.env.get("BOOKINGS_EMAIL_FROM") ?? legacy ?? "VexMy <bookings@vexmy.com>";
+  }
+  return Deno.env.get("NOTIFICATIONS_EMAIL_FROM") ?? legacy ?? "VexMy <notifications@vexmy.com>";
+}
+
+/** Bare address for calendar organizer / reply-to on booking mail. */
+export function getBookingReplyEmail(): string {
+  return (
+    Deno.env.get("BOOKINGS_REPLY_TO") ??
+    Deno.env.get("SHOP_SUPPORT_EMAIL") ??
+    "bookings@vexmy.com"
+  );
+}
+
+export function getEmailDeliveryStatus(): { resendApi: boolean; smtp: boolean; from: boolean } {
+  const resendKey = (Deno.env.get("RESEND_API_KEY") ?? Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? "").trim();
+  const hasFrom =
+    !!getEmailFrom("booking") &&
+    !!getEmailFrom("notification");
+  return {
+    resendApi: !!resendKey,
+    smtp: !!getSmtpConfig(),
+    from: hasFrom,
+  };
+}
+
+function attachmentToBase64(content: string, encoding?: EmailAttachment["encoding"]): string {
+  if (encoding === "base64") return content;
+  const bytes = new TextEncoder().encode(content);
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+async function sendViaResendApi(params: {
+  apiKey: string;
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  replyTo?: string | null;
+  attachments?: EmailAttachment[];
+}): Promise<void> {
+  const attachments = params.attachments?.map((a) => ({
+    filename: a.filename,
+    content: attachmentToBase64(a.content, a.encoding),
+    ...(a.contentType ? { content_type: a.contentType } : {}),
+  }));
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${params.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: params.from,
+      to: [params.to],
+      subject: params.subject,
+      html: params.html,
+      ...(params.replyTo ? { reply_to: params.replyTo } : {}),
+      ...(attachments?.length ? { attachments } : {}),
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Resend API ${res.status}: ${text || res.statusText}`);
+  }
+}
+
+async function sendViaSmtp(params: {
   smtp: SmtpConfig;
+  from: string;
   to: string;
   subject: string;
   html: string;
@@ -171,7 +248,7 @@ export async function sendTransactionalEmail(params: {
   });
 
   await transporter.sendMail({
-    from: params.smtp.from,
+    from: params.from,
     to: params.to,
     subject: params.subject,
     html: params.html,
@@ -185,12 +262,83 @@ export async function sendTransactionalEmail(params: {
   });
 }
 
+export async function sendTransactionalEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+  attachments?: EmailAttachment[];
+  fromKind?: EmailFromKind;
+  replyTo?: string | null;
+}): Promise<{ provider: "resend" | "smtp" }> {
+  const fromKind = params.fromKind ?? "notification";
+  const from = getEmailFrom(fromKind);
+  if (!from) {
+    throw new Error(
+      fromKind === "booking"
+        ? "BOOKINGS_EMAIL_FROM is not configured."
+        : "NOTIFICATIONS_EMAIL_FROM is not configured.",
+    );
+  }
+
+  const replyTo =
+    params.replyTo ??
+    (fromKind === "booking" ? getBookingReplyEmail() : Deno.env.get("SHOP_SUPPORT_EMAIL") ?? null);
+
+  const apiKey = (Deno.env.get("RESEND_API_KEY") ?? Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? "").trim();
+  if (apiKey) {
+    try {
+      await sendViaResendApi({
+        apiKey,
+        from,
+        replyTo,
+        to: params.to,
+        subject: params.subject,
+        html: params.html,
+        attachments: params.attachments,
+      });
+      return { provider: "resend" };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error("Resend API send failed, trying SMTP fallback:", message);
+    }
+  }
+
+  const smtp = getSmtpConfig();
+  if (!smtp) {
+    throw new Error(
+      "Email is not configured. Set RESEND_API_KEY (recommended) or SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and BOOKINGS_EMAIL_FROM / NOTIFICATIONS_EMAIL_FROM in Supabase secrets.",
+    );
+  }
+
+  await sendViaSmtp({ smtp, from, to: params.to, subject: params.subject, html: params.html, attachments: params.attachments });
+  return { provider: "smtp" };
+}
+
+export function requireEmailDeliveryConfig(): void {
+  const status = getEmailDeliveryStatus();
+  if (!status.from) {
+    throw new Error("EMAIL_FROM is not configured.");
+  }
+  if (!status.resendApi && !status.smtp) {
+    throw new Error(
+      "Email is not configured. Set RESEND_API_KEY or SMTP_* secrets in Supabase Edge Functions (separate from Auth SMTP).",
+    );
+  }
+}
+
 export function requireSmtpConfig(): SmtpConfig {
+  requireEmailDeliveryConfig();
   const cfg = getSmtpConfig();
-  if (!cfg) {
+  if (!cfg && !(Deno.env.get("RESEND_API_KEY") ?? "").trim()) {
     throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
   }
-  return cfg;
+  return cfg ?? {
+    host: "smtp.resend.com",
+    port: "465",
+    username: "resend",
+    password: (Deno.env.get("RESEND_API_KEY") ?? "").trim(),
+    from: getEmailFrom("notification") ?? "VexMy <notifications@vexmy.com>",
+  };
 }
 
 export function siteUrl(): string {

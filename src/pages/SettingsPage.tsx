@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MFAEnrollment from "@/components/auth/MFAEnrollment";
+import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 
 interface ReminderSettings {
@@ -65,6 +66,7 @@ const SettingsPage = () => {
   const { theme, setTheme } = useThemePreference();
   const [settings, setSettings] = useState<ReminderSettings>(defaultSettings);
   const [saving, setSaving] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +142,51 @@ const SettingsPage = () => {
     toast({ title: "Settings saved", description: "Reminder preferences are now stored server-side." });
   };
 
+  const sendTestEmail = async () => {
+    if (!user?.email) {
+      toast({ title: "No email on account", description: "Sign in with an email address to run the test.", variant: "destructive" });
+      return;
+    }
+    setTestingEmail(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        toast({ title: "Session expired", description: "Sign in again and retry.", variant: "destructive" });
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("send-test-email", {
+        body: { to: user.email },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (error) {
+        toast({ title: "Email test failed", description: error.message, variant: "destructive" });
+        return;
+      }
+      const result = data as {
+        ok?: boolean;
+        error?: string;
+        hint?: string;
+        provider?: string;
+        message?: string;
+      };
+      if (!result?.ok) {
+        toast({
+          title: "Email not configured",
+          description: [result?.error, result?.hint].filter(Boolean).join(" — ") || "Set RESEND_API_KEY in Supabase secrets.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Test email sent",
+        description: result.message || `Sent via ${result.provider || "email"}. Check inbox and junk.`,
+      });
+    } finally {
+      setTestingEmail(false);
+    }
+  };
+
   const update = <K extends keyof ReminderSettings>(key: K, value: ReminderSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
@@ -177,6 +224,10 @@ const SettingsPage = () => {
         </div>
 
         <div className="space-y-6">
+          <SectionErrorBoundary title="Subscription">
+            <SubscriptionSettingsCard />
+          </SectionErrorBoundary>
+
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Quick Settings</CardTitle>
@@ -333,7 +384,7 @@ const SettingsPage = () => {
               </div>
               <CardDescription>Automatically send a confirmation when a new booking is created</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label htmlFor="booking-confirm">Enable booking confirmations</Label>
                 <Switch
@@ -341,6 +392,14 @@ const SettingsPage = () => {
                   checked={settings.bookingConfirmation}
                   onCheckedChange={(v) => update("bookingConfirmation", v)}
                 />
+              </div>
+              <div className="rounded-lg border border-border p-3 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Send a test email to <strong>{user?.email || "your account email"}</strong> to verify Resend/SMTP secrets on Supabase.
+                </p>
+                <Button type="button" variant="outline" size="sm" onClick={sendTestEmail} disabled={testingEmail}>
+                  {testingEmail ? "Sending…" : "Send test email"}
+                </Button>
               </div>
             </CardContent>
           </Card>

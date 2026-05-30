@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { format, parseISO } from "date-fns";
 import { Package, Plus, CheckCircle, Clock, XCircle, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import PlanFeatureGate from "@/components/subscription/PlanFeatureGate";
 
 interface StockItem {
   id: string;
@@ -224,6 +225,7 @@ const StockPage = () => {
 
   return (
     <AppLayout>
+      <PlanFeatureGate feature="stock">
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
         <div className="flex items-center justify-between">
           <div>
@@ -445,6 +447,7 @@ const StockPage = () => {
           </CardContent>
         </Card>
       </div>
+      </PlanFeatureGate>
     </AppLayout>
   );
 };

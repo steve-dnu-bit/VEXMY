@@ -8,7 +8,7 @@ import {
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
-import { getSmtpConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { getEmailDeliveryStatus, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -31,12 +31,8 @@ async function sendInviteEmail(params: {
   subject: string;
   html: string;
 }): Promise<void> {
-  const smtp = getSmtpConfig();
-  if (!smtp) {
-    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.");
-  }
+  requireEmailDeliveryConfig();
   await sendTransactionalEmail({
-    smtp,
     to: params.to,
     subject: params.subject,
     html: params.html,
@@ -239,6 +235,32 @@ serve(async (req) => {
       if (!isAdmin) {
         return jsonResponse({ error: "Forbidden", reason: "admin_required_for_artist_invite" }, 403);
       }
+
+      let orgId: string | null = null;
+      const { data: resolvedOrgId } = await adminClient.rpc("get_user_organization_id", {
+        _user_id: authResult.user.id,
+      });
+      orgId = resolvedOrgId ?? null;
+      if (!orgId) {
+        const { data: soleOrg } = await adminClient.from("organizations").select("id").limit(1).maybeSingle();
+        orgId = soleOrg?.id ?? null;
+      }
+
+      if (orgId) {
+        const { data: canAdd } = await adminClient.rpc("org_can_add_artist_seat", { _org_id: orgId });
+        if (canAdd === false) {
+          const { data: usage } = await adminClient.rpc("get_org_seat_usage", { _user_id: authResult.user.id });
+          const used = (usage as { used?: number })?.used ?? "?";
+          const max = (usage as { max?: number })?.max ?? "?";
+          return jsonResponse(
+            {
+              error: `Artist seat limit reached (${used}/${max}). Upgrade your plan to invite more artists.`,
+              code: "seat_limit_reached",
+            },
+            403,
+          );
+        }
+      }
     } else {
       const canInviteCustomer = await callerHasStaffAccess(adminClient, authResult.user.id);
       if (!canInviteCustomer) {
@@ -353,10 +375,32 @@ serve(async (req) => {
     // Ensure invited artists always get an `artist` role row so they appear in schedule/booking UIs
     // (covers cases where auth trigger metadata did not assign the role).
     if (inviteType === "artist" && inviteData?.user?.id) {
-      await adminClient.from("user_roles").upsert(
+      const { error: roleErr } = await adminClient.from("user_roles").upsert(
         { user_id: inviteData.user.id, role: "artist" },
         { onConflict: "user_id,role" },
       );
+      if (roleErr?.message?.includes("artist_seat_limit_reached")) {
+        return jsonResponse(
+          { error: "Artist seat limit reached for your plan. Upgrade to add more artists.", code: "seat_limit_reached" },
+          403,
+        );
+      }
+
+      let orgId: string | null = null;
+      const { data: resolvedOrgId } = await adminClient.rpc("get_user_organization_id", {
+        _user_id: authResult.user.id,
+      });
+      orgId = resolvedOrgId ?? null;
+      if (!orgId) {
+        const { data: soleOrg } = await adminClient.from("organizations").select("id").limit(1).maybeSingle();
+        orgId = soleOrg?.id ?? null;
+      }
+      if (orgId) {
+        await adminClient.from("organization_members").upsert(
+          { organization_id: orgId, user_id: inviteData.user.id, role: "member" },
+          { onConflict: "organization_id,user_id" },
+        );
+      }
     }
     if (inviteType === "customer" && inviteData?.user?.id) {
       await adminClient.from("user_roles").upsert(

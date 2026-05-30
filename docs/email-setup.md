@@ -4,8 +4,10 @@ VexMy uses email in **two places**. You must configure both for a complete setup
 
 | System | What it sends | Where to configure |
 |--------|----------------|-------------------|
-| **Supabase Auth** | Sign-up confirm, password reset, magic links | Supabase Dashboard → **Authentication** → **SMTP Settings** |
-| **Edge functions** | Invites, booking reminders, aftercare, invoices, deposits, chat | Supabase **Edge Function secrets** (`SMTP_*`) |
+| **Supabase Auth** | Sign-up confirm, **password reset**, magic links | Supabase Dashboard → **Authentication** → **SMTP Settings** |
+| **Edge functions** | **Bookings**, invites, reminders, aftercare, invoices, deposits, chat | Supabase **Edge Function secrets** (`RESEND_API_KEY`, `EMAIL_FROM`, …) |
+
+**Password reset working but booking emails not?** Auth SMTP and Edge secrets are **separate**. You must set Edge Function secrets even if Auth SMTP is already configured. Run `.\scripts\setup-email-now.ps1` with the same Resend `re_...` key.
 
 Consent PDF emails can optionally use **Resend API** (`RESEND_API_KEY`) in addition to SMTP.
 

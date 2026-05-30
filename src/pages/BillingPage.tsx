@@ -15,6 +15,7 @@ import CreateInvoiceDialog from "@/components/billing/CreateInvoiceDialog";
 import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
+import PlanFeatureGate from "@/components/subscription/PlanFeatureGate";
 
 interface Company {
   id: string;
@@ -184,6 +185,7 @@ const BillingPage = () => {
 
   return (
     <AppLayout>
+      <PlanFeatureGate feature="billing">
       <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -386,6 +388,7 @@ const BillingPage = () => {
           </CardContent>
         </Card>
       </div>
+      </PlanFeatureGate>
     </AppLayout>
   );
 };

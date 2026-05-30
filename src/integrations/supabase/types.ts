@@ -635,6 +635,212 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          price_gbp_monthly: number | null
+          stripe_price_id: string | null
+          max_artist_seats: number | null
+          trial_days: number
+          features: Json
+          sort_order: number
+          is_active: boolean
+          is_self_serve: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          description?: string | null
+          price_gbp_monthly?: number | null
+          stripe_price_id?: string | null
+          max_artist_seats?: number | null
+          trial_days?: number
+          features?: Json
+          sort_order?: number
+          is_active?: boolean
+          is_self_serve?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          price_gbp_monthly?: number | null
+          stripe_price_id?: string | null
+          max_artist_seats?: number | null
+          trial_days?: number
+          features?: Json
+          sort_order?: number
+          is_active?: boolean
+          is_self_serve?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          owner_user_id: string | null
+          stripe_customer_id: string | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          owner_user_id?: string | null
+          stripe_customer_id?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          owner_user_id?: string | null
+          stripe_customer_id?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      organization_members: {
+        Row: {
+          id: string
+          organization_id: string
+          user_id: string
+          role: Database["public"]["Enums"]["org_member_role"]
+          invited_by: string | null
+          joined_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          user_id: string
+          role?: Database["public"]["Enums"]["org_member_role"]
+          invited_by?: string | null
+          joined_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          user_id?: string
+          role?: Database["public"]["Enums"]["org_member_role"]
+          invited_by?: string | null
+          joined_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_subscriptions: {
+        Row: {
+          id: string
+          organization_id: string
+          plan_id: string
+          stripe_subscription_id: string | null
+          stripe_price_id: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          current_period_start: string | null
+          current_period_end: string | null
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          trial_end: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          plan_id: string
+          stripe_subscription_id?: string | null
+          stripe_price_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          trial_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          plan_id?: string
+          stripe_subscription_id?: string | null
+          stripe_price_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          trial_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_events: {
+        Row: {
+          id: string
+          organization_id: string | null
+          stripe_event_id: string | null
+          event_type: string
+          payload: Json
+          processed_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          stripe_event_id?: string | null
+          event_type: string
+          payload?: Json
+          processed_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          stripe_event_id?: string | null
+          event_type?: string
+          payload?: Json
+          processed_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -679,9 +885,42 @@ export type Database = {
         Args: { p_id: string; p_patch: Json }
         Returns: Database["public"]["Tables"]["bookings"]["Row"]
       }
+      get_user_organization_id: {
+        Args: { _user_id?: string }
+        Returns: string
+      }
+      org_has_active_subscription: {
+        Args: { _org_id: string }
+        Returns: boolean
+      }
+      org_plan_has_feature: {
+        Args: { _org_id: string; _feature: string }
+        Returns: boolean
+      }
+      get_org_seat_usage: {
+        Args: { _user_id?: string }
+        Returns: Json
+      }
+      org_can_add_artist_seat: {
+        Args: { _org_id: string }
+        Returns: boolean
+      }
+      org_artist_seat_count: {
+        Args: { _org_id: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "artist" | "assistant" | "customer"
+      org_member_role: "owner" | "admin" | "member"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "unpaid"
+        | "incomplete"
+        | "paused"
     }
     CompositeTypes: {
       [_ in never]: never

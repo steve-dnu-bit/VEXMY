@@ -7,6 +7,7 @@ import {
   escapeHtml,
   formatBookingDateRange,
   formatDateTimeGb,
+  getBookingReplyEmail,
   siteUrl,
 } from "./email.ts";
 import { bookingIcsAttachment, type IcsBookingEvent } from "./ics.ts";
@@ -71,7 +72,7 @@ export function buildBookingIcsEvent(
     startsAt: booking.starts_at,
     endsAt: booking.ends_at,
     organizerName: brand.shopName,
-    organizerEmail: brand.supportEmail,
+    organizerEmail: getBookingReplyEmail(),
     attendeeName: booking.client_name,
     attendeeEmail: recipientEmail || booking.client_email || undefined,
     method: isCancel ? "CANCEL" : "REQUEST",

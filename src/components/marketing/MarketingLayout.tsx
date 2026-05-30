@@ -44,7 +44,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
               <Link to="/auth">Sign in</Link>
             </Button>
             <Button variant="gold" asChild>
-              <Link to="/contact">Get in touch</Link>
+              <Link to="/subscribe">Start free trial</Link>
             </Button>
           </div>
 
