@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { LanguageProvider } from "@/components/i18n/LanguageProvider";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import StaffRoute from "./components/StaffRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
@@ -51,11 +53,15 @@ const queryClient = new QueryClient({
   },
 });
 
-const PageFallback = () => (
-  <div className="flex h-screen items-center justify-center bg-background">
-    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-  </div>
-);
+const PageFallback = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex h-screen items-center justify-center bg-background">
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <span className="sr-only">{t("common.loading")}</span>
+    </div>
+  );
+};
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -83,6 +89,7 @@ const LegacyDepositCheckoutRedirect = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <LanguageProvider>
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
@@ -128,6 +135,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
+      </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

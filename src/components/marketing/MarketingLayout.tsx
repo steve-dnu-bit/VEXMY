@@ -1,18 +1,21 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { BRANDING } from "@/lib/branding";
-
-const navLinks = [
-  { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Documentation", href: "/docs" },
-  { label: "Contact", href: "/contact" },
-];
+import LanguageSelector from "@/components/i18n/LanguageSelector";
 
 const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navLinks = [
+    { label: t("common.features"), href: "/#features" },
+    { label: t("common.pricing"), href: "/pricing" },
+    { label: t("common.documentation"), href: "/docs" },
+    { label: t("common.contact"), href: "/contact" },
+  ];
 
   return (
     <div className="relative min-h-screen bg-[#090a0f] text-foreground">
@@ -24,7 +27,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
             <span className="font-display text-xl font-bold tracking-[0.12em] text-[#d4af37]">
               {BRANDING.platformName.toUpperCase()}
             </span>
-            <span className="mt-0.5 text-[9px] tracking-[0.35em] text-[#d4af37]/70">STUDIO PLATFORM</span>
+            <span className="mt-0.5 text-[9px] tracking-[0.35em] text-[#d4af37]/70">{t("common.studioPlatform")}</span>
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -40,11 +43,12 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
+            <LanguageSelector compact />
             <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-              <Link to="/auth">Sign in</Link>
+              <Link to="/auth">{t("common.signIn")}</Link>
             </Button>
             <Button variant="gold" asChild>
-              <Link to="/subscribe">Start free trial</Link>
+              <Link to="/subscribe">{t("common.startFreeTrial")}</Link>
             </Button>
           </div>
 
@@ -52,7 +56,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
             type="button"
             className="md:hidden text-foreground"
             onClick={() => setMobileOpen((o) => !o)}
-            aria-label="Toggle menu"
+            aria-label={t("common.toggleMenu")}
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -71,11 +75,9 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
                   {link.label}
                 </Link>
               ))}
-              <Link to="/contact" className="text-sm text-[#d4af37]" onClick={() => setMobileOpen(false)}>
-                Contact
-              </Link>
+              <LanguageSelector compact className="w-full" />
               <Link to="/auth" className="text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
-                Sign in
+                {t("common.signIn")}
               </Link>
             </div>
           </div>
@@ -88,32 +90,29 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
             <p className="font-display text-lg font-semibold text-gradient-gold">{BRANDING.platformName}</p>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              The all-in-one platform for tattoo studios — scheduling, deposits, consent, billing, and client
-              communication in one place.
-            </p>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">{t("marketing.footerTagline")}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">Product</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">{t("common.product")}</p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/#features" className="hover:text-foreground">Features</Link></li>
-              <li><Link to="/pricing" className="hover:text-foreground">Pricing</Link></li>
-              <li><Link to="/docs" className="hover:text-foreground">Documentation</Link></li>
-              <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
-              <li><Link to="/auth" className="hover:text-foreground">Studio login</Link></li>
+              <li><Link to="/#features" className="hover:text-foreground">{t("common.features")}</Link></li>
+              <li><Link to="/pricing" className="hover:text-foreground">{t("common.pricing")}</Link></li>
+              <li><Link to="/docs" className="hover:text-foreground">{t("common.documentation")}</Link></li>
+              <li><Link to="/contact" className="hover:text-foreground">{t("common.contact")}</Link></li>
+              <li><Link to="/auth" className="hover:text-foreground">{t("common.studioLogin")}</Link></li>
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">Legal</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">{t("common.legal")}</p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/terms" className="hover:text-foreground">Terms</Link></li>
-              <li><Link to="/privacy" className="hover:text-foreground">Privacy</Link></li>
-              <li><Link to="/cookies" className="hover:text-foreground">Cookies</Link></li>
+              <li><Link to="/terms" className="hover:text-foreground">{t("common.terms")}</Link></li>
+              <li><Link to="/privacy" className="hover:text-foreground">{t("common.privacy")}</Link></li>
+              <li><Link to="/cookies" className="hover:text-foreground">{t("common.cookies")}</Link></li>
             </ul>
           </div>
         </div>
         <div className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {BRANDING.platformName}. All rights reserved.
+          © {new Date().getFullYear()} {BRANDING.platformName}. {t("common.allRightsReserved")}
         </div>
       </footer>
     </div>

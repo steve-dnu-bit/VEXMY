@@ -2,25 +2,18 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription, isSubscriptionActive, useArtistSeats } from "@/hooks/useSubscription";
+import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useToast } from "@/hooks/use-toast";
-import { getPlanById } from "@/lib/pricingPlans";
-
-const statusLabel: Record<string, string> = {
-  trialing: "Trial",
-  active: "Active",
-  past_due: "Past due",
-  canceled: "Canceled",
-  unpaid: "Unpaid",
-  incomplete: "Incomplete",
-  paused: "Paused",
-};
 
 const SubscriptionSettingsCard = () => {
+  const { t } = useTranslation();
+  const pricingPlans = usePricingPlansI18n();
   const { data, isLoading, canManageBilling } = useSubscription();
   const { data: seatUsage } = useArtistSeats();
   const { toast } = useToast();
@@ -34,13 +27,13 @@ const SubscriptionSettingsCard = () => {
         {},
       );
       if (error || !result.portalUrl) {
-        throw new Error(result.error || error?.message || "Could not open billing portal");
+        throw new Error(result.error || error?.message || t("subscription.portalUnavailable"));
       }
       window.location.href = result.portalUrl;
     } catch (e) {
       toast({
-        title: "Billing portal unavailable",
-        description: e instanceof Error ? e.message : "Please try again later.",
+        title: t("subscription.portalUnavailable"),
+        description: e instanceof Error ? e.message : t("common.error"),
         variant: "destructive",
       });
     } finally {
@@ -60,32 +53,44 @@ const SubscriptionSettingsCard = () => {
 
   const sub = data?.subscription;
   const plan = data?.plan;
-  const marketingPlan = plan ? getPlanById(plan.id) : null;
+  const marketingPlan = plan ? pricingPlans.find((p) => p.id === plan.id) : null;
+  const planDisplayName = marketingPlan?.name ?? plan?.name;
   const active = isSubscriptionActive(sub?.status);
+
+  const statusLabels = {
+    trialing: t("subscription.status.trialing"),
+    active: t("subscription.status.active"),
+    past_due: t("subscription.status.past_due"),
+    canceled: t("subscription.status.canceled"),
+    unpaid: t("subscription.status.unpaid"),
+    incomplete: t("subscription.status.incomplete"),
+    paused: t("subscription.status.paused"),
+  };
+  const statusKey = sub?.status as keyof typeof statusLabels | undefined;
 
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <CreditCard className="h-4 w-4" />
-          Subscription
+          {t("subscription.title")}
         </CardTitle>
         <CardDescription>
           {data?.organizationName
-            ? `Billing for ${data.organizationName}`
-            : "Manage your VexMy platform subscription"}
+            ? t("subscription.billingFor", { name: data.organizationName })
+            : t("subscription.manageDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {sub && plan ? (
           <>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">{plan.name}</span>
+              <span className="font-medium">{planDisplayName}</span>
               <Badge variant={active ? "default" : "secondary"}>
-                {statusLabel[sub.status] ?? sub.status}
+                {statusKey ? statusLabels[statusKey] : sub.status}
               </Badge>
               {sub.cancelAtPeriodEnd ? (
-                <Badge variant="outline">Cancels at period end</Badge>
+                <Badge variant="outline">{t("subscription.cancelsAtPeriodEnd")}</Badge>
               ) : null}
             </div>
             {marketingPlan?.price ? (
@@ -96,26 +101,26 @@ const SubscriptionSettingsCard = () => {
             ) : null}
             {sub.trialEnd && sub.status === "trialing" ? (
               <p className="text-sm text-muted-foreground">
-                Trial ends {format(new Date(sub.trialEnd), "d MMM yyyy")}
+                {t("subscription.trialEnds", { date: format(new Date(sub.trialEnd), "d MMM yyyy") })}
               </p>
             ) : null}
             {sub.currentPeriodEnd && sub.status === "active" ? (
               <p className="text-sm text-muted-foreground">
-                Renews {format(new Date(sub.currentPeriodEnd), "d MMM yyyy")}
+                {t("subscription.renews", { date: format(new Date(sub.currentPeriodEnd), "d MMM yyyy") })}
               </p>
             ) : null}
             {plan.max_artist_seats ? (
               <p className="text-xs text-muted-foreground">
-                {seatUsage ? `${seatUsage.used} / ${plan.max_artist_seats} artist seats in use` : `Up to ${plan.max_artist_seats} artist seats`}
+                {seatUsage
+                  ? t("subscription.seatsInUse", { used: seatUsage.used, max: plan.max_artist_seats })
+                  : t("subscription.upToSeats", { max: plan.max_artist_seats })}
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">Unlimited artist seats</p>
+              <p className="text-xs text-muted-foreground">{t("subscription.unlimitedSeats")}</p>
             )}
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No active subscription. Choose a plan to unlock the full platform.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("subscription.noActive")}</p>
         )}
 
         <div className="flex flex-wrap gap-2 pt-2">
@@ -126,13 +131,13 @@ const SubscriptionSettingsCard = () => {
               ) : (
                 <ExternalLink className="mr-2 h-4 w-4" />
               )}
-              Manage billing
+              {t("subscription.manageBilling")}
             </Button>
           ) : null}
           {canManageBilling ? (
             <Button variant="gold-outline" size="sm" asChild>
               <Link to={sub ? `/subscribe?plan=${sub.planId}` : "/subscribe"}>
-                {active ? "Change plan" : "Subscribe now"}
+                {active ? t("common.changePlan") : t("common.subscribeNow")}
               </Link>
             </Button>
           ) : null}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,17 +8,18 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { getPlanById, PRICING_PLANS } from "@/lib/pricingPlans";
+import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const SubscribePage = () => {
+  const { t } = useTranslation();
+  const pricingPlans = usePricingPlansI18n();
   const [searchParams] = useSearchParams();
   const planId = (searchParams.get("plan") || "studio").toLowerCase();
   const canceled = searchParams.get("canceled") === "1";
-  const plan = getPlanById(planId);
-  const selfServePlan = plan ?? getPlanById("studio")!;
+  const selfServePlan = pricingPlans.find((p) => p.id === planId) ?? pricingPlans.find((p) => p.id === "studio")!;
 
   const { user, loading: authLoading } = useAuth();
   const { data: orgSub, isLoading: subLoading } = useSubscription();
@@ -33,11 +35,11 @@ const SubscribePage = () => {
   useEffect(() => {
     if (canceled) {
       toast({
-        title: "Checkout canceled",
-        description: "No charges were made. You can try again when ready.",
+        title: t("subscribe.checkoutCanceled"),
+        description: t("subscribe.checkoutCanceledDesc"),
       });
     }
-  }, [canceled, toast]);
+  }, [canceled, toast, t]);
 
   useEffect(() => {
     if (orgSub?.organizationName && !studioName) {
@@ -59,14 +61,14 @@ const SubscribePage = () => {
       });
 
       if (error || !data.checkoutUrl) {
-        throw new Error(data.error || error?.message || "Could not start checkout");
+        throw new Error(data.error || error?.message || t("subscribe.checkoutFailed"));
       }
 
       window.location.href = data.checkoutUrl;
     } catch (e) {
       toast({
-        title: "Checkout failed",
-        description: e instanceof Error ? e.message : "Please try again or contact support.",
+        title: t("subscribe.checkoutFailed"),
+        description: e instanceof Error ? e.message : t("common.error"),
         variant: "destructive",
       });
       setSubmitting(false);
@@ -81,7 +83,7 @@ const SubscribePage = () => {
       if (!user) {
         if (authMode === "signup") {
           if (!studioName.trim() || studioName.trim().length < 2) {
-            throw new Error("Enter your studio name (at least 2 characters).");
+            throw new Error(t("common.studioName"));
           }
           const { error } = await supabase.auth.signUp({
             email: email.trim(),
@@ -90,8 +92,8 @@ const SubscribePage = () => {
           });
           if (error) throw error;
           toast({
-            title: "Check your email",
-            description: "Confirm your email, then return here to complete checkout.",
+            title: t("auth.checkEmail"),
+            description: t("auth.confirmEmailSent"),
           });
           setSubmitting(false);
           return;
@@ -101,14 +103,14 @@ const SubscribePage = () => {
       }
 
       if (!orgSub?.organizationId && !studioName.trim()) {
-        throw new Error("Enter your studio name.");
+        throw new Error(t("common.studioName"));
       }
 
       await startCheckout(orgSub?.organizationId);
     } catch (e) {
       toast({
-        title: "Could not continue",
-        description: e instanceof Error ? e.message : "Please try again.",
+        title: t("common.error"),
+        description: e instanceof Error ? e.message : t("common.error"),
         variant: "destructive",
       });
       setSubmitting(false);
@@ -117,7 +119,7 @@ const SubscribePage = () => {
 
   const handleLoggedInCheckout = async () => {
     if (!orgSub?.organizationId && studioName.trim().length < 2) {
-      toast({ title: "Studio name required", variant: "destructive" });
+      toast({ title: t("common.studioName"), variant: "destructive" });
       return;
     }
     await startCheckout(orgSub?.organizationId);
@@ -137,18 +139,17 @@ const SubscribePage = () => {
     <MarketingLayout>
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-2 lg:gap-16">
-          {/* Plan summary */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d4af37]/80">Subscribe</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d4af37]/80">{t("subscribe.label")}</p>
             <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
-              Start with {selfServePlan.name}
+              {t("subscribe.startWith", { plan: selfServePlan.name })}
             </h1>
             <p className="mt-3 text-muted-foreground">{selfServePlan.description}</p>
             <p className="mt-6 font-display text-4xl font-bold text-gradient-gold">
               {selfServePlan.price}
               <span className="text-base font-normal text-muted-foreground">{selfServePlan.period}</span>
             </p>
-            <p className="mt-2 text-sm text-[#d4af37]/80">14-day free trial · Cancel anytime</p>
+            <p className="mt-2 text-sm text-[#d4af37]/80">{t("subscribe.trialNote")}</p>
             <ul className="mt-8 space-y-3">
               {selfServePlan.features.slice(0, 6).map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -158,7 +159,7 @@ const SubscribePage = () => {
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap gap-2">
-              {PRICING_PLANS.map((p) => (
+              {pricingPlans.map((p) => (
                 <Button
                   key={p.id}
                   variant={p.id === selfServePlan.id ? "gold" : "gold-outline"}
@@ -171,32 +172,30 @@ const SubscribePage = () => {
             </div>
             <p className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
               <Shield className="h-3.5 w-3.5" />
-              Secure checkout powered by Stripe. Card details never touch our servers.
+              {t("subscribe.secureCheckout")}
             </p>
           </div>
 
-          {/* Checkout form */}
-          <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
+          <div className="rounded-2xl border border-border/70 bg-card/55 p-6 sm:p-8">
             {user ? (
               <div className="space-y-6">
                 <div>
-                  <h2 className="font-display text-xl font-semibold">Complete your subscription</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Signed in as {user.email}</p>
+                  <h2 className="font-display text-xl font-semibold">{t("subscribe.completeSubscription")}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("subscribe.signedInAs", { email: user.email })}</p>
                 </div>
                 {!orgSub?.organizationId ? (
                   <div className="space-y-2">
-                    <Label htmlFor="studioName">Studio name</Label>
+                    <Label htmlFor="studioName">{t("common.studioName")}</Label>
                     <Input
                       id="studioName"
                       value={studioName}
                       onChange={(e) => setStudioName(e.target.value)}
-                      placeholder="e.g. Black Rose Tattoo"
-                      className="bg-background/50"
+                      className="bg-secondary/80"
                     />
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Organization: <span className="text-foreground">{orgSub.organizationName}</span>
+                    {t("subscribe.organization")}: <span className="text-foreground">{orgSub.organizationName}</span>
                   </p>
                 )}
                 <Button
@@ -208,46 +207,45 @@ const SubscribePage = () => {
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecting to Stripe…
+                      {t("subscribe.redirectingStripe")}
                     </>
                   ) : (
-                    "Continue to secure checkout"
+                    t("subscribe.continueCheckout")
                   )}
                 </Button>
                 <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate("/pricing")}>
-                  Compare all plans
+                  {t("common.comparePlans")}
                 </Button>
               </div>
             ) : (
               <form onSubmit={handleAuthAndCheckout} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-xl font-semibold">Create your account</h2>
+                  <h2 className="font-display text-xl font-semibold">{t("subscribe.createAccountTitle")}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Sign up, then complete payment on Stripe. Already have an account?{" "}
+                    {authMode === "signup" ? t("auth.signupSubtitle") : t("auth.loginSubtitle")}{" "}
                     <button
                       type="button"
                       className="text-[#d4af37] hover:underline"
                       onClick={() => setAuthMode(authMode === "signup" ? "signin" : "signup")}
                     >
-                      {authMode === "signup" ? "Sign in" : "Sign up"}
+                      {authMode === "signup" ? t("common.signIn") : t("auth.signUp")}
                     </button>
                   </p>
                 </div>
                 {authMode === "signup" ? (
                   <div className="space-y-2">
-                    <Label htmlFor="studioName">Studio name</Label>
+                    <Label htmlFor="studioName">{t("common.studioName")}</Label>
                     <Input
                       id="studioName"
                       value={studioName}
                       onChange={(e) => setStudioName(e.target.value)}
-                      placeholder="e.g. Black Rose Tattoo"
                       required
-                      className="bg-background/50"
+                      className="bg-secondary/80"
                     />
                   </div>
                 ) : null}
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("common.email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -255,11 +253,11 @@ const SubscribePage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoComplete="email"
-                    className="bg-background/50"
+                    className="bg-secondary/80"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t("common.password")}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -268,29 +266,29 @@ const SubscribePage = () => {
                     required
                     minLength={8}
                     autoComplete={authMode === "signup" ? "new-password" : "current-password"}
-                    className="bg-background/50"
+                    className="bg-secondary/80"
                   />
                 </div>
                 <Button variant="gold" type="submit" className="w-full" disabled={submitting}>
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Please wait…
+                      {t("common.pleaseWait")}
                     </>
                   ) : authMode === "signup" ? (
-                    "Create account & continue"
+                    t("subscribe.createAndContinue")
                   ) : (
-                    "Sign in & continue"
+                    t("subscribe.signInContinue")
                   )}
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
-                  By subscribing you agree to our{" "}
+                  {t("subscribe.termsAgree")}{" "}
                   <Link to="/terms" className="text-[#d4af37] hover:underline">
-                    Terms
+                    {t("common.terms")}
                   </Link>{" "}
                   and{" "}
                   <Link to="/privacy" className="text-[#d4af37] hover:underline">
-                    Privacy Policy
+                    {t("common.privacy")}
                   </Link>
                   .
                 </p>

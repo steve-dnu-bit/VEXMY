@@ -208,21 +208,21 @@ const DashboardPage = () => {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3 mb-4">
-            <div className="rounded-lg border border-border bg-secondary/30 p-3">
+            <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Receipt className="h-4 w-4" />
                 Paid invoices
               </div>
               <p className="font-display text-2xl font-bold mt-1">{stripeInvoicePaidCount}</p>
             </div>
-            <div className="rounded-lg border border-border bg-secondary/30 p-3">
+            <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CreditCard className="h-4 w-4" />
                 Invoice value paid
               </div>
               <p className="font-display text-2xl font-bold mt-1">£{stripeInvoicePaidValue.toFixed(2)}</p>
             </div>
-            <div className="rounded-lg border border-border bg-secondary/30 p-3">
+            <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 Deposits paid
@@ -306,7 +306,7 @@ const DashboardPage = () => {
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/70 p-3"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate">{c.full_name}</p>

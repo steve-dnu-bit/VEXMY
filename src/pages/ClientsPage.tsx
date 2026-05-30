@@ -646,7 +646,7 @@ const ClientsPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-secondary/30">
+                <tr className="border-b border-border/70 bg-secondary/70">
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Name</th>
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Email</th>
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">Phone</th>

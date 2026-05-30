@@ -190,7 +190,7 @@ const LandingPage = () => (
           {features.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="group rounded-xl border border-border/60 bg-card/40 p-6 transition-colors hover:border-[#d4af37]/40 hover:bg-card/70"
+              className="group rounded-xl border border-border/70 bg-card/55 p-6 transition-colors hover:border-[#d4af37]/40 hover:bg-card/75"
             >
               <div className="mb-4 inline-flex rounded-lg bg-[#d4af37]/10 p-2.5 text-[#d4af37]">
                 <Icon className="h-5 w-5" />
@@ -225,7 +225,7 @@ const LandingPage = () => (
         <h2 className="text-center font-display text-3xl font-bold">Built for everyone in the studio</h2>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {audiences.map(({ title, points }) => (
-            <div key={title} className="rounded-xl border border-border/60 bg-card/30 p-6">
+            <div key={title} className="rounded-xl border border-border/70 bg-card/55 p-6">
               <h3 className="font-display text-xl font-semibold text-[#d4af37]">{title}</h3>
               <ul className="mt-4 space-y-2">
                 {points.map((p) => (
@@ -268,7 +268,7 @@ const LandingPage = () => (
         <h2 className="text-center font-display text-3xl font-bold">Questions</h2>
         <dl className="mt-12 space-y-6">
           {faqs.map(({ q, a }) => (
-            <div key={q} className="rounded-lg border border-border/50 bg-card/30 p-6">
+            <div key={q} className="rounded-lg border border-border/70 bg-card/55 p-6">
               <dt className="font-medium">{q}</dt>
               <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{a}</dd>
             </div>

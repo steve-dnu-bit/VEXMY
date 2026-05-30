@@ -339,7 +339,7 @@ const AdminPage = () => {
           </CardHeader>
           <CardContent className="space-y-4 max-w-md">
             {seatUsage && seatUsage.max != null ? (
-              <div className="rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-sm">
+              <div className="rounded-lg border border-border/70 bg-secondary/70 px-3 py-2 text-sm">
                 <p className="font-medium">
                   Artist seats: {seatUsage.used} / {seatUsage.max}
                 </p>

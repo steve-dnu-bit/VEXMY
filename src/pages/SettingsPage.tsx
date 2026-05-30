@@ -15,7 +15,9 @@ import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MFAEnrollment from "@/components/auth/MFAEnrollment";
 import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
+import LanguageSelector from "@/components/i18n/LanguageSelector";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
+import { useTranslation } from "react-i18next";
 
 interface ReminderSettings {
   bookingConfirmation: boolean;
@@ -63,6 +65,7 @@ class SectionErrorBoundary extends React.Component<
 
 const SettingsPage = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { theme, setTheme } = useThemePreference();
   const [settings, setSettings] = useState<ReminderSettings>(defaultSettings);
   const [saving, setSaving] = useState(false);
@@ -218,29 +221,33 @@ const SettingsPage = () => {
       <div className="p-4 md:p-6 max-w-2xl">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-gold">Settings</span>
+            <span className="text-gradient-gold">{t("settings.title")}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">Configure booking and deposit reminders</p>
+          <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
         </div>
 
         <div className="space-y-6">
+          <Card className="bg-card border-border">
+            <CardContent className="pt-6">
+              <LanguageSelector />
+            </CardContent>
+          </Card>
+
           <SectionErrorBoundary title="Subscription">
             <SubscriptionSettingsCard />
           </SectionErrorBoundary>
 
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Quick Settings</CardTitle>
-              <CardDescription>
-                This page is always available while logged in. You can revisit profile customization anytime.
-              </CardDescription>
+              <CardTitle className="text-base">{t("settings.quickSettings")}</CardTitle>
+              <CardDescription>{t("settings.quickSettingsDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button asChild variant="outline">
-                <Link to="/artist-profile-settings">Open profile customization</Link>
+                <Link to="/artist-profile-settings">{t("settings.openProfileCustomization")}</Link>
               </Button>
               <Button asChild variant="outline">
-                <a href="/consent" target="_blank" rel="noopener noreferrer">Open consent page</a>
+                <a href="/consent" target="_blank" rel="noopener noreferrer">{t("settings.openConsentPage")}</a>
               </Button>
             </CardContent>
           </Card>

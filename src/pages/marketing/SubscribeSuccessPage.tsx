@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
@@ -7,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 
 const SubscribeSuccessPage = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const { user, loading: authLoading } = useAuth();
@@ -35,40 +37,42 @@ const SubscribeSuccessPage = () => {
         ) : waitingForWebhook ? (
           <>
             <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#d4af37]" />
-            <h1 className="mt-6 font-display text-2xl font-bold">Confirming your subscription…</h1>
-            <p className="mt-3 text-sm text-muted-foreground">This usually takes a few seconds.</p>
+            <h1 className="mt-6 font-display text-2xl font-bold">{t("subscribe.confirming")}</h1>
+            <p className="mt-3 text-sm text-muted-foreground">{t("subscribe.confirmingHint")}</p>
           </>
         ) : (
           <>
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#d4af37]/15">
               <CheckCircle2 className="h-8 w-8 text-[#d4af37]" />
             </div>
-            <h1 className="mt-6 font-display text-3xl font-bold">You&apos;re all set!</h1>
+            <h1 className="mt-6 font-display text-3xl font-bold">{t("subscribe.allSet")}</h1>
             <p className="mt-3 text-muted-foreground">
               {data?.plan?.name ? (
-                <>
-                  Your <strong>{data.plan.name}</strong> plan is active
-                  {data.subscription?.status === "trialing" ? " with a free trial" : ""}.
-                </>
+                t("subscribe.planActive", {
+                  plan: data.plan.name,
+                  trial: data.subscription?.status === "trialing" ? t("subscribe.withTrial") : "",
+                })
               ) : (
-                "Your subscription is being activated."
+                t("subscribe.confirming")
               )}
             </p>
             {data?.organizationName ? (
-              <p className="mt-2 text-sm text-muted-foreground">Studio: {data.organizationName}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t("common.studioName")}: {data.organizationName}
+              </p>
             ) : null}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
               {user ? (
                 <Button variant="gold" asChild>
-                  <Link to="/schedule">Go to your schedule</Link>
+                  <Link to="/schedule">{t("subscribe.goToSchedule")}</Link>
                 </Button>
               ) : (
                 <Button variant="gold" asChild>
-                  <Link to="/auth">Sign in to your studio</Link>
+                  <Link to="/auth">{t("subscribe.signInStudio")}</Link>
                 </Button>
               )}
               <Button variant="gold-outline" asChild>
-                <Link to="/settings">Subscription settings</Link>
+                <Link to="/settings">{t("subscription.title")}</Link>
               </Button>
             </div>
           </>

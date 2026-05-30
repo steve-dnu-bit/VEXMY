@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Users, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,20 +9,21 @@ import { usePermissions, type Feature } from "@/hooks/usePermissions";
 import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
 import { BRANDING, STORAGE_PREFIX } from "@/lib/branding";
+import LanguageSelector from "@/components/i18n/LanguageSelector";
 
-const allNavItems: Array<{ label: string; path: string; icon: any; feature: Feature }> = [
-  { label: "Schedule", path: "/schedule", icon: Calendar, feature: "schedule" },
-  { label: "Inbox", path: "/inbox", icon: MessageSquare, feature: "inbox" },
-  { label: "Services", path: "/services", icon: Briefcase, feature: "services" },
-  { label: "Stencil", path: "/stencil", icon: Image, feature: "stencil" },
-  { label: "Clients", path: "/clients", icon: Users, feature: "clients" },
-  { label: "Stock", path: "/stock", icon: Package, feature: "stock" },
-  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard, feature: "dashboard" },
-  { label: "Settings", path: "/settings", icon: Settings, feature: "settings" },
-  { label: "Deposits", path: "/deposits", icon: PoundSterling, feature: "deposits" },
-  { label: "Billing", path: "/billing", icon: Building2, feature: "billing" },
-  { label: "Admin", path: "/admin", icon: Shield, feature: "admin" },
-  { label: "Consent form", path: "/consent", icon: FileSignature, feature: "customer_consent" },
+const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar; feature: Feature }> = [
+  { labelKey: "nav.schedule", path: "/schedule", icon: Calendar, feature: "schedule" },
+  { labelKey: "nav.inbox", path: "/inbox", icon: MessageSquare, feature: "inbox" },
+  { labelKey: "nav.services", path: "/services", icon: Briefcase, feature: "services" },
+  { labelKey: "nav.stencil", path: "/stencil", icon: Image, feature: "stencil" },
+  { labelKey: "nav.clients", path: "/clients", icon: Users, feature: "clients" },
+  { labelKey: "nav.stock", path: "/stock", icon: Package, feature: "stock" },
+  { labelKey: "nav.dashboard", path: "/dashboard", icon: LayoutDashboard, feature: "dashboard" },
+  { labelKey: "nav.settings", path: "/settings", icon: Settings, feature: "settings" },
+  { labelKey: "nav.deposits", path: "/deposits", icon: PoundSterling, feature: "deposits" },
+  { labelKey: "nav.billing", path: "/billing", icon: Building2, feature: "billing" },
+  { labelKey: "nav.admin", path: "/admin", icon: Shield, feature: "admin" },
+  { labelKey: "nav.consentForm", path: "/consent", icon: FileSignature, feature: "customer_consent" },
 ];
 
 function hexToHslVars(hex: string): { primary: string; ring: string; sidebarPrimary: string } | null {
@@ -99,6 +101,7 @@ function applyPortalTheme(color: string | null, imageUrl: string | null) {
 }
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -209,8 +212,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               size="sm"
               className="hidden md:inline-flex h-8 w-8 p-0 text-muted-foreground"
               onClick={toggleDesktopSidebar}
-              title={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
-              aria-label={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
+              title={sidebarCollapsed ? t("common.expandMenu") : t("common.collapseMenu")}
+              aria-label={sidebarCollapsed ? t("common.expandMenu") : t("common.collapseMenu")}
             >
               <Menu className="h-4 w-4" />
             </Button>
@@ -220,22 +223,23 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             size="sm"
             className={`mt-2 w-full gap-2 text-muted-foreground ${sidebarCollapsed ? "justify-center px-0" : "justify-start"}`}
             onClick={handleLogout}
-            title="Sign Out"
+            title={t("common.signOut")}
           >
             <LogOut className="h-4 w-4" />
-            {!sidebarCollapsed && <span>Sign Out</span>}
+            {!sidebarCollapsed && <span>{t("common.signOut")}</span>}
           </Button>
         </div>
 
         <nav className="flex-1 py-4 space-y-1 px-3">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
+            const label = t(item.labelKey);
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                title={item.label}
+                title={label}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
                     ? "bg-sidebar-accent text-sidebar-primary"
@@ -243,7 +247,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 } ${sidebarCollapsed ? "justify-center px-3" : ""}`}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
-                {!sidebarCollapsed && item.label}
+                {!sidebarCollapsed && label}
               </Link>
             );
           })}
@@ -252,10 +256,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="p-3 border-t border-sidebar-border space-y-2">
           {!sidebarCollapsed ? (
             <>
+              <LanguageSelector compact className="w-full" />
               <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-                <Link to="/terms" className="hover:underline">Terms</Link>
-                <Link to="/privacy" className="hover:underline">Privacy</Link>
-                <Link to="/cookies" className="hover:underline">Cookies</Link>
+                <Link to="/terms" className="hover:underline">{t("common.terms")}</Link>
+                <Link to="/privacy" className="hover:underline">{t("common.privacy")}</Link>
+                <Link to="/cookies" className="hover:underline">{t("common.cookies")}</Link>
               </div>
               <Button
                 variant="ghost"
@@ -263,7 +268,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 className="w-full justify-start text-xs text-muted-foreground"
                 onClick={() => window.dispatchEvent(new CustomEvent("cookie-consent:open"))}
               >
-                Cookie settings
+                {t("common.cookieSettings")}
               </Button>
             </>
           ) : (
@@ -271,8 +276,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               variant="ghost"
               size="sm"
               className="w-full justify-center text-muted-foreground"
-              title="Cookie settings"
-              aria-label="Cookie settings"
+              title={t("common.cookieSettings")}
+              aria-label={t("common.cookieSettings")}
               onClick={() => window.dispatchEvent(new CustomEvent("cookie-consent:open"))}
             >
               <Settings className="h-4 w-4" />

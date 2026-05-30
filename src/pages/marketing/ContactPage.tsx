@@ -131,7 +131,7 @@ const ContactPage = () => {
                 data-netlify="true"
                 data-netlify-honeypot="bot-field"
                 onSubmit={handleSubmit}
-                className="rounded-2xl border border-border/60 bg-card/30 p-6 sm:p-8"
+                className="rounded-2xl border border-border/70 bg-card/55 p-6 sm:p-8"
               >
                 <input type="hidden" name="form-name" value={FORM_NAME} />
                 <p className="hidden">

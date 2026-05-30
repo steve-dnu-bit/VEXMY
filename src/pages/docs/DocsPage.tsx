@@ -54,7 +54,7 @@ const DocsIndex = () => (
                 <li key={page.slug}>
                   <Link
                     to={`/docs/${page.slug}`}
-                    className="group flex items-start justify-between rounded-lg border border-border/60 bg-card/30 p-4 transition-colors hover:border-[#d4af37]/40"
+                    className="group flex items-start justify-between rounded-lg border border-border/70 bg-card/55 p-4 transition-colors hover:border-[#d4af37]/40"
                   >
                     <div>
                       <p className="font-medium group-hover:text-[#d4af37]">{page.title}</p>
@@ -80,7 +80,7 @@ const DocsPage = () => {
     <MarketingLayout>
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:flex-row lg:py-14">
         <aside className="lg:w-64 lg:shrink-0">
-          <nav className="sticky top-24 rounded-xl border border-border/60 bg-card/30 p-4">
+          <nav className="sticky top-24 rounded-xl border border-border/70 bg-card/55 p-4">
             <Link to="/docs" className="text-sm font-semibold text-[#d4af37] hover:underline">
               All docs
             </Link>
