@@ -29,3 +29,9 @@ verify_jwt = true
 
 [functions.send-invoice]
 verify_jwt = false
+
+[functions.process-chat-email-notifications]
+verify_jwt = false
+
+[functions.send-chat-update-email]
+verify_jwt = false

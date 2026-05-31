@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { toast } from "sonner";
-import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { buildStaffQuickReplies } from "@/lib/chatQuickReplies";
 import { fetchThreadBookingContext, type ThreadBookingContext } from "@/lib/chatThreadContext";
 import { useTranslation } from "react-i18next";
@@ -373,15 +372,6 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     };
   }, [selectedThreadId, mode, threads]);
 
-  const autoNotifyRecipient = (threadId: string, previewText: string) => {
-    void invokeEdgeFunctionJson<{ ok?: boolean; skipped?: boolean; error?: string }>("send-chat-update-email", {
-      threadId,
-      previewText: previewText.slice(0, 280),
-    }).then(({ error }) => {
-      if (error) console.warn("Chat email notification skipped:", error.message);
-    });
-  };
-
   useEffect(() => {
     if (initialCustomerId && mode === "staff") {
       setSelectedCustomerId(initialCustomerId);
@@ -613,12 +603,10 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       toast.error(error.message || t("chat.sendFailed"));
       return;
     }
-    const sentBody = messageText.trim();
     setMessageText("");
     if (user) {
       await supabase.from("chat_typing_state" as any).delete().eq("thread_id", threadId).eq("user_id", user.id);
     }
-    autoNotifyRecipient(threadId, sentBody);
     await fetchThreadData(threadId);
     await fetchThreads();
   };
@@ -671,7 +659,6 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       toast.error(mediaErr.message || t("chat.saveMediaFailed"));
       return;
     }
-    autoNotifyRecipient(threadId, t("chat.newImageShared"));
     await fetchThreadData(threadId);
     await fetchThreads();
   };

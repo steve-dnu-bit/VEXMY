@@ -854,7 +854,7 @@
     "chatMediaAlt": "Chat media",
     "pinned": "Pinned",
     "pin": "Pin",
-    "autoEmailNote": "The other person is notified by email automatically.",
+    "autoEmailNote": "Unread messages trigger an email after 15 minutes of inactivity.",
     "newImageShared": "Shared a new image",
     "depositPaid": "Deposit paid",
     "depositPending": "Deposit pending",

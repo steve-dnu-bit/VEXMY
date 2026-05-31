@@ -1,21 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { getShopBranding } from "../_shared/branding.ts";
-import { requireEmailDeliveryConfig, sendTransactionalEmail, siteUrl } from "../_shared/email.ts";
-import { buildChatUpdateEmail } from "../_shared/email-templates.ts";
+import { jsonCorsHeaders, jsonResponse, requireAuthenticatedUser } from "../_shared/auth.ts";
+import { sendChatUpdateEmail } from "../_shared/chat-email.ts";
 
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function parseBearerJwt(req: Request): string | null {
-  const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
-  if (!authHeader) return null;
-  const m = /^Bearer\s+(.+)$/i.exec(authHeader.trim());
-  return m ? m[1].trim() : null;
-}
+const corsHeaders = jsonCorsHeaders;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -24,39 +12,22 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     if (!supabaseUrl || !serviceKey) {
-      return new Response(JSON.stringify({ error: "Server misconfigured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = parseBearerJwt(req);
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Unauthorized", reason: "missing_bearer_token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Server misconfigured" }, 500);
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const { data: authData, error: authError } = await admin.auth.getUser(token);
-    const sender = authData.user;
-    if (authError || !sender) {
-      return new Response(JSON.stringify({ error: "Unauthorized", reason: "invalid_or_expired_token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const auth = await requireAuthenticatedUser(admin, req);
+    if ("status" in auth) {
+      return jsonResponse(auth.body, auth.status);
     }
+    const sender = auth.user;
 
     const body = await req.json().catch(() => ({}));
     const threadId = typeof body.threadId === "string" ? body.threadId : null;
     const previewTextRaw = typeof body.previewText === "string" ? body.previewText : "There is a new message in your chat.";
     const previewText = previewTextRaw.slice(0, 280);
     if (!threadId) {
-      return new Response(JSON.stringify({ error: "threadId is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "threadId is required" }, 400);
     }
 
     const { data: thread, error: threadError } = await admin
@@ -65,84 +36,31 @@ serve(async (req) => {
       .eq("id", threadId)
       .single();
     if (threadError || !thread) {
-      return new Response(JSON.stringify({ error: threadError?.message || "Thread not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: threadError?.message || "Thread not found" }, 404);
     }
 
     const senderIsMember = sender.id === thread.artist_id || sender.id === thread.customer_id;
     if (!senderIsMember) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Forbidden" }, 403);
     }
 
     const recipientId = sender.id === thread.artist_id ? thread.customer_id : thread.artist_id;
-    const { data: recipientProfile } = await admin
-      .from("profiles")
-      .select("display_name")
-      .eq("user_id", recipientId)
-      .maybeSingle();
-    const { data: senderProfile } = await admin
-      .from("profiles")
-      .select("display_name")
-      .eq("user_id", sender.id)
-      .maybeSingle();
-
-    const { data: recipientAuth, error: recipientAuthError } = await admin.auth.admin.getUserById(recipientId);
-    const recipientEmail = recipientAuth.user?.email ?? null;
-    if (recipientAuthError || !recipientEmail) {
-      return new Response(JSON.stringify({ ok: false, skipped: true, reason: "recipient_email_not_found" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    try {
-      requireEmailDeliveryConfig();
-    } catch (configError) {
-      const message = configError instanceof Error ? configError.message : "Email not configured";
-      return new Response(JSON.stringify({ ok: false, skipped: true, reason: message }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const baseUrl = siteUrl();
-    const isArtistRecipient = recipientId === thread.artist_id;
-    const chatPath = isArtistRecipient
-      ? `/inbox?customerId=${encodeURIComponent(thread.customer_id)}`
-      : "/account/chats";
-    const chatUrl = `${baseUrl}${chatPath}`;
-
-    const senderName = senderProfile?.display_name || sender.email || "Someone";
-    const recipientName = recipientProfile?.display_name || "there";
-    const brand = getShopBranding();
-
-    const html = buildChatUpdateEmail({
-      recipientName,
-      senderName,
+    const result = await sendChatUpdateEmail(admin, {
+      threadId,
+      recipientId,
+      senderId: sender.id,
       previewText,
-      chatUrl,
     });
 
-    await sendTransactionalEmail({
-      to: recipientEmail,
-      subject: `New chat update — ${brand.shopName}`,
-      html,
-    });
-
-    return new Response(JSON.stringify({ ok: true, recipientEmail }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (result.ok) {
+      return jsonResponse({ ok: true, recipientEmail: result.recipientEmail });
+    }
+    if (result.skipped) {
+      return jsonResponse({ ok: false, skipped: true, reason: result.reason });
+    }
+    return jsonResponse({ error: result.reason || "Send failed" }, 500);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: message }, 500);
   }
 });

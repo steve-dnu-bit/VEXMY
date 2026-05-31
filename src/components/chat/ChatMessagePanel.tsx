@@ -73,9 +73,9 @@ const ChatMessagePanel = ({
               <p className="text-xs text-muted-foreground">
                 {typingUsers.join(", ")} {t("chat.typing")}
               </p>
-            ) : mode === "staff" ? (
+            ) : (
               <p className="text-xs text-muted-foreground">{t("chat.autoEmailNote")}</p>
-            ) : null}
+            )}
           </div>
           {activeThread ? (
             <Button variant="outline" size="sm" className="gap-1 shrink-0" onClick={onArchive}>
