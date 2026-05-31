@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
 import { StencilCompare } from "@/components/stencil/StencilCompare";
-import { generateAiStencil } from "@/lib/aiStencil";
+import { generateAiStencil, STENCIL_STYLES, DEFAULT_STENCIL_STYLE, StencilQuotaError, type StencilStyle } from "@/lib/aiStencil";
 import {
   DEFAULT_STENCIL_SETTINGS,
   generateLocalStencil,
@@ -13,10 +13,11 @@ import {
 } from "@/lib/stencilLocal";
 import {
   deleteStencilSession,
-  downloadStencilAndDelete,
+  downloadStencilOnly,
   persistStencilSession,
   type StencilSession,
 } from "@/lib/stencilStorage";
+import { fetchStencilQuota, type StencilQuota } from "@/lib/stencilQuota";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "react-i18next";
 
@@ -32,6 +33,8 @@ const StencilPage = () => {
   const [downloading, setDownloading] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [mode, setMode] = useState<"ai" | "local">("ai");
+  const [style, setStyle] = useState<StencilStyle>(DEFAULT_STENCIL_STYLE);
+  const [quota, setQuota] = useState<StencilQuota | null>(null);
   const [settings, setSettings] = useState<LocalStencilSettings>(DEFAULT_STENCIL_SETTINGS);
   const sessionRef = useRef<StencilSession | null>(null);
 
@@ -39,13 +42,15 @@ const StencilPage = () => {
     sessionRef.current = session;
   }, [session]);
 
-  const clearStencilState = () => {
-    setPreview(null);
-    setFile(null);
-    setStencilUrl(null);
-    setSession(null);
-    sessionRef.current = null;
-  };
+  useEffect(() => {
+    let active = true;
+    fetchStencilQuota().then((q) => {
+      if (active) setQuota(q);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const removeStoredSession = async (existing: StencilSession | null) => {
     if (!existing) return;
@@ -77,15 +82,34 @@ const StencilPage = () => {
 
   const handleGenerate = async () => {
     if (!file || !user) return;
+    if (mode === "ai" && quota && quota.remaining <= 0) {
+      toast({
+        title: t("stencil.quotaReachedTitle"),
+        description: t("stencil.quotaReachedDesc", { limit: quota.limit }),
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
 
     try {
       await removeStoredSession(sessionRef.current);
 
-      const generated =
-        mode === "ai"
-          ? await generateAiStencil(file)
-          : await generateLocalStencil(file, settings);
+      let generated: string;
+      if (mode === "ai") {
+        const result = await generateAiStencil(file, style);
+        generated = result.stencilUrl;
+        if (result.quota) {
+          setQuota((prev) => ({
+            used: result.quota?.used ?? prev?.used ?? 0,
+            limit: result.quota?.limit ?? prev?.limit ?? 0,
+            remaining: result.quota?.remaining ?? prev?.remaining ?? 0,
+            resetsAt: prev?.resetsAt ?? null,
+          }));
+        }
+      } else {
+        generated = await generateLocalStencil(file, settings);
+      }
       const stored = await persistStencilSession(user.id, file, generated);
       setSession(stored);
       sessionRef.current = stored;
@@ -95,11 +119,25 @@ const StencilPage = () => {
         description: t("stencil.generatedDesc"),
       });
     } catch (error: unknown) {
-      toast({
-        title: "Generation failed",
-        description: error instanceof Error ? error.message : t("stencil.genericFailure"),
-        variant: "destructive",
-      });
+      if (error instanceof StencilQuotaError) {
+        setQuota((prev) => ({
+          used: error.quota?.used ?? prev?.used ?? 0,
+          limit: error.quota?.limit ?? prev?.limit ?? 0,
+          remaining: 0,
+          resetsAt: prev?.resetsAt ?? null,
+        }));
+        toast({
+          title: t("stencil.quotaReachedTitle"),
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: t("stencil.generationFailedTitle"),
+          description: error instanceof Error ? error.message : t("stencil.genericFailure"),
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -111,8 +149,7 @@ const StencilPage = () => {
     if (!stencilUrl || !session) return;
     setDownloading(true);
     try {
-      await downloadStencilAndDelete(session, stencilUrl);
-      clearStencilState();
+      await downloadStencilOnly(stencilUrl);
       toast({
         title: t("stencil.downloadStartedTitle"),
         description: t("stencil.downloadStartedDesc"),
@@ -195,6 +232,33 @@ const StencilPage = () => {
                   </p>
                 </div>
 
+                {mode === "ai" && (
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1.5">{t("stencil.styleLabel")}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {STENCIL_STYLES.map((s) => (
+                        <Button
+                          key={s.id}
+                          type="button"
+                          size="sm"
+                          variant={style === s.id ? "gold" : "outline"}
+                          className="w-full"
+                          onClick={() => setStyle(s.id)}
+                        >
+                          {t(s.labelKey)}
+                        </Button>
+                      ))}
+                    </div>
+                    {quota && quota.limit > 0 && (
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        {quota.remaining > 0
+                          ? t("stencil.quotaRemaining", { remaining: quota.remaining, limit: quota.limit })
+                          : t("stencil.quotaExhausted", { limit: quota.limit })}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {mode === "local" && (
                   <>
                     <div>
@@ -228,7 +292,12 @@ const StencilPage = () => {
                   </>
                 )}
 
-                <Button variant="gold" className="w-full gap-2" onClick={handleGenerate} disabled={loading}>
+                <Button
+                  variant="gold"
+                  className="w-full gap-2"
+                  onClick={handleGenerate}
+                  disabled={loading || (mode === "ai" && !!quota && quota.remaining <= 0)}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" /> {t("stencil.generating")}
@@ -387,7 +456,7 @@ const StencilPage = () => {
                   )}
                 </Button>
                 <p className="text-[11px] text-center text-muted-foreground">
-                  {t("stencil.downloadRemovesFiles")}
+                  {t("stencil.retentionNotice")}
                 </p>
               </div>
             ) : (

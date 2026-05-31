@@ -235,9 +235,11 @@
         {
           "heading": "Using stencils",
           "paragraphs": [
-            "Artists with stencil permission can upload reference images and generate stencil variations. Outputs are saved to the artist's stencil library."
+            "Artists with stencil permission can upload reference images and generate stencil variations in several styles — Valoonia fine line-art, bold traditional, fine line, illustrative sketch, dotwork stippling, and solid-fill blackwork.",
+            "AI generation is metered: each studio can produce one AI stencil per day for every occupied artist seat (for example, a 10-artist studio gets 10 per day). The allowance resets at midnight, and a failed render does not count against it.",
+            "Generated stencils are kept in storage for 12 hours so they can be re-downloaded, then automatically deleted. The Fast in-browser engine is unmetered and uses no credits."
           ],
-          "note": "AI mode renders professional Valoonia-grade stencils through Netlify AI Gateway, billed to your Netlify AI credits — no API keys to manage. Fast mode runs entirely in the browser and uses no credits."
+          "note": "AI mode renders professional stencils through Netlify AI Gateway, billed to your Netlify AI credits — no API keys to manage. Fast mode runs entirely in the browser and uses no credits."
         }
       ]
     },

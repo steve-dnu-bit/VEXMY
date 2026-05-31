@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.send-invoice]
 verify_jwt = false
+
+[functions.purge-expired-stencils]
+verify_jwt = false

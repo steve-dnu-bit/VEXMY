@@ -95,3 +95,13 @@ export async function downloadStencilAndDelete(session: StencilSession, stencilD
   await downloadBlob(blob, "stencil.png");
   await deleteStencilSession(session);
 }
+
+/**
+ * Download the stencil without deleting it. Generated stencils are retained for
+ * 12 hours and then removed automatically by the scheduled purge job, so the
+ * artist can re-download within that window.
+ */
+export async function downloadStencilOnly(stencilDataUrl: string) {
+  const blob = await dataUrlToBlob(stencilDataUrl);
+  await downloadBlob(blob, "stencil.png");
+}

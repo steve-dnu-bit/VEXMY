@@ -5,6 +5,42 @@ import { loadImage, readFileAsDataUrl } from "@/lib/stencilImage";
 // the function body limit and speeds up generation without losing detail.
 const MAX_UPLOAD_SIDE = 1536;
 
+// Available AI stencil styles. `id` is sent to the function (must match the
+// keys in netlify/functions/generate-stencil.mts); `labelKey` is an i18n key.
+export const STENCIL_STYLES = [
+  { id: "valoonia", labelKey: "stencil.styleValoonia" },
+  { id: "bold", labelKey: "stencil.styleBold" },
+  { id: "fineline", labelKey: "stencil.styleFineline" },
+  { id: "sketch", labelKey: "stencil.styleSketch" },
+  { id: "dotwork", labelKey: "stencil.styleDotwork" },
+  { id: "blackwork", labelKey: "stencil.styleBlackwork" },
+] as const;
+
+export type StencilStyle = (typeof STENCIL_STYLES)[number]["id"];
+export const DEFAULT_STENCIL_STYLE: StencilStyle = "valoonia";
+
+export type QuotaInfo = {
+  used?: number;
+  limit?: number;
+  remaining?: number;
+  allowed?: boolean;
+};
+
+export class StencilQuotaError extends Error {
+  quota?: QuotaInfo;
+  constructor(message: string, quota?: QuotaInfo) {
+    super(message);
+    this.name = "StencilQuotaError";
+    this.quota = quota;
+  }
+}
+
+export type AiStencilResult = {
+  stencilUrl: string;
+  style: string;
+  quota?: QuotaInfo | null;
+};
+
 /** Downscale + re-encode the reference so the request stays small and fast. */
 async function toUploadDataUrl(file: File): Promise<string> {
   const original = await readFileAsDataUrl(file);
@@ -24,11 +60,14 @@ async function toUploadDataUrl(file: File): Promise<string> {
 }
 
 /**
- * Generate a Valoonia-grade tattoo stencil from a reference image using the
- * Netlify AI Gateway function (billed to Netlify credits). Returns a PNG data
- * URL ready to persist and download.
+ * Generate a tattoo stencil from a reference image using the Netlify AI Gateway
+ * function (billed to Netlify credits). Returns a PNG data URL ready to persist
+ * and download, plus the remaining daily quota.
  */
-export async function generateAiStencil(file: File): Promise<string> {
+export async function generateAiStencil(
+  file: File,
+  style: StencilStyle = DEFAULT_STENCIL_STYLE,
+): Promise<AiStencilResult> {
   const token = await getFreshAccessToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
@@ -40,19 +79,28 @@ export async function generateAiStencil(file: File): Promise<string> {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ image }),
+    body: JSON.stringify({ image, style }),
   });
 
   const payload = (await res.json().catch(() => ({}))) as {
     stencilUrl?: string;
+    style?: string;
+    quota?: QuotaInfo | null;
     error?: string;
   };
 
+  if (res.status === 429 && payload.quota) {
+    throw new StencilQuotaError(payload.error || "Daily stencil limit reached.", payload.quota);
+  }
   if (!res.ok) {
     throw new Error(payload.error || `Generation failed (${res.status})`);
   }
   if (!payload.stencilUrl) {
     throw new Error("No stencil image was returned.");
   }
-  return payload.stencilUrl;
+  return {
+    stencilUrl: payload.stencilUrl,
+    style: payload.style || style,
+    quota: payload.quota ?? null,
+  };
 }
