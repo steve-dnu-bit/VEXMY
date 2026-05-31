@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { useArtistSeats } from "@/hooks/useSubscription";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
+import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
 
 interface Profile {
   user_id: string;
@@ -118,17 +119,40 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      checkAdmin();
-      fetchData();
-    }
-  }, [user]);
-
-  const checkAdmin = async () => {
     if (!user) return;
-    const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    setIsAdmin(!!data);
-  };
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      const [adminRes, profilesRes, permsRes, rolesRes, defRes] = await Promise.all([
+        supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
+        supabase.from("profiles").select("user_id, display_name"),
+        supabase.from("user_permissions").select("user_id, feature, granted"),
+        supabase.from("user_roles").select("user_id, role"),
+        supabase.from("permission_role_defaults").select("role_template, feature, granted"),
+      ]);
+      if (cancelled) return;
+
+      setIsAdmin(!!adminRes.data);
+      if (profilesRes.data) setProfiles(profilesRes.data);
+      if (permsRes.data) setPermissions(permsRes.data);
+      if (rolesRes.data) {
+        const map: Record<string, string[]> = {};
+        (rolesRes.data as RoleRow[]).forEach((r) => {
+          if (!map[r.user_id]) map[r.user_id] = [];
+          map[r.user_id].push(r.role);
+        });
+        setRolesByUser(map);
+      }
+      if (defRes.data) setDefaults(defRes.data);
+      setLoading(false);
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const fetchData = async () => {
     const [profilesRes, permsRes, rolesRes, defRes] = await Promise.all([
@@ -148,7 +172,6 @@ const AdminPage = () => {
       setRolesByUser(map);
     }
     if (defRes.data) setDefaults(defRes.data);
-    setLoading(false);
   };
 
   const isPureCustomer = (userId: string) => {
@@ -308,7 +331,17 @@ const AdminPage = () => {
     }
     toast.success(t("admin.scheduleReset"));
   };
-  if (!isAdmin && !loading) {
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
