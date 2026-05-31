@@ -34,10 +34,10 @@ Hard requirements (all styles):
 // the default and matches the original behaviour.
 const STENCIL_STYLES: Record<string, { label: string; prompt: string }> = {
   valoonia: {
-    label: "Bang Bang · signature line",
+    label: "Stefan Dinu · signature line",
     prompt: `${STENCIL_BASE}
 
-Style — Valoonia / pro transfer line-art:
+Style — signature pro transfer line-art:
 - Smooth, continuous, intentional contours
 - Remove all shading and tonal rendering; represent form with clean linework only
 - Varying line weight: slightly bolder outer contours, finer interior detail lines

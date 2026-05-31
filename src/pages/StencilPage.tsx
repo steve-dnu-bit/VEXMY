@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
 import { StencilCompare } from "@/components/stencil/StencilCompare";
+import { StencilStylePreview } from "@/components/stencil/StencilStylePreview";
 import { generateAiStencil, STENCIL_STYLES, DEFAULT_STENCIL_STYLE, StencilQuotaError, type StencilStyle } from "@/lib/aiStencil";
 import {
   DEFAULT_STENCIL_SETTINGS,
@@ -235,26 +236,59 @@ const StencilPage = () => {
                 {mode === "ai" && (
                   <div>
                     <div className="text-xs text-muted-foreground mb-1.5">{t("stencil.styleLabel")}</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {STENCIL_STYLES.map((s) => (
-                        <Button
-                          key={s.id}
-                          type="button"
-                          size="sm"
-                          variant={style === s.id ? "gold" : "outline"}
-                          className="w-full"
-                          onClick={() => setStyle(s.id)}
-                        >
-                          {t(s.labelKey)}
-                        </Button>
-                      ))}
+                    <div className="grid grid-cols-3 gap-2">
+                      {STENCIL_STYLES.map((s) => {
+                        const selected = style === s.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setStyle(s.id)}
+                            aria-pressed={selected}
+                            className={`group flex flex-col items-center gap-1.5 rounded-lg border p-2 text-center transition-colors ${
+                              selected
+                                ? "border-primary ring-1 ring-primary bg-primary/5"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <span className="block w-full aspect-square overflow-hidden rounded-md border border-border bg-white">
+                              <StencilStylePreview styleId={s.id} />
+                            </span>
+                            <span className="block w-full truncate text-[11px] font-medium leading-tight">
+                              {t(s.nameKey)}
+                            </span>
+                            <span className="block w-full truncate text-[10px] leading-tight text-muted-foreground">
+                              {t(s.descKey)}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">{t("stencil.stylePreviewHint")}</p>
                     {quota && quota.limit > 0 && (
-                      <p className="mt-2 text-[11px] text-muted-foreground">
-                        {quota.remaining > 0
-                          ? t("stencil.quotaRemaining", { remaining: quota.remaining, limit: quota.limit })
-                          : t("stencil.quotaExhausted", { limit: quota.limit })}
-                      </p>
+                      <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/60 px-3 py-2">
+                        <div>
+                          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                            {t("stencil.quotaCountdownTitle")}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">{t("stencil.quotaResetNote")}</div>
+                        </div>
+                        <div className="text-right">
+                          <div
+                            className={`font-display text-xl font-bold leading-none ${
+                              quota.remaining > 0 ? "text-gradient-gold" : "text-destructive"
+                            }`}
+                          >
+                            {quota.remaining}
+                            <span className="text-sm font-normal text-muted-foreground">/{quota.limit}</span>
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">
+                            {quota.remaining > 0
+                              ? t("stencil.quotaCountdownValue", { remaining: quota.remaining, limit: quota.limit })
+                              : t("stencil.quotaExhausted", { limit: quota.limit })}
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}

@@ -6,14 +6,15 @@ import { loadImage, readFileAsDataUrl } from "@/lib/stencilImage";
 const MAX_UPLOAD_SIDE = 1536;
 
 // Available AI stencil styles. `id` is sent to the function (must match the
-// keys in netlify/functions/generate-stencil.mts); `labelKey` is an i18n key.
+// keys in netlify/functions/generate-stencil.mts). `nameKey` is the artist name
+// shown on the style card; `descKey` is the short technique descriptor below it.
 export const STENCIL_STYLES = [
-  { id: "valoonia", labelKey: "stencil.styleValoonia" },
-  { id: "bold", labelKey: "stencil.styleBold" },
-  { id: "fineline", labelKey: "stencil.styleFineline" },
-  { id: "sketch", labelKey: "stencil.styleSketch" },
-  { id: "dotwork", labelKey: "stencil.styleDotwork" },
-  { id: "blackwork", labelKey: "stencil.styleBlackwork" },
+  { id: "valoonia", nameKey: "stencil.styleValooniaName", descKey: "stencil.styleValooniaDesc" },
+  { id: "bold", nameKey: "stencil.styleBoldName", descKey: "stencil.styleBoldDesc" },
+  { id: "fineline", nameKey: "stencil.styleFinelineName", descKey: "stencil.styleFinelineDesc" },
+  { id: "sketch", nameKey: "stencil.styleSketchName", descKey: "stencil.styleSketchDesc" },
+  { id: "dotwork", nameKey: "stencil.styleDotworkName", descKey: "stencil.styleDotworkDesc" },
+  { id: "blackwork", nameKey: "stencil.styleBlackworkName", descKey: "stencil.styleBlackworkDesc" },
 ] as const;
 
 export type StencilStyle = (typeof STENCIL_STYLES)[number]["id"];
