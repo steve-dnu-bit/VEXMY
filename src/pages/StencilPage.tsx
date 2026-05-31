@@ -254,12 +254,12 @@ const StencilPage = () => {
               <div className="space-y-3 mt-4">
                 <div>
                   <div className="text-xs text-muted-foreground mb-1.5">{t("stencil.engine")}</div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 items-stretch">
                     <Button
                       type="button"
                       size="sm"
                       variant={mode === "ai" ? "gold" : "outline"}
-                      className="w-full"
+                      className="h-auto min-h-9 w-full whitespace-normal py-1.5 text-center leading-tight"
                       onClick={() => setMode("ai")}
                     >
                       {t("stencil.engineAi")}
@@ -268,7 +268,7 @@ const StencilPage = () => {
                       type="button"
                       size="sm"
                       variant={mode === "local" ? "gold" : "outline"}
-                      className="w-full"
+                      className="h-auto min-h-9 w-full whitespace-normal py-1.5 text-center leading-tight"
                       onClick={() => setMode("local")}
                     >
                       {t("stencil.engineLocal")}
@@ -285,7 +285,7 @@ const StencilPage = () => {
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
                         {t("stencil.quotaCountdownTitle")}
                       </div>
-                      <div className="text-[11px] text-muted-foreground">{t("stencil.quotaResetNote")}</div>
+                      <div className="text-[11px] text-muted-foreground">{t("stencil.quotaResetNote", { limit: quota.limit })}</div>
                     </div>
                     <div className="text-right">
                       <div

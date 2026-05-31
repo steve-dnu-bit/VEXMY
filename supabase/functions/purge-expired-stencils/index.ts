@@ -1,5 +1,5 @@
 // Scheduled cleanup: delete generated stencils (storage objects + database
-// rows) once their 12-hour retention window has elapsed.
+// rows) once their 24-hour retention window has elapsed.
 //
 // Invoked by pg_cron with the shared CRON_SECRET (see the
 // stencil_retention_cron migration). Runs with the service role so it can

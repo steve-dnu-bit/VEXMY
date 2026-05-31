@@ -16,13 +16,13 @@ export type RecentStencil = {
 };
 
 /**
- * List the current user's stencils generated in the last 12 hours — the window
+ * List the current user's stencils generated in the last 24 hours — the window
  * during which generated stencils are retained before the scheduled purge job
  * removes them. Used to populate the "recent stencils" folder so artists can
  * re-open and re-download anything made earlier in the session.
  */
 export async function fetchRecentStencils(userId: string): Promise<RecentStencil[]> {
-  const since = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("stencils")
     .select("id, original_image_url, stencil_image_url, created_at")
@@ -132,7 +132,7 @@ export async function downloadStencilAndDelete(session: StencilSession, stencilD
 
 /**
  * Download the stencil without deleting it. Generated stencils are retained for
- * 12 hours and then removed automatically by the scheduled purge job, so the
+ * 24 hours and then removed automatically by the scheduled purge job, so the
  * artist can re-download within that window.
  */
 export async function downloadStencilOnly(stencilDataUrl: string) {
