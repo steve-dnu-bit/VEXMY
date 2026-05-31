@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { buildStaffQuickReplies } from "@/lib/chatQuickReplies";
@@ -68,6 +69,7 @@ interface Props {
 
 const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   const { user } = useAuth();
+  const { roles } = useUserRoles();
   const { t } = useTranslation();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
@@ -214,23 +216,49 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
 
   const fetchCustomers = async () => {
     if (!user || mode !== "staff") return;
+    const byId = new Map<string, CustomerOption>();
+
     const { data: roleRows } = await supabase.from("user_roles").select("user_id, role").eq("role", "customer");
     const customerIds = [...new Set((roleRows || []).map((r: any) => r.user_id).filter(Boolean))] as string[];
-    if (customerIds.length === 0) {
-      setCustomers([]);
-      return;
+
+    if (customerIds.length > 0) {
+      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", customerIds);
+      (profiles || []).forEach((p: any) => {
+        const name = (p.display_name || "").trim();
+        if (!name) return;
+        byId.set(p.user_id, { id: p.user_id, name });
+      });
     }
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, display_name, customer_profile_completed")
-      .in("user_id", customerIds)
-      .eq("customer_profile_completed", true);
-    setCustomers(
-      (profiles || []).map((p: any) => ({
-        id: p.user_id,
-        name: p.display_name || p.user_id,
-      })),
-    );
+
+    const isAdmin = roles.includes("admin");
+    let bookingQuery = supabase.from("bookings").select("client_user_id, client_name").not("client_user_id", "is", null);
+    if (!isAdmin) {
+      bookingQuery = bookingQuery.eq("artist_id", user.id);
+    }
+    const { data: bookingLinks } = await bookingQuery;
+
+    const bookingUserIds = [...new Set((bookingLinks || []).map((b: any) => b.client_user_id).filter(Boolean))] as string[];
+    const missingProfileIds = bookingUserIds.filter((id) => !byId.has(id));
+
+    if (missingProfileIds.length > 0) {
+      const { data: linkedProfiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name")
+        .in("user_id", missingProfileIds);
+      (linkedProfiles || []).forEach((p: any) => {
+        byId.set(p.user_id, { id: p.user_id, name: (p.display_name || "").trim() || p.user_id });
+      });
+    }
+
+    (bookingLinks || []).forEach((b: any) => {
+      if (!b.client_user_id || byId.has(b.client_user_id)) return;
+      byId.set(b.client_user_id, {
+        id: b.client_user_id,
+        name: (b.client_name || "").trim() || b.client_user_id,
+      });
+    });
+
+    setCustomers([...byId.values()].sort((a, b) => a.name.localeCompare(b.name)));
   };
 
   const fetchThreadData = async (threadId: string) => {
@@ -292,7 +320,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     void fetchThreads();
     void fetchArtists();
     void fetchCustomers();
-  }, [user, mode]);
+  }, [user, mode, roles]);
 
   useEffect(() => {
     latestThreadsRef.current = threads;
@@ -355,20 +383,26 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   };
 
   useEffect(() => {
+    if (initialCustomerId && mode === "staff") {
+      setSelectedCustomerId(initialCustomerId);
+    }
+  }, [initialCustomerId, mode]);
+
+  useEffect(() => {
+    if (!user || mode !== "staff" || !selectedCustomerId) return;
+    void (async () => {
+      const threadId = await ensureStaffThread(selectedCustomerId);
+      if (threadId) setSelectedThreadId(threadId);
+    })();
+  }, [selectedCustomerId, user, mode]);
+
+  useEffect(() => {
     if (!user || mode !== "customer" || !selectedArtistId) return;
     void (async () => {
       const threadId = await ensureCustomerThread(selectedArtistId);
       if (threadId) setSelectedThreadId(threadId);
     })();
   }, [selectedArtistId, user, mode]);
-
-  useEffect(() => {
-    if (!user || mode !== "staff" || !initialCustomerId) return;
-    void (async () => {
-      const threadId = await ensureStaffThread(initialCustomerId);
-      if (threadId) setSelectedThreadId(threadId);
-    })();
-  }, [initialCustomerId, user, mode, threads.length]);
 
   const ensureCustomerThread = async (artistId?: string) => {
     if (!user || mode !== "customer") return null;
@@ -558,6 +592,14 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       threadId = await ensureCustomerThread();
       if (threadId) setSelectedThreadId(threadId);
     }
+    if (!threadId && mode === "staff") {
+      if (!selectedCustomerId) {
+        toast.error(t("chat.chooseCustomerFirst"));
+        return;
+      }
+      threadId = await ensureStaffThread(selectedCustomerId);
+      if (threadId) setSelectedThreadId(threadId);
+    }
     if (!threadId) return;
     setSending(true);
     const { error } = await supabase.from("chat_messages" as any).insert({
@@ -586,6 +628,14 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     let threadId = selectedThreadId;
     if (!threadId && mode === "customer") {
       threadId = await ensureCustomerThread();
+      if (threadId) setSelectedThreadId(threadId);
+    }
+    if (!threadId && mode === "staff") {
+      if (!selectedCustomerId) {
+        toast.error(t("chat.chooseCustomerFirst"));
+        return;
+      }
+      threadId = await ensureStaffThread(selectedCustomerId);
       if (threadId) setSelectedThreadId(threadId);
     }
     if (!threadId) return;
@@ -670,6 +720,14 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     setMessageText(text);
   };
 
+  const handleSelectThread = (threadId: string) => {
+    setSelectedThreadId(threadId);
+    if (mode === "staff") {
+      const thread = threads.find((row) => row.id === threadId);
+      if (thread) setSelectedCustomerId(thread.customer_id);
+    }
+  };
+
   const quickReplies = useMemo(() => {
     if (mode !== "staff" || !bookingContext) return [];
     const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -682,7 +740,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
         mode={mode}
         threads={threads}
         selectedThreadId={selectedThreadId}
-        setSelectedThreadId={setSelectedThreadId}
+        setSelectedThreadId={handleSelectThread}
         latestByThread={latestByThread}
         unreadByThread={unreadByThread}
         labelForThread={labelForThread}

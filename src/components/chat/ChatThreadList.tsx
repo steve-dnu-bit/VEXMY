@@ -95,14 +95,25 @@ const ChatThreadList = ({
               <SelectValue placeholder={t("chat.chooseCustomer")} />
             </SelectTrigger>
             <SelectContent className="z-[70]">
-              {customers.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
+              {customers.length === 0 ? (
+                <p className="px-2 py-3 text-xs text-muted-foreground">{t("chat.noCustomersAvailable")}</p>
+              ) : (
+                customers.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="w-full h-8 text-xs" onClick={handleStartStaffChat}>
+          <p className="text-[11px] text-muted-foreground">{t("chat.staffChatHint")}</p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full h-8 text-xs"
+            onClick={handleStartStaffChat}
+            disabled={!selectedCustomerId}
+          >
             {t("chat.startChat")}
           </Button>
         </div>
@@ -111,22 +122,22 @@ const ChatThreadList = ({
     {threads.length === 0 ? (
       <p className="p-3 text-xs text-muted-foreground">{t("chat.noChatsYet")}</p>
     ) : (
-      threads.map((t) => {
-        const label = labelForThread(t);
-        const preview = latestByThread[t.id]?.body || t("chat.noMessagesYet");
-        const unread = unreadByThread[t.id] || 0;
+      threads.map((thread) => {
+        const label = labelForThread(thread);
+        const preview = latestByThread[thread.id]?.body || t("chat.noMessagesYet");
+        const unread = unreadByThread[thread.id] || 0;
         return (
           <button
-            key={t.id}
-            onClick={() => setSelectedThreadId(t.id)}
-            className={`w-full text-left p-3 border-b text-xs hover:bg-secondary ${selectedThreadId === t.id ? "bg-secondary" : ""}`}
+            key={thread.id}
+            onClick={() => setSelectedThreadId(thread.id)}
+            className={`w-full text-left p-3 border-b text-xs hover:bg-secondary ${selectedThreadId === thread.id ? "bg-secondary" : ""}`}
           >
             <div className="flex items-center justify-between gap-2">
               <p className="font-medium truncate">{label}</p>
               {unread > 0 ? <span className="rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[10px]">{unread}</span> : null}
             </div>
             <p className="text-muted-foreground truncate">{preview}</p>
-            <p className="text-muted-foreground">{new Date(t.last_message_at || t.created_at).toLocaleString()}</p>
+            <p className="text-muted-foreground">{new Date(thread.last_message_at || thread.created_at).toLocaleString()}</p>
           </button>
         );
       })

@@ -839,6 +839,8 @@
     "chooseCustomer": "Choose customer",
     "startChat": "Start chat",
     "noChatsYet": "No chats yet.",
+    "noCustomersAvailable": "No portal customers yet. Invite clients from Admin, or link a booking to their account.",
+    "staffChatHint": "Pick a customer to open the chat, then send your message.",
     "noMessagesYet": "No messages yet",
     "selectChat": "Select chat",
     "typing": "typing...",
