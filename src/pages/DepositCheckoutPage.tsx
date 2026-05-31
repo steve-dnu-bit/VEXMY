@@ -47,7 +47,6 @@ const DepositCheckoutPage = () => {
         .from("bookings")
         .select("id, artist_id, client_name, starts_at, booking_type, status, deposit_paid, vip_client")
         .eq("id", bookingId)
-        .eq("client_user_id", user.id)
         .maybeSingle();
 
       if (cancelled) return;

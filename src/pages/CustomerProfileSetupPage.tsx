@@ -126,6 +126,8 @@ const CustomerProfileSetupPage = () => {
 
       if (profileError) throw profileError;
 
+      await supabase.rpc("link_my_bookings_by_email");
+
       toast({ title: t("customer.profileCompleted") });
       navigate("/account");
     } catch (err: unknown) {

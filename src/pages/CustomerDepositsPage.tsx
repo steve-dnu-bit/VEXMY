@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { format, parseISO, startOfDay } from "date-fns";
 import { toast } from "sonner";
 import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
+import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { useTranslation } from "react-i18next";
 
 type BookingDepositRow = {
@@ -35,7 +36,7 @@ const CustomerDepositsPage = () => {
     const { data, error } = await supabase
       .from("bookings")
       .select("id, starts_at, booking_type, status, deposit_paid, vip_client")
-      .eq("client_user_id", user.id)
+      .or(buildCustomerBookingsOrFilter(user.id, user.email))
       .order("starts_at", { ascending: true });
     if (error) {
       toast.error(error.message || t("customer.couldNotLoadDeposits"));
@@ -44,7 +45,7 @@ const CustomerDepositsPage = () => {
     }
     setRows((data as BookingDepositRow[]) || []);
     setLoading(false);
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,7 +77,6 @@ const CustomerDepositsPage = () => {
           .from("bookings")
           .select("id, deposit_paid")
           .eq("id", targetBookingId)
-          .eq("client_user_id", user?.id || "")
           .maybeSingle();
         const bookingRow = data as Pick<BookingDepositRow, "id" | "deposit_paid"> | null;
         if (bookingRow?.deposit_paid) {

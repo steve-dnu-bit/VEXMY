@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { CLIENT_CONDUCT_THRESHOLDS } from "@/lib/clientConduct";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { bookingEligibleForConsent } from "@/lib/bookingTypes";
+import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { useTranslation } from "react-i18next";
 
 type BookingRow = {
@@ -71,10 +72,11 @@ const CustomerAccountPage = () => {
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
 
   const loadAccountData = useCallback(async (targetUserId: string) => {
+    const loginEmail = (user?.email || "").trim().toLowerCase();
     const { data: rows } = await supabase
       .from("bookings")
       .select("id, artist_id, client_name, starts_at, ends_at, status, booking_type, service_category, tattoo_style, notes, deposit_paid, vip_client")
-      .eq("client_user_id", targetUserId)
+      .or(buildCustomerBookingsOrFilter(targetUserId, loginEmail))
       .order("starts_at", { ascending: true });
     const bookingRows = (rows as BookingRow[]) || [];
     setBookings(bookingRows);
