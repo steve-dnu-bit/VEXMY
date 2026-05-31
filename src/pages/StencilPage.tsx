@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
 import { StencilCompare } from "@/components/stencil/StencilCompare";
+import { generateAiStencil } from "@/lib/aiStencil";
 import {
   DEFAULT_STENCIL_SETTINGS,
   generateLocalStencil,
@@ -30,6 +31,7 @@ const StencilPage = () => {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [mode, setMode] = useState<"ai" | "local">("ai");
   const [settings, setSettings] = useState<LocalStencilSettings>(DEFAULT_STENCIL_SETTINGS);
   const sessionRef = useRef<StencilSession | null>(null);
 
@@ -80,7 +82,10 @@ const StencilPage = () => {
     try {
       await removeStoredSession(sessionRef.current);
 
-      const generated = await generateLocalStencil(file, settings);
+      const generated =
+        mode === "ai"
+          ? await generateAiStencil(file)
+          : await generateLocalStencil(file, settings);
       const stored = await persistStencilSession(user.id, file, generated);
       setSession(stored);
       sessionRef.current = stored;
@@ -164,33 +169,64 @@ const StencilPage = () => {
             {preview && (
               <div className="space-y-3 mt-4">
                 <div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{t("stencil.lineDetail")}</span>
-                    <span>{settings.detail}</span>
+                  <div className="text-xs text-muted-foreground mb-1.5">{t("stencil.engine")}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={mode === "ai" ? "gold" : "outline"}
+                      className="w-full"
+                      onClick={() => setMode("ai")}
+                    >
+                      {t("stencil.engineAi")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={mode === "local" ? "gold" : "outline"}
+                      className="w-full"
+                      onClick={() => setMode("local")}
+                    >
+                      {t("stencil.engineLocal")}
+                    </Button>
                   </div>
-                  <input
-                    type="range"
-                    min={1}
-                    max={10}
-                    value={settings.detail}
-                    onChange={(e) => set("detail", Number(e.target.value))}
-                    className="w-full"
-                  />
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    {mode === "ai" ? t("stencil.engineAiHint") : t("stencil.engineLocalHint")}
+                  </p>
                 </div>
-                <div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{t("stencil.lineSensitivity")}</span>
-                    <span>{settings.sensitivity}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={10}
-                    max={90}
-                    value={settings.sensitivity}
-                    onChange={(e) => set("sensitivity", Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
+
+                {mode === "local" && (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{t("stencil.lineDetail")}</span>
+                        <span>{settings.detail}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={settings.detail}
+                        onChange={(e) => set("detail", Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{t("stencil.lineSensitivity")}</span>
+                        <span>{settings.sensitivity}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={10}
+                        max={90}
+                        value={settings.sensitivity}
+                        onChange={(e) => set("sensitivity", Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <Button variant="gold" className="w-full gap-2" onClick={handleGenerate} disabled={loading}>
                   {loading ? (
@@ -202,6 +238,7 @@ const StencilPage = () => {
                   )}
                 </Button>
 
+                {mode === "local" && (
                 <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="w-full gap-2 text-muted-foreground">
@@ -317,6 +354,7 @@ const StencilPage = () => {
                     </Button>
                   </CollapsibleContent>
                 </Collapsible>
+                )}
               </div>
             )}
           </div>
@@ -356,7 +394,9 @@ const StencilPage = () => {
               <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-secondary aspect-square">
                 <p className="text-sm text-muted-foreground px-4 text-center">
                   {loading
-                    ? t("stencil.extractingLines")
+                    ? mode === "ai"
+                      ? t("stencil.renderingAi")
+                      : t("stencil.extractingLines")
                     : t("stencil.uploadPromptOutput")}
                 </p>
                 {loading && <Loader2 className="mt-3 h-6 w-6 animate-spin text-primary" />}

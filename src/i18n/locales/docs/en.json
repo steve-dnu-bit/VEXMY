@@ -237,7 +237,7 @@
           "paragraphs": [
             "Artists with stencil permission can upload reference images and generate stencil variations. Outputs are saved to the artist's stencil library."
           ],
-          "note": "Requires the generate-stencil edge function and API credentials configured for your studio."
+          "note": "AI mode renders professional Valoonia-grade stencils through Netlify AI Gateway, billed to your Netlify AI credits — no API keys to manage. Fast mode runs entirely in the browser and uses no credits."
         }
       ]
     },
