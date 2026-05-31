@@ -3,6 +3,9 @@ project_id = "tkremoxfkgoiuwghtzwd"
 [functions.send-test-email]
 verify_jwt = true
 
+[functions.email-delivery-test]
+verify_jwt = false
+
 [functions.booking-notifications]
 verify_jwt = false
 

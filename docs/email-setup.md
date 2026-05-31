@@ -5,9 +5,9 @@ Velbok uses email in **two places**. You must configure both for a complete setu
 | System | What it sends | Where to configure |
 |--------|----------------|-------------------|
 | **Supabase Auth** | Sign-up confirm, **password reset**, magic links | Supabase Dashboard → **Authentication** → **SMTP Settings** |
-| **Edge functions** | **Bookings**, invites, reminders, aftercare, invoices, deposits, chat | Supabase **Edge Function secrets** (`RESEND_API_KEY`, `EMAIL_FROM`, …) |
+| **Edge functions** | **Bookings**, invites, reminders, aftercare, invoices, deposits, chat | Supabase **Edge Function secrets** (`RESEND_API_KEY`, `SMTP_PASS`, `BOOKINGS_EMAIL_FROM`, `CRON_SECRET`, …) |
 
-**Password reset working but booking emails not?** Auth SMTP and Edge secrets are **separate**. You must set Edge Function secrets even if Auth SMTP is already configured. Run `.\scripts\setup-email-now.ps1` with the same Resend `re_...` key.
+**Password reset working but booking emails not?** Auth SMTP and Edge secrets are **separate**. Run `.\scripts\setup-booking-email.ps1` with the same Resend `re_...` key, then sync **`CRON_SECRET`** with vault secret `cron_secret` (see [supabase-secrets-dashboard.md](supabase-secrets-dashboard.md)).
 
 Consent PDF emails can optionally use **Resend API** (`RESEND_API_KEY`) in addition to SMTP.
 

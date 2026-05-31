@@ -1,28 +1,41 @@
-# Cron secret setup (reminders & aftercare)
+# Cron chain setup (reminders, aftercare, booking emails)
 
-After deploying security migrations, automated emails require a shared secret.
+Automated jobs share one secret between **Edge Functions** and **Supabase Vault**.
 
-1. Generate a long random string (e.g. 64+ chars).
-2. Set Edge Function secret (Dashboard → Edge Functions → Secrets, or CLI):
+## Quick setup (recommended)
 
-   ```bash
-   npx supabase secrets set CRON_SECRET="your-secret-here" --project-ref your-project-ref
-   ```
+```powershell
+cd inkaholics-29cc97fa-main
+npx supabase login
+.\scripts\setup-cron-chain.ps1
+```
 
-3. Store the same value in Supabase Vault (SQL Editor):
+## What runs on the chain
+
+| Trigger | Target | Schedule |
+|---------|--------|----------|
+| `pg_cron` | `send-booking-reminders` | Every 15 minutes |
+| `pg_cron` | `send-aftercare-emails` | Every 15 minutes |
+| DB trigger on `bookings` | `booking-notifications` | On insert/update/delete |
+
+Project URL: `https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1`
+
+## Manual steps
+
+1. Set Edge secret `CRON_SECRET` (random 32+ chars).
+2. Set vault secret `cron_secret` to the **same** value.
+3. Apply migrations (`npm run db:push`) or run:
 
    ```sql
-   SELECT vault.create_secret(
-     'your-secret-here',
-     'cron_secret',
-     'Cron auth for send-booking-reminders and send-aftercare-emails'
-   );
+   SELECT * FROM public.refresh_cron_jobs();
    ```
 
-4. Re-run the cron migration if jobs were scheduled before the vault secret existed:
+4. Set email secrets for actual sends: `.\scripts\setup-booking-email.ps1`
 
-   ```bash
-   npx supabase db push
-   ```
+## Verify
 
-`CRON_SECRET` in Edge Functions and `cron_secret` in Vault must match exactly.
+```sql
+SELECT jobname, schedule, active FROM cron.job WHERE jobname LIKE 'send-%';
+```
+
+`CRON_SECRET` (Edge) and `cron_secret` (Vault) must match exactly.
