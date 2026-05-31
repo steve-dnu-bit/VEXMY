@@ -10,7 +10,7 @@ type ThemeContextValue = {
   ready: boolean;
 };
 
-const THEME_STORAGE_KEY = "vexmy.appTheme";
+const THEME_STORAGE_KEY = "velbok.appTheme";
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 

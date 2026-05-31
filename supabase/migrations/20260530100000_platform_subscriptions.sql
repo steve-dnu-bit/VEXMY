@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE public.subscription_plans IS 'VexMy SaaS plan catalog. Stripe price IDs are set via env secrets at checkout time.';
+COMMENT ON TABLE public.subscription_plans IS 'Velbok SaaS plan catalog. Stripe price IDs are set via env secrets at checkout time.';
 COMMENT ON COLUMN public.subscription_plans.features IS 'Feature flags: stripe_deposits, invoicing, staff_inbox, stock, billing, dashboard, stencil, etc.';
 
 INSERT INTO public.subscription_plans (id, name, description, price_gbp_monthly, max_artist_seats, trial_days, features, sort_order, is_self_serve)

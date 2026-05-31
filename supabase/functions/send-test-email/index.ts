@@ -69,14 +69,14 @@ serve(async (req) => {
     const html = emailLayout({
       brand,
       badge: "Email test",
-      title: "VexMy email is working",
+      title: "Velbok email is working",
       intro: "If you received this message, your studio email configuration is correct.",
       bodyHtml: `<p style="margin:0;font-size:13px;color:#d7d7d7;">Sent at ${new Date().toISOString()} via the send-test-email function.</p>`,
     });
 
     const result = await sendTransactionalEmail({
       to,
-      subject: `VexMy email test — ${brand.shopName}`,
+      subject: `Velbok email test — ${brand.shopName}`,
       html,
       fromKind: "notification",
     });

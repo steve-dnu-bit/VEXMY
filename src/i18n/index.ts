@@ -13,19 +13,30 @@ import no from "./locales/no.json";
 import nl from "./locales/nl.json";
 import uk from "./locales/uk.json";
 import bg from "./locales/bg.json";
+import enDocs from "./locales/docs/en.json";
+import deDocs from "./locales/docs/de.json";
+import frDocs from "./locales/docs/fr.json";
+import roDocs from "./locales/docs/ro.json";
+import itDocs from "./locales/docs/it.json";
+import esDocs from "./locales/docs/es.json";
+import svDocs from "./locales/docs/sv.json";
+import noDocs from "./locales/docs/no.json";
+import nlDocs from "./locales/docs/nl.json";
+import ukDocs from "./locales/docs/uk.json";
+import bgDocs from "./locales/docs/bg.json";
 
 const resources = {
-  en: { translation: en },
-  de: { translation: de },
-  fr: { translation: fr },
-  ro: { translation: ro },
-  it: { translation: it },
-  es: { translation: es },
-  sv: { translation: sv },
-  no: { translation: no },
-  nl: { translation: nl },
-  uk: { translation: uk },
-  bg: { translation: bg },
+  en: { translation: en, docs: enDocs },
+  de: { translation: de, docs: deDocs },
+  fr: { translation: fr, docs: frDocs },
+  ro: { translation: ro, docs: roDocs },
+  it: { translation: it, docs: itDocs },
+  es: { translation: es, docs: esDocs },
+  sv: { translation: sv, docs: svDocs },
+  no: { translation: no, docs: noDocs },
+  nl: { translation: nl, docs: nlDocs },
+  uk: { translation: uk, docs: ukDocs },
+  bg: { translation: bg, docs: bgDocs },
 };
 
 void i18n
@@ -33,6 +44,8 @@ void i18n
   .use(initReactI18next)
   .init({
     resources,
+    ns: ["translation", "docs"],
+    defaultNS: "translation",
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
     interpolation: { escapeValue: false },

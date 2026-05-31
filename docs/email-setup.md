@@ -1,6 +1,6 @@
-# Email setup for VexMy
+# Email setup for Velbok
 
-VexMy uses email in **two places**. You must configure both for a complete setup.
+Velbok uses email in **two places**. You must configure both for a complete setup.
 
 | System | What it sends | Where to configure |
 |--------|----------------|-------------------|
@@ -13,12 +13,12 @@ Consent PDF emails can optionally use **Resend API** (`RESEND_API_KEY`) in addit
 
 ---
 
-## Recommendation: Resend (best fit for VexMy)
+## Recommendation: Resend (best fit for Velbok)
 
 **Why Resend over raw Gmail/Hotmail SMTP:**
 
 - Works with your existing code (nodemailer + SMTP — no code changes)
-- Good deliverability when you verify **vexmy.com**
+- Good deliverability when you verify **velbok.com**
 - Free tier: 3,000 emails/month, 100/day
 - Same provider can power Supabase Auth SMTP
 - Optional `RESEND_API_KEY` for consent emails already supported in code
@@ -29,17 +29,17 @@ Consent PDF emails can optionally use **Resend API** (`RESEND_API_KEY`) in addit
 |----------|----------|--------|
 | **Brevo** (Sendinblue) | You want a generous free SMTP relay | 300 emails/day free; SMTP relay in dashboard |
 | **Postmark** | High deliverability, paid transactional | Excellent for production shops |
-| **Microsoft 365 / Google Workspace** | You already pay for `you@vexmy.com` mailbox | OK for low volume; not ideal for bulk reminders |
+| **Microsoft 365 / Google Workspace** | You already pay for `you@velbok.com` mailbox | OK for low volume; not ideal for bulk reminders |
 | **Hotmail personal SMTP** | Quick test only | Often blocked, rate-limited, poor “from” branding |
 
-Avoid sending production mail from `@hotmail.com` — use **`no-reply@vexmy.com`** on your verified domain.
+Avoid sending production mail from `@hotmail.com` — use **`no-reply@velbok.com`** on your verified domain.
 
 ---
 
 ## Step 1 — Resend account & domain
 
 1. Sign up at [resend.com](https://resend.com).
-2. **Domains** → Add **`vexmy.com`**.
+2. **Domains** → Add **`velbok.com`**.
 3. Add the DNS records Resend shows (SPF + DKIM; add DMARC when ready):
    - Usually a TXT record for SPF
    - CNAME records for DKIM
@@ -54,7 +54,7 @@ Avoid sending production mail from `@hotmail.com` — use **`no-reply@vexmy.com`
 | `SMTP_PORT` | `465` (SSL) or `587` (STARTTLS) |
 | `SMTP_USER` | `resend` |
 | `SMTP_PASS` | Your Resend API key (`re_…`) |
-| `EMAIL_FROM` | `VexMy <no-reply@vexmy.com>` |
+| `EMAIL_FROM` | `Velbok <no-reply@velbok.com>` |
 
 Use a verified address on your domain for `EMAIL_FROM`.
 
@@ -77,11 +77,11 @@ npx supabase secrets set `
   SMTP_PORT=465 `
   SMTP_USER=resend `
   SMTP_PASS=re_YOUR_API_KEY `
-  EMAIL_FROM="VexMy <no-reply@vexmy.com>" `
-  SITE_URL=https://vexmy.com `
-  SHOP_SUPPORT_EMAIL=no-reply@vexmy.com `
-  SHOP_NAME="VexMy" `
-  SHOP_WEBSITE_URL=https://vexmy.com
+  EMAIL_FROM="Velbok <no-reply@velbok.com>" `
+  SITE_URL=https://velbok.com `
+  SHOP_SUPPORT_EMAIL=no-reply@velbok.com `
+  SHOP_NAME="Velbok" `
+  SHOP_WEBSITE_URL=https://velbok.com
 ```
 
 Optional consent via Resend HTTP API:
@@ -96,9 +96,9 @@ Secrets apply to all deployed edge functions automatically (no redeploy required
 
 ## Step 3 — Supabase Auth SMTP (password reset & signup)
 
-This fixes **Forgot password** on vexmy.com.
+This fixes **Forgot password** on velbok.com.
 
-1. Supabase Dashboard → project **vexmy** (`tkremoxfkgoiuwghtzwd`)
+1. Supabase Dashboard → project **Velbok** (`tkremoxfkgoiuwghtzwd`)
 2. **Authentication** → **SMTP Settings** → **Enable Custom SMTP**
 3. Enter:
 
@@ -108,14 +108,14 @@ This fixes **Forgot password** on vexmy.com.
 | Port | `465` |
 | Username | `resend` |
 | Password | Resend API key |
-| Sender email | `no-reply@vexmy.com` |
-| Sender name | `VexMy` |
+| Sender email | `no-reply@velbok.com` |
+| Sender name | `Velbok` |
 
 4. **Authentication** → **URL Configuration** (if not done):
-   - Site URL: `https://vexmy.com`
-   - Redirect URLs: `https://vexmy.com/**`
+   - Site URL: `https://velbok.com`
+   - Redirect URLs: `https://velbok.com/**`
 
-5. **Authentication** → **Email Templates** — paste HTML that matches the VexMy dark/gold style (see `docs/supabase-auth-email-templates.html`).
+5. **Authentication** → **Email Templates** — paste HTML that matches the Velbok dark/gold style (see `docs/supabase-auth-email-templates.html`).
 
 6. Send a **test email** from SMTP settings if available, or trigger forgot-password on `/auth`.
 
@@ -152,9 +152,9 @@ npx supabase functions deploy booking-notifications send-booking-reminders creat
 
 ### Auth (login / reset)
 
-1. Open https://vexmy.com/auth → **Forgot your password?**
+1. Open https://velbok.com/auth → **Forgot your password?**
 2. Use your admin email → check inbox (and spam).
-3. Link should go to `https://vexmy.com/auth?mode=recovery`.
+3. Link should go to `https://velbok.com/auth?mode=recovery`.
 
 ### Edge functions (studio emails)
 
@@ -174,15 +174,15 @@ Check Supabase → **Edge Functions** → **Logs** if mail fails.
 |---------|-----|
 | No auth emails | Enable Custom SMTP in Supabase Auth; verify domain in Resend |
 | “SMTP is not configured” in logs | Run `set-email-secrets.ps1` or `supabase secrets set` |
-| Mail goes to spam | Complete DKIM + SPF; use `@vexmy.com` From address; avoid Hotmail From |
-| Reset link wrong host | Set `SITE_URL=https://vexmy.com` secret + Auth URL config |
+| Mail goes to spam | Complete DKIM + SPF; use `@velbok.com` From address; avoid Hotmail From |
+| Reset link wrong host | Set `SITE_URL=https://velbok.com` secret + Auth URL config |
 | Emails from wrong brand | Set `SHOP_NAME`, `SHOP_SUPPORT_EMAIL`, `EMAIL_FROM` secrets |
 
 ---
 
 ## Per-studio deployments (future)
 
-Each tenant studio can use its own `EMAIL_FROM` and `SHOP_*` secrets on their Supabase project. Platform mail (`no-reply@vexmy.com`) stays on the main VexMy marketing/auth instance.
+Each tenant studio can use its own `EMAIL_FROM` and `SHOP_*` secrets on their Supabase project. Platform mail (`no-reply@velbok.com`) stays on the main Velbok marketing/auth instance.
 
 ---
 

@@ -1,5 +1,5 @@
-const SCHEDULE_ARTIST_COLORS_KEY = "vexmy.scheduleArtistColors";
-const PORTAL_THEME_KEY_PREFIX = "vexmy.portalTheme.";
+const SCHEDULE_ARTIST_COLORS_KEY = "velbok.scheduleArtistColors";
+const PORTAL_THEME_KEY_PREFIX = "velbok.portalTheme.";
 
 export type ArtistColorMap = Record<string, string>;
 

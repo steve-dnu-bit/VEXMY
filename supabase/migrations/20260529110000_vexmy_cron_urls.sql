@@ -1,4 +1,4 @@
--- Point pg_cron jobs at the VexMy Supabase project (tkremoxfkgoiuwghtzwd).
+-- Point pg_cron jobs at the Velbok Supabase project (tkremoxfkgoiuwghtzwd).
 
 DO $$
 DECLARE

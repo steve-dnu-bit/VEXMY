@@ -1,6 +1,6 @@
-# VexMy
+# Velbok
 
-VexMy is a subscription-ready tattoo studio management platform. It provides scheduling, client CRM, deposits, consent forms, invoicing, customer portal, messaging, stock management, and automated email workflows.
+Velbok is a subscription-ready tattoo studio management platform. It provides scheduling, client CRM, deposits, consent forms, invoicing, customer portal, messaging, stock management, and automated email workflows.
 
 Built with React, Vite, TypeScript, Tailwind, and Supabase.
 
@@ -74,11 +74,11 @@ Each deployment can customize branding via environment variables (frontend `VITE
 
 - **Product docs (web):** `/docs` on your deployed site — source in `src/lib/docsContent.ts`
 - **User guide index:** [docs/user-guide/README.md](docs/user-guide/README.md)
-- **Go-live checklist:** [docs/vexmy-go-live-checklist.md](docs/vexmy-go-live-checklist.md)
+- **Go-live checklist:** [docs/Velbok-go-live-checklist.md](docs/Velbok-go-live-checklist.md)
 
 ## Marketing site
 
-Public routes on vexmy.com:
+Public routes on velbok.com:
 
 | Route | Purpose |
 |-------|---------|
@@ -88,9 +88,9 @@ Public routes on vexmy.com:
 | `/contact` | Contact & sales form |
 | `/auth` | Studio app login |
 
-## Production (vexmy.com / Netlify)
+## Production (velbok.com / Netlify)
 
-See **[docs/vexmy-go-live-checklist.md](docs/vexmy-go-live-checklist.md)** for login, Supabase redirect URLs, Netlify env vars, and edge function secrets.
+See **[docs/Velbok-go-live-checklist.md](docs/Velbok-go-live-checklist.md)** for login, Supabase redirect URLs, Netlify env vars, and edge function secrets.
 
 **Branch + manual preview (save build credits):** **[docs/deploy-workflow.md](docs/deploy-workflow.md)** — push a feature branch, `npm run deploy:preview`, then `npm run deploy:prod` when ready.
 

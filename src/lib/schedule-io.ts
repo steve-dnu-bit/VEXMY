@@ -1,4 +1,4 @@
-/** VexMy schedule export/import (JSON + CSV) */
+/** Velbok schedule export/import (JSON + CSV) */
 
 export interface ScheduleBookingPayload {
   client_name: string;
@@ -28,7 +28,7 @@ export function buildScheduleJSON(
   dateRange?: { from: string; to: string }
 ): string {
   const payload: ScheduleExportFile = {
-    app: "vexmy",
+    app: "velbok",
     version: 1,
     exportedAt: new Date().toISOString(),
     dateRange,

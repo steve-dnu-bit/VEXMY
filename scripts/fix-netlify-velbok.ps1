@@ -1,8 +1,8 @@
-# Fix VexMy Netlify build settings (run after: npx netlify login)
-# Usage: .\scripts\fix-netlify-vexmy.ps1 [-SiteName "vexmy"]
+# Fix Velbok Netlify build settings (run after: npx netlify login)
+# Usage: .\scripts\fix-netlify-velbok.ps1 [-SiteName "velbok"]
 
 param(
-  [string]$SiteName = "vexmy"
+  [string]$SiteName = "velbok"
 )
 
 $ErrorActionPreference = "Stop"

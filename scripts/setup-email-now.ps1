@@ -7,7 +7,7 @@ Set-Location (Join-Path $PSScriptRoot "..")
 $projectRef = "tkremoxfkgoiuwghtzwd"
 
 Write-Host ""
-Write-Host "=== VexMy email setup (about 2 minutes) ===" -ForegroundColor Cyan
+Write-Host "=== Velbok email setup (about 2 minutes) ===" -ForegroundColor Cyan
 Write-Host ""
 
 function Get-SupabaseAccessToken {
@@ -51,12 +51,12 @@ npx supabase secrets set `
     SMTP_USER=resend `
     "SMTP_PASS=$key" `
     "RESEND_API_KEY=$key" `
-    "BOOKINGS_EMAIL_FROM=VexMy <bookings@vexmy.com>" `
-    "NOTIFICATIONS_EMAIL_FROM=VexMy <notifications@vexmy.com>" `
-    SHOP_SUPPORT_EMAIL=bookings@vexmy.com `
-    SHOP_NAME=VexMy `
-    SHOP_WEBSITE_URL=https://vexmy.com `
-    SITE_URL=https://vexmy.com `
+    "BOOKINGS_EMAIL_FROM=Velbok <bookings@velbok.com>" `
+    "NOTIFICATIONS_EMAIL_FROM=Velbok <notifications@velbok.com>" `
+    SHOP_SUPPORT_EMAIL=bookings@velbok.com `
+    SHOP_NAME=Velbok `
+    SHOP_WEBSITE_URL=https://velbok.com `
+    SITE_URL=https://velbok.com `
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Secrets failed. Try: npx supabase login" -ForegroundColor Red
@@ -96,9 +96,9 @@ $authBody = @{
     smtp_port                            = "465"
     smtp_user                            = "resend"
     smtp_pass                            = $key
-    smtp_admin_email                     = "no-reply@vexmy.com"
-    smtp_sender_name                     = "VexMy"
-    site_url                             = "https://vexmy.com"
+    smtp_admin_email                     = "no-reply@velbok.com"
+    smtp_sender_name                     = "Velbok"
+    site_url                             = "https://velbok.com"
 } | ConvertTo-Json
 
 try {
@@ -119,5 +119,5 @@ try {
 
 Write-Host ""
 Write-Host "=== Done ===" -ForegroundColor Green
-Write-Host "Test: https://vexmy.com/auth -> Forgot your password?" -ForegroundColor Cyan
+Write-Host "Test: https://velbok.com/auth -> Forgot your password?" -ForegroundColor Cyan
 Write-Host ""

@@ -16,7 +16,7 @@ export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 
 export const DEFAULT_LANGUAGE: AppLanguage = "en";
 
-export const LANGUAGE_STORAGE_KEY = "vexmy.appLanguage";
+export const LANGUAGE_STORAGE_KEY = "velbok.appLanguage";
 
 export function isAppLanguage(value: string | null | undefined): value is AppLanguage {
   return SUPPORTED_LANGUAGES.some((l) => l.code === value);

@@ -13,7 +13,7 @@ export interface ShopBranding {
 }
 
 export function getShopBranding(): ShopBranding {
-  const platformName = Deno.env.get("PLATFORM_NAME") || "VexMy";
+  const platformName = Deno.env.get("PLATFORM_NAME") || "Velbok";
   const shopName = Deno.env.get("SHOP_NAME") || platformName;
   const legalName = Deno.env.get("SHOP_LEGAL_NAME") || "Your Studio Ltd";
   const tradingName = Deno.env.get("SHOP_TRADING_NAME") || shopName;

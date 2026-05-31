@@ -1,4 +1,4 @@
--- VexMy platform: shop settings table and removal of legacy Inkaholics/Skin Art branding.
+-- Velbok platform: shop settings table and removal of legacy Inkaholics/Skin Art branding.
 
 CREATE TABLE IF NOT EXISTS public.shop_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

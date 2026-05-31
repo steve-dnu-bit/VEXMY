@@ -1,0 +1,324 @@
+{
+  "indexTitle": "Dokumentation",
+  "indexSubtitle": "Anleitungen für Studio-Mitarbeiter, Admins und technische Einrichtung. Wählen Sie ein Thema in der Seitenleiste oder stöbern Sie unten nach Kategorie.",
+  "allDocs": "Alle Dokumente",
+  "breadcrumb": "Docs",
+  "next": "Weiter: {{title}} →",
+  "categories": {
+    "start": "Erste Schritte",
+    "staff": "Mitarbeiter-App",
+    "clients": "Kunden & Portal",
+    "ops": "Betrieb",
+    "admin": "Admin & Einrichtung"
+  },
+  "pages": {
+    "getting-started": {
+      "title": "Erste Schritte",
+      "description": "Überblick über Velbok und die Nutzung der Plattform in Ihrem Studio.",
+      "sections": [
+        {
+          "heading": "Was ist Velbok?",
+          "paragraphs": [
+            "Velbok ist eine cloudbasierte Studio-Management-Plattform für Tattoo- und Piercing-Studios. Sie vereint Terminplanung, Kundenakten, Anzahlungen, Einwilligungsformulare, Rechnungsstellung, Nachrichten und ein Kundenportal in einer Anwendung.",
+            "Ihr Team meldet sich in der Studio-App (/auth) an. Kunden interagieren über optionale Kundenkonten und sichere Links für Anzahlungen und Einwilligungen."
+          ]
+        },
+        {
+          "heading": "Wer nutzt was",
+          "bullets": [
+            "Studioinhaber & Admins — voller Zugriff, Abrechnung, Berechtigungen, Einstellungen",
+            "Artists — Terminplan, Kunden, Stencils, Anzahlungen (je nach Berechtigung)",
+            "Empfang / Assistenten — Terminplan und Posteingang (wenn berechtigt)",
+            "Kunden — Portal für Buchungen, Zahlungen, Einwilligungen und Nachrichten"
+          ]
+        },
+        {
+          "heading": "Erste Anmeldung",
+          "paragraphs": [
+            "Verwenden Sie die E-Mail-Adresse und das Passwort, die Sie bei der Studio-Einrichtung erhalten haben. Wenn Sie Ihr Passwort vergessen haben, nutzen Sie Passwort vergessen auf der Anmeldeseite (erfordert eine konfigurierte E-Mail für Ihre Instanz).",
+            "Nach der Anmeldung werden Mitarbeiter zum Terminplan weitergeleitet. Kunden werden zu ihrem Konto-Portal weitergeleitet."
+          ]
+        }
+      ]
+    },
+    "schedule": {
+      "title": "Terminplan",
+      "description": "Termine buchen, Artists verwalten und Tages- oder Wochenkalender anzeigen.",
+      "sections": [
+        {
+          "heading": "Ansichten",
+          "bullets": [
+            "Tagesansicht — stündliches Raster für ausgewählte Artist(s)",
+            "Wochenansicht — Überblick über die gesamte Woche",
+            "Nach Artist filtern über die Kontrollkästchen in der Seitenleiste"
+          ]
+        },
+        {
+          "heading": "Termin anlegen",
+          "paragraphs": [
+            "Klicken Sie auf einen freien Slot oder nutzen Sie die Steuerung für neue Buchungen. Geben Sie Kundenname, Kontaktdaten, Leistungsart, Dauer und Notizen ein. Weisen Sie den zuständigen Artist zu.",
+            "Buchungstypen umfassen je nach Studio-Konfiguration Tattoo-Sitzungen, Beratungen, Nachstiche und Piercings."
+          ]
+        },
+        {
+          "heading": "Buchungsdetails",
+          "bullets": [
+            "Anzahlung als bezahlt markieren oder Zahlungslink für Anzahlung senden",
+            "Status aktualisieren (bestätigt, abgeschlossen, storniert, No-Show)",
+            "Kundenkonto verknüpfen, wenn der Kunde registriert ist",
+            "Einwilligungsformular für berechtigte Tattoo-/Piercing-Buchungen öffnen"
+          ]
+        },
+        {
+          "heading": "Tipps",
+          "note": "Artist-Farben und Seitenleisten-Einstellungen werden pro Gerät in Ihrem Browser gespeichert."
+        }
+      ]
+    },
+    "clients": {
+      "title": "Kunden & CRM",
+      "description": "Kundendatenbank importieren, durchsuchen und verwalten.",
+      "sections": [
+        {
+          "heading": "Kundenliste",
+          "paragraphs": [
+            "Der Bereich Kunden zeigt alle Personen, die Ihr Studio gebucht oder importiert hat. Suchen Sie nach Name, E-Mail oder Telefonnummer."
+          ]
+        },
+        {
+          "heading": "CSV-Import",
+          "bullets": [
+            "CSV mit Spalten für Name, E-Mail, Telefon und Notizen vorbereiten",
+            "Import auf der Kundenseite nutzen und Spalten zuordnen",
+            "Duplikate vor der Bestätigung prüfen"
+          ]
+        },
+        {
+          "heading": "Verhaltensnachverfolgung",
+          "paragraphs": [
+            "No-Shows, verspätete Stornierungen und Terminverschiebungen können erfasst werden. Admins können Kunden bei Bedarf von der Online-Buchung ausschließen."
+          ]
+        }
+      ]
+    },
+    "deposits": {
+      "title": "Anzahlungen & Zahlungen",
+      "description": "Anzahlungen über Stripe einziehen und Zahlungsstatus bei Buchungen verfolgen.",
+      "sections": [
+        {
+          "heading": "Stripe-Einrichtung",
+          "paragraphs": [
+            "Ihre Studio-Instanz muss von einem Administrator mit Stripe-Schlüsseln konfiguriert werden. Sobald aktiv, können Mitarbeiter Checkout-Links aus Buchungsdetails oder dem Bereich Anzahlungen generieren."
+          ]
+        },
+        {
+          "heading": "Anzahlungs-Workflow",
+          "bullets": [
+            "Termin im Terminplan anlegen oder öffnen",
+            "Anzahlungslink generieren und an den Kunden senden",
+            "Bei Zahlung zeigt die Buchung automatisch Anzahlung bezahlt (via Webhook)",
+            "VIP-Kunden können von Anzahlungen befreit sein, wenn dies bei der Buchung markiert ist"
+          ]
+        },
+        {
+          "heading": "Kundenzahlungsseite",
+          "paragraphs": [
+            "Kunden öffnen sichere Checkout-Links ohne Mitarbeiter-Anmeldung. Angemeldete Kunden können auch über ihr Konto-Portal unter Anzahlungen bezahlen."
+          ]
+        }
+      ]
+    },
+    "billing": {
+      "title": "Abrechnung & Rechnungen",
+      "description": "Rechnungen erstellen, Vorlagen nutzen und Zahlungsaufforderungen senden.",
+      "sections": [
+        {
+          "heading": "Rechnungen",
+          "bullets": [
+            "Rechnungen mit Kunden und Unternehmen verknüpfen",
+            "Positionen manuell oder aus gespeicherten Vorlagen hinzufügen",
+            "Rechnungs-E-Mails mit Stripe-Zahlung senden, wenn konfiguriert",
+            "Status verfolgen: Entwurf, gesendet, bezahlt, überfällig"
+          ]
+        },
+        {
+          "heading": "Unternehmen",
+          "paragraphs": [
+            "Studios mit separaten Rechtseinheiten können Buchungen und Rechnungen dem richtigen Unternehmensdatensatz für die Buchhaltung zuordnen."
+          ]
+        }
+      ]
+    },
+    "consent": {
+      "title": "Einwilligungsformulare",
+      "description": "Digitale Tattoo- und Piercing-Einwilligung mit Unterschriften und PDF-Export.",
+      "sections": [
+        {
+          "heading": "Wann verwenden",
+          "paragraphs": [
+            "Für berechtigte Tattoo- und Piercing-Termine ist eine Einwilligung erforderlich. Mitarbeiter oder Kunden füllen das Formular vor der Sitzung aus."
+          ]
+        },
+        {
+          "heading": "Ablauf",
+          "bullets": [
+            "Einwilligung aus einer Buchung öffnen oder Link an den Kunden senden",
+            "Kunde liest Gesundheitsfragen und Studio-Richtlinien",
+            "Elektronische Unterschrift mit Zeitstempel erfassen",
+            "PDF für Ihre Unterlagen speichern"
+          ]
+        },
+        {
+          "heading": "Datenspeicherung",
+          "paragraphs": [
+            "Einwilligungsdaten werden gemäß Ihrer Studio-Datenschutzrichtlinie zu rechtlichen, medizinischen und Versicherungszwecken aufbewahrt."
+          ]
+        }
+      ]
+    },
+    "customer-portal": {
+      "title": "Kundenportal",
+      "description": "Was Kunden sehen, wenn sie sich in ihr Konto anmelden.",
+      "sections": [
+        {
+          "heading": "Kontofunktionen",
+          "bullets": [
+            "Anstehende und vergangene Termine",
+            "Anzahlungen bezahlen und Rechnungsstatus einsehen",
+            "Einwilligungsformulare ausfüllen",
+            "Studio kontaktieren (wenn Posteingang aktiviert ist)",
+            "Profil- und Sicherheitseinstellungen"
+          ]
+        },
+        {
+          "heading": "Kunden einladen",
+          "paragraphs": [
+            "Admins laden Kunden über das Admin-Panel ein. Eingeladene Nutzer erhalten eine E-Mail zum Festlegen eines Passworts und Zugang zum Portal."
+          ]
+        }
+      ]
+    },
+    "inbox": {
+      "title": "Posteingang & Nachrichten",
+      "description": "Chat-Threads zwischen Mitarbeitern und Kunden mit optionalen E-Mail-Benachrichtigungen.",
+      "sections": [
+        {
+          "heading": "Threads",
+          "paragraphs": [
+            "Jedes Gespräch ist mit einem Kunden verknüpft. Mitarbeiter mit Posteingang-Berechtigung können antworten, Medien anhängen und bei Aktivität Tipp-Indikatoren sehen."
+          ]
+        },
+        {
+          "heading": "E-Mail-Benachrichtigungen",
+          "note": "Wenn SMTP konfiguriert ist, können Kunden E-Mail-Benachrichtigungen für neue Nachrichten erhalten. Konfigurieren Sie Vorlagen und Absenderdetails in Ihrer Studio-Umgebung."
+        }
+      ]
+    },
+    "stock": {
+      "title": "Lagerverwaltung",
+      "description": "Materialien, Lieferanten und Artist-Materialanfragen verfolgen.",
+      "sections": [
+        {
+          "heading": "Lagerartikel",
+          "bullets": [
+            "Katalog der Materialien mit Mengen pflegen",
+            "Artikel mit Lieferanten verknüpfen",
+            "Artists reichen Materialanfragen zur Genehmigung ein"
+          ]
+        }
+      ]
+    },
+    "stencil": {
+      "title": "Stencil-Tools",
+      "description": "KI-gestützte Stencil-Generierung für Artists.",
+      "sections": [
+        {
+          "heading": "Stencils nutzen",
+          "paragraphs": [
+            "Artists mit Stencil-Berechtigung können Referenzbilder hochladen und Stencil-Varianten generieren. Ausgaben werden in der Stencil-Bibliothek des Artists gespeichert."
+          ],
+          "note": "Erfordert die Edge-Funktion generate-stencil und für Ihr Studio konfigurierte API-Zugangsdaten."
+        }
+      ]
+    },
+    "admin": {
+      "title": "Admin & Berechtigungen",
+      "description": "Benutzer, Rollen und Funktionszugriff für Ihr Studio-Team.",
+      "sections": [
+        {
+          "heading": "Rollen",
+          "bullets": [
+            "Admin — voller Plattformzugriff einschließlich Benutzerverwaltung",
+            "Artist — Mitarbeiterzugriff je nach Berechtigung",
+            "Customer — nur Portal"
+          ]
+        },
+        {
+          "heading": "Berechtigungsmatrix",
+          "paragraphs": [
+            "Admins gewähren Zugriff pro Funktion: Terminplan, Posteingang, Abrechnung, Lager, Admin usw. Standardwerte gelten beim Einladen von Artists oder Kunden."
+          ]
+        },
+        {
+          "heading": "Mitarbeiter einladen",
+          "bullets": [
+            "Admin → Benutzer einladen → Artist oder Customer wählen",
+            "E-Mail und Anzeigename festlegen",
+            "Eingeladene Person schließt Registrierung und Profil-Einrichtung ab"
+          ]
+        }
+      ]
+    },
+    "settings": {
+      "title": "Einstellungen & Profil",
+      "description": "Artist-Profile, Portal-Design, Sicherheit und MFA.",
+      "sections": [
+        {
+          "heading": "Artist-Profil",
+          "bullets": [
+            "Anzeigename und öffentliche Bio für Kundenportal-Branding",
+            "Portal-Hintergrundfarbe und -bild",
+            "Öffentliche Kontaktlinks (Instagram, E-Mail, Telefon)"
+          ]
+        },
+        {
+          "heading": "Sicherheit",
+          "bullets": [
+            "Passwort in den Einstellungen ändern",
+            "Zwei-Faktor-Authentifizierung aktivieren (TOTP)",
+            "Aktive Sitzungen verwalten"
+          ]
+        }
+      ]
+    },
+    "setup": {
+      "title": "Studio-Einrichtungsleitfaden",
+      "description": "Technische Checkliste für den Start einer neuen Velbok-Studio-Instanz.",
+      "sections": [
+        {
+          "heading": "Umgebung",
+          "bullets": [
+            "Supabase-Projekt mit angewendeten Migrationen",
+            "VITE_SUPABASE_URL und anon key im Hosting (Netlify/Vercel)",
+            "Edge Functions mit Secrets deployed (Stripe, SMTP, CRON)",
+            "SITE_URL auf Ihre Studio-Domain für E-Mail-Links setzen"
+          ]
+        },
+        {
+          "heading": "Branding",
+          "bullets": [
+            "VITE_SHOP_NAME, Support-E-Mail und Akzentfarbe",
+            "shop_settings-Zeile in der Datenbank für rechtliche/Einwilligungstexte",
+            "Eigene Domain und SSL auf Ihrem Host"
+          ]
+        },
+        {
+          "heading": "Go-live",
+          "paragraphs": [
+            "Siehe docs/Velbok-go-live-checklist.md im Repository für Auth-URLs, Admin-Benutzer-Einrichtung und Produktions-Verifizierungsschritte."
+          ]
+        }
+      ]
+    }
+  }
+}

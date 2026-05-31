@@ -39,7 +39,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: "£39.50",
     period: "/ month",
     tagline: "Growing shop",
-    description: "The full VexMy toolkit for busy studios — up to 6 artists and front-desk staff.",
+    description: "The full Velbok toolkit for busy studios — up to 6 artists and front-desk staff.",
     seats: "Up to 6 artist seats",
     features: [
       "Everything in Starter",
@@ -87,7 +87,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Are Stripe fees included?",
-    a: "No. Card processing fees are charged by Stripe on top of your subscription. VexMy integrates with your Stripe account for deposits and invoices.",
+    a: "No. Card processing fees are charged by Stripe on top of your subscription. Velbok integrates with your Stripe account for deposits and invoices.",
   },
   {
     q: "Can I switch plans later?",

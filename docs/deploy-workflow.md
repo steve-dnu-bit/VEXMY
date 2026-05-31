@@ -1,6 +1,6 @@
 # Deploy workflow (branch + manual preview)
 
-Use this workflow to **save Netlify build minutes**: work on a Git branch, build locally, and deploy a preview only when you choose. Production (`vexmy.com`) stays on `main` until you deploy it manually.
+Use this workflow to **save Netlify build minutes**: work on a Git branch, build locally, and deploy a preview only when you choose. Production (`velbok.com`) stays on `main` until you deploy it manually.
 
 ## One-time Netlify setup
 
@@ -12,7 +12,7 @@ Use this workflow to **save Netlify build minutes**: work on a Git branch, build
    npx netlify-cli link
    ```
 
-   Pick the **vexmy.com** site when prompted.
+   Pick the **velbok.com** site when prompted.
 
 2. **Turn off automatic builds** (saves credits):
 
@@ -64,7 +64,7 @@ Or:
 .\scripts\deploy-preview.ps1
 ```
 
-Netlify prints a **Draft URL** (e.g. `https://abc123--vexmy.netlify.app`). Share that link to review changes. This uploads your local `dist/` folder — **no remote build**, minimal credit use.
+Netlify prints a **Draft URL** (e.g. `https://abc123--Velbok.netlify.app`). Share that link to review changes. This uploads your local `dist/` folder — **no remote build**, minimal credit use.
 
 ### 4. Promote to production when ready
 
@@ -82,7 +82,7 @@ Or:
 .\scripts\deploy-production.ps1
 ```
 
-Confirms before updating **vexmy.com**.
+Confirms before updating **velbok.com**.
 
 ---
 
@@ -91,7 +91,7 @@ Confirms before updating **vexmy.com**.
 | Script | What it does |
 |--------|----------------|
 | `npm run deploy:preview` | `npm run build` → `netlify deploy --dir=dist` (draft URL) |
-| `npm run deploy:prod` | `npm run build` → `netlify deploy --prod --dir=dist` (vexmy.com) |
+| `npm run deploy:prod` | `npm run build` → `netlify deploy --prod --dir=dist` (velbok.com) |
 | `npm run deploy:preview:only` | Upload existing `dist/` without rebuilding |
 
 ---

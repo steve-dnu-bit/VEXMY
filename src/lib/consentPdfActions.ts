@@ -8,7 +8,7 @@ export function consentPdfBasename(clientName: string, signedAtIso: string): str
     .replace(/_+/g, "_")
     .slice(0, 48);
   const d = signedAtIso ? format(parseISO(signedAtIso), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
-  return `VexMy-consent-${safe || "client"}-${d}`;
+  return `Velbok-consent-${safe || "client"}-${d}`;
 }
 
 /** Download PDF via blob so the browser saves a real file (with filename). */

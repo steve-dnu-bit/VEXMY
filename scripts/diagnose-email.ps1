@@ -1,15 +1,15 @@
-# Quick email diagnosis — run after trying "Forgot password" on vexmy.com
+# Quick email diagnosis — run after trying "Forgot password" on velbok.com
 $ErrorActionPreference = "Continue"
 Set-Location (Join-Path $PSScriptRoot "..")
 
 Write-Host ""
-Write-Host "=== VexMy email diagnosis ===" -ForegroundColor Cyan
+Write-Host "=== Velbok email diagnosis ===" -ForegroundColor Cyan
 Write-Host ""
 
 # DNS
-Write-Host "1. Resend DNS (send.vexmy.com)..." -ForegroundColor Yellow
-$spf = nslookup -type=TXT send.vexmy.com 2>&1 | Out-String
-$mx = nslookup -type=MX send.vexmy.com 2>&1 | Out-String
+Write-Host "1. Resend DNS (send.velbok.com)..." -ForegroundColor Yellow
+$spf = nslookup -type=TXT send.velbok.com 2>&1 | Out-String
+$mx = nslookup -type=MX send.velbok.com 2>&1 | Out-String
 if ($spf -match "spf1" -and $mx -match "amazonses") {
     Write-Host "   OK — SPF and MX found" -ForegroundColor Green
 } else {
@@ -35,7 +35,7 @@ $envFile = Get-Content .env -Raw -ErrorAction SilentlyContinue
 if ($envFile -match 'VITE_SUPABASE_URL=(.+?)\r?\n') { $url = $Matches[1].Trim() }
 if ($envFile -match 'VITE_SUPABASE_PUBLISHABLE_KEY=(.+?)\r?\n') { $key = $Matches[1].Trim() }
 $email = Read-Host "   Email to test (e.g. mr.tattooist@hotmail.com)"
-$body = (@{ email = $email; redirect_to = "https://vexmy.com/auth?mode=recovery" } | ConvertTo-Json)
+$body = (@{ email = $email; redirect_to = "https://velbok.com/auth?mode=recovery" } | ConvertTo-Json)
 try {
     Invoke-RestMethod -Uri "$url/auth/v1/recover" -Method Post `
         -Headers @{ apikey = $key; Authorization = "Bearer $key"; "Content-Type" = "application/json" } `
@@ -50,7 +50,7 @@ Write-Host ""
 Write-Host "=== Most common fix ===" -ForegroundColor Cyan
 Write-Host "Supabase Dashboard -> Authentication -> SMTP -> Enable Custom SMTP" -ForegroundColor White
 Write-Host "  Host: smtp.resend.com  Port: 465  User: resend  Pass: your re_ key" -ForegroundColor White
-Write-Host "  Sender: no-reply@vexmy.com" -ForegroundColor White
+Write-Host "  Sender: no-reply@velbok.com" -ForegroundColor White
 Write-Host ""
 Write-Host "Or run: .\scripts\setup-email-now.ps1" -ForegroundColor White
 Write-Host "Then check Resend -> Logs for delivery status." -ForegroundColor Gray

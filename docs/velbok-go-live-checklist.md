@@ -1,25 +1,25 @@
-# VexMy go-live checklist (vexmy.com)
+# Velbok go-live checklist (velbok.com)
 
-Use this after deploying to Netlify and pointing the custom domain. The live site talks to the **VexMy** Supabase project (`tkremoxfkgoiuwghtzwd`), not the old Inkaholics project.
+Use this after deploying to Netlify and pointing the custom domain. The live site talks to the **Velbok** Supabase project (`tkremoxfkgoiuwghtzwd`), not the old Inkaholics project.
 
 ## 1. First login (most common blocker)
 
 - Accounts created in Supabase Admin **do not** have your old Inkaholics password.
-- On https://vexmy.com/auth click **Forgot your password?**, enter your email, set a new password from the email link.
-- Recovery link must land on: `https://vexmy.com/auth?mode=recovery`
+- On https://velbok.com/auth click **Forgot your password?**, enter your email, set a new password from the email link.
+- Recovery link must land on: `https://velbok.com/auth?mode=recovery`
 
 ## 2. Supabase → Authentication → URL Configuration
 
 | Setting | Value |
 |--------|--------|
-| Site URL | `https://vexmy.com` |
-| Redirect URLs | `https://vexmy.com/**`, `http://localhost:8080/**` (for local dev) |
+| Site URL | `https://velbok.com` |
+| Redirect URLs | `https://velbok.com/**`, `http://localhost:8080/**` (for local dev) |
 
 Without these, login, signup, and password reset links can fail or redirect to the wrong host.
 
 ## 3. Email (auth + studio notifications)
 
-Password reset and booking emails need SMTP. **Recommended: [Resend](https://resend.com)** with `no-reply@vexmy.com` after verifying the domain.
+Password reset and booking emails need SMTP. **Recommended: [Resend](https://resend.com)** with `no-reply@velbok.com` after verifying the domain.
 
 Full steps: **[docs/email-setup.md](email-setup.md)** · Dashboard paste list: **[docs/supabase-secrets-dashboard.md](supabase-secrets-dashboard.md)**
 
@@ -47,7 +47,7 @@ After login as admin/artist with schedule permission:
 - **Schedule** loads but has **no bookings** until you create them.
 - **Billing / Stripe** need edge function secrets (section 6).
 
-## 6. Supabase Edge Functions secrets (VexMy project)
+## 6. Supabase Edge Functions secrets (Velbok project)
 
 In Supabase Dashboard → Edge Functions → Secrets (or `supabase secrets set`):
 
@@ -60,7 +60,7 @@ Deploy functions: `npm run db:link` then `supabase functions deploy`.
 
 ## 7. Verify production bundle
 
-After deploy, open vexmy.com → DevTools → Network → main JS chunk should reference `tkremoxfkgoiuwghtzwd.supabase.co`. If login shows a red banner about missing env vars, section 4 is incomplete.
+After deploy, open velbok.com → DevTools → Network → main JS chunk should reference `tkremoxfkgoiuwghtzwd.supabase.co`. If login shows a red banner about missing env vars, section 4 is incomplete.
 
 ## 8. Admin user sanity check (Supabase SQL)
 
@@ -72,8 +72,8 @@ select schedule, billing, admin from staff_permissions where user_id = '<uuid>';
 
 `last_sign_in_at` should update after a successful login.
 
-## 9. Not yet on VexMy (roadmap)
+## 9. Not yet on Velbok (roadmap)
 
 - Multi-tenant SaaS (one deployment, many shops)
-- Migrating Inkaholics production data into VexMy
+- Migrating Inkaholics production data into Velbok
 - Platform subscription billing

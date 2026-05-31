@@ -1,4 +1,4 @@
-# Build locally and deploy to production (vexmy.com). Asks for confirmation first.
+# Build locally and deploy to production (velbok.com). Asks for confirmation first.
 param(
     [switch]$SkipBuild,
     [switch]$Yes
@@ -9,7 +9,7 @@ Set-Location (Join-Path $PSScriptRoot "..")
 
 if (-not $Yes) {
     $branch = (git rev-parse --abbrev-ref HEAD 2>$null)
-    Write-Host "This will deploy to PRODUCTION (vexmy.com)." -ForegroundColor Yellow
+    Write-Host "This will deploy to PRODUCTION (velbok.com)." -ForegroundColor Yellow
     Write-Host "Current branch: $branch" -ForegroundColor Yellow
     $confirm = Read-Host "Type yes to continue"
     if ($confirm -ne "yes") {

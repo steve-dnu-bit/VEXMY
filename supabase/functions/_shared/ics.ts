@@ -47,7 +47,7 @@ export function buildBookingIcs(event: IcsBookingEvent): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//VexMy//Booking//EN",
+    "PRODID:-//Velbok//Booking//EN",
     "CALSCALE:GREGORIAN",
     `METHOD:${event.method}`,
     "BEGIN:VEVENT",

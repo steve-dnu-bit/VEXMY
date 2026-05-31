@@ -1,5 +1,5 @@
 export const COOKIE_CONSENT_VERSION = "2026-05-04";
-export const COOKIE_CONSENT_STORAGE_KEY = "vexmy.cookieConsent.v1";
+export const COOKIE_CONSENT_STORAGE_KEY = "velbok.cookieConsent.v1";
 
 export type CookieCategory = "necessary" | "preferences" | "analytics" | "marketing";
 

@@ -65,7 +65,7 @@ export function buildBookingIcsEvent(
     .join("\n");
 
   return {
-    uid: `${booking.id}@vexmy.com`,
+    uid: `${booking.id}@velbok.com`,
     title: isCancel ? `CANCELLED: ${title}` : title,
     description: desc,
     location: brand.address || brand.shopName,

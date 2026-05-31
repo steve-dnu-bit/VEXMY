@@ -365,7 +365,7 @@ const ClientsPage = () => {
       return;
     }
     const payload = {
-      app: "vexmy",
+      app: "velbok",
       version: 1,
       exportedAt: new Date().toISOString(),
       clients: clients.map((c) => ({

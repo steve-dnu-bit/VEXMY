@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
 Write-Host ""
-Write-Host "VexMy email secrets (Supabase Edge Functions)" -ForegroundColor Cyan
+Write-Host "Velbok email secrets (Supabase Edge Functions)" -ForegroundColor Cyan
 Write-Host "Auth password-reset email is configured separately in Supabase Dashboard -> Authentication -> SMTP." -ForegroundColor Gray
 Write-Host ""
 
@@ -23,20 +23,20 @@ function Read-Secret([string]$Prompt, [string]$Default = "") {
     return Read-Host $Prompt
 }
 
-$siteUrl = Read-Secret "SITE_URL (links in emails)" "https://vexmy.com"
-$supportEmail = Read-Secret "Support / reply-to email" "no-reply@vexmy.com"
-$shopName = Read-Secret "SHOP_NAME (email branding)" "VexMy"
+$siteUrl = Read-Secret "SITE_URL (links in emails)" "https://velbok.com"
+$supportEmail = Read-Secret "Support / reply-to email" "no-reply@velbok.com"
+$shopName = Read-Secret "SHOP_NAME (email branding)" "Velbok"
 
 switch ($Provider) {
     "resend" {
         Write-Host ""
-        Write-Host "Resend SMTP (recommended): create API key at resend.com, verify vexmy.com domain first." -ForegroundColor Yellow
+        Write-Host "Resend SMTP (recommended): create API key at resend.com, verify velbok.com domain first." -ForegroundColor Yellow
         $apiKey = Read-Host "Resend API key (re_...)" -AsSecureString
         $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($apiKey)
         $apiKeyPlain = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
         [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
 
-        $fromName = Read-Secret "From display name" "VexMy"
+        $fromName = Read-Secret "From display name" "Velbok"
         $fromEmail = Read-Secret "From email (must be verified in Resend)" $supportEmail
         $emailFrom = "$fromName <$fromEmail>"
 
@@ -72,7 +72,7 @@ switch ($Provider) {
         $passPlain = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
         [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
         $fromEmail = Read-Secret "From email" $supportEmail
-        $emailFrom = Read-Secret "EMAIL_FROM" "VexMy <$fromEmail>"
+        $emailFrom = Read-Secret "EMAIL_FROM" "Velbok <$fromEmail>"
 
         npx supabase secrets set `
             "SMTP_HOST=$host_" `
@@ -117,7 +117,7 @@ Write-Host ""
 Write-Host "Edge function secrets saved." -ForegroundColor Green
 Write-Host ""
 Write-Host "Next: Supabase Dashboard -> Authentication -> SMTP Settings" -ForegroundColor Yellow
-Write-Host "  Use the same SMTP host/user/password and no-reply@vexmy.com sender for password reset." -ForegroundColor Yellow
+Write-Host "  Use the same SMTP host/user/password and no-reply@velbok.com sender for password reset." -ForegroundColor Yellow
 Write-Host "  Dashboard checklist: docs/supabase-secrets-dashboard.md" -ForegroundColor Gray
 Write-Host "  Full guide: docs/email-setup.md" -ForegroundColor Gray
 Write-Host ""
