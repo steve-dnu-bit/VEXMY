@@ -235,11 +235,11 @@
         {
           "heading": "Using stencils",
           "paragraphs": [
-            "Artists with stencil permission can upload reference images and generate stencil variations in several styles, each named after a tattoo artist whose signature look it evokes — Stefan Dinu signature line, Sailor Jerry traditional, Dr. Woo fine line, Inez Janiak sketch, Chaim Machlev dotwork, and Thomas Hooper blackwork. Each style shows a small example preview so you can see how its lines look before generating.",
+            "Artists with stencil permission can upload reference images and generate stencil variations in several styles, each named after a capital city — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork, and Madrid blackwork. Each style shows an example render you can tap to enlarge, so you can see how its lines look before generating.",
             "AI generation is metered: each studio can produce one AI stencil per day for every occupied artist seat, up to a maximum of 10 per day (for example, a 10-artist studio gets 10 per day). A live countdown shows how many generations remain. The allowance resets at midnight, and a failed render does not count against it.",
-            "Generated stencils are kept in storage for 12 hours so they can be re-downloaded, then automatically deleted. The Fast in-browser engine is unmetered and uses no credits."
+            "Generated stencils are kept in storage for 12 hours so they can be re-opened and re-downloaded from the Recent stencils folder, then automatically deleted. The Fast in-browser engine is free and unmetered."
           ],
-          "note": "AI mode renders professional stencils through Netlify AI Gateway, billed to your Netlify AI credits — no API keys to manage. Fast mode runs entirely in the browser and uses no credits."
+          "note": "Fast mode runs entirely in the browser and is free. AI mode renders professional stencils through Netlify AI Gateway with no API keys to manage."
         }
       ]
     },

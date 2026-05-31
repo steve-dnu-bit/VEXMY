@@ -6,8 +6,8 @@ import { loadImage, readFileAsDataUrl } from "@/lib/stencilImage";
 const MAX_UPLOAD_SIDE = 1536;
 
 // Available AI stencil styles. `id` is sent to the function (must match the
-// keys in netlify/functions/generate-stencil.mts). `nameKey` is the artist name
-// shown on the style card; `descKey` is the short technique descriptor below it.
+// keys in netlify/functions/generate-stencil.mts). `nameKey` is the capital-city
+// name shown on the style card; `descKey` is the short technique descriptor below it.
 export const STENCIL_STYLES = [
   { id: "valoonia", nameKey: "stencil.styleValooniaName", descKey: "stencil.styleValooniaDesc" },
   { id: "bold", nameKey: "stencil.styleBoldName", descKey: "stencil.styleBoldDesc" },
@@ -62,8 +62,8 @@ async function toUploadDataUrl(file: File): Promise<string> {
 
 /**
  * Generate a tattoo stencil from a reference image using the Netlify AI Gateway
- * function (billed to Netlify credits). Returns a PNG data URL ready to persist
- * and download, plus the remaining daily quota.
+ * function. Returns a PNG data URL ready to persist and download, plus the
+ * remaining daily quota.
  */
 export async function generateAiStencil(
   file: File,

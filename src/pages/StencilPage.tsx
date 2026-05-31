@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Upload, Loader2, Download, ChevronDown } from "lucide-react";
+import { Upload, Loader2, Download, ChevronDown, Maximize2, FolderClock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
 import { StencilCompare } from "@/components/stencil/StencilCompare";
-import { StencilStylePreview } from "@/components/stencil/StencilStylePreview";
 import { generateAiStencil, STENCIL_STYLES, DEFAULT_STENCIL_STYLE, StencilQuotaError, type StencilStyle } from "@/lib/aiStencil";
+import { STENCIL_STYLE_EXAMPLES } from "@/lib/stencilStyleExamples";
 import {
   DEFAULT_STENCIL_SETTINGS,
   generateLocalStencil,
@@ -15,11 +15,14 @@ import {
 import {
   deleteStencilSession,
   downloadStencilOnly,
+  fetchRecentStencils,
   persistStencilSession,
+  type RecentStencil,
   type StencilSession,
 } from "@/lib/stencilStorage";
 import { fetchStencilQuota, type StencilQuota } from "@/lib/stencilQuota";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useTranslation } from "react-i18next";
 
 const StencilPage = () => {
@@ -37,11 +40,29 @@ const StencilPage = () => {
   const [style, setStyle] = useState<StencilStyle>(DEFAULT_STENCIL_STYLE);
   const [quota, setQuota] = useState<StencilQuota | null>(null);
   const [settings, setSettings] = useState<LocalStencilSettings>(DEFAULT_STENCIL_SETTINGS);
+  const [enlargedStyle, setEnlargedStyle] = useState<(typeof STENCIL_STYLES)[number] | null>(null);
+  const [recent, setRecent] = useState<RecentStencil[]>([]);
+  const [recentOpen, setRecentOpen] = useState(false);
+  const [viewing, setViewing] = useState<RecentStencil | null>(null);
   const sessionRef = useRef<StencilSession | null>(null);
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  const refreshRecent = async () => {
+    if (!user) return;
+    try {
+      setRecent(await fetchRecentStencils(user.id));
+    } catch {
+      // Best-effort; the folder simply stays as-is if the fetch fails.
+    }
+  };
+
+  useEffect(() => {
+    refreshRecent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     let active = true;
@@ -115,6 +136,7 @@ const StencilPage = () => {
       setSession(stored);
       sessionRef.current = stored;
       setStencilUrl(generated);
+      refreshRecent();
       toast({
         title: t("stencil.generatedTitle"),
         description: t("stencil.generatedDesc"),
@@ -145,6 +167,30 @@ const StencilPage = () => {
   };
 
   const resetDefaults = () => setSettings(DEFAULT_STENCIL_SETTINGS);
+
+  const relativeTime = (iso: string) => {
+    const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    if (mins < 1) return t("stencil.justNow");
+    if (mins < 60) return t("stencil.minutesAgo", { count: mins });
+    const hrs = Math.floor(mins / 60);
+    return t("stencil.hoursAgo", { count: hrs });
+  };
+
+  const handleDownloadUrl = async (url: string) => {
+    try {
+      await downloadStencilOnly(url);
+      toast({
+        title: t("stencil.downloadStartedTitle"),
+        description: t("stencil.downloadStartedDesc"),
+      });
+    } catch (error: unknown) {
+      toast({
+        title: t("stencil.downloadFailedTitle"),
+        description: error instanceof Error ? error.message : t("stencil.downloadFailedDesc"),
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDownload = async () => {
     if (!stencilUrl || !session) return;
@@ -233,6 +279,32 @@ const StencilPage = () => {
                   </p>
                 </div>
 
+                {mode === "ai" && quota && quota.limit > 0 && (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/60 px-3 py-2">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        {t("stencil.quotaCountdownTitle")}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">{t("stencil.quotaResetNote")}</div>
+                    </div>
+                    <div className="text-right">
+                      <div
+                        className={`font-display text-xl font-bold leading-none ${
+                          quota.remaining > 0 ? "text-gradient-gold" : "text-destructive"
+                        }`}
+                      >
+                        {quota.remaining}
+                        <span className="text-sm font-normal text-muted-foreground">/{quota.limit}</span>
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-muted-foreground">
+                        {quota.remaining > 0
+                          ? t("stencil.quotaCountdownValue", { remaining: quota.remaining, limit: quota.limit })
+                          : t("stencil.quotaExhausted", { limit: quota.limit })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {mode === "ai" && (
                   <div>
                     <div className="text-xs text-muted-foreground mb-1.5">{t("stencil.styleLabel")}</div>
@@ -251,8 +323,32 @@ const StencilPage = () => {
                                 : "border-border hover:border-primary/50"
                             }`}
                           >
-                            <span className="block w-full aspect-square overflow-hidden rounded-md border border-border bg-white">
-                              <StencilStylePreview styleId={s.id} />
+                            <span className="relative block w-full aspect-square overflow-hidden rounded-md border border-border bg-white">
+                              <img
+                                src={STENCIL_STYLE_EXAMPLES[s.id]}
+                                alt={t("stencil.styleExampleAlt", { style: t(s.nameKey) })}
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                              />
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                aria-label={t("stencil.examplePreviewTitle", { style: t(s.nameKey) })}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEnlargedStyle(s);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setEnlargedStyle(s);
+                                  }
+                                }}
+                                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-md bg-background/80 text-foreground opacity-0 shadow-sm transition-opacity hover:bg-background group-hover:opacity-100 focus:opacity-100"
+                              >
+                                <Maximize2 className="h-3.5 w-3.5" />
+                              </span>
                             </span>
                             <span className="block w-full truncate text-[11px] font-medium leading-tight">
                               {t(s.nameKey)}
@@ -265,31 +361,6 @@ const StencilPage = () => {
                       })}
                     </div>
                     <p className="mt-1.5 text-[11px] text-muted-foreground">{t("stencil.stylePreviewHint")}</p>
-                    {quota && quota.limit > 0 && (
-                      <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/60 px-3 py-2">
-                        <div>
-                          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                            {t("stencil.quotaCountdownTitle")}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">{t("stencil.quotaResetNote")}</div>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`font-display text-xl font-bold leading-none ${
-                              quota.remaining > 0 ? "text-gradient-gold" : "text-destructive"
-                            }`}
-                          >
-                            {quota.remaining}
-                            <span className="text-sm font-normal text-muted-foreground">/{quota.limit}</span>
-                          </div>
-                          <div className="mt-0.5 text-[10px] text-muted-foreground">
-                            {quota.remaining > 0
-                              ? t("stencil.quotaCountdownValue", { remaining: quota.remaining, limit: quota.limit })
-                              : t("stencil.quotaExhausted", { limit: quota.limit })}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -507,7 +578,106 @@ const StencilPage = () => {
             )}
           </div>
         </div>
+
+        <Collapsible open={recentOpen} onOpenChange={setRecentOpen} className="mt-6">
+          <div className="rounded-xl border border-border bg-card">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 p-4 text-left"
+              >
+                <span className="flex items-center gap-2">
+                  <FolderClock className="h-4 w-4 text-primary" />
+                  <span className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+                    {t("stencil.recentToggle", { count: recent.length })}
+                  </span>
+                </span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${recentOpen ? "rotate-180" : ""}`} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-4 pb-4">
+              <p className="mb-3 text-[11px] text-muted-foreground">{t("stencil.recentSubtitle")}</p>
+              {recent.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-secondary/50 px-3 py-6 text-center text-xs text-muted-foreground">
+                  {t("stencil.recentEmpty")}
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                  {recent.map((item) => (
+                    <div key={item.id} className="overflow-hidden rounded-lg border border-border bg-card">
+                      <button
+                        type="button"
+                        onClick={() => setViewing(item)}
+                        className="block w-full aspect-square overflow-hidden bg-white"
+                        aria-label={t("stencil.recentOpen")}
+                      >
+                        <img
+                          src={item.stencilUrl}
+                          alt={t("stencil.stencilLabel")}
+                          loading="lazy"
+                          className="h-full w-full object-contain transition-transform hover:scale-[1.03]"
+                        />
+                      </button>
+                      <div className="flex items-center justify-between gap-1 px-2 py-1.5">
+                        <span className="text-[10px] text-muted-foreground">{relativeTime(item.createdAt)}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadUrl(item.stencilUrl)}
+                          className="flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
+                        >
+                          <Download className="h-3 w-3" />
+                          {t("stencil.recentDownload")}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
       </div>
+
+      <Dialog open={!!enlargedStyle} onOpenChange={(open) => !open && setEnlargedStyle(null)}>
+        <DialogContent className="max-w-lg">
+          {enlargedStyle && (
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-display text-lg font-semibold">
+                  {t("stencil.examplePreviewTitle", { style: t(enlargedStyle.nameKey) })}
+                </h3>
+                <p className="text-xs text-muted-foreground">{t(enlargedStyle.descKey)}</p>
+              </div>
+              <img
+                src={STENCIL_STYLE_EXAMPLES[enlargedStyle.id]}
+                alt={t("stencil.styleExampleAlt", { style: t(enlargedStyle.nameKey) })}
+                className="w-full rounded-lg border border-border"
+              />
+              <p className="text-[11px] text-muted-foreground">{t("stencil.examplePreviewHint")}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
+        <DialogContent className="max-w-lg">
+          {viewing && (
+            <div className="space-y-3">
+              <StencilCompare beforeSrc={viewing.originalUrl} afterSrc={viewing.stencilUrl} />
+              <p className="text-xs text-center text-muted-foreground">{t("stencil.dragCompare")}</p>
+              <Button
+                variant="gold-outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => handleDownloadUrl(viewing.stencilUrl)}
+              >
+                <Download className="h-4 w-4" /> {t("stencil.downloadStencil")}
+              </Button>
+              <p className="text-[11px] text-center text-muted-foreground">{t("stencil.retentionNotice")}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
