@@ -94,13 +94,21 @@ serve(async (req) => {
     const { data: recipientAuth, error: recipientAuthError } = await admin.auth.admin.getUserById(recipientId);
     const recipientEmail = recipientAuth.user?.email ?? null;
     if (recipientAuthError || !recipientEmail) {
-      return new Response(JSON.stringify({ error: "Recipient email not found" }), {
-        status: 400,
+      return new Response(JSON.stringify({ ok: false, skipped: true, reason: "recipient_email_not_found" }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    requireEmailDeliveryConfig();
+    try {
+      requireEmailDeliveryConfig();
+    } catch (configError) {
+      const message = configError instanceof Error ? configError.message : "Email not configured";
+      return new Response(JSON.stringify({ ok: false, skipped: true, reason: message }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const baseUrl = siteUrl();
     const isArtistRecipient = recipientId === thread.artist_id;

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Download, Upload, Trash2, FileJson, FileSpreadsheet, ChevronDown } from "lucide-react";
+import { Search, Download, Upload, Trash2, FileJson, FileSpreadsheet, ChevronDown, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -24,6 +24,9 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
+import { extractClientUserIdFromListKey } from "@/lib/messagingLinks";
 
 interface BookingClient {
   /** Stable key for React lists and dedupe (never collapse different people on same first name). */
@@ -660,17 +663,20 @@ const ClientsPage = () => {
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tablePhone")}</th>
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableBookings")}</th>
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableStyle")}</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-widest text-muted-foreground font-medium">{t("clients.tableContact")}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
                       {clients.length === 0 ? t("clients.noClientsYet") : t("clients.noMatches")}
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((c) => (
+                  filtered.map((c) => {
+                    const clientUserId = extractClientUserIdFromListKey(c.listKey);
+                    return (
                     <tr key={c.listKey} className="border-b border-border hover:bg-secondary/40 transition-colors">
                       <td className="px-4 py-3 font-medium">{c.client_name}</td>
                       <td className="px-4 py-3 text-muted-foreground">{c.client_email || "—"}</td>
@@ -679,8 +685,25 @@ const ClientsPage = () => {
                         <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{c.booking_count}</span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{c.tattoo_style || "—"}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <ExternalMessageActions
+                            phone={c.client_phone}
+                            whatsAppMessage={t("clients.whatsAppPrefill", { name: c.client_name })}
+                          />
+                          {clientUserId ? (
+                            <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" asChild>
+                              <Link to={`/inbox?customerId=${encodeURIComponent(clientUserId)}`}>
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                {t("clients.portalChat")}
+                              </Link>
+                            </Button>
+                          ) : null}
+                        </div>
+                      </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -693,8 +716,10 @@ const ClientsPage = () => {
               {clients.length === 0 ? t("clients.noClientsMobile") : t("clients.noMatches")}
             </p>
           ) : (
-            filtered.map((c) => (
-              <div key={c.listKey} className="rounded-xl border border-border bg-card p-4 space-y-1 shadow-sm">
+            filtered.map((c) => {
+              const clientUserId = extractClientUserIdFromListKey(c.listKey);
+              return (
+              <div key={c.listKey} className="rounded-xl border border-border bg-card p-4 space-y-2 shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold">{c.client_name}</p>
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary shrink-0">
@@ -704,8 +729,23 @@ const ClientsPage = () => {
                 {c.client_email && <p className="text-sm text-muted-foreground break-all">{c.client_email}</p>}
                 {c.client_phone && <p className="text-sm text-muted-foreground">{c.client_phone}</p>}
                 {c.tattoo_style && <p className="text-xs text-muted-foreground">{t("clients.stylePrefix", { style: c.tattoo_style })}</p>}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <ExternalMessageActions
+                    phone={c.client_phone}
+                    whatsAppMessage={t("clients.whatsAppPrefill", { name: c.client_name })}
+                  />
+                  {clientUserId ? (
+                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1" asChild>
+                      <Link to={`/inbox?customerId=${encodeURIComponent(clientUserId)}`}>
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        {t("clients.portalChat")}
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
 

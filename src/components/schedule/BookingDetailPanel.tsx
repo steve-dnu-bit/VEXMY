@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download } from "lucide-react";
+import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,8 @@ import {
 import { consentPdfBasename, downloadConsentPdf, printConsentPdf } from "@/lib/consentPdfActions";
 import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
+import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
+import { Link } from "react-router-dom";
 
 interface Booking {
   id: string;
@@ -328,6 +330,24 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                   <p className="text-xs">{booking.client_email}</p>
                 </div>
               )}
+              <ExternalMessageActions
+                phone={booking.client_phone}
+                whatsAppMessage={t("schedule.whatsAppPrefill", {
+                  name: booking.client_name,
+                  date: format(parseISO(booking.starts_at), "EEE d MMM"),
+                  time: format(parseISO(booking.starts_at), "h:mm a"),
+                })}
+                layout="column"
+                className="pt-1"
+              />
+              {booking.client_user_id ? (
+                <Button variant="outline" size="sm" className="w-full h-8 text-xs gap-1" asChild>
+                  <Link to={`/inbox?customerId=${encodeURIComponent(booking.client_user_id)}`}>
+                    <MessageSquare className="h-3 w-3" />
+                    {t("schedule.openPortalChat")}
+                  </Link>
+                </Button>
+              ) : null}
             </div>
           )}
 

@@ -3,9 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { buildStaffQuickReplies } from "@/lib/chatQuickReplies";
+import { fetchThreadBookingContext, type ThreadBookingContext } from "@/lib/chatThreadContext";
 import { useTranslation } from "react-i18next";
 import ChatThreadList from "./ChatThreadList";
-import ChatMessagePanel from "./ChatMessagePanel";
+import ChatMessagePanel, { type MessageMediaPreview } from "./ChatMessagePanel";
 import ChatGalleryPanel from "./ChatGalleryPanel";
 
 export type Thread = {
@@ -84,8 +86,9 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [emailNotifying, setEmailNotifying] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [mediaByMessageId, setMediaByMessageId] = useState<Record<string, MessageMediaPreview>>({});
+  const [bookingContext, setBookingContext] = useState<ThreadBookingContext | null>(null);
   const typingTimerRef = useRef<number | null>(null);
   const notifiedMessageIdsRef = useRef<Set<string>>(new Set());
   const [notificationSupported, setNotificationSupported] = useState(false);
@@ -265,7 +268,15 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
         return [m.id, data?.signedUrl || ""] as const;
       }),
     );
-    setSignedUrls(Object.fromEntries(urlEntries));
+    const urlMap = Object.fromEntries(urlEntries);
+    setSignedUrls(urlMap);
+
+    const inlineMedia: Record<string, MessageMediaPreview> = {};
+    mediaRows.forEach((m) => {
+      if (!m.message_id || !urlMap[m.id]) return;
+      inlineMedia[m.message_id] = { url: urlMap[m.id], caption: m.caption };
+    });
+    setMediaByMessageId(inlineMedia);
 
     if (user) {
       await supabase
@@ -300,8 +311,21 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   }, []);
 
   useEffect(() => {
-    if (!selectedThreadId) return;
+    if (!selectedThreadId) {
+      setBookingContext(null);
+      return;
+    }
     void fetchThreadData(selectedThreadId);
+    if (mode === "staff") {
+      const thread = threads.find((t) => t.id === selectedThreadId);
+      if (thread) {
+        void fetchThreadBookingContext(supabase, thread).then(setBookingContext);
+      } else {
+        setBookingContext(null);
+      }
+    } else {
+      setBookingContext(null);
+    }
 
     const channel = supabase
       .channel(`chat-${selectedThreadId}`)
@@ -319,7 +343,16 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedThreadId]);
+  }, [selectedThreadId, mode, threads]);
+
+  const autoNotifyRecipient = (threadId: string, previewText: string) => {
+    void invokeEdgeFunctionJson<{ ok?: boolean; skipped?: boolean; error?: string }>("send-chat-update-email", {
+      threadId,
+      previewText: previewText.slice(0, 280),
+    }).then(({ error }) => {
+      if (error) console.warn("Chat email notification skipped:", error.message);
+    });
+  };
 
   useEffect(() => {
     if (!user || mode !== "customer" || !selectedArtistId) return;
@@ -538,10 +571,12 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       toast.error(error.message || t("chat.sendFailed"));
       return;
     }
+    const sentBody = messageText.trim();
     setMessageText("");
     if (user) {
       await supabase.from("chat_typing_state" as any).delete().eq("thread_id", threadId).eq("user_id", user.id);
     }
+    autoNotifyRecipient(threadId, sentBody);
     await fetchThreadData(threadId);
     await fetchThreads();
   };
@@ -586,28 +621,9 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
       toast.error(mediaErr.message || t("chat.saveMediaFailed"));
       return;
     }
+    autoNotifyRecipient(threadId, t("chat.newImageShared"));
     await fetchThreadData(threadId);
     await fetchThreads();
-  };
-
-  const handleSendEmailUpdate = async () => {
-    if (!selectedThreadId) {
-      toast.error(t("chat.selectChatFirst"));
-      return;
-    }
-    setEmailNotifying(true);
-    const latestMessage =
-      [...messages].reverse().find((m) => m.sender_id === user?.id)?.body || t("chat.newUpdateFallback");
-    const { error } = await invokeEdgeFunctionJson<{ ok?: boolean; error?: string }>("send-chat-update-email", {
-      threadId: selectedThreadId,
-      previewText: latestMessage,
-    });
-    setEmailNotifying(false);
-    if (error) {
-      toast.error(error.message || t("chat.emailUpdateFailed"));
-      return;
-    }
-    toast.success(t("chat.emailUpdateSent"));
   };
 
   const activeThread = selectedThreadId ? threadMap.get(selectedThreadId) || null : null;
@@ -650,6 +666,16 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     }
   };
 
+  const handleQuickReply = (text: string) => {
+    setMessageText(text);
+  };
+
+  const quickReplies = useMemo(() => {
+    if (mode !== "staff" || !bookingContext) return [];
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return buildStaffQuickReplies(bookingContext, origin, t);
+  }, [mode, bookingContext, t]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-4 h-[calc(100vh-6rem)]">
       <ChatThreadList
@@ -672,14 +698,14 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
         handleStartStaffChat={handleStartStaffChat}
       />
       <ChatMessagePanel
+        mode={mode}
         activeThread={activeThread}
         labelForThread={labelForThread}
         typingUsers={typingUsers}
         selectedThreadId={selectedThreadId}
-        emailNotifying={emailNotifying}
-        onSendEmailUpdate={handleSendEmailUpdate}
         onArchive={archiveThread}
         messages={messages}
+        mediaByMessageId={mediaByMessageId}
         userId={user?.id}
         otherLastReadAt={otherLastReadAt}
         messageText={messageText}
@@ -688,6 +714,9 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
         uploading={uploading}
         onSend={handleSend}
         onUpload={handleUpload}
+        bookingContext={bookingContext}
+        quickReplies={quickReplies}
+        onQuickReply={handleQuickReply}
       />
       <ChatGalleryPanel
         gallery={gallery}
