@@ -13,9 +13,9 @@
 //      render fails. This caps how many credits a studio can spend each day.
 
 // Image model used for generation. Any Gemini image model supported by AI
-// Gateway can be swapped in here (e.g. "gemini-2.5-flash-image" for a cheaper,
-// faster render). "gemini-3-pro-image" gives the highest stencil fidelity.
-const STENCIL_MODEL = "gemini-3-pro-image";
+// Gateway can be swapped in here. "gemini-2.5-flash-image" is a cheaper, faster
+// render (~$0.04 per image); "gemini-3-pro-image" gives the highest fidelity.
+const STENCIL_MODEL = "gemini-2.5-flash-image";
 
 // Shared art-direction every style inherits — guarantees a clean,
 // transfer-ready result regardless of the chosen look.
