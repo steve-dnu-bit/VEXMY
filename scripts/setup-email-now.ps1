@@ -51,9 +51,8 @@ npx supabase secrets set `
     SMTP_USER=resend `
     "SMTP_PASS=$key" `
     "RESEND_API_KEY=$key" `
-    "EMAIL_FROM=Velbok <no-reply@velbok.com>" `
-    "BOOKINGS_EMAIL_FROM=Velbok <no-reply@velbok.com>" `
-    "NOTIFICATIONS_EMAIL_FROM=Velbok <no-reply@velbok.com>" `
+    "BOOKINGS_EMAIL_FROM=Velbok <bookings@velbok.com>" `
+    "NOTIFICATIONS_EMAIL_FROM=Velbok <notifications@velbok.com>" `
     SHOP_SUPPORT_EMAIL=bookings@velbok.com `
     SHOP_NAME=Velbok `
     SHOP_WEBSITE_URL=https://velbok.com `
@@ -74,17 +73,9 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "CRON_SECRET failed — set manually in Supabase secrets." -ForegroundColor Yellow
 } else {
     Write-Host "CRON_SECRET OK." -ForegroundColor Green
-    Write-Host "Run in Supabase SQL Editor (Dashboard -> SQL):" -ForegroundColor Cyan
+    Write-Host "Run this SQL once in Supabase SQL Editor (Dashboard -> SQL):" -ForegroundColor Cyan
     Write-Host @"
-
--- New project (no cron_secret yet):
-SELECT vault.create_secret('$cronSecret', 'cron_secret', 'Cron auth for booking emails');
-
--- OR if cron_secret already exists, update it to match Edge CRON_SECRET:
-SELECT vault.update_secret(
-  (SELECT id FROM vault.secrets WHERE name = 'cron_secret' LIMIT 1),
-  '$cronSecret'
-);
+SELECT vault.create_secret('$cronSecret', 'cron_secret', 'Cron auth for booking emails and reminders');
 "@ -ForegroundColor White
 }
 
@@ -100,15 +91,14 @@ if (-not $token) {
 }
 
 $authBody = @{
-    external_email_enabled = $true
-    smtp_host              = "smtp.resend.com"
-    smtp_port              = 465
-    smtp_user              = "resend"
-    smtp_pass              = $key
-    smtp_admin_email       = "no-reply@velbok.com"
-    smtp_sender_name       = "Velbok"
-    smtp_max_frequency     = 120
-    site_url               = "https://velbok.com"
+    external_email_enabled               = $true
+    smtp_host                            = "smtp.resend.com"
+    smtp_port                            = "465"
+    smtp_user                            = "resend"
+    smtp_pass                            = $key
+    smtp_admin_email                     = "no-reply@velbok.com"
+    smtp_sender_name                     = "Velbok"
+    site_url                             = "https://velbok.com"
 } | ConvertTo-Json
 
 try {
@@ -129,7 +119,5 @@ try {
 
 Write-Host ""
 Write-Host "=== Done ===" -ForegroundColor Green
-Write-Host "Test password reset: https://velbok.com/auth -> Forgot your password?" -ForegroundColor Cyan
-Write-Host "Test booking email: create a booking with client email on Schedule." -ForegroundColor Cyan
-Write-Host "Booking-only setup: .\scripts\setup-booking-email.ps1" -ForegroundColor Gray
+Write-Host "Test: https://velbok.com/auth -> Forgot your password?" -ForegroundColor Cyan
 Write-Host ""

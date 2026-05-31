@@ -367,10 +367,11 @@ function mergeMasks(a: Uint8Array, b: Uint8Array) {
   return out;
 }
 
-export async function generateLocalStencilFromDataUrl(
-  dataUrl: string,
+export async function generateLocalStencil(
+  file: File,
   settings: LocalStencilSettings,
 ): Promise<string> {
+  const dataUrl = await readFileAsDataUrl(file);
   const img = await loadImage(dataUrl);
   let width = img.naturalWidth || img.width;
   let height = img.naturalHeight || img.height;
@@ -446,12 +447,4 @@ export async function generateLocalStencilFromDataUrl(
 
   ctx.putImageData(out, 0, 0);
   return canvas.toDataURL("image/png");
-}
-
-export async function generateLocalStencil(
-  file: File,
-  settings: LocalStencilSettings,
-): Promise<string> {
-  const dataUrl = await readFileAsDataUrl(file);
-  return generateLocalStencilFromDataUrl(dataUrl, settings);
 }

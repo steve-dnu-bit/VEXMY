@@ -11,43 +11,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const STENCIL_AI_MAX_PER_MONTH = 10;
-
-function currentPeriodMonth(): string {
-  const now = new Date();
-  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
-}
-
-async function getAiUsageCount(admin: ReturnType<typeof createClient>, userId: string): Promise<number> {
-  const periodMonth = currentPeriodMonth();
-  const { data } = await admin
-    .from("stencil_ai_usage")
-    .select("generation_count")
-    .eq("user_id", userId)
-    .eq("period_month", periodMonth)
-    .maybeSingle();
-  return data?.generation_count ?? 0;
-}
-
-async function incrementAiUsage(admin: ReturnType<typeof createClient>, userId: string): Promise<number> {
-  const periodMonth = currentPeriodMonth();
-  const used = await getAiUsageCount(admin, userId);
-  const next = used + 1;
-
-  const { error } = await admin.from("stencil_ai_usage").upsert(
-    {
-      user_id: userId,
-      period_month: periodMonth,
-      generation_count: next,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,period_month" },
-  );
-
-  if (error) throw error;
-  return next;
-}
-
 function extractStencilImage(data: any): string | null {
   const message = data?.choices?.[0]?.message;
   if (!message) return null;
@@ -100,17 +63,8 @@ serve(async (req) => {
       return jsonResponse({ error: "Forbidden" }, 403);
     }
 
-    const userId = authResult.user.id;
     const { imageUrl } = await req.json();
     if (!imageUrl) throw new Error("imageUrl is required");
-
-    const used = await getAiUsageCount(admin, userId);
-    if (used >= STENCIL_AI_MAX_PER_MONTH) {
-      return jsonResponse(
-        { error: "Monthly AI stencil limit reached (10). Resets next calendar month.", aiRemaining: 0 },
-        429,
-      );
-    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -187,10 +141,7 @@ Requirements:
       throw new Error("No stencil image was generated from AI response.");
     }
 
-    await incrementAiUsage(admin, userId);
-    const aiRemaining = Math.max(0, STENCIL_AI_MAX_PER_MONTH - used - 1);
-
-    return new Response(JSON.stringify({ stencilUrl: stencilImage, aiRemaining }), {
+    return new Response(JSON.stringify({ stencilUrl: stencilImage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

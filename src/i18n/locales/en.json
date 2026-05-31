@@ -177,7 +177,6 @@
     "resetEmailSent": "Reset email sent",
     "resetEmailSentDesc": "Check your inbox for your password reset link.",
     "couldNotSendReset": "Could not send reset email",
-    "resetEmailSmtpError": "Email could not be sent (SMTP error). In Supabase go to Authentication → SMTP: use Resend (smtp.resend.com, port 465, user resend, password = your re_ API key, sender no-reply@velbok.com). Check Authentication → Logs and Resend → Emails. If you edited the recovery email template, reset it to default.",
     "passwordTooShort": "Password too short",
     "passwordTooShortDesc": "Use at least 6 characters.",
     "passwordsNoMatch": "Passwords do not match",
@@ -934,7 +933,7 @@
   },
   "stencil": {
     "title": "Stencil Generator",
-    "subtitle": "Upload a reference and generate a stencil in your browser, or use AI for pro-quality line art (10 AI runs per month).",
+    "subtitle": "Upload a reference and generate a black line-art stencil in your browser - no external API.",
     "originalImage": "Original Image",
     "changeImage": "Change Image",
     "dropOrUpload": "Drop an image here or click to upload",
@@ -943,15 +942,6 @@
     "lineSensitivity": "Line sensitivity",
     "generating": "Generating...",
     "generateStencil": "Generate stencil",
-    "generateAiStencil": "AI stencil ({{count}} left)",
-    "aiGenerating": "AI generating…",
-    "aiQuotaTitle": "AI stencils this month",
-    "aiQuotaSubtitle": "Resets on the 1st of each month",
-    "aiQuotaRemaining": "{{count}} of {{max}} AI generations left ({{used}} used)",
-    "aiQuotaDepleted": "No AI generations left this month. Use local stencil or try again next month.",
-    "aiQuotaDepletedTitle": "AI limit reached",
-    "aiGeneratedTitle": "AI stencil generated",
-    "aiGeneratedDesc": "{{count}} AI generations remaining this month.",
     "fineTune": "Fine tune",
     "smoothing": "Smoothing",
     "contrast": "Contrast",
@@ -978,37 +968,7 @@
     "downloadFailedTitle": "Download failed",
     "downloadFailedDesc": "Could not complete download",
     "originalLabel": "Original",
-    "stencilLabel": "Stencil",
-    "artistsTitle": "Artist stencil style",
-    "artistsHint": "Select an artist to preview their stencil look on a sample reference, then generate with your own image.",
-    "artistExampleHint": "{{artist}}'s stencil output — drag the slider to compare",
-    "styleAppliedHint": "Settings applied. Upload your image and click Generate stencil to use this artist's look.",
-    "artists": {
-      "stefanDinu": {
-        "name": "Stefan Dinu",
-        "desc": "Bold outlines and strong contrast — clean graphic stencils for large pieces"
-      },
-      "alexMorgan": {
-        "name": "Alex Morgan",
-        "desc": "Balanced all-round linework suited to most references"
-      },
-      "jordanLee": {
-        "name": "Jordan Lee",
-        "desc": "Fine detail — picks up hair, texture and subtle contours"
-      },
-      "elenaVarga": {
-        "name": "Elena Varga",
-        "desc": "Minimal — only the strongest shapes and outer edges"
-      },
-      "tomAndersson": {
-        "name": "Tom Andersson",
-        "desc": "Shadow fill — dark areas blocked in for solid black regions"
-      },
-      "yukiTanaka": {
-        "name": "Yuki Tanaka",
-        "desc": "Light sketch lines with extra texture and thinner strokes"
-      }
-    }
+    "stencilLabel": "Stencil"
   },
   "mfa": {
     "title": "Two-Factor Authentication",

@@ -62,15 +62,12 @@ export function StencilCompare({ beforeSrc, afterSrc, className }: StencilCompar
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <img
-        src={afterSrc}
-        alt={t("stencil.stencilLabel")}
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-contain"
-        draggable={false}
-      />
+      <img src={afterSrc} alt={t("stencil.stencilLabel")} loading="lazy" className="absolute inset-0 h-full w-full object-contain" draggable={false} />
 
-      <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${position}%` }}>
+      <div
+        className="absolute inset-y-0 left-0 overflow-hidden"
+        style={{ width: `${position}%` }}
+      >
         <img
           src={beforeSrc}
           alt={t("stencil.originalLabel")}
@@ -92,17 +89,18 @@ export function StencilCompare({ beforeSrc, afterSrc, className }: StencilCompar
           )}
         >
           <ChevronLeft className="h-3.5 w-3.5 text-primary" />
-          <ChevronRight className="h-3.5 w-3.5 -ml-1 text-primary" />
+          <ChevronRight className="h-3.5 w-3.5 text-primary -ml-1" />
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between gap-2 p-2">
-        <span className="max-w-[45%] truncate rounded bg-background/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          {t("stencil.originalLabel")}
-        </span>
-        <span className="max-w-[45%] truncate rounded bg-background/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          {t("stencil.stencilLabel")}
-        </span>
+      <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {t("stencil.originalLabel")}
+      </div>
+      <div
+        className="pointer-events-none absolute bottom-2 rounded bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+        style={{ left: `calc(${position}% + 8px)` }}
+      >
+        {t("stencil.stencilLabel")}
       </div>
     </div>
   );

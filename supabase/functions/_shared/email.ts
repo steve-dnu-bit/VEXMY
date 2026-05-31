@@ -157,9 +157,9 @@ export type EmailFromKind = "booking" | "notification";
 export function getEmailFrom(kind: EmailFromKind = "notification"): string | null {
   const legacy = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
   if (kind === "booking") {
-    return Deno.env.get("BOOKINGS_EMAIL_FROM") ?? legacy ?? "Velbok <no-reply@velbok.com>";
+    return Deno.env.get("BOOKINGS_EMAIL_FROM") ?? legacy ?? "Velbok <bookings@velbok.com>";
   }
-  return Deno.env.get("NOTIFICATIONS_EMAIL_FROM") ?? legacy ?? "Velbok <no-reply@velbok.com>";
+  return Deno.env.get("NOTIFICATIONS_EMAIL_FROM") ?? legacy ?? "Velbok <notifications@velbok.com>";
 }
 
 /** Bare address for calendar organizer / reply-to on booking mail. */

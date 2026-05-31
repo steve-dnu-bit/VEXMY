@@ -22,43 +22,9 @@ Add or update each row. You only need to paste your **Resend API key** yourself 
 | `SHOP_SUPPORT_EMAIL` | `no-reply@velbok.com` |
 | `SHOP_NAME` | `Velbok` |
 | `SHOP_WEBSITE_URL` | `https://velbok.com` |
-| `RESEND_API_KEY` | *Same Resend API key* (`re_...`) — **required** for booking emails |
-| `BOOKINGS_EMAIL_FROM` | `Velbok <no-reply@velbok.com>` (must be on verified domain) |
-| `NOTIFICATIONS_EMAIL_FROM` | `Velbok <no-reply@velbok.com>` |
-| `CRON_SECRET` | *Random 32+ char string* — must match database vault secret `cron_secret` (see below) |
+| `RESEND_API_KEY` | *Same Resend API key* (`re_...`) — optional, for consent emails |
 
 Click **Save** after each secret (or bulk add if your dashboard supports it).
-
-**Or run:** `.\scripts\setup-booking-email.ps1` (sets all of the above + prints vault SQL).
-
-### Cron chain (reminders + aftercare every 15 minutes)
-
-Run `.\scripts\setup-cron-chain.ps1` — sets `CRON_SECRET`, vault `cron_secret`, and schedules:
-
-- `send-booking-reminders-every-15-min`
-- `send-aftercare-emails-every-15-min`
-
-Re-schedule after changing the secret:
-
-```sql
-SELECT * FROM public.refresh_cron_jobs();
-```
-
-### CRON_SECRET + database vault (booking emails on save)
-
-New bookings call `booking-notifications` from a **database trigger**. That needs:
-
-1. Edge secret **`CRON_SECRET`**
-2. Vault secret **`cron_secret`** with the **same value**
-
-In **SQL Editor**, if you already set `CRON_SECRET` in the dashboard:
-
-```sql
-SELECT vault.update_secret(
-  (SELECT id FROM vault.secrets WHERE name = 'cron_secret' LIMIT 1),
-  'PASTE_SAME_VALUE_AS_CRON_SECRET_EDGE_SECRET'
-);
-```
 
 ---
 
