@@ -235,7 +235,7 @@
         {
           "heading": "Using stencils",
           "paragraphs": [
-            "Artists with stencil permission can upload reference images and generate stencil variations in several styles — Valoonia fine line-art, bold traditional, fine line, illustrative sketch, dotwork stippling, and solid-fill blackwork.",
+            "Artists with stencil permission can upload reference images and generate stencil variations in several styles, each named after a tattoo artist whose signature look it evokes — Bang Bang signature line, Sailor Jerry traditional, Dr. Woo fine line, Inez Janiak sketch, Chaim Machlev dotwork, and Thomas Hooper blackwork.",
             "AI generation is metered: each studio can produce one AI stencil per day for every occupied artist seat (for example, a 10-artist studio gets 10 per day). The allowance resets at midnight, and a failed render does not count against it.",
             "Generated stencils are kept in storage for 12 hours so they can be re-downloaded, then automatically deleted. The Fast in-browser engine is unmetered and uses no credits."
           ],

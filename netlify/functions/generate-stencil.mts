@@ -28,11 +28,13 @@ Hard requirements (all styles):
 - Preserve subject structure: faces, hair, hands, fabric folds, feathers as readable shapes
 - High-resolution, vector-like, clean edges suitable for hectograph / thermal transfer paper`;
 
-// Selectable stencil styles. Each adds style-specific direction on top of the
-// shared base. `valoonia` is the default and matches the original behaviour.
+// Selectable stencil styles, each named after a tattoo artist whose signature
+// look it evokes (the UI shows the artist name; the prompt drives the result).
+// Each adds style-specific direction on top of the shared base. `valoonia` is
+// the default and matches the original behaviour.
 const STENCIL_STYLES: Record<string, { label: string; prompt: string }> = {
   valoonia: {
-    label: "Valoonia · fine line-art",
+    label: "Bang Bang · signature line",
     prompt: `${STENCIL_BASE}
 
 Style — Valoonia / pro transfer line-art:
@@ -42,7 +44,7 @@ Style — Valoonia / pro transfer line-art:
 - No halftone, cross-hatching, or stipple unless a few essential mass lines`,
   },
   bold: {
-    label: "Bold · traditional",
+    label: "Sailor Jerry · traditional",
     prompt: `${STENCIL_BASE}
 
 Style — bold American/old-school traditional:
@@ -52,7 +54,7 @@ Style — bold American/old-school traditional:
 - Lines bold enough to read clearly when transferred and tattooed`,
   },
   fineline: {
-    label: "Fine line · delicate",
+    label: "Dr. Woo · fine line",
     prompt: `${STENCIL_BASE}
 
 Style — fine line / single-needle:
@@ -62,7 +64,7 @@ Style — fine line / single-needle:
 - No shading, fills, or hatching`,
   },
   sketch: {
-    label: "Sketch · illustrative",
+    label: "Inez Janiak · sketch",
     prompt: `${STENCIL_BASE}
 
 Style — illustrative sketch linework:
@@ -72,7 +74,7 @@ Style — illustrative sketch linework:
 - No solid fills or photographic shading`,
   },
   dotwork: {
-    label: "Dotwork · stippling",
+    label: "Chaim Machlev · dotwork",
     prompt: `${STENCIL_BASE}
 
 Style — dotwork / stippling guide:
@@ -82,7 +84,7 @@ Style — dotwork / stippling guide:
 - Keep dots crisp and well separated so they read on transfer paper`,
   },
   blackwork: {
-    label: "Blackwork · solid fill",
+    label: "Thomas Hooper · blackwork",
     prompt: `${STENCIL_BASE}
 
 Style — blackwork:
