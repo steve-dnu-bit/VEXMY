@@ -235,9 +235,11 @@
         {
           "heading": "Using stencils",
           "paragraphs": [
-            "Artists with stencil permission can upload reference images and generate stencil variations. Outputs are saved to the artist's stencil library."
+            "Artists with stencil permission can upload reference images and generate stencil variations in several styles, each named after a capital city — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork, and Madrid blackwork. Each style shows an example render you can tap to enlarge, so you can see how its lines look before generating.",
+            "AI generation is metered: each account can produce up to 10 AI stencils over any rolling 24-hour period. A live countdown shows how many generations remain, and a failed render does not count against it.",
+            "Generated stencils are kept in storage for 24 hours so they can be re-opened and re-downloaded from the Recent stencils folder, then automatically deleted. The Basic in-browser engine is free and unmetered."
           ],
-          "note": "Requires the generate-stencil edge function and API credentials configured for your studio."
+          "note": "Basic mode runs entirely in the browser and is free. AI mode renders professional stencils through Netlify AI Gateway with no API keys to manage."
         }
       ]
     },

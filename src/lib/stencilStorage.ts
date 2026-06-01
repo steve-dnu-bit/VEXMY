@@ -8,6 +8,40 @@ export type StencilSession = {
   stencilPublicUrl: string;
 };
 
+export type RecentStencil = {
+  id: string;
+  originalUrl: string;
+  stencilUrl: string;
+  createdAt: string;
+};
+
+/**
+ * List the current user's stencils generated in the last 24 hours — the window
+ * during which generated stencils are retained before the scheduled purge job
+ * removes them. Used to populate the "recent stencils" folder so artists can
+ * re-open and re-download anything made earlier in the session.
+ */
+export async function fetchRecentStencils(userId: string): Promise<RecentStencil[]> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("stencils")
+    .select("id, original_image_url, stencil_image_url, created_at")
+    .eq("created_by", userId)
+    .eq("status", "completed")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data
+    .filter((row) => !!row.stencil_image_url)
+    .map((row) => ({
+      id: row.id,
+      originalUrl: row.original_image_url,
+      stencilUrl: row.stencil_image_url as string,
+      createdAt: row.created_at,
+    }));
+}
+
 function extFromFile(file: File) {
   const fromName = file.name.split(".").pop()?.toLowerCase();
   if (fromName && ["jpg", "jpeg", "png", "webp", "gif"].includes(fromName)) return fromName === "jpeg" ? "jpg" : fromName;
@@ -94,4 +128,14 @@ export async function downloadStencilAndDelete(session: StencilSession, stencilD
   const blob = await dataUrlToBlob(stencilDataUrl);
   await downloadBlob(blob, "stencil.png");
   await deleteStencilSession(session);
+}
+
+/**
+ * Download the stencil without deleting it. Generated stencils are retained for
+ * 24 hours and then removed automatically by the scheduled purge job, so the
+ * artist can re-download within that window.
+ */
+export async function downloadStencilOnly(stencilDataUrl: string) {
+  const blob = await dataUrlToBlob(stencilDataUrl);
+  await downloadBlob(blob, "stencil.png");
 }

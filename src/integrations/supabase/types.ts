@@ -452,6 +452,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          expires_at: string
           id: string
           original_image_url: string
           prompt: string | null
@@ -461,6 +462,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          expires_at?: string
           id?: string
           original_image_url: string
           prompt?: string | null
@@ -470,11 +472,33 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          expires_at?: string
           id?: string
           original_image_url?: string
           prompt?: string | null
           status?: string
           stencil_image_url?: string | null
+        }
+        Relationships: []
+      }
+      stencil_usage: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -909,9 +933,17 @@ export type Database = {
         Args: { _org_id: string }
         Returns: number
       }
-      stencil_ai_remaining: {
-        Args: Record<PropertyKey, never>
-        Returns: number
+      stencil_quota_status: {
+        Args: { _user_id?: string }
+        Returns: Json
+      }
+      claim_stencil_quota: {
+        Args: { _user_id?: string }
+        Returns: Json
+      }
+      refund_stencil_quota: {
+        Args: { _usage_id: string; _user_id?: string }
+        Returns: undefined
       }
     }
     Enums: {

@@ -3,9 +3,6 @@ project_id = "tkremoxfkgoiuwghtzwd"
 [functions.send-test-email]
 verify_jwt = true
 
-[functions.email-delivery-test]
-verify_jwt = false
-
 [functions.booking-notifications]
 verify_jwt = false
 
@@ -33,8 +30,5 @@ verify_jwt = true
 [functions.send-invoice]
 verify_jwt = false
 
-[functions.process-chat-email-notifications]
-verify_jwt = false
-
-[functions.send-chat-update-email]
+[functions.purge-expired-stencils]
 verify_jwt = false
