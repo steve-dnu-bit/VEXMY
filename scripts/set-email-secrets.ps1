@@ -40,9 +40,6 @@ switch ($Provider) {
         $fromEmail = Read-Secret "From email (must be verified in Resend)" $supportEmail
         $emailFrom = "$fromName <$fromEmail>"
 
-        $setResend = Read-Host "Also set RESEND_API_KEY for consent emails? (y/N)"
-        $useResendApi = $setResend -eq "y" -or $setResend -eq "Y"
-
         Write-Host ""
         Write-Host "Setting secrets on linked Supabase project..." -ForegroundColor Cyan
 
@@ -51,14 +48,20 @@ switch ($Provider) {
             SMTP_PORT=465 `
             SMTP_USER=resend `
             "SMTP_PASS=$apiKeyPlain" `
+            "RESEND_API_KEY=$apiKeyPlain" `
             "EMAIL_FROM=$emailFrom" `
+            "BOOKINGS_EMAIL_FROM=Velbok <bookings@velbok.com>" `
+            "NOTIFICATIONS_EMAIL_FROM=Velbok <notifications@velbok.com>" `
             "SITE_URL=$siteUrl" `
             "SHOP_SUPPORT_EMAIL=$supportEmail" `
             "SHOP_NAME=$shopName" `
             "SHOP_WEBSITE_URL=$siteUrl"
 
-        if ($useResendApi) {
-            npx supabase secrets set "RESEND_API_KEY=$apiKeyPlain"
+        $setCron = Read-Host "Set CRON_SECRET for booking email DB trigger? (Y/n)"
+        if ($setCron -ne "n" -and $setCron -ne "N") {
+            $cronSecret = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
+            npx supabase secrets set "CRON_SECRET=$cronSecret"
+            Write-Host "Run vault.update_secret SQL — see docs/supabase-secrets-dashboard.md" -ForegroundColor Yellow
         }
     }
     "brevo" {

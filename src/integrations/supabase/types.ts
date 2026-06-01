@@ -909,6 +909,10 @@ export type Database = {
         Args: { _org_id: string }
         Returns: number
       }
+      stencil_ai_remaining: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "artist" | "assistant" | "customer"

@@ -13,6 +13,14 @@ import PasswordField from "@/components/auth/PasswordField";
 import { BRANDING } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 
+/** Password-reset links must match Supabase Auth → URL Configuration allow list. */
+function getAuthSiteOrigin(): string {
+  const fromEnv =
+    import.meta.env.VITE_SITE_URL?.trim() || import.meta.env.VITE_SHOP_WEBSITE_URL?.trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  return window.location.origin;
+}
+
 const AuthPage = () => {
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
@@ -122,17 +130,21 @@ const AuthPage = () => {
     setForgotPasswordLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/auth?mode=recovery`,
+        redirectTo: `${getAuthSiteOrigin()}/auth?mode=recovery`,
       });
       if (error) throw error;
       toast({
         title: t("auth.resetEmailSent"),
         description: t("auth.resetEmailSentDesc"),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const smtpFailure =
+        /error sending recovery email/i.test(message) ||
+        /error sending confirmation email/i.test(message);
       toast({
         title: t("auth.couldNotSendReset"),
-        description: error?.message ?? t("common.error"),
+        description: smtpFailure ? t("auth.resetEmailSmtpError") : message || t("common.error"),
         variant: "destructive",
       });
     } finally {
