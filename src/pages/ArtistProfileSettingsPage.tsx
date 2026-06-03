@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { THEME_PRESETS } from "@/lib/themePresets";
+import { canArtistCustomizeDashboardTheme, notifyPortalThemeUpdated } from "@/lib/shopDashboardTheme";
 
 const ArtistProfileSettingsPage = () => {
   const { user } = useAuth();
@@ -30,11 +31,16 @@ const ArtistProfileSettingsPage = () => {
   const [instagram, setInstagram] = useState("");
   const [bgImageUrl, setBgImageUrl] = useState("");
   const [bgColor, setBgColor] = useState("#111827");
+  const [canCustomizeTheme, setCanCustomizeTheme] = useState(true);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const bgInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    void canArtistCustomizeDashboardTheme().then(setCanCustomizeTheme);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -110,7 +116,7 @@ const ArtistProfileSettingsPage = () => {
     if (!user) return;
     setSaving(true);
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       user_id: user.id,
       display_name: displayName.trim() || user.email?.split("@")[0] || "Artist",
       avatar_url: avatarUrl || null,
@@ -118,10 +124,12 @@ const ArtistProfileSettingsPage = () => {
       public_contact_email: contactEmail.trim() || null,
       public_contact_phone: contactPhone.trim() || null,
       public_instagram: instagram.trim() || null,
-      portal_bg_image_url: bgImageUrl || null,
-      portal_bg_color: bgColor || null,
       public_profile_completed: markCompleted ? true : undefined,
     };
+    if (canCustomizeTheme) {
+      payload.portal_bg_image_url = bgImageUrl || null;
+      payload.portal_bg_color = bgColor || null;
+    }
 
     const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "user_id" });
     setSaving(false);
@@ -131,6 +139,7 @@ const ArtistProfileSettingsPage = () => {
     }
 
     toast.success(markCompleted ? "Profile completed" : "Profile saved");
+    if (canCustomizeTheme) notifyPortalThemeUpdated();
     if (markCompleted) navigate("/schedule");
   };
 
@@ -269,10 +278,11 @@ const ArtistProfileSettingsPage = () => {
           </CardContent>
         </Card>
 
+        {canCustomizeTheme ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Profile Theme</CardTitle>
-            <CardDescription>Background image and color scheme</CardDescription>
+            <CardDescription>Background image and color scheme for your staff app and customer pages</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
@@ -321,6 +331,16 @@ const ArtistProfileSettingsPage = () => {
             </div>
           </CardContent>
         </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Profile Theme</CardTitle>
+              <CardDescription>
+                Your shop uses one shared dashboard look set by the admin. Contact your studio admin to change colors or background.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
 
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => void saveProfile(false)} disabled={saving}>

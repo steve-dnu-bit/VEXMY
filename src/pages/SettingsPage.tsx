@@ -15,6 +15,7 @@ import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSett
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
+import { canArtistCustomizeDashboardTheme } from "@/lib/shopDashboardTheme";
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
@@ -50,6 +51,11 @@ const SettingsPage = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [consentRows, setConsentRows] = useState<Array<{ id: string; full_name: string; email: string | null; created_at: string; consent_pdf_url: string | null }>>([]);
+  const [canCustomizeTheme, setCanCustomizeTheme] = useState(true);
+
+  useEffect(() => {
+    void canArtistCustomizeDashboardTheme().then(setCanCustomizeTheme);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -179,7 +185,10 @@ const SettingsPage = () => {
               </div>
               <CardDescription>{t("settings.artistProfileDesc")}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
+              {!canCustomizeTheme ? (
+                <p className="text-xs text-muted-foreground">{t("settings.artistProfileShopThemeNote")}</p>
+              ) : null}
               <Button asChild variant="outline">
                 <Link to="/artist-profile-settings">{t("settings.openProfileCustomization")}</Link>
               </Button>

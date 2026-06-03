@@ -22,6 +22,7 @@ import AdminEmailSettingsPanel from "@/components/admin/AdminEmailSettingsPanel"
 import AdminAftercareSettingsPanel from "@/components/admin/AdminAftercareSettingsPanel";
 import AdminConsentFormsPanel from "@/components/admin/AdminConsentFormsPanel";
 import AdminScheduleHoursPanel from "@/components/admin/AdminScheduleHoursPanel";
+import AdminDashboardThemePanel from "@/components/admin/AdminDashboardThemePanel";
 
 interface Profile {
   user_id: string;
@@ -498,6 +499,7 @@ const AdminPage = () => {
             <TabsTrigger value="emails">{t("admin.tabEmails")}</TabsTrigger>
             <TabsTrigger value="aftercare">{t("admin.tabAftercare")}</TabsTrigger>
             <TabsTrigger value="schedule-hours">{t("admin.tabScheduleHours")}</TabsTrigger>
+            <TabsTrigger value="dashboard-theme">{t("admin.tabDashboardTheme")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
@@ -712,6 +714,10 @@ const AdminPage = () => {
 
           <TabsContent value="schedule-hours" className="mt-4">
             <AdminScheduleHoursPanel />
+          </TabsContent>
+
+          <TabsContent value="dashboard-theme" className="mt-4">
+            <AdminDashboardThemePanel />
           </TabsContent>
         </Tabs>
       </div>

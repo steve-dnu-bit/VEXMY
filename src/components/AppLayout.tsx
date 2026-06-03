@@ -10,6 +10,7 @@ import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
 import { BRANDING, STORAGE_PREFIX } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
+import { PORTAL_THEME_UPDATED_EVENT, resolveStaffPortalTheme } from "@/lib/shopDashboardTheme";
 
 const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar; feature: Feature }> = [
   { labelKey: "nav.schedule", path: "/schedule", icon: Calendar, feature: "schedule" },
@@ -133,13 +134,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         clearPortalTheme();
         return;
       }
-      const { data } = await supabase
-        .from("profiles")
-        .select("portal_bg_color, portal_bg_image_url")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const color = data?.portal_bg_color || null;
-      const image = data?.portal_bg_image_url || null;
+      const theme = await resolveStaffPortalTheme(user.id);
+      const color = theme.color;
+      const image = theme.image;
       setPortalBgColor(color);
       setPortalBgImageUrl(image);
       applyPortalTheme(color, image);
@@ -148,7 +145,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
     void fetchAndApplyTheme();
     window.addEventListener("focus", fetchAndApplyTheme);
-    return () => window.removeEventListener("focus", fetchAndApplyTheme);
+    window.addEventListener(PORTAL_THEME_UPDATED_EVENT, fetchAndApplyTheme);
+    return () => {
+      window.removeEventListener("focus", fetchAndApplyTheme);
+      window.removeEventListener(PORTAL_THEME_UPDATED_EVENT, fetchAndApplyTheme);
+    };
   }, [user, location.pathname]);
 
   const shellStyle = useMemo(() => {
