@@ -172,10 +172,13 @@ serve(async (req) => {
 
       await admin.from("user_roles").upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id,role" });
 
-      const { data: shopRow } = await admin.from("shop_settings").select("id").limit(1).maybeSingle();
-      if (shopRow) {
-        await admin.from("shop_settings").update({ organization_id: newOrg.id, shop_name: studioName }).eq("id", shopRow.id);
-      }
+      await admin.from("shop_settings").insert({
+        organization_id: newOrg.id,
+        shop_name: studioName,
+        legal_name: `${studioName} Ltd`,
+        trading_name: studioName,
+        setup_completed_at: null,
+      });
 
       orgId = newOrg.id;
       orgRecord = newOrg;

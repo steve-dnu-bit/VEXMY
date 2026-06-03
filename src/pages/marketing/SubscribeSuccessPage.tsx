@@ -64,7 +64,7 @@ const SubscribeSuccessPage = () => {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
               {user ? (
                 <Button variant="gold" asChild>
-                  <Link to="/schedule">{t("subscribe.goToSchedule")}</Link>
+                  <Link to="/shop-setup">{t("setup.startSetup")}</Link>
                 </Button>
               ) : (
                 <Button variant="gold" asChild>

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchHasStaffAccess, fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
+import { needsShopSetup } from "@/lib/shopSettings";
 import { useTranslation } from "react-i18next";
 
 /** Customers without a staff role cannot access staff apps (schedule, admin, …). */
 const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
-  const [redirect, setRedirect] = useState<"account" | "customer-profile-setup" | null | "wait">("wait");
+  const location = useLocation();
+  const [redirect, setRedirect] = useState<"account" | "customer-profile-setup" | "shop-setup" | null | "wait">("wait");
 
   useEffect(() => {
     if (!user) {
@@ -27,6 +29,11 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
         window.clearTimeout(timer);
 
         if (isStaff) {
+          const setupRequired = await needsShopSetup(user.id);
+          if (setupRequired && location.pathname !== "/shop-setup") {
+            setRedirect("shop-setup");
+            return;
+          }
           setRedirect(null);
           return;
         }
@@ -46,7 +53,7 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
       });
 
     return () => window.clearTimeout(timer);
-  }, [user]);
+  }, [user, location.pathname]);
 
   if (loading || redirect === "wait") {
     return (
@@ -58,6 +65,7 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   if (redirect === "account") return <Navigate to="/account" replace />;
   if (redirect === "customer-profile-setup")
     return <Navigate to="/customer-profile-setup" replace />;
+  if (redirect === "shop-setup") return <Navigate to="/shop-setup" replace />;
   return <>{children}</>;
 };
 

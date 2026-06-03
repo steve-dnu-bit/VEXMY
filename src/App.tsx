@@ -32,6 +32,7 @@ const StockPage = lazy(() => import("./pages/StockPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const ArtistProfileSettingsPage = lazy(() => import("./pages/ArtistProfileSettingsPage"));
+const ShopSetupWizardPage = lazy(() => import("./pages/ShopSetupWizardPage"));
 const CustomerProfileSetupPage = lazy(() => import("./pages/CustomerProfileSetupPage"));
 const CustomerSecurityPage = lazy(() => import("./pages/CustomerSecurityPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -126,6 +127,7 @@ const App = () => (
                 <Route path="/admin" element={<ProtectedRoute><StaffRoute><AdminPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                 <Route path="/artist-profile-settings" element={<ProtectedRoute><ArtistProfileSettingsPage /></ProtectedRoute>} />
+                <Route path="/shop-setup" element={<ProtectedRoute><ShopSetupWizardPage /></ProtectedRoute>} />
                 <Route path="/customer-profile-setup" element={<ProtectedRoute><CustomerProfileSetupPage /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
+import { needsShopSetup } from "@/lib/shopSettings";
 
 export type AppRole = "admin" | "artist" | "customer";
 
@@ -62,6 +63,7 @@ export async function fetchHasStaffRole(userId: string): Promise<boolean> {
 
 /** Where to send a user immediately after sign-in (matches AuthHomeRedirect). */
 export async function resolvePostLoginPath(userId: string, rawNext: string | null): Promise<string> {
+  if (await needsShopSetup(userId)) return "/shop-setup";
   if (await needsArtistProfileSetup(userId)) return "/artist-profile-settings";
   if (await needsCustomerProfileSetup(userId)) return "/customer-profile-setup";
   const next = getSafeNextPath(rawNext);

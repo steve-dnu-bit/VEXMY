@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { loadShopSettings } from "@/lib/shopSettings";
 
 export const SCHEDULE_SLOT_MINUTES = 15;
 
@@ -117,13 +118,15 @@ function rowToShopScheduleHours(row: {
 }
 
 export async function loadShopScheduleHours(): Promise<ShopScheduleHours> {
+  const shop = await loadShopSettings();
+  if (!shop?.id) return { ...defaultShopScheduleHours };
+
   const { data, error } = await supabase
     .from("shop_settings" as any)
     .select(
       "schedule_open_time, schedule_close_time, schedule_extra_buffer_minutes, schedule_extra_buffer_at",
     )
-    .order("created_at", { ascending: true })
-    .limit(1)
+    .eq("id", shop.id)
     .maybeSingle();
 
   if (error || !data) return { ...defaultShopScheduleHours };
@@ -137,14 +140,8 @@ export async function saveShopScheduleHours(hours: ShopScheduleHours): Promise<{
     return { error: "Close time must be after open time" };
   }
 
-  const { data: row, error: loadErr } = await supabase
-    .from("shop_settings" as any)
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (loadErr || !row?.id) return { error: loadErr?.message ?? "Shop settings not found" };
+  const shop = await loadShopSettings();
+  if (!shop?.id) return { error: "Shop settings not found" };
 
   const { error } = await supabase
     .from("shop_settings" as any)
@@ -156,7 +153,7 @@ export async function saveShopScheduleHours(hours: ShopScheduleHours): Promise<{
         hours.extraBufferAt === "start" || hours.extraBufferAt === "both" ? hours.extraBufferAt : "end",
       updated_at: new Date().toISOString(),
     })
-    .eq("id", row.id);
+    .eq("id", shop.id);
 
   return { error: error?.message ?? null };
 }

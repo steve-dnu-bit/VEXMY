@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { loadShopSettings } from "@/lib/shopSettings";
 
 export type DashboardThemeMode = "per_artist" | "shop";
 
@@ -34,11 +35,13 @@ function rowToSettings(row: {
 }
 
 export async function loadShopDashboardThemeSettings(): Promise<ShopDashboardThemeSettings> {
+  const shop = await loadShopSettings();
+  if (!shop?.id) return { ...defaultShopDashboardThemeSettings };
+
   const { data, error } = await supabase
     .from("shop_settings" as any)
     .select("dashboard_theme_mode, shop_portal_bg_color, shop_portal_bg_image_url")
-    .order("created_at", { ascending: true })
-    .limit(1)
+    .eq("id", shop.id)
     .maybeSingle();
 
   if (error || !data) return { ...defaultShopDashboardThemeSettings };
@@ -48,14 +51,8 @@ export async function loadShopDashboardThemeSettings(): Promise<ShopDashboardThe
 export async function saveShopDashboardThemeSettings(
   settings: ShopDashboardThemeSettings,
 ): Promise<{ error: string | null }> {
-  const { data: row, error: loadErr } = await supabase
-    .from("shop_settings" as any)
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (loadErr || !row?.id) return { error: loadErr?.message ?? "Shop settings not found" };
+  const shop = await loadShopSettings();
+  if (!shop?.id) return { error: "Shop settings not found" };
 
   const { error } = await supabase
     .from("shop_settings" as any)
@@ -65,7 +62,7 @@ export async function saveShopDashboardThemeSettings(
       shop_portal_bg_image_url: settings.portalBgImageUrl?.trim() || null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", row.id);
+    .eq("id", shop.id);
 
   if (!error) notifyPortalThemeUpdated();
   return { error: error?.message ?? null };
