@@ -113,7 +113,7 @@ function BookingBlock({
         e.stopPropagation();
         onBookingClick(booking);
       }}
-      className={`absolute left-0.5 right-0.5 rounded-md px-1 py-0.5 border cursor-pointer transition-all hover:shadow-elevated text-[10px] overflow-hidden leading-tight ${colorClass}`}
+      className={`absolute left-0.5 right-0.5 rounded-md px-1 py-0.5 border cursor-pointer pointer-events-auto transition-all hover:shadow-elevated text-[10px] overflow-hidden leading-tight ${colorClass}`}
       style={{
         top: `${layout.top}px`,
         height: `${layout.height}px`,
@@ -524,8 +524,8 @@ const TimeGrid = ({
               const colBookings = filteredBookings.filter((b) => layouts.has(b.id));
 
               return (
-                <div key={`blocks-${col.user_id}-${colIdx}`} className="relative border-l border-border">
-                  <div className="absolute inset-0 pointer-events-auto">
+                <div key={`blocks-${col.user_id}-${colIdx}`} className="relative border-l border-border pointer-events-none">
+                  <div className="absolute inset-0">
                     {colBookings.map((b) => {
                       const layout = layouts.get(b.id);
                       if (!layout) return null;
