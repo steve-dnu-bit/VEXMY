@@ -89,7 +89,6 @@ const ADMIN_TABS = [
   "aftercare",
   "schedule-hours",
   "dashboard-theme",
-  "subscription",
 ] as const;
 
 type AdminTab = (typeof ADMIN_TABS)[number];
@@ -523,7 +522,6 @@ const AdminPage = () => {
             <TabsTrigger value="aftercare">{t("admin.tabAftercare")}</TabsTrigger>
             <TabsTrigger value="schedule-hours">{t("admin.tabScheduleHours")}</TabsTrigger>
             <TabsTrigger value="dashboard-theme">{t("admin.tabDashboardTheme")}</TabsTrigger>
-            <TabsTrigger value="subscription">{t("admin.tabSubscription")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
@@ -743,11 +741,11 @@ const AdminPage = () => {
           <TabsContent value="dashboard-theme" className="mt-4">
             <AdminDashboardThemePanel />
           </TabsContent>
-
-          <TabsContent value="subscription" className="mt-4">
-            <SubscriptionSettingsCard />
-          </TabsContent>
         </Tabs>
+
+        <div id="subscription" className="scroll-mt-6">
+          <SubscriptionSettingsCard />
+        </div>
       </div>
     </AppLayout>
   );

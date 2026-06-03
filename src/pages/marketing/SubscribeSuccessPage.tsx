@@ -72,7 +72,7 @@ const SubscribeSuccessPage = () => {
                 </Button>
               )}
               <Button variant="gold-outline" asChild>
-                <Link to="/admin?tab=subscription">{t("subscription.title")}</Link>
+                <Link to="/admin#subscription">{t("subscription.title")}</Link>
               </Button>
             </div>
           </>
