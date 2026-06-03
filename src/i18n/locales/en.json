@@ -540,7 +540,7 @@
     "consentDeleteConfirm": "Delete \"{{name}}\"? Existing signed PDFs are kept.",
     "consentDeleted": "Form deleted",
     "consentLinkCopiedDesc": "Share with clients as /consent?form=slug",
-    "consentNoForms": "No forms yet — defaults will appear when you open this tab."
+    "consentNoForms": "No forms yet — defaults will appear when you open this tab.",
     "defaultsApplyNote": "Defaults apply when someone accepts an invite as Customer or Artist. Existing users are unchanged.",
     "customerDefaults": "Customer defaults",
     "artistDefaults": "Artist defaults",
