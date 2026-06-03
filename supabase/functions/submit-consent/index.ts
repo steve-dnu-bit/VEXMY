@@ -8,26 +8,12 @@ import {
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
+import { loadConsentFormTemplateBySlug, type ConsentFormContent } from "../_shared/consent-form-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-/** Must match `src/pages/ConsentPage.tsx` `healthQuestions` exactly (used as keys in healthAnswers). */
-const HEALTH_QUESTIONS: readonly string[] = [
-  "Any heart condition?",
-  "Seizures e.g. epilepsy?",
-  "Hemophilia?",
-  "Compromised immune system e.g. HIV/Hepatitis",
-  "Diabetes",
-  "Allergic responses to adhesives, plasters, creams, latex, foods, etc?",
-  "Pregnant or nursing mother?",
-  "Prone to fainting or dizziness?",
-  "Taking blood thinning medication e.g. aspirin/wafarin?",
-  "Are you under 18?",
-  "Do you need extra privacy or a separate room for your treatment",
-];
 
 function decodeDataUrlToBytes(dataUrl: string): Uint8Array {
   const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
@@ -182,7 +168,8 @@ function layoutForScale(scale: number, _consentType: "tattoo" | "piercing"): Con
 }
 
 async function buildConsentPdf(params: {
-  consentType: "tattoo" | "piercing";
+  template: ConsentFormContent;
+  templateSlug: string;
   fullName: string;
   clientEmail: string;
   phone: string;
@@ -192,13 +179,13 @@ async function buildConsentPdf(params: {
   consentFields: Record<string, unknown>;
   signatureImage: string;
 }) {
-  const { consentType, fullName, clientEmail, phone, artistName, bookingStartsAt, bookingEndsAt, consentFields, signatureImage } = params;
+  const { template, templateSlug, fullName, clientEmail, phone, artistName, bookingStartsAt, bookingEndsAt, consentFields, signatureImage } = params;
   /** Portrait A4 (width < height). Explicit rotation 0° so viewers/printers never treat it as landscape. */
   const PAGE_W = 595.28;
   const PAGE_H = 841.89;
   const brand = getShopBranding();
   const pdfDoc = await PDFDocument.create();
-  pdfDoc.setTitle(`${consentType === "piercing" ? "Piercing" : "Tattoo"} consent — ${brand.shopName}`);
+  pdfDoc.setTitle(`${template.formTitle} — ${brand.shopName}`);
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
   page.setRotation(degrees(0));
 
@@ -217,32 +204,7 @@ async function buildConsentPdf(params: {
   const signatureZoneTop = (sectionTitleLead: number) =>
     margin + sigBoxH + sigLabelGap + sectionTitleLead + gapBeforeSig;
 
-  const tattooStatements = [
-    "I understand that a Tattoo is a permanent mark for life and that no form of anesthetic will be used in the procedure.",
-    "I understand that every care will be taken to ensure that the tattoo procedure is performed in a hygienic way including the use of pre-sterilized single use needles and plastic tubes.",
-    "I understand that a new tattoo is susceptible to infection until healed and that the care of the tattoo is solely my responsibility once I leave the studio.",
-    "I will follow the aftercare procedures as explained and given to me in writing.",
-    "Associated risks include blood poisoning (septicemia), scarring, allergic reactions, immunological responses and localized swelling and trauma.",
-    "New research could link tattooing to skin or other cancers therefore you must be aware of that possibility too.",
-    brand.tattooDataStorageText,
-    "I consent for promotional pictures and videos to be taken of me and my new tattoo for the purpose of advertising.",
-    "I AM OVER 18 YEARS OLD. (Tattooing a minor Act 1969).",
-    "I AM NOT UNDER THE INFLUENCE OF ALCOHOL OR DRUGS.",
-    "I HAVE REQUESTED THIS TATTOO OF MY OWN FREE WILL.",
-  ];
-  const piercingStatements = [
-    "I understand that a Piercing could leave a permanent scar or mark.",
-    "I understand that every care will be taken to ensure that the piercing procedure is performed in a hygienic way including the use of pre-sterilized single use needles and sterilized equipment.",
-    "I understand that a new piercing is susceptible to infection until healed and that it is solely my responsibility to take care of it, once I leave the studio.",
-    "I will follow the aftercare procedures as explained and given to me in writing.",
-    "Associated risks include blood poisoning (septicemia), permanent scarring, keloid scarring, allergic reactions, localized swelling and trauma, cauliflower ear.",
-    brand.piercingDataStorageText,
-    "I consent for promotional pictures and videos to be taken of me and my new piercing for the purpose of advertising.",
-    "I have requested this piercing on my own free will and I am not under the influence of drugs or alcohol.",
-    "If I am under the legal age, I understand that photocopies of our photo IDs will be made and stored.",
-    "I fully acknowledge the above risks and statements and take full responsibility if any of them occur.",
-  ];
-  const statements = consentType === "piercing" ? piercingStatements : tattooStatements;
+  const statements = template.statements;
   const fields = consentFields as Record<string, unknown>;
   const treatmentLocation =
     (typeof fields.treatmentLocation === "string" && fields.treatmentLocation.trim()) ||
@@ -252,10 +214,7 @@ async function buildConsentPdf(params: {
   const dob = typeof fields.dob === "string" ? fields.dob : "";
   const guardianName = typeof fields.guardianName === "string" ? fields.guardianName : "";
   const startWindow = formatAppointmentShort(bookingStartsAt, bookingEndsAt);
-  const locLabel =
-    consentType === "piercing"
-      ? "Location of piercing, Description, Other:"
-      : "Tattoo location / description:";
+  const locLabel = template.placementLabel;
   const detailLines = [
     `Full name (print): ${fullName}`,
     `Address: ${address}`,
@@ -269,15 +228,12 @@ async function buildConsentPdf(params: {
 
   const markColW = 52;
   const qTextW = contentW - markColW - 8;
-  const intro =
-    consentType === "piercing"
-      ? `I hereby declare that I give my full consent to PIERCE me and that the information given below is true to the best of my knowledge.`
-      : `I hereby declare that I give my full consent to TATTOO me and that the information given below is true to the best of my knowledge.`;
+  const intro = template.introText;
 
   const sectionLead = (L: ConsentLayout) => L.sectionTitleSize * 1.15;
 
   const measureHeader = (scale: number): number => {
-    const L = layoutForScale(scale, consentType);
+    const L = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
     const subSize = 7 * scale;
     let y = PAGE_H - margin;
     y = dropAfterLine(y, L.headerSize, 6);
@@ -288,7 +244,7 @@ async function buildConsentPdf(params: {
     return y;
   };
 
-  const declColumns = consentType === "tattoo" ? 2 : 1;
+  const declColumns = template.declColumns;
 
   const measureDeclarationsDrop = (startY: number, scale: number, L: ConsentLayout): number => {
     const colGap = 6;
@@ -313,14 +269,14 @@ async function buildConsentPdf(params: {
   };
 
   const measureEndY = (scale: number): number => {
-    const L = layoutForScale(scale, consentType);
+    const L = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
     const lead = sectionLead(L);
     let y = measureHeader(scale);
     y -= blockHeight(countWrappedLines(intro, contentW, L.introSize, fontRegular), L.introLine);
     y -= L.introGap;
     y -= lead;
     y -= L.healthHeaderGap;
-    for (const q of HEALTH_QUESTIONS) {
+    for (const q of template.healthQuestions) {
       y -= blockHeight(countWrappedLines(q, qTextW, L.qSize, fontRegular), L.qLine);
       y -= L.qRowGap;
     }
@@ -342,7 +298,7 @@ async function buildConsentPdf(params: {
   const maxScale = 1.24;
   const minScale = 0.9;
   for (let i = 0; i < 24; i++) {
-    const Ls = layoutForScale(scale, consentType);
+    const Ls = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
     const floorY = signatureZoneTop(sectionLead(Ls));
     const endY = measureEndY(scale);
     if (endY > floorY + minGapAboveSignature + 8 && scale < maxScale) {
@@ -353,13 +309,13 @@ async function buildConsentPdf(params: {
       break;
     }
   }
-  const Ltest = layoutForScale(scale, consentType);
+  const Ltest = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
   const contentFloorY = signatureZoneTop(sectionLead(Ltest));
   if (measureEndY(scale) < contentFloorY + minGapAboveSignature - 1) {
     throw new Error("Consent PDF does not fit on one page; contact support.");
   }
 
-  const L = layoutForScale(scale, consentType);
+  const L = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
   const yesX = PAGE_W - margin - markColW;
   const noX = PAGE_W - margin - 22;
   const answers = ((consentFields.healthAnswers as Record<string, unknown>) || {}) as Record<string, unknown>;
@@ -379,7 +335,7 @@ async function buildConsentPdf(params: {
   }
   y -= 8 * scale;
 
-  const title = consentType === "piercing" ? "PIERCING CONSENT FORM" : "TATTOO CONSENT FORM";
+  const title = template.pdfTitle;
   page.drawText(title, { x: margin, y, size: L.titleSize, font: fontBold, color: rgb(0.08, 0.08, 0.08) });
   y = dropAfterLine(y, L.titleSize, 6);
   if (artistName?.trim()) {
@@ -398,7 +354,7 @@ async function buildConsentPdf(params: {
   y -= lead;
   y -= L.healthHeaderGap;
 
-  for (const q of HEALTH_QUESTIONS) {
+  for (const q of template.healthQuestions) {
     const rowTop = y;
     const raw = answers[q];
     const yEnd = drawWrappedText({
@@ -573,10 +529,25 @@ serve(async (req) => {
     const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const phone = typeof body.phone === "string" ? body.phone.trim() : "";
-    const agreementVersion = typeof body.agreementVersion === "string" ? body.agreementVersion : "1.0";
-    const consentType = body.consentType === "piercing" ? "piercing" : "tattoo";
+    const templateSlugRaw =
+      typeof body.templateSlug === "string"
+        ? body.templateSlug.trim().toLowerCase()
+        : body.consentType === "piercing"
+          ? "piercing"
+          : typeof body.consentType === "string"
+            ? body.consentType.trim().toLowerCase()
+            : "tattoo";
+    const templateSlug = templateSlugRaw || "tattoo";
     const signatureImage = typeof body.signatureImage === "string" ? body.signatureImage : "";
     const consentFields = body.consentFields ?? {};
+
+    const loadedTemplate = await loadConsentFormTemplateBySlug(adminClient, templateSlug);
+    if (!loadedTemplate) {
+      return jsonResponse({ error: `Consent form "${templateSlug}" not found or inactive` }, 404);
+    }
+    const agreementVersion =
+      typeof body.agreementVersion === "string" ? body.agreementVersion : loadedTemplate.version;
+    const template = loadedTemplate.content;
 
     if (!bookingId) throw new Error("bookingId is required");
     if (!fullName) throw new Error("fullName is required");
@@ -638,7 +609,15 @@ serve(async (req) => {
         booking_id: bookingId,
         artist_id: artistId,
         reference_image_url: null,
-        consent_fields: consentFields,
+        consent_fields: {
+          ...(typeof consentFields === "object" && consentFields !== null
+            ? (consentFields as Record<string, unknown>)
+            : {}),
+          consentType: templateSlug,
+          templateSlug,
+        },
+        consent_template_id: loadedTemplate.id ?? null,
+        consent_template_slug: templateSlug,
       })
       .select("id")
       .single();
@@ -660,7 +639,8 @@ serve(async (req) => {
 
     try {
       const filledBytes = await buildConsentPdf({
-        consentType,
+        template,
+        templateSlug,
         fullName,
         clientEmail,
         phone,
@@ -714,7 +694,7 @@ serve(async (req) => {
     const startsAt = (booking as any).starts_at as string | undefined;
     const endsAt = (booking as any).ends_at as string | undefined;
     const brand = getShopBranding();
-    const subject = `${consentType === "piercing" ? "Piercing" : "Tattoo"} consent submitted — ${brand.shopName}`;
+    const subject = `${loadedTemplate.name} submitted — ${brand.shopName}`;
 
     const bookingHtml = startsAt
       ? `<p>Appointment: <strong>${startsAt}</strong> ${endsAt ? `– ${endsAt}` : ""}</p>`
@@ -727,7 +707,7 @@ serve(async (req) => {
     const commonHtml = `
       <div>
         <p>Hi,</p>
-        <p>${fullName} has submitted a ${consentType} consent form.</p>
+        <p>${fullName} has submitted the ${loadedTemplate.name} consent form.</p>
         ${bookingHtml}
         ${pdfLinkHtml}
         <p>Thank you,<br/>${brand.shopName}</p>

@@ -19,6 +19,8 @@ import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
 import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
 import AdminEmailSettingsPanel from "@/components/admin/AdminEmailSettingsPanel";
+import AdminAftercareSettingsPanel from "@/components/admin/AdminAftercareSettingsPanel";
+import AdminConsentFormsPanel from "@/components/admin/AdminConsentFormsPanel";
 
 interface Profile {
   user_id: string;
@@ -449,7 +451,9 @@ const AdminPage = () => {
             <TabsTrigger value="staff">{t("admin.tabStaff")}</TabsTrigger>
             <TabsTrigger value="customers">{t("admin.tabCustomers")}</TabsTrigger>
             <TabsTrigger value="consents">{t("admin.tabConsents")}</TabsTrigger>
+            <TabsTrigger value="consent-forms">{t("admin.tabConsentForms")}</TabsTrigger>
             <TabsTrigger value="emails">{t("admin.tabEmails")}</TabsTrigger>
+            <TabsTrigger value="aftercare">{t("admin.tabAftercare")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
@@ -627,8 +631,16 @@ const AdminPage = () => {
             <AdminConsentsPanel />
           </TabsContent>
 
+          <TabsContent value="consent-forms" className="mt-4">
+            <AdminConsentFormsPanel />
+          </TabsContent>
+
           <TabsContent value="emails" className="mt-4">
             <AdminEmailSettingsPanel />
+          </TabsContent>
+
+          <TabsContent value="aftercare" className="mt-4">
+            <AdminAftercareSettingsPanel />
           </TabsContent>
         </Tabs>
       </div>

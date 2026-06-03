@@ -1,5 +1,10 @@
 import { getShopBranding, type ShopBranding } from "./branding.ts";
 import {
+  defaultAftercareForKind,
+  type AftercareSection,
+  type AftercareTemplateContent,
+} from "./default-aftercare-templates.ts";
+import {
   emailButton,
   emailDetailTable,
   emailLayout,
@@ -299,9 +304,9 @@ export function buildInvoiceEmail(params: {
   });
 }
 
-function aftercareSection(title: string, html: string): string {
+function aftercareSection(title: string, html: string, accentColor: string): string {
   return `
-    <h3 style="margin:16px 0 10px;font-size:15px;color:${getShopBranding().accentColor};">${escapeHtml(title)}</h3>
+    <h3 style="margin:16px 0 10px;font-size:15px;color:${accentColor};">${escapeHtml(title)}</h3>
     ${html}`;
 }
 
@@ -311,83 +316,66 @@ function aftercareList(items: string[], ordered = false): string {
   return `<${tag} style="margin:0 0 12px 18px;padding:0;line-height:1.65;color:#e8e8e8;font-size:13px;">${rows}</${tag}>`;
 }
 
+function renderAftercareIntro(template: string, shopName: string, bookingWindow: string): string {
+  const withWindow = template
+    .replace(/\{\{shopName\}\}/g, escapeHtml(shopName))
+    .replace(/\{\{bookingWindow\}\}/g, `<strong>${escapeHtml(bookingWindow)}</strong>`);
+  return withWindow;
+}
+
+function renderAftercareSections(sections: AftercareSection[], accentColor: string): string {
+  return sections
+    .map((section) => {
+      if (section.bodyHtml) {
+        return aftercareSection(section.title, section.bodyHtml, accentColor);
+      }
+      if (section.listItems?.length) {
+        return aftercareSection(
+          section.title,
+          aftercareList(section.listItems, !!section.orderedList),
+          accentColor,
+        );
+      }
+      return "";
+    })
+    .join("");
+}
+
+export function buildAftercareEmailFromTemplate(params: {
+  template: AftercareTemplateContent;
+  clientName: string;
+  bookingWindow: string;
+  shopName?: string;
+}): string {
+  const brand = getShopBranding();
+  const shopName = params.shopName || brand.shopName;
+  const intro = renderAftercareIntro(params.template.introTemplate, shopName, params.bookingWindow);
+  const bodyHtml = renderAftercareSections(params.template.sections, brand.accentColor);
+
+  return emailLayout({
+    brand,
+    badge: params.template.badge,
+    title: params.template.title,
+    greeting: `Hi ${escapeHtml(params.clientName)},`,
+    intro,
+    bodyHtml,
+  });
+}
+
+export function aftercareEmailSubject(template: AftercareTemplateContent, tradingName: string): string {
+  return `${template.emailSubject} — ${tradingName}`;
+}
+
 export function buildAftercareEmail(params: {
   kind: "tattoo" | "piercing";
   clientName: string;
   bookingWindow: string;
+  template?: AftercareTemplateContent;
 }): string {
-  const brand = getShopBranding();
-  const badge = params.kind === "tattoo" ? "Tattoo aftercare" : "Piercing aftercare";
-  const title = params.kind === "tattoo" ? "Tattoo aftercare guide" : "Piercing aftercare guide";
-
-  const tattooBody = `
-    ${aftercareSection("Important guidelines", aftercareList([
-      "Wash hands thoroughly before touching your tattoo.",
-      "Do not pick or scratch scabs; this can cause color loss and patchy healing.",
-      "Do not soak in the bath and avoid swimming until fully healed.",
-      "Avoid direct contact with pets. If pets sleep in bed, use fresh sheets and keep animals out during healing.",
-      "Use only a very small amount of cream. The tattoo should be moisturized, not shiny or greasy.",
-    ]))}
-    ${aftercareSection("Aftercare routine", aftercareList([
-      "Wash your hands thoroughly.",
-      "Remove cling film after 2-4 hours, or as soon as it is safe in a clean place with clean water and soap.",
-      "Wash gently with lukewarm water. If you have a hot water tank (not a combi boiler), use cool/cold water instead.",
-      "Do not apply numbing cream, alcohol, natural oils, or homemade remedies.",
-      "Use mild soap (Dove or similar). No antibacterial soap, shower gel, shampoo, or sponges.",
-      "Rinse thoroughly and pat dry with clean paper towel only. Do not use toilet paper.",
-      "After the first wash, do not apply any cream. Leave the tattoo clean and dry.",
-      "The following morning, wash your hands, wash the tattoo again, and pat dry.",
-      "Continue washing twice daily, morning and evening. If needed, wash one extra time, but not more than 3 times per day.",
-      "After each wash, leave it to air dry for 5 minutes, then apply a tiny amount of aftercare cream/Bepanthen.",
-      "Continue this routine for around 14 days.",
-      "For the first 3 days, it is safer to keep the tattoo on the drier side rather than over-moisturizing.",
-    ], true))}
-    ${aftercareSection("Tissue corner test", aftercareList([
-      "Place a tiny clean tissue corner on the tattoo.",
-      "If it sticks, you used too much cream.",
-      "If it falls off, the amount is correct.",
-    ]))}
-    ${aftercareSection("Signs of infection", `<p style="margin:0 0 8px;font-size:13px;line-height:1.65;color:#e8e8e8;">Signs of infection may include redness, swelling, and pain. This does not mean a little normal irritation, but severe or worsening symptoms.</p><p style="margin:0;font-size:13px;line-height:1.65;color:#e8e8e8;">In case of emergency, please seek immediate medical advice or go to A&amp;E.</p>`)}`;
-
-  const piercingBody = `
-    ${aftercareSection("Daily cleaning", aftercareList([
-      "Clean hands first. Always wash your hands thoroughly before touching or cleaning your piercing.",
-      "Clean the piercing daily. Discharge, pus, and granulomas can form within 2 days and may become infected very quickly if the piercing is not kept clean.",
-      "Use sterile saline solution only. Avoid alcohol, hydrogen peroxide, harsh chemicals, oils, creams, and homemade remedies.",
-      "Soak clean paper towel or sterile gauze with saline and gently clean around the piercing. Do not twist or play with the jewellery.",
-      "Rinse with warm water after cleaning to remove leftover saline, crust, or discharge.",
-      "Pat dry with clean disposable paper towel or sterile gauze. Avoid cotton pads or towels, as fibres can catch and carry bacteria.",
-    ]))}
-    ${aftercareSection("What to avoid", aftercareList([
-      "Avoid excessive moisture. Keep the piercing dry and avoid wet clothing or towels sitting on it.",
-      "Choose clean, loose, breathable clothing. Tight clothing can irritate, rub, or snag the piercing.",
-      "Do not touch, twist, rotate, or play with jewellery unless needed for cleaning.",
-      "Avoid cosmetics, lotions, makeup, creams, and sprays directly on or around the piercing.",
-      "Avoid swimming for at least 2-3 weeks, or until your piercer says it is safe.",
-    ]))}
-    ${aftercareSection("Healing & jewellery", aftercareList([
-      "Most piercings need 14 to 24 months to fully heal. Be patient and continue appropriate aftercare throughout healing.",
-      "Do not change jewellery earlier than 14 months unless your piercer advises it.",
-      "If the jewellery feels too tight, or swelling puts pressure on both ends, the jewellery must be sized up immediately by a piercer.",
-      "For safe downsizing, upsizing, or jewellery changes, always contact your piercer.",
-    ]))}
-    ${aftercareSection("Specific piercings", aftercareList([
-      "Ear piercings: avoid headphones, earbuds, and any mechanical trauma during healing.",
-      "Oral piercings: use an alcohol-free antimicrobial mouthwash after eating, drinking, smoking, or vaping if advised.",
-    ]))}
-    ${aftercareSection("Signs of infection", `<p style="margin:0 0 8px;font-size:13px;line-height:1.65;color:#e8e8e8;">Signs of infection may include redness, swelling, and pain. This does not mean a little normal irritation, but severe or worsening symptoms.</p><p style="margin:0;font-size:13px;line-height:1.65;color:#e8e8e8;">In case of emergency, please seek immediate medical advice or go to A&amp;E.</p>`)}`;
-
-  const intro =
-    params.kind === "tattoo"
-      ? `Thank you for booking with ${escapeHtml(brand.shopName)}. Your appointment is now starting: <strong>${escapeHtml(params.bookingWindow)}</strong>. We like to stay in contact with our clients throughout the healing process — if you have concerns, send us clear photos and we will guide you.`
-      : `Thank you for booking with ${escapeHtml(brand.shopName)}. Your appointment is now starting: <strong>${escapeHtml(params.bookingWindow)}</strong>. Please follow your piercer's advice. Most piercings require 14 to 24 months to fully heal, depending on placement, your body, and lifestyle.`;
-
-  return emailLayout({
-    brand,
-    badge,
-    title,
-    greeting: `Hi ${escapeHtml(params.clientName)},`,
-    intro,
-    bodyHtml: params.kind === "tattoo" ? tattooBody : piercingBody,
+  const content = params.template ?? defaultAftercareForKind(params.kind);
+  return buildAftercareEmailFromTemplate({
+    template: content,
+    clientName: params.clientName,
+    bookingWindow: params.bookingWindow,
   });
 }

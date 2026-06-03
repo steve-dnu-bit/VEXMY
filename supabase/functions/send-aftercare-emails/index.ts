@@ -3,7 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, requireCronAuth } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
 import { formatBookingDateRange, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
-import { buildAftercareEmail } from "../_shared/email-templates.ts";
+import { aftercareEmailSubject, buildAftercareEmail } from "../_shared/email-templates.ts";
+import { loadShopAftercareTemplates } from "../_shared/shop-aftercare-templates.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -131,6 +132,7 @@ serve(async (req) => {
       });
     }
     const serviceRows = (services || []) as ServiceRow[];
+    const aftercareTemplates = await loadShopAftercareTemplates(admin, null);
 
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
@@ -171,6 +173,13 @@ serve(async (req) => {
         continue;
       }
 
+      const templateRow = aftercareTemplates.get(aftercareKind);
+      if (!templateRow?.enabled) {
+        skipped += 1;
+        skipReasons.push({ bookingId: booking.id, reason: `aftercare_disabled_${aftercareKind}` });
+        continue;
+      }
+
       const { data: existing } = await admin
         .from("booking_aftercare_events")
         .select("id")
@@ -187,14 +196,12 @@ serve(async (req) => {
       const bookingWindow = formatBookingDateRange(booking.starts_at, booking.ends_at);
       const clientName = booking.client_name || "there";
       const brand = getShopBranding();
-      const subject =
-        aftercareKind === "tattoo"
-          ? `Tattoo Aftercare — ${brand.tradingName}`
-          : `Piercing Aftercare — ${brand.tradingName}`;
+      const subject = aftercareEmailSubject(templateRow, brand.tradingName);
       const html = buildAftercareEmail({
         kind: aftercareKind,
         clientName,
         bookingWindow,
+        template: templateRow,
       });
 
       try {

@@ -26,8 +26,13 @@ import {
 
 import { format, parseISO } from "date-fns";
 import { bookingEligibleForConsent } from "@/lib/bookingTypes";
+import {
+  loadShopConsentTemplates,
+  resolveTemplateForBooking,
+  type ConsentFormTemplateRow,
+} from "@/lib/shopConsentTemplates";
 
-const AGREEMENT_VERSION = "1.0";
+const UNDER_18_QUESTION = "Are you under 18?";
 
 type StaffConsentRow = {
   id: string;
@@ -176,8 +181,6 @@ function StaffConsentList({ user }: { user: { id: string } }) {
   );
 }
 
-type ConsentType = "tattoo" | "piercing";
-
 type ConsentBooking = {
   id: string;
   artist_id: string;
@@ -195,45 +198,6 @@ type ConsentBooking = {
   ends_at: string;
   reference_image_url: string | null;
 };
-
-/** Keys in `yesAnswers` / submitted `healthAnswers` — keep in sync with `supabase/functions/submit-consent/index.ts` `HEALTH_QUESTIONS`. */
-const healthQuestions = [
-  "Any heart condition?",
-  "Seizures e.g. epilepsy?",
-  "Hemophilia?",
-  "Compromised immune system e.g. HIV/Hepatitis",
-  "Diabetes",
-  "Allergic responses to adhesives, plasters, creams, latex, foods, etc?",
-  "Pregnant or nursing mother?",
-  "Prone to fainting or dizziness?",
-  "Taking blood thinning medication e.g. aspirin/wafarin?",
-  "Are you under 18?",
-  "Do you need extra privacy or a separate room for your treatment",
-] as const;
-
-/** Shown on the form; must match declaration bullets in `submit-consent` PDF builder. */
-const tattooStatements = [
-  "I understand that a Tattoo is a permanent mark for life and that no form of anesthetic will be used in the procedure.",
-  "I understand that every care will be taken to ensure that the tattoo procedure is performed in a hygienic way including the use of pre-sterilized single use needles and plastic tubes.",
-  "I understand that a new tattoo is susceptible to infection until healed and that the care of the tattoo is solely my responsibility once I leave the studio.",
-  "I will follow the aftercare procedures as explained and given to me in writing.",
-  "Associated risks include blood poisoning (septicemia), scarring, allergic reactions, immunological responses and localized swelling and trauma.",
-  "New research could link tattooing to skin or other cancers therefore you must be aware of that possibility too.",
-  "I give my permission for the studio to store my personal data for legal, medical, and insurance reasons.",
-  "I consent for promotional pictures and videos to be taken of me and my new tattoo for the purpose of advertising.",
-  "I AM OVER 18 YEARS OLD. (Tattooing a minor Act 1969).",
-  "I AM NOT UNDER THE INFLUENCE OF ALCOHOL OR DRUGS.",
-  "I HAVE REQUESTED THIS TATTOO OF MY OWN FREE WILL.",
-] as const;
-
-const piercingStatements = [
-  "I understand that a Piercing could leave a permanent scar or mark.",
-  "I understand that every care will be taken to ensure that the piercing procedure is performed in a hygienic way including the use of pre-sterilized single use needles and sterilized equipment.",
-  "I understand that a new piercing is susceptible to infection until healed and that it is solely my responsibility to take care of it, once I leave the studio.",
-  "I will follow the aftercare procedures as explained and given to me in writing.",
-  "Associated risks include blood poisoning (septicemia), permanent scarring, keloid scarring, allergic reactions, localized swelling and trauma, cauliflower ear.",
-  "I give my permission for the studio and any piercer in the shop to store my personal data for legal, medical, and insurance reasons.",
-] as const;
 
 const ConsentPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -258,6 +222,8 @@ const ConsentPage = () => {
   const [done, setDone] = useState(false);
   const [consentPdfUrl, setConsentPdfUrl] = useState<string | null>(null);
   const [portalBrand, setPortalBrand] = useState<PortalBrandProfile | null>(null);
+  const [consentTemplates, setConsentTemplates] = useState<ConsentFormTemplateRow[]>([]);
+  const [activeTemplate, setActiveTemplate] = useState<ConsentFormTemplateRow | null>(null);
 
   const artistDisplayName = portalBrand?.display_name?.trim() || "";
 
@@ -276,14 +242,25 @@ const ConsentPage = () => {
   const [ageConsent, setAgeConsent] = useState(false);
   const [riskAcknowledged, setRiskAcknowledged] = useState(false);
 
-  const selectedConsentType: ConsentType = useMemo(() => {
-    const cat = (selectedBooking?.service_category || "").toLowerCase();
-    if (cat === "piercing") return "piercing";
-    if (cat === "tattoo") return "tattoo";
-    const bt = (selectedBooking?.booking_type || "").toLowerCase();
-    if (bt === "piercing-session" || bt.includes("piercing")) return "piercing";
-    return "tattoo";
-  }, [selectedBooking?.service_category, selectedBooking?.booking_type]);
+  useEffect(() => {
+    if (!onlyCustomer) return;
+    void loadShopConsentTemplates().then(setConsentTemplates);
+  }, [onlyCustomer]);
+
+  useEffect(() => {
+    if (!selectedBooking || consentTemplates.length === 0) {
+      setActiveTemplate(null);
+      return;
+    }
+    const formSlug = searchParams.get("form")?.trim().toLowerCase() || null;
+    const resolved = resolveTemplateForBooking(
+      consentTemplates,
+      selectedBooking.service_category,
+      selectedBooking.booking_type,
+      formSlug,
+    );
+    setActiveTemplate(resolved);
+  }, [selectedBooking, consentTemplates, searchParams]);
 
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -328,7 +305,7 @@ const ConsentPage = () => {
   useEffect(() => {
     const id = requestAnimationFrame(() => setupCanvas());
     return () => cancelAnimationFrame(id);
-  }, [selectedConsentType, setupCanvas]);
+  }, [activeTemplate?.slug, setupCanvas]);
 
   const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -445,7 +422,11 @@ const ConsentPage = () => {
       toast.error("Please confirm all mandatory declarations");
       return;
     }
-    if (yesAnswers["Are you under 18?"] && !guardianName.trim()) {
+    if (!activeTemplate) {
+      toast.error("Consent form could not be loaded");
+      return;
+    }
+    if (yesAnswers[UNDER_18_QUESTION] && !guardianName.trim()) {
       toast.error("Guardian name is required for under 18 consent");
       return;
     }
@@ -462,8 +443,9 @@ const ConsentPage = () => {
           fullName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim() || null,
-          agreementVersion: AGREEMENT_VERSION,
-          consentType: selectedConsentType,
+          agreementVersion: activeTemplate.version,
+          templateSlug: activeTemplate.slug,
+          consentType: activeTemplate.slug,
           consentFields: {
             artistName: artistDisplayName || null,
             address: address.trim() || null,
@@ -585,7 +567,7 @@ const ConsentPage = () => {
     <CustomerLayout portalBrand={portalBrand}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">{selectedConsentType === "piercing" ? "Piercing consent form" : "Tattoo consent form"}</h1>
+          <h1 className="font-display text-2xl font-bold text-gradient-gold">{activeTemplate?.content.formTitle ?? "Consent form"}</h1>
           <p className="text-sm text-muted-foreground mt-1">Fill the form and sign. No reference image or ID upload is required.</p>
         </div>
 
@@ -649,7 +631,7 @@ const ConsentPage = () => {
             <CardDescription>Do you suffer from or are you: Yes / No</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {healthQuestions.map((question) => (
+            {(activeTemplate?.content.healthQuestions ?? []).map((question) => (
               <div key={question} className="rounded-md border border-border p-3">
                 <p className="text-sm font-medium mb-2 leading-snug">{question}</p>
                 <div className="flex gap-6">
@@ -719,17 +701,17 @@ const ConsentPage = () => {
                 <Input id="dob" value={dob} onChange={(e) => setDob(e.target.value)} className="mt-1 bg-secondary" type="date" />
               </div>
               <div>
-                <Label htmlFor="placement">{selectedConsentType === "piercing" ? "Location of piercing / description" : "Tattoo location / description"}</Label>
+                <Label htmlFor="placement">{activeTemplate?.content.placementLabel ?? "Treatment location / description"}</Label>
                 <Input
                   id="placement"
                   value={treatmentLocation}
                   onChange={(e) => setTreatmentLocation(e.target.value)}
                   className="mt-1 bg-secondary"
-                  placeholder={selectedConsentType === "piercing" ? "e.g. Lobe" : "e.g. Forearm"}
+                  placeholder="e.g. Forearm or Lobe"
                 />
               </div>
             </div>
-            {yesAnswers["Are you under 18?"] ? (
+            {yesAnswers[UNDER_18_QUESTION] ? (
               <div>
                 <Label htmlFor="guardianName">Parent / legal guardian print name</Label>
                 <Input id="guardianName" value={guardianName} onChange={(e) => setGuardianName(e.target.value)} className="mt-1 bg-secondary" />
@@ -770,11 +752,11 @@ const ConsentPage = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">5) Consent declarations</CardTitle>
-            <CardDescription>{selectedConsentType === "piercing" ? "Piercing consent statements" : "Tattoo consent statements"}</CardDescription>
+            <CardDescription>Please read these statements carefully before signing.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
-              {(selectedConsentType === "piercing" ? piercingStatements : tattooStatements).map((line) => (
+              {(activeTemplate?.content.statements ?? []).map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
@@ -785,37 +767,31 @@ const ConsentPage = () => {
           <div className="flex items-start gap-3">
             <Checkbox id="agree" checked={agreed} onCheckedChange={(c) => setAgreed(c === true)} className="mt-0.5" />
             <Label htmlFor="agree" className="text-sm font-normal leading-snug cursor-pointer">
-              I hereby declare that I give my full consent and that the information given above is true to the best of my knowledge.
+              {activeTemplate?.content.declarations.agree}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="age-consent" checked={ageConsent} onCheckedChange={(c) => setAgeConsent(c === true)} className="mt-0.5" />
             <Label htmlFor="age-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {selectedConsentType === "piercing"
-                ? "If I am under the legal age, I understand that photocopies of our photo IDs will be made and stored, with parent/legal guardian consent."
-                : "I AM OVER 18 YEARS OLD. (Tattooing a minor Act 1969)"}
+              {activeTemplate?.content.declarations.age}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="sober-consent" checked={soberConsent} onCheckedChange={(c) => setSoberConsent(c === true)} className="mt-0.5" />
             <Label htmlFor="sober-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {selectedConsentType === "piercing"
-                ? "I have requested this piercing on my own free will and I am not under the influence of drugs or alcohol."
-                : "I AM NOT UNDER THE INFLUENCE OF ALCOHOL OR DRUGS."}
+              {activeTemplate?.content.declarations.sober}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="risk-consent" checked={riskAcknowledged} onCheckedChange={(c) => setRiskAcknowledged(c === true)} className="mt-0.5" />
             <Label htmlFor="risk-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {selectedConsentType === "piercing"
-                ? "I fully acknowledge the above risks and statements and take full responsibility if any of them occur."
-                : "I HAVE REQUESTED THIS TATTOO OF MY OWN FREE WILL."}
+              {activeTemplate?.content.declarations.risk}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="photo-consent" checked={photoConsent} onCheckedChange={(c) => setPhotoConsent(c === true)} className="mt-0.5" />
             <Label htmlFor="photo-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              I consent for promotional pictures and videos to be taken of me and my new treatment for advertising.
+              {activeTemplate?.content.declarations.photo}
             </Label>
           </div>
         </div>
