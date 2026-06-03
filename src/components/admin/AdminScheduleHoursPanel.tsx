@@ -113,7 +113,10 @@ const AdminScheduleHoursPanel = () => {
             <Select
               value={settings.extraBufferAt}
               onValueChange={(v) =>
-                setSettings((prev) => ({ ...prev, extraBufferAt: v === "start" ? "start" : "end" }))
+                setSettings((prev) => ({
+                  ...prev,
+                  extraBufferAt: v === "start" || v === "both" ? v : "end",
+                }))
               }
               disabled={settings.extraBufferMinutes === 0}
             >
@@ -123,6 +126,7 @@ const AdminScheduleHoursPanel = () => {
               <SelectContent>
                 <SelectItem value="start">{t("admin.scheduleBufferBeforeOpen")}</SelectItem>
                 <SelectItem value="end">{t("admin.scheduleBufferAfterClose")}</SelectItem>
+                <SelectItem value="both">{t("admin.scheduleBufferBeforeAndAfter")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

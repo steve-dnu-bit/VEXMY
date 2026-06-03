@@ -501,6 +501,7 @@
     "scheduleBuffer120": "2 hours",
     "scheduleBufferBeforeOpen": "Before opening",
     "scheduleBufferAfterClose": "After closing",
+    "scheduleBufferBeforeAndAfter": "Before opening and after closing",
     "scheduleHoursPreview": "The schedule grid will show {{slots}} rows ({{minutes}} min each) including buffer time.",
     "scheduleHoursSavedDesc": "Working hours updated — refresh the schedule page to see changes.",
     "aftercareTitle": "Aftercare emails",

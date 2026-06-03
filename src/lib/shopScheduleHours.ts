@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const SCHEDULE_SLOT_MINUTES = 15;
 
-export type ScheduleBufferAt = "start" | "end";
+export type ScheduleBufferAt = "start" | "end" | "both";
 
 export interface ShopScheduleHours {
   openTime: string;
@@ -56,10 +56,11 @@ export function getScheduleGridRange(hours: ShopScheduleHours) {
   const openMinutes = parseTimeToMinutes(hours.openTime);
   const closeMinutes = Math.max(openMinutes + SCHEDULE_SLOT_MINUTES, parseTimeToMinutes(hours.closeTime));
   const buffer = Math.max(0, hours.extraBufferMinutes || 0);
+  const at = hours.extraBufferAt;
   const gridStartMinutes =
-    hours.extraBufferAt === "start" ? Math.max(0, openMinutes - buffer) : openMinutes;
+    at === "start" || at === "both" ? Math.max(0, openMinutes - buffer) : openMinutes;
   const gridEndMinutes =
-    hours.extraBufferAt === "end"
+    at === "end" || at === "both"
       ? Math.min(24 * 60, closeMinutes + buffer)
       : Math.min(24 * 60, closeMinutes);
 
@@ -107,7 +108,9 @@ function rowToShopScheduleHours(row: {
         ? row.schedule_extra_buffer_minutes
         : defaultShopScheduleHours.extraBufferMinutes,
     extraBufferAt:
-      row.schedule_extra_buffer_at === "start" || row.schedule_extra_buffer_at === "end"
+      row.schedule_extra_buffer_at === "start" ||
+      row.schedule_extra_buffer_at === "end" ||
+      row.schedule_extra_buffer_at === "both"
         ? row.schedule_extra_buffer_at
         : defaultShopScheduleHours.extraBufferAt,
   };
@@ -149,7 +152,8 @@ export async function saveShopScheduleHours(hours: ShopScheduleHours): Promise<{
       schedule_open_time: normalizeTimeValue(hours.openTime, defaultShopScheduleHours.openTime),
       schedule_close_time: normalizeTimeValue(hours.closeTime, defaultShopScheduleHours.closeTime),
       schedule_extra_buffer_minutes: Math.max(0, Math.min(180, hours.extraBufferMinutes || 0)),
-      schedule_extra_buffer_at: hours.extraBufferAt === "start" ? "start" : "end",
+      schedule_extra_buffer_at:
+        hours.extraBufferAt === "start" || hours.extraBufferAt === "both" ? hours.extraBufferAt : "end",
       updated_at: new Date().toISOString(),
     })
     .eq("id", row.id);
