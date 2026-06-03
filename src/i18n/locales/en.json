@@ -384,7 +384,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Configure booking and deposit reminders",
+    "subtitle": "Your profile, language, theme, and account preferences",
     "languageTitle": "Language",
     "languageDesc": "Choose the language used across the app. Your preference is saved to your profile.",
     "quickSettings": "Quick Settings",
@@ -483,6 +483,9 @@
     "tabStaff": "Staff matrix",
     "tabCustomers": "Customers",
     "tabConsents": "Consents",
+    "tabEmails": "Emails",
+    "emailSettingsIntro": "Control booking confirmations, deposit reminders, appointment reminders, and notification channels for the whole studio. Artists cannot change these settings.",
+    "emailSettingsSavedDesc": "Shop email preferences are saved for all artists.",
     "defaultsApplyNote": "Defaults apply when someone accepts an invite as Customer or Artist. Existing users are unchanged.",
     "customerDefaults": "Customer defaults",
     "artistDefaults": "Artist defaults",

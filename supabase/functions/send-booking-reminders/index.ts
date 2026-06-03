@@ -8,19 +8,11 @@ import {
   buildDepositReminderEmail,
   type BookingEmailDetails,
 } from "../_shared/email-templates.ts";
+import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
 type ReminderType = "appointment" | "deposit";
-
-type ReminderSettingsRow = {
-  user_id: string;
-  deposit_reminder: boolean;
-  appointment_reminder: boolean;
-  deposit_reminder_timing: string;
-  appointment_reminder_timing: string;
-  reminder_channel: string;
-};
 
 function timingToMs(value: string): number | null {
   switch (value) {
@@ -73,38 +65,26 @@ serve(async (req) => {
     const toleranceMs = 30 * 60 * 1000; // 30 minutes
     const horizon = new Date(now + 8 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { data: settingsRows, error: settingsErr } = await admin
-      .from("reminder_settings")
-      .select("user_id, deposit_reminder, appointment_reminder, deposit_reminder_timing, appointment_reminder_timing, reminder_channel")
-      .or("deposit_reminder.eq.true,appointment_reminder.eq.true");
-    if (settingsErr) {
-      return new Response(JSON.stringify({ error: settingsErr.message }), {
-        status: 500,
+    const shopSettings = await loadShopReminderSettings(admin);
+    if (!shopSettings) {
+      return new Response(JSON.stringify({ ok: true, checked: 0, sent: 0, skipped: 0, failedCount: 0, failures: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const settingsByArtist = new Map<string, ReminderSettingsRow>();
-    for (const row of (settingsRows || []) as ReminderSettingsRow[]) {
-      settingsByArtist.set(row.user_id, row);
+    if (!shopSettings.deposit_reminder && !shopSettings.appointment_reminder) {
+      return new Response(JSON.stringify({ ok: true, checked: 0, sent: 0, skipped: 0, failedCount: 0, failures: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-    if (settingsByArtist.size === 0) {
+    if (shopSettings.reminder_channel === "sms") {
       return new Response(JSON.stringify({ ok: true, checked: 0, sent: 0, skipped: 0, failedCount: 0, failures: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const artistIds = [...settingsByArtist.keys()];
-    const { data: artistProfiles } = await admin.from("profiles").select("user_id, display_name").in("user_id", artistIds);
-    const artistNameById = new Map<string, string>();
-    for (const p of artistProfiles || []) {
-      artistNameById.set(p.user_id, p.display_name || "Artist");
-    }
-
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
       .select("id, artist_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount")
-      .in("artist_id", artistIds)
       .gte("starts_at", new Date(now).toISOString())
       .lte("starts_at", horizon)
       .neq("status", "cancelled")
@@ -114,6 +94,15 @@ serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    const artistIds = [...new Set((bookings || []).map((b) => b.artist_id))];
+    const { data: artistProfiles } = artistIds.length
+      ? await admin.from("profiles").select("user_id, display_name").in("user_id", artistIds)
+      : { data: [] };
+    const artistNameById = new Map<string, string>();
+    for (const p of artistProfiles || []) {
+      artistNameById.set(p.user_id, p.display_name || "Artist");
     }
 
     let sent = 0;
@@ -126,15 +115,6 @@ serve(async (req) => {
 
     for (const booking of bookings || []) {
       checked += 1;
-      const settings = settingsByArtist.get(booking.artist_id);
-      if (!settings) {
-        skipped += 1;
-        continue;
-      }
-      if (settings.reminder_channel === "sms") {
-        skipped += 1;
-        continue;
-      }
       if (!booking.client_email) {
         skipped += 1;
         continue;
@@ -142,11 +122,11 @@ serve(async (req) => {
 
       const startsAtMs = new Date(booking.starts_at).getTime();
       const candidates: Array<{ type: ReminderType; timing: string }> = [];
-      if (settings.appointment_reminder) {
-        candidates.push({ type: "appointment", timing: settings.appointment_reminder_timing });
+      if (shopSettings.appointment_reminder) {
+        candidates.push({ type: "appointment", timing: shopSettings.appointment_reminder_timing });
       }
-      if (settings.deposit_reminder && !booking.deposit_paid && !isPiercingBooking(booking)) {
-        candidates.push({ type: "deposit", timing: settings.deposit_reminder_timing });
+      if (shopSettings.deposit_reminder && !booking.deposit_paid && !isPiercingBooking(booking)) {
+        candidates.push({ type: "deposit", timing: shopSettings.deposit_reminder_timing });
       }
 
       for (const candidate of candidates) {

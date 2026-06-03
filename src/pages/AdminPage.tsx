@@ -18,6 +18,7 @@ import { useArtistSeats } from "@/hooks/useSubscription";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
 import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
+import AdminEmailSettingsPanel from "@/components/admin/AdminEmailSettingsPanel";
 
 interface Profile {
   user_id: string;
@@ -448,6 +449,7 @@ const AdminPage = () => {
             <TabsTrigger value="staff">{t("admin.tabStaff")}</TabsTrigger>
             <TabsTrigger value="customers">{t("admin.tabCustomers")}</TabsTrigger>
             <TabsTrigger value="consents">{t("admin.tabConsents")}</TabsTrigger>
+            <TabsTrigger value="emails">{t("admin.tabEmails")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
@@ -623,6 +625,10 @@ const AdminPage = () => {
 
           <TabsContent value="consents" className="mt-4">
             <AdminConsentsPanel />
+          </TabsContent>
+
+          <TabsContent value="emails" className="mt-4">
+            <AdminEmailSettingsPanel />
           </TabsContent>
         </Tabs>
       </div>

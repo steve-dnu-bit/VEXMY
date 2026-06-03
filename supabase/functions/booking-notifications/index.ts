@@ -11,6 +11,7 @@ import {
 import { getShopBranding } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildBookingNotificationEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
+import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -152,12 +153,8 @@ serve(async (req) => {
       adminClient.from("profiles").select("display_name").eq("user_id", booking.artist_id).maybeSingle(),
     ]);
 
-    const { data: reminderSettings } = await adminClient
-      .from("reminder_settings")
-      .select("booking_confirmation")
-      .eq("user_id", booking.artist_id)
-      .maybeSingle();
-    const bookingConfirmationEnabled = reminderSettings?.booking_confirmation ?? true;
+    const shopReminderSettings = await loadShopReminderSettings(adminClient);
+    const bookingConfirmationEnabled = shopReminderSettings?.booking_confirmation ?? true;
     if (action === "created" && bookingConfirmationEnabled === false) {
       return jsonResponse({
         ok: true,

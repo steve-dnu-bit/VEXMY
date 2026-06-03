@@ -3,13 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Bell, Clock, Mail, MessageSquare, Camera, FileSignature, Copy, ExternalLink, Palette, Moon, Sun } from "lucide-react";
+import { Camera, FileSignature, Copy, ExternalLink, Palette, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,24 +15,6 @@ import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSett
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
-
-interface ReminderSettings {
-  bookingConfirmation: boolean;
-  depositReminder: boolean;
-  appointmentReminder: boolean;
-  depositReminderTiming: string;
-  appointmentReminderTiming: string;
-  reminderChannel: string;
-}
-
-const defaultSettings: ReminderSettings = {
-  bookingConfirmation: true,
-  depositReminder: false,
-  appointmentReminder: false,
-  depositReminderTiming: "24h",
-  appointmentReminderTiming: "24h",
-  reminderChannel: "email",
-};
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
@@ -67,36 +46,12 @@ const SettingsPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { theme, setTheme } = useThemePreference();
-  const [settings, setSettings] = useState<ReminderSettings>(defaultSettings);
-  const [saving, setSaving] = useState(false);
-  const [testingEmail, setTestingEmail] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [consentRows, setConsentRows] = useState<Array<{ id: string; full_name: string; email: string | null; created_at: string; consent_pdf_url: string | null }>>([]);
 
   useEffect(() => {
-    if (user) {
-      supabase
-        .from("reminder_settings" as any)
-        .select(
-          "booking_confirmation, deposit_reminder, appointment_reminder, deposit_reminder_timing, appointment_reminder_timing, reminder_channel",
-        )
-        .eq("user_id", user.id)
-        .maybeSingle()
-        .then(({ data, error }) => {
-          if (error || !data) return;
-          setSettings({
-            bookingConfirmation: !!data.booking_confirmation,
-            depositReminder: !!data.deposit_reminder,
-            appointmentReminder: !!data.appointment_reminder,
-            depositReminderTiming: data.deposit_reminder_timing || "24h",
-            appointmentReminderTiming: data.appointment_reminder_timing || "24h",
-            reminderChannel: data.reminder_channel || "email",
-          });
-        });
-    }
-    // Load avatar
     if (user) {
       supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single().then(({ data }) => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
@@ -119,79 +74,6 @@ const SettingsPage = () => {
   const copyConsentLink = () => {
     void navigator.clipboard.writeText(consentUrl);
     toast({ title: t("settings.linkCopied"), description: t("settings.linkCopiedDesc") });
-  };
-
-  const saveSettings = async () => {
-    if (!user) return;
-    setSaving(true);
-    const { error } = await supabase.from("reminder_settings" as any).upsert(
-      {
-        user_id: user.id,
-        booking_confirmation: settings.bookingConfirmation,
-        deposit_reminder: settings.depositReminder,
-        appointment_reminder: settings.appointmentReminder,
-        deposit_reminder_timing: settings.depositReminderTiming,
-        appointment_reminder_timing: settings.appointmentReminderTiming,
-        reminder_channel: settings.reminderChannel,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    );
-    setSaving(false);
-    if (error) {
-      toast({ title: t("settings.saveFailed"), description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: t("settings.settingsSaved"), description: t("settings.settingsSavedDesc") });
-  };
-
-  const sendTestEmail = async () => {
-    if (!user?.email) {
-      toast({ title: t("settings.noEmail"), description: t("settings.noEmailDesc"), variant: "destructive" });
-      return;
-    }
-    setTestingEmail(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) {
-        toast({ title: t("settings.sessionExpired"), description: t("settings.sessionExpiredDesc"), variant: "destructive" });
-        return;
-      }
-      const { data, error } = await supabase.functions.invoke("send-test-email", {
-        body: { to: user.email },
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (error) {
-        toast({ title: t("settings.emailTestFailed"), description: error.message, variant: "destructive" });
-        return;
-      }
-      const result = data as {
-        ok?: boolean;
-        error?: string;
-        hint?: string;
-        provider?: string;
-        message?: string;
-      };
-      if (!result?.ok) {
-        toast({
-          title: "Email not configured",
-          description: [result?.error, result?.hint].filter(Boolean).join(" — ") || "Set RESEND_API_KEY in Supabase secrets.",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({
-        title: "Test email sent",
-        description: result.message || `Sent via ${result.provider || "email"}. Check inbox and junk.`,
-      });
-    } finally {
-      setTestingEmail(false);
-    }
-  };
-
-  const update = <K extends keyof ReminderSettings>(key: K, value: ReminderSettings[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -378,141 +260,6 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          {/* Booking Confirmations */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">{t("settings.bookingConfirmations")}</CardTitle>
-              </div>
-              <CardDescription>{t("settings.bookingConfirmationsDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="booking-confirm">{t("settings.enableBookingConfirmations")}</Label>
-                <Switch
-                  id="booking-confirm"
-                  checked={settings.bookingConfirmation}
-                  onCheckedChange={(v) => update("bookingConfirmation", v)}
-                />
-              </div>
-              <div className="rounded-lg border border-border p-3 space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.testEmailHint", { email: user?.email || t("common.email") })}
-                </p>
-                <Button type="button" variant="outline" size="sm" onClick={sendTestEmail} disabled={testingEmail}>
-                  {testingEmail ? t("settings.saving") : t("settings.sendTestEmail")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Deposit Reminders */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">{t("settings.depositReminders")}</CardTitle>
-              </div>
-              <CardDescription>{t("settings.depositRemindersDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-muted-foreground">{t("settings.depositRemindersNote")}</p>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="deposit-reminder">{t("settings.enableDepositReminders")}</Label>
-                <Switch
-                  id="deposit-reminder"
-                  checked={settings.depositReminder}
-                  onCheckedChange={(v) => update("depositReminder", v)}
-                />
-              </div>
-              {settings.depositReminder && (
-                <div className="flex items-center justify-between">
-                  <Label>{t("settings.sendReminder")}</Label>
-                  <Select value={settings.depositReminderTiming} onValueChange={(v) => update("depositReminderTiming", v)}>
-                    <SelectTrigger className="w-48 bg-secondary border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12h">{t("settings.timing12h")}</SelectItem>
-                      <SelectItem value="24h">{t("settings.timing24h")}</SelectItem>
-                      <SelectItem value="48h">{t("settings.timing48h")}</SelectItem>
-                      <SelectItem value="72h">{t("settings.timing72h")}</SelectItem>
-                      <SelectItem value="1w">{t("settings.timing1w")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Appointment Reminders */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">{t("settings.appointmentReminders")}</CardTitle>
-              </div>
-              <CardDescription>{t("settings.appointmentRemindersDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="appt-reminder">{t("settings.enableAppointmentReminders")}</Label>
-                <Switch
-                  id="appt-reminder"
-                  checked={settings.appointmentReminder}
-                  onCheckedChange={(v) => update("appointmentReminder", v)}
-                />
-              </div>
-              {settings.appointmentReminder && (
-                <div className="flex items-center justify-between">
-                  <Label>{t("settings.sendReminder")}</Label>
-                  <Select value={settings.appointmentReminderTiming} onValueChange={(v) => update("appointmentReminderTiming", v)}>
-                    <SelectTrigger className="w-48 bg-secondary border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1h">{t("settings.timing1h")}</SelectItem>
-                      <SelectItem value="3h">{t("settings.timing3h")}</SelectItem>
-                      <SelectItem value="12h">{t("settings.timing12h")}</SelectItem>
-                      <SelectItem value="24h">{t("settings.timing24h")}</SelectItem>
-                      <SelectItem value="48h">{t("settings.timing48h")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Channel preference */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">{t("settings.notificationChannel")}</CardTitle>
-              </div>
-              <CardDescription>{t("settings.notificationChannelDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <Label>{t("settings.sendVia")}</Label>
-                <Select value={settings.reminderChannel} onValueChange={(v) => update("reminderChannel", v)}>
-                  <SelectTrigger className="w-48 bg-secondary border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="email">{t("settings.emailOnly")}</SelectItem>
-                    <SelectItem value="sms">{t("settings.smsOnly")}</SelectItem>
-                    <SelectItem value="both">{t("settings.emailAndSms")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Button onClick={saveSettings} disabled={saving} className="w-full">
-            {saving ? t("settings.saving") : t("settings.saveSettings")}
-          </Button>
         </div>
       </div>
     </AppLayout>
