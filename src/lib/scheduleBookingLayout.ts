@@ -16,18 +16,20 @@ export type BookingBlockLayout = {
 export function layoutStackedBookingBlocks(
   bookings: ScheduleBookingSpan[],
   rowH: number,
-  firstHour: number,
+  gridStartMinutes: number,
+  slotMinutes = 15,
 ): Map<string, BookingBlockLayout> {
   const result = new Map<string, BookingBlockLayout>();
   if (bookings.length === 0) return result;
 
-  const pxPerMin = rowH / 60;
+  const pxPerMin = rowH / slotMinutes;
   const toTop = (startsAt: string) => {
     const d = parseISO(startsAt);
-    return (d.getHours() - firstHour) * rowH + (d.getMinutes() / 60) * rowH;
+    const minutes = d.getHours() * 60 + d.getMinutes();
+    return ((minutes - gridStartMinutes) / slotMinutes) * rowH;
   };
   const toHeight = (b: ScheduleBookingSpan) =>
-    Math.max(24, differenceInMinutes(parseISO(b.ends_at), parseISO(b.starts_at)) * pxPerMin);
+    Math.max(20, differenceInMinutes(parseISO(b.ends_at), parseISO(b.starts_at)) * pxPerMin);
 
   const sorted = [...bookings].sort(
     (a, b) => parseISO(a.starts_at).getTime() - parseISO(b.starts_at).getTime(),
@@ -68,7 +70,7 @@ export function layoutStackedBookingBlocks(
       result.set(b.id, {
         id: b.id,
         top: clusterTop + i * slice + 1,
-        height: Math.max(22, slice - 2),
+        height: Math.max(18, slice - 2),
       });
     });
   }

@@ -138,6 +138,7 @@ interface BookingDialogProps {
   prefillDate?: Date;
   prefillHour?: number;
   prefillMinute?: number;
+  prefillArtistId?: string;
   services: Service[];
   bookingToEdit?: {
     id: string;
@@ -168,6 +169,7 @@ const BookingDialog = ({
   prefillDate,
   prefillHour,
   prefillMinute,
+  prefillArtistId,
   services,
   bookingToEdit,
   onSaved,
@@ -264,16 +266,22 @@ const BookingDialog = ({
       setClientUserId("");
       setLinkAccountInput("");
       skipAutoLinkFromEmailRef.current = false;
-      setArtistId(userId);
+      const prefillArtist =
+        prefillArtistId && artists.some((a) => a.user_id === prefillArtistId) ? prefillArtistId : userId;
+      setArtistId(prefillArtist);
+      const startTime =
+        prefillHour !== undefined
+          ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
+          : "10:00";
       setForm((f) => ({
         ...f,
         date: format(prefillDate || new Date(), "yyyy-MM-dd"),
-        start_time: prefillHour !== undefined ? `${String(prefillHour).padStart(2, "0")}:00` : "10:00",
+        start_time: startTime,
       }));
       if (services.length > 0) setServiceId(services[0].id);
       else setServiceId("");
     }
-  }, [open, prefillDate, prefillHour, services, bookingToEdit, userId]);
+  }, [open, prefillDate, prefillHour, prefillMinute, prefillArtistId, artists, services, bookingToEdit, userId]);
 
   useEffect(() => {
     if (!open || !bookingToEdit) {
@@ -887,7 +895,7 @@ const BookingDialog = ({
             </div>
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.startTime")}</Label>
-              <Input type="time" value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 bg-secondary border-border" />
+              <Input type="time" step={900} value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 bg-secondary border-border" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">

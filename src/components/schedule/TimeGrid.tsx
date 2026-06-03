@@ -8,6 +8,15 @@ import { BOOKING_TYPE_STYLES } from "@/lib/bookingTypes";
 import { getArtistBookingBlockStyle } from "@/lib/themePresets";
 import type { ArtistColorMap } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
+import {
+  SCHEDULE_SLOT_MINUTES,
+  buildScheduleSlots,
+  defaultShopScheduleHours,
+  getScheduleGridRange,
+  parseTimeToMinutes,
+  snapToScheduleSlot,
+  type ShopScheduleHours,
+} from "@/lib/shopScheduleHours";
 
 interface Booking {
   id: string;
@@ -42,15 +51,14 @@ interface TimeGridProps {
   artistColorCache?: ArtistColorMap;
   services: Service[];
   selectedArtists: string[];
+  scheduleHours?: ShopScheduleHours;
   onBookingClick: (booking: Booking) => void;
-  onSlotClick: (date: Date, hour: number, minute?: number) => void;
+  onSlotClick: (date: Date, hour: number, minute: number, artistId?: string) => void;
   view: "day" | "week";
 }
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8);
-const ROW_H = 56;
-const GRID_BODY_H = HOURS.length * ROW_H;
-const FIRST_HOUR = HOURS[0];
+const ROW_H = 20;
+const HEADER_H = 56;
 
 const bookingTypeStyles = BOOKING_TYPE_STYLES;
 
@@ -105,7 +113,7 @@ function BookingBlock({
         e.stopPropagation();
         onBookingClick(booking);
       }}
-      className={`absolute left-0.5 right-0.5 rounded-lg px-1.5 py-0.5 border cursor-pointer transition-all hover:shadow-elevated text-[10px] overflow-hidden leading-tight ${colorClass}`}
+      className={`absolute left-0.5 right-0.5 rounded-md px-1 py-0.5 border cursor-pointer transition-all hover:shadow-elevated text-[10px] overflow-hidden leading-tight ${colorClass}`}
       style={{
         top: `${layout.top}px`,
         height: `${layout.height}px`,
@@ -113,9 +121,9 @@ function BookingBlock({
         ...themeStyle,
       }}
     >
-      <p className="font-semibold truncate text-[11px]">{booking.client_name}</p>
-      {heightPx > 28 && serviceName ? <p className="text-[9px] opacity-90 truncate">{serviceName}</p> : null}
-      {heightPx > 40 ? (
+      <p className="font-semibold truncate text-[10px]">{booking.client_name}</p>
+      {heightPx > 24 && serviceName ? <p className="text-[9px] opacity-90 truncate">{serviceName}</p> : null}
+      {heightPx > 36 ? (
         <p className="text-[9px] text-muted-foreground truncate mt-0.5">
           {format(parseISO(booking.starts_at), "h:mm a").toLowerCase()}
           {showArtistOnBlock ? ` · ${artistName}` : ""}
@@ -160,7 +168,10 @@ function ArtistColumnHeader({
       <p className="text-[10px] font-medium truncate text-muted-foreground px-0.5">{safeName(col.display_name)}</p>
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); onQuickAdd(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onQuickAdd();
+        }}
         className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center opacity-0 group-hover/col:opacity-100 transition-opacity shadow-sm hover:scale-110"
         title={newBookingTooltip}
       >
@@ -170,14 +181,20 @@ function ArtistColumnHeader({
   );
 }
 
-const CurrentTimeIndicator = ({ hours, rowH }: { hours: number[]; rowH: number }) => {
+const CurrentTimeIndicator = ({
+  gridStartMinutes,
+  gridEndMinutes,
+  rowH,
+}: {
+  gridStartMinutes: number;
+  gridEndMinutes: number;
+  rowH: number;
+}) => {
   const now = new Date();
-  const h = now.getHours();
-  const m = now.getMinutes();
-  if (h < hours[0] || h > hours[hours.length - 1]) return null;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  if (nowMinutes < gridStartMinutes || nowMinutes >= gridEndMinutes) return null;
 
-  const headerH = 56;
-  const top = headerH + (h - hours[0]) * rowH + (m / 60) * rowH;
+  const top = HEADER_H + ((nowMinutes - gridStartMinutes) / SCHEDULE_SLOT_MINUTES) * rowH;
 
   return (
     <div className="absolute left-0 right-0 z-20 pointer-events-none flex items-center" style={{ top: `${top}px` }}>
@@ -199,6 +216,7 @@ const TimeGrid = ({
   artistColorCache = {},
   services,
   selectedArtists,
+  scheduleHours = defaultShopScheduleHours,
   onBookingClick,
   onSlotClick,
   view,
@@ -212,6 +230,10 @@ const TimeGrid = ({
   const allKnownArtistIds = [...new Set([...profiles.map((p) => p.user_id), ...bookingArtistIds])];
   const filteredBookings =
     selectedArtists.length === 0 ? bookings : bookings.filter((b) => selectedArtists.includes(b.artist_id));
+
+  const slots = useMemo(() => buildScheduleSlots(scheduleHours), [scheduleHours]);
+  const { gridStartMinutes, gridEndMinutes, openMinutes } = getScheduleGridRange(scheduleHours);
+  const gridBodyH = slots.length * ROW_H;
 
   const showArtistColumns = view === "day" && profiles.length > 0;
   const visibleArtistIds = selectedArtists.length === 0 ? allKnownArtistIds : selectedArtists;
@@ -230,6 +252,14 @@ const TimeGrid = ({
   const now = new Date();
   const showArtistOnBlock = view === "week" || !showArtistColumns;
 
+  const artistIdForColumn = (col: ColumnDef) => {
+    if (view !== "day" || !showArtistColumns) return undefined;
+    if (col.user_id === "all" || col.user_id === "day") return undefined;
+    return col.user_id;
+  };
+
+  const defaultQuickAddMinutes = openMinutes + 30;
+
   const quickAddTime = (col: ColumnDef): { hour: number; minute: number } => {
     const colBookings = filteredBookings.filter((b) => {
       const d = parseISO(b.starts_at);
@@ -237,13 +267,17 @@ const TimeGrid = ({
       if (showArtistColumns && view === "day" && col.user_id !== "all") return b.artist_id === col.user_id;
       return true;
     });
-    if (colBookings.length === 0) return { hour: 10, minute: 30 };
+    if (colBookings.length === 0) {
+      const snapped = snapToScheduleSlot(defaultQuickAddMinutes);
+      return { hour: Math.floor(snapped / 60), minute: snapped % 60 };
+    }
     const lastEnd = colBookings.reduce((latest, b) => {
-      const t = parseISO(b.ends_at).getTime();
-      return t > latest ? t : latest;
+      const end = parseISO(b.ends_at).getTime();
+      return end > latest ? end : latest;
     }, 0);
     const next = new Date(lastEnd);
-    return { hour: next.getHours(), minute: next.getMinutes() };
+    const snapped = snapToScheduleSlot(next.getHours() * 60 + next.getMinutes());
+    return { hour: Math.floor(snapped / 60), minute: snapped % 60 };
   };
 
   const serviceNameByBookingId = useMemo(() => {
@@ -264,10 +298,10 @@ const TimeGrid = ({
         return true;
       });
       const key = `${col.user_id}-${col.day.toISOString()}`;
-      map.set(key, layoutStackedBookingBlocks(colBookings, ROW_H, FIRST_HOUR));
+      map.set(key, layoutStackedBookingBlocks(colBookings, ROW_H, gridStartMinutes, SCHEDULE_SLOT_MINUTES));
     }
     return map;
-  }, [columns, filteredBookings, showArtistColumns, view]);
+  }, [columns, filteredBookings, showArtistColumns, view, gridStartMinutes]);
 
   const dayBookings = (day: Date) =>
     filteredBookings
@@ -299,27 +333,31 @@ const TimeGrid = ({
     return "border-l-primary bg-primary/10";
   };
 
+  const defaultMobileStart = () => {
+    const snapped = snapToScheduleSlot(defaultQuickAddMinutes);
+    return { hour: Math.floor(snapped / 60), minute: snapped % 60 };
+  };
+
   return (
     <div className="flex-1 overflow-auto bg-background/20 backdrop-blur-[1px] touch-pan-y">
       <div className="md:hidden p-3 space-y-3">
         {mobileDays.map((day) => {
           const items = dayBookings(day);
           const isToday = isSameDay(day, now);
+          const { hour, minute } = defaultMobileStart();
 
           return (
             <section key={day.toISOString()} className="rounded-xl border border-border bg-card/70 overflow-hidden">
-              <div className={`px-3 py-2 border-b border-border flex items-center justify-between ${isToday ? "bg-primary/10" : "bg-secondary/30"}`}>
+              <div
+                className={`px-3 py-2 border-b border-border flex items-center justify-between ${isToday ? "bg-primary/10" : "bg-secondary/30"}`}
+              >
                 <div>
                   <p className="text-xs uppercase tracking-widest text-muted-foreground">{format(day, "EEEE")}</p>
                   <p className={`text-base font-semibold ${isToday ? "text-primary" : ""}`}>{format(day, "d MMM yyyy")}</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    const dayCol: ColumnDef = { user_id: "all", display_name: "", day };
-                    const { hour: qh, minute: qm } = quickAddTime(dayCol);
-                    onSlotClick(day, qh, qm);
-                  }}
+                  onClick={() => onSlotClick(day, hour, minute)}
                   className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25 transition-colors shrink-0"
                   title={t("schedule.newBookingTooltip")}
                 >
@@ -330,7 +368,7 @@ const TimeGrid = ({
                 {items.length === 0 ? (
                   <button
                     type="button"
-                    onClick={() => onSlotClick(day, 10, 30)}
+                    onClick={() => onSlotClick(day, hour, minute)}
                     className="w-full text-left rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted-foreground hover:bg-secondary/30 transition-colors"
                   >
                     {t("schedule.noAppointmentsTapToAdd", { defaultValue: "No appointments. Tap to add one." })}
@@ -392,7 +430,10 @@ const TimeGrid = ({
                     </p>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); onSlotClick(day, qh, qm); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSlotClick(day, qh, qm);
+                      }}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center opacity-0 group-hover/col:opacity-100 transition-opacity shadow-sm hover:scale-110"
                       title={t("schedule.newBookingTooltip")}
                     >
@@ -409,7 +450,7 @@ const TimeGrid = ({
                       col={col}
                       safeName={safeName}
                       portalBgColor={artistPortalColor(col.user_id)}
-                      onQuickAdd={() => onSlotClick(col.day, qh, qm)}
+                      onQuickAdd={() => onSlotClick(col.day, qh, qm, artistIdForColumn(col))}
                       newBookingTooltip={t("schedule.newBookingTooltip")}
                     />
                   </div>
@@ -417,39 +458,60 @@ const TimeGrid = ({
               })}
         </div>
 
-        <div className="relative" style={{ height: `${GRID_BODY_H}px` }}>
-          {HOURS.map((hour, hourIdx) => (
-            <div
-              key={hour}
-              className={`grid absolute left-0 right-0 border-b border-border ${hourIdx % 2 === 0 ? "bg-card/35" : "bg-background/25"}`}
-              style={{
-                gridTemplateColumns: `52px repeat(${gridCols}, minmax(72px, 1fr))`,
-                height: `${ROW_H}px`,
-                top: `${hourIdx * ROW_H}px`,
-              }}
-            >
-              <div className="flex items-start justify-end pr-2 pt-1 text-[11px] text-muted-foreground tabular-nums border-r border-border">
-                {format(new Date(2000, 0, 1, hour), "h a").toLowerCase()}
-              </div>
-              {columns.map((col, colIdx) => (
+        <div className="relative" style={{ height: `${gridBodyH}px` }}>
+          {slots.map((slot, slotIdx) => {
+            const hourIdx = Math.floor(parseTimeToMinutes(`${slot.hour}:${String(slot.minute).padStart(2, "0")}`) / 60);
+            const isHourStart = slot.minute === 0;
+            const isQuarter = slot.minute % 15 === 0 && slot.minute !== 0;
+            const rowClass = slot.isBuffer
+              ? "bg-muted/20"
+              : hourIdx % 2 === 0
+                ? "bg-card/35"
+                : "bg-background/25";
+
+            return (
+              <div
+                key={`${slot.hour}-${slot.minute}`}
+                className={`grid absolute left-0 right-0 ${isHourStart ? "border-b border-border" : "border-b border-border/40"} ${rowClass}`}
+                style={{
+                  gridTemplateColumns: `52px repeat(${gridCols}, minmax(72px, 1fr))`,
+                  height: `${ROW_H}px`,
+                  top: `${slotIdx * ROW_H}px`,
+                }}
+              >
                 <div
-                  key={`slot-${col.user_id}-${hour}-${colIdx}`}
-                  className="border-l border-border cursor-pointer hover:bg-secondary/20 transition-colors group/slot relative"
-                  onClick={() => onSlotClick(col.day, hour)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onSlotClick(col.day, hour);
-                    }
-                  }}
+                  className={`flex items-start justify-end pr-2 pt-0.5 tabular-nums border-r border-border ${
+                    isHourStart ? "text-[11px] text-muted-foreground" : isQuarter ? "text-[9px] text-muted-foreground/60" : ""
+                  }`}
                 >
-                  <Plus className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40 opacity-0 group-hover/slot:opacity-100 transition-opacity pointer-events-none" />
+                  {isHourStart
+                    ? format(new Date(2000, 0, 1, slot.hour, slot.minute), "h a").toLowerCase()
+                    : isQuarter
+                      ? `:${String(slot.minute).padStart(2, "0")}`
+                      : null}
                 </div>
-              ))}
-            </div>
-          ))}
+                {columns.map((col, colIdx) => (
+                  <div
+                    key={`slot-${col.user_id}-${slot.hour}-${slot.minute}-${colIdx}`}
+                    className={`border-l border-border/60 cursor-pointer transition-colors group/slot relative ${
+                      slot.isBuffer ? "hover:bg-muted/35" : "hover:bg-secondary/25"
+                    }`}
+                    onClick={() => onSlotClick(col.day, slot.hour, slot.minute, artistIdForColumn(col))}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSlotClick(col.day, slot.hour, slot.minute, artistIdForColumn(col));
+                      }
+                    }}
+                  >
+                    <Plus className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/30 opacity-0 group-hover/slot:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
+                ))}
+              </div>
+            );
+          })}
 
           <div
             className="absolute inset-0 grid pointer-events-none z-[4]"
@@ -488,7 +550,11 @@ const TimeGrid = ({
           </div>
         </div>
 
-        <CurrentTimeIndicator hours={HOURS} rowH={ROW_H} />
+        <CurrentTimeIndicator
+          gridStartMinutes={gridStartMinutes}
+          gridEndMinutes={gridEndMinutes}
+          rowH={ROW_H}
+        />
       </div>
     </div>
   );

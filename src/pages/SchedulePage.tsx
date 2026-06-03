@@ -12,6 +12,7 @@ import { useServices } from "@/components/schedule/ServicePresets";
 import { toast } from "sonner";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
+import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours } from "@/lib/shopScheduleHours";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -95,6 +96,8 @@ const SchedulePage = () => {
   const [prefillDate, setPrefillDate] = useState<Date | undefined>();
   const [prefillHour, setPrefillHour] = useState<number | undefined>();
   const [prefillMinute, setPrefillMinute] = useState<number | undefined>();
+  const [prefillArtistId, setPrefillArtistId] = useState<string | undefined>();
+  const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
     const saved = window.localStorage.getItem(SCHEDULE_SIDEBAR_STORAGE_KEY);
@@ -124,6 +127,10 @@ const SchedulePage = () => {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(SCHEDULE_ARTISTS_STORAGE_KEY, JSON.stringify(selectedArtists));
   }, [selectedArtists]);
+
+  useEffect(() => {
+    void loadShopScheduleHours().then(setScheduleHours);
+  }, []);
 
   useEffect(() => {
     setProfilesReady(false);
@@ -225,10 +232,11 @@ const SchedulePage = () => {
 
   const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || t("schedule.unknown");
 
-  const handleSlotClick = (date: Date, hour: number, minute?: number) => {
+  const handleSlotClick = (date: Date, hour: number, minute: number, artistId?: string) => {
     setPrefillDate(date);
     setPrefillHour(hour);
     setPrefillMinute(minute);
+    setPrefillArtistId(artistId);
     setEditingBooking(null);
     setDialogOpen(true);
   };
@@ -268,6 +276,7 @@ const SchedulePage = () => {
             setPrefillDate(undefined);
             setPrefillHour(undefined);
             setPrefillMinute(undefined);
+            setPrefillArtistId(undefined);
             setEditingBooking(null);
             setDialogOpen(true);
           }}
@@ -312,6 +321,7 @@ const SchedulePage = () => {
             artistColorCache={artistColorCache}
             services={services}
             selectedArtists={selectedArtists}
+            scheduleHours={scheduleHours}
             onBookingClick={(booking) => setSelectedBooking(booking)}
             onSlotClick={handleSlotClick}
             view={view}
@@ -343,6 +353,7 @@ const SchedulePage = () => {
           prefillDate={prefillDate}
           prefillHour={prefillHour}
           prefillMinute={prefillMinute}
+          prefillArtistId={prefillArtistId}
           services={services}
           bookingToEdit={editingBooking}
           onSaved={() => {
