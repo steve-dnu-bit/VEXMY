@@ -6,7 +6,7 @@ import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertCircle, Shield, Check, X, Users, Mail, UserPlus } from "lucide-react";
+import { AlertCircle, Shield, Check, X, Users, Mail, UserPlus, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,6 +88,7 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const sendBookingNotification = async (
@@ -185,6 +186,14 @@ const AdminPage = () => {
   const staffProfiles = profiles.filter((p) => !isPureCustomer(p.user_id));
   const customerProfiles = profiles.filter((p) => isPureCustomer(p.user_id));
 
+  const hasArtistRole = (userId: string) => (rolesByUser[userId] || []).includes("artist");
+  const hasAdminRole = (userId: string) => (rolesByUser[userId] || []).includes("admin");
+
+  const canRemoveArtistFromShop = (userId: string) => {
+    if (!user || userId === user.id) return false;
+    return hasArtistRole(userId);
+  };
+
   const hasFeature = (userId: string, feature: string) =>
     permissions.some((p) => p.user_id === userId && p.feature === feature && p.granted);
 
@@ -229,6 +238,39 @@ const AdminPage = () => {
 
   const defaultGranted = (roleTemplate: string, feature: string) =>
     defaults.some((d) => d.role_template === roleTemplate && d.feature === feature && d.granted);
+
+  const removeArtistFromShop = async (profile: Profile) => {
+    const name = profile.display_name || t("admin.user");
+    const adminNote = hasAdminRole(profile.user_id)
+      ? ` ${t("admin.removeArtistKeepsAdminNote")}`
+      : "";
+    if (!window.confirm(t("admin.removeArtistConfirm", { name }) + adminNote)) return;
+
+    setRemovingUserId(profile.user_id);
+    try {
+      const { data, error } = await supabase.functions.invoke("remove-shop-artist", {
+        body: { userId: profile.user_id },
+      });
+      if (error) {
+        toast.error(error.message || t("admin.removeArtistFailed"));
+        return;
+      }
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      toast.success(
+        data?.keptAdminAccess
+          ? t("admin.removeArtistSuccessAdmin", { name })
+          : t("admin.removeArtistSuccess", { name }),
+      );
+      await Promise.all([fetchData(), refetchSeats()]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("admin.removeArtistFailed"));
+    } finally {
+      setRemovingUserId(null);
+    }
+  };
 
   const sendInvite = async () => {
     const email = inviteEmail.trim().toLowerCase();
@@ -538,14 +580,21 @@ const AdminPage = () => {
                         </TableHead>
                       ))}
                       <TableHead className="text-center text-[10px] px-2">{t("admin.all")}</TableHead>
+                      <TableHead className="text-center text-[10px] px-2 min-w-[72px]">{t("admin.remove")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {staffProfiles.map((profile) => {
                       const allGranted = STAFF_FEATURES.every((f) => hasFeature(profile.user_id, f));
+                      const removable = canRemoveArtistFromShop(profile.user_id);
                       return (
                         <TableRow key={profile.user_id}>
-                          <TableCell className="sticky left-0 bg-card z-10 font-medium text-sm">{profile.display_name}</TableCell>
+                          <TableCell className="sticky left-0 bg-card z-10 font-medium text-sm">
+                            <span>{profile.display_name}</span>
+                            {hasAdminRole(profile.user_id) ? (
+                              <span className="ml-1.5 text-[10px] text-muted-foreground uppercase">{t("nav.admin")}</span>
+                            ) : null}
+                          </TableCell>
                           {STAFF_FEATURES.map((feature) => {
                             const granted = hasFeature(profile.user_id, feature);
                             return (
@@ -570,6 +619,22 @@ const AdminPage = () => {
                             >
                               {allGranted ? t("admin.revoke") : t("admin.grantAll")}
                             </Button>
+                          </TableCell>
+                          <TableCell className="text-center px-2">
+                            {removable ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[10px] px-2 text-destructive border-destructive/40 hover:bg-destructive/10"
+                                disabled={removingUserId === profile.user_id}
+                                onClick={() => void removeArtistFromShop(profile)}
+                              >
+                                <UserMinus className="h-3.5 w-3.5 mr-0.5" />
+                                {removingUserId === profile.user_id ? "…" : t("admin.remove")}
+                              </Button>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
