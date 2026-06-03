@@ -11,7 +11,6 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MFAEnrollment from "@/components/auth/MFAEnrollment";
-import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
@@ -120,10 +119,6 @@ const SettingsPage = () => {
               <LanguageSelector />
             </CardContent>
           </Card>
-
-          <SectionErrorBoundary title="Subscription">
-            <SubscriptionSettingsCard />
-          </SectionErrorBoundary>
 
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">

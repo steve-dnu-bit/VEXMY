@@ -13,8 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildScheduleCSV, buildScheduleJSON, parseScheduleCSV, parseScheduleJSON, type ScheduleBookingPayload } from "@/lib/schedule-io";
 import { endOfMonth, startOfMonth } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useArtistSeats } from "@/hooks/useSubscription";
+import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
 import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
@@ -78,9 +79,27 @@ const customerFeatureLabels: Record<string, string> = {
   customer_consent: "Consent form link",
 };
 
+const ADMIN_TABS = [
+  "defaults",
+  "staff",
+  "customers",
+  "consents",
+  "consent-forms",
+  "emails",
+  "aftercare",
+  "schedule-hours",
+  "dashboard-theme",
+  "subscription",
+] as const;
+
+type AdminTab = (typeof ADMIN_TABS)[number];
+
 const AdminPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab: AdminTab = ADMIN_TABS.includes(tabParam as AdminTab) ? (tabParam as AdminTab) : "defaults";
   const { data: seatUsage, refetch: refetchSeats } = useArtistSeats();
   const [isAdmin, setIsAdmin] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -489,7 +508,11 @@ const AdminPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Tabs defaultValue="defaults" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}
+          className="w-full"
+        >
           <TabsList className="flex flex-wrap h-auto gap-1">
             <TabsTrigger value="defaults">{t("admin.tabDefaults")}</TabsTrigger>
             <TabsTrigger value="staff">{t("admin.tabStaff")}</TabsTrigger>
@@ -500,6 +523,7 @@ const AdminPage = () => {
             <TabsTrigger value="aftercare">{t("admin.tabAftercare")}</TabsTrigger>
             <TabsTrigger value="schedule-hours">{t("admin.tabScheduleHours")}</TabsTrigger>
             <TabsTrigger value="dashboard-theme">{t("admin.tabDashboardTheme")}</TabsTrigger>
+            <TabsTrigger value="subscription">{t("admin.tabSubscription")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
@@ -718,6 +742,10 @@ const AdminPage = () => {
 
           <TabsContent value="dashboard-theme" className="mt-4">
             <AdminDashboardThemePanel />
+          </TabsContent>
+
+          <TabsContent value="subscription" className="mt-4">
+            <SubscriptionSettingsCard />
           </TabsContent>
         </Tabs>
       </div>

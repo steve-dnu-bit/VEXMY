@@ -548,6 +548,7 @@
     "scheduleHoursPreview": "The schedule grid will show {{slots}} rows ({{minutes}} min each) including buffer time.",
     "scheduleHoursSavedDesc": "Working hours updated — refresh the schedule page to see changes.",
     "tabDashboardTheme": "Dashboard look",
+    "tabSubscription": "Subscription",
     "dashboardThemeTitle": "Dashboard & staff app look",
     "dashboardThemeIntro": "Choose whether each artist picks their own colors and background, or one shared theme for the whole shop (schedule, dashboard, settings, etc.).",
     "dashboardThemeMode": "Customization mode",
