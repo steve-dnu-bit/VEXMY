@@ -42,3 +42,11 @@ email_list.csv
 # Python
 __pycache__/
 *.pyc
+
+# i18n locale translation working files (keep only en.json + locale/*.json + docs/*.json)
+src/i18n/locales/_*
+src/i18n/locales/manual-translations.json
+src/i18n/locales/final-overrides.json
+src/i18n/locales/batch-translate.mjs
+src/i18n/locales/apply-manual-translations.mjs
+src/i18n/locales/generate-manual-translations.mjs
