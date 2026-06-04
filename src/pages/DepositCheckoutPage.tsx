@@ -75,7 +75,7 @@ const DepositCheckoutPage = () => {
     <CustomerLayout>
       <div className="space-y-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">Checkout</h1>
+          <h1 className="font-display text-2xl font-bold text-gold">Checkout</h1>
           <p className="text-sm text-muted-foreground mt-1">Pay your deposit to secure your booking</p>
         </div>
 

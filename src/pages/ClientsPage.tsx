@@ -569,7 +569,7 @@ const ClientsPage = () => {
         <div className="flex flex-col gap-3 mb-6">
           <div>
             <h1 className="font-display text-2xl font-bold">
-              <span className="text-gradient-gold">{t("clients.title")}</span>
+              <span className="text-gold">{t("clients.title")}</span>
             </h1>
             <p className="text-sm text-muted-foreground">{t("clients.subtitle")}</p>
           </div>

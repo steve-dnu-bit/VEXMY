@@ -210,7 +210,7 @@ const AuthPage = () => {
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-[#d4af37]/40 bg-[#101216]/82 p-5 shadow-[0_14px_32px_rgba(0,0,0,0.48)] backdrop-blur-sm">
+        <div className="rounded-2xl border border-gold/40 bg-[#101216]/82 p-5 shadow-[0_14px_32px_rgba(0,0,0,0.48)] backdrop-blur-sm">
           {mfaFactorId ? (
             <MFAVerify
               factorId={mfaFactorId}
@@ -264,42 +264,42 @@ const AuthPage = () => {
               <h2 className="mb-1.5 text-center font-display text-3xl font-semibold text-white">
                 {isLogin ? t("common.signIn") : t("auth.createAccount")}
               </h2>
-              <div className="mx-auto mb-4 h-px w-20 bg-gradient-to-r from-transparent via-[#d4af37]/80 to-transparent" />
+              <div className="mx-auto mb-4 h-px w-20 bg-gradient-to-r from-transparent via-gold/80 to-transparent" />
               <p className="mb-4 text-center text-[11px] leading-[1.4] text-zinc-300">{t("auth.authSubtitle")}</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <div>
-                    <Label className="text-xs uppercase tracking-widest text-[#d4af37]">
+                    <Label className="text-xs uppercase tracking-widest text-gold">
                       {t("auth.displayName")}
                     </Label>
                     <Input
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder={t("auth.yourName")}
-                      className="mt-2 h-11 border-[#d4af37]/20 bg-black/30 text-zinc-100 placeholder:text-zinc-500"
+                      className="mt-2 h-11 border-gold/20 bg-black/30 text-zinc-100 placeholder:text-zinc-500"
                       required
                     />
                   </div>
                 )}
                 <div>
-                  <Label className="text-xs uppercase tracking-widest text-[#d4af37]">
+                  <Label className="text-xs uppercase tracking-widest text-gold">
                     {t("common.email")}
                   </Label>
                   <div className="relative mt-2">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#d4af37]/85" />
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gold/85" />
                     <Input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t("auth.enterEmail")}
-                      className="h-11 border-[#d4af37]/20 bg-black/30 pl-10 text-zinc-100 placeholder:text-zinc-500"
+                      className="h-11 border-gold/20 bg-black/30 pl-10 text-zinc-100 placeholder:text-zinc-500"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs uppercase tracking-widest text-[#d4af37]">
+                  <Label className="text-xs uppercase tracking-widest text-gold">
                     {t("common.password")}
                   </Label>
                   <PasswordField
@@ -307,7 +307,7 @@ const AuthPage = () => {
                     onChange={setPassword}
                     placeholder={t("auth.enterPassword")}
                     className="mt-2"
-                    inputClassName="h-11 border-[#d4af37]/20 bg-black/30 text-zinc-100 placeholder:text-zinc-500"
+                    inputClassName="h-11 border-gold/20 bg-black/30 text-zinc-100 placeholder:text-zinc-500"
                     required
                     minLength={6}
                     autoComplete={isLogin ? "current-password" : "new-password"}
@@ -325,7 +325,7 @@ const AuthPage = () => {
                     </div>
                     <button
                       type="button"
-                      className="mx-auto block text-sm text-[#d4af37] hover:underline"
+                      className="mx-auto block text-sm text-gold hover:underline"
                       onClick={() => void handleForgotPassword()}
                       disabled={forgotPasswordLoading}
                     >
@@ -339,7 +339,7 @@ const AuthPage = () => {
                 {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}
                 <button
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-[#d4af37] hover:underline"
+                  className="text-gold hover:underline"
                 >
                   {isLogin ? t("auth.signUp") : t("common.signIn")}
                 </button>

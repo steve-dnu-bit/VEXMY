@@ -152,7 +152,7 @@ const ServicesPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl font-bold">
-              <span className="text-gradient-gold">{t("services.title")}</span>
+              <span className="text-gold">{t("services.title")}</span>
             </h1>
             <p className="text-sm text-muted-foreground">{t("services.subtitle")}</p>
           </div>

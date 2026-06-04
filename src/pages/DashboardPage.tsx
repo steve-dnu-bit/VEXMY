@@ -155,7 +155,7 @@ const DashboardPage = () => {
       <div className="p-4 md:p-6">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-gold">{t("dashboard.title")}</span>
+            <span className="text-gold">{t("dashboard.title")}</span>
           </h1>
           <p className="text-sm text-muted-foreground">{t("dashboard.welcome")}</p>
         </div>

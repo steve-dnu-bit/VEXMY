@@ -33,17 +33,17 @@ const SubscribeSuccessPage = () => {
     <MarketingLayout>
       <section className="mx-auto max-w-lg px-4 py-20 text-center">
         {authLoading || (isLoading && !data) ? (
-          <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#d4af37]" />
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-gold" />
         ) : waitingForWebhook ? (
           <>
-            <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#d4af37]" />
+            <Loader2 className="mx-auto h-10 w-10 animate-spin text-gold" />
             <h1 className="mt-6 font-display text-2xl font-bold">{t("subscribe.confirming")}</h1>
             <p className="mt-3 text-sm text-muted-foreground">{t("subscribe.confirmingHint")}</p>
           </>
         ) : (
           <>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#d4af37]/15">
-              <CheckCircle2 className="h-8 w-8 text-[#d4af37]" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/15">
+              <CheckCircle2 className="h-8 w-8 text-gold" />
             </div>
             <h1 className="mt-6 font-display text-3xl font-bold">{t("subscribe.allSet")}</h1>
             <p className="mt-3 text-muted-foreground">

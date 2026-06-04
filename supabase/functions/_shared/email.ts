@@ -111,7 +111,7 @@ export function emailLayout(params: {
   footerNote?: string;
 }): string {
   const brand = params.brand ?? getShopBranding();
-  const accent = brand.accentColor || "#d4af37";
+  const accent = brand.accentColor || "hsl(43, 34%, 54%)";
   const greeting = params.greeting
     ? `<p style="margin:0 0 12px;font-size:15px;color:#d7d7d7;">${params.greeting}</p>`
     : "";

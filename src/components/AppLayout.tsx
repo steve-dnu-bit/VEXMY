@@ -189,7 +189,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        <span className="font-display text-lg font-bold text-gradient-gold">{BRANDING.platformName.toUpperCase()}</span>
+        <span className="font-display text-lg font-bold text-gold">{BRANDING.platformName.toUpperCase()}</span>
         <div className="w-5" />
       </div>
 
@@ -204,9 +204,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="px-3 py-3 border-b border-sidebar-border">
           <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "justify-between"} gap-2`}>
             {!sidebarCollapsed ? (
-              <span className="font-display text-lg font-bold text-gradient-gold">{BRANDING.platformName.toUpperCase()}</span>
+              <span className="font-display text-lg font-bold text-gold">{BRANDING.platformName.toUpperCase()}</span>
             ) : (
-              <span className="font-display text-lg font-bold text-gradient-gold">I</span>
+              <span className="font-display text-lg font-bold text-gold">I</span>
             )}
             <Button
               variant="ghost"

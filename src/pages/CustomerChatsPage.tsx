@@ -8,7 +8,7 @@ const CustomerChatsPage = () => {
     <CustomerLayout>
       <div className="space-y-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">{t("customer.messages")}</h1>
+          <h1 className="font-display text-2xl font-bold text-gold">{t("customer.messages")}</h1>
           <p className="text-sm text-muted-foreground">{t("customer.messagesDesc", { defaultValue: "Chat securely with any artist and share reference images." })}</p>
         </div>
         <UnifiedChatWorkspace mode="customer" />

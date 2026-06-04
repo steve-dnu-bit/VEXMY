@@ -217,7 +217,7 @@ const StencilPage = () => {
       <div className="p-4 md:p-6 max-w-3xl mx-auto">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-gold">{t("stencil.title")}</span>
+            <span className="text-gold">{t("stencil.title")}</span>
           </h1>
           <p className="text-sm text-muted-foreground">
             {t("stencil.subtitle")}
@@ -290,7 +290,7 @@ const StencilPage = () => {
                     <div className="text-right">
                       <div
                         className={`font-display text-xl font-bold leading-none ${
-                          quota.remaining > 0 ? "text-gradient-gold" : "text-destructive"
+                          quota.remaining > 0 ? "text-gold" : "text-destructive"
                         }`}
                       >
                         {quota.remaining}

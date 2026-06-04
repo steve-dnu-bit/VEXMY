@@ -25,10 +25,10 @@ const PlanFeatureGate = ({ feature, children, requiredPlanId = "studio" }: PlanF
 
   return (
     <div className="mx-auto max-w-lg py-12 px-4">
-      <Card className="border-[#d4af37]/30 bg-card/80">
+      <Card className="border-gold/30 bg-card/80">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#d4af37]/10">
-            <Lock className="h-6 w-6 text-[#d4af37]" />
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gold/10">
+            <Lock className="h-6 w-6 text-gold" />
           </div>
           <CardTitle className="font-display">{t("subscription.upgradeRequired")}</CardTitle>
           <CardDescription>

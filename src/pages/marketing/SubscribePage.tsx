@@ -129,7 +129,7 @@ const SubscribePage = () => {
     return (
       <MarketingLayout>
         <div className="flex min-h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#d4af37]" />
+          <Loader2 className="h-8 w-8 animate-spin text-gold" />
         </div>
       </MarketingLayout>
     );
@@ -140,20 +140,20 @@ const SubscribePage = () => {
       <section className="px-4 py-12 sm:px-6 sm:py-20">
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d4af37]/80">{t("subscribe.label")}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold/80">{t("subscribe.label")}</p>
             <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
               {t("subscribe.startWith", { plan: selfServePlan.name })}
             </h1>
             <p className="mt-3 text-muted-foreground">{selfServePlan.description}</p>
-            <p className="mt-6 font-display text-4xl font-bold text-gradient-gold">
+            <p className="mt-6 font-display text-4xl font-bold text-gold">
               {selfServePlan.price}
               <span className="text-base font-normal text-muted-foreground">{selfServePlan.period}</span>
             </p>
-            <p className="mt-2 text-sm text-[#d4af37]/80">{t("subscribe.trialNote")}</p>
+            <p className="mt-2 text-sm text-gold/80">{t("subscribe.trialNote")}</p>
             <ul className="mt-8 space-y-3">
               {selfServePlan.features.slice(0, 6).map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#d4af37]" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
                   {f}
                 </li>
               ))}
@@ -225,7 +225,7 @@ const SubscribePage = () => {
                     {authMode === "signup" ? t("auth.signupSubtitle") : t("auth.loginSubtitle")}{" "}
                     <button
                       type="button"
-                      className="text-[#d4af37] hover:underline"
+                      className="text-gold hover:underline"
                       onClick={() => setAuthMode(authMode === "signup" ? "signin" : "signup")}
                     >
                       {authMode === "signup" ? t("common.signIn") : t("auth.signUp")}
@@ -283,11 +283,11 @@ const SubscribePage = () => {
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
                   {t("subscribe.termsAgree")}{" "}
-                  <Link to="/terms" className="text-[#d4af37] hover:underline">
+                  <Link to="/terms" className="text-gold hover:underline">
                     {t("common.terms")}
                   </Link>{" "}
                   and{" "}
-                  <Link to="/privacy" className="text-[#d4af37] hover:underline">
+                  <Link to="/privacy" className="text-gold hover:underline">
                     {t("common.privacy")}
                   </Link>
                   .

@@ -76,34 +76,34 @@ const ContactPage = () => {
 
             <ul className="mt-10 space-y-5">
               <li className="flex gap-3 text-sm">
-                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af37]" />
+                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
                 <div>
                   <p className="font-medium">{t("common.email")}</p>
-                  <a href={`mailto:${BRANDING.supportEmail}`} className="text-[#d4af37] hover:underline">
+                  <a href={`mailto:${BRANDING.supportEmail}`} className="text-gold hover:underline">
                     {BRANDING.supportEmail}
                   </a>
                 </div>
               </li>
               <li className="flex gap-3 text-sm">
-                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af37]" />
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
                 <div>
                   <p className="font-medium">{t("contact.responseTime")}</p>
                   <p className="text-muted-foreground">{t("contact.withinOneDay")}</p>
                 </div>
               </li>
               <li className="flex gap-3 text-sm">
-                <MessageSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#d4af37]" />
+                <MessageSquare className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
                 <div>
                   <p className="font-medium">{t("contact.alreadyCustomer")}</p>
-                  <Link to="/auth" className="text-[#d4af37] hover:underline">
+                  <Link to="/auth" className="text-gold hover:underline">
                     {t("contact.signInApp")}
                   </Link>
                 </div>
               </li>
             </ul>
 
-            <div className="mt-10 rounded-xl border border-[#d4af37]/20 bg-[#101216]/60 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">{t("contact.popularRequest")}</p>
+            <div className="mt-10 rounded-xl border border-gold/20 bg-[#101216]/60 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gold/80">{t("contact.popularRequest")}</p>
               <p className="mt-2 text-sm text-muted-foreground">{t("contact.popularRequestBody")}</p>
               <Button variant="gold-outline" size="sm" className="mt-4" asChild>
                 <Link to="/pricing">{t("common.comparePlans")}</Link>
@@ -113,8 +113,8 @@ const ContactPage = () => {
 
           <div className="lg:col-span-3">
             {submitted ? (
-              <div className="rounded-2xl border border-[#d4af37]/30 bg-[#101216]/80 p-10 text-center">
-                <CheckCircle2 className="mx-auto h-12 w-12 text-[#d4af37]" />
+              <div className="rounded-2xl border border-gold/30 bg-[#101216]/80 p-10 text-center">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-gold" />
                 <h2 className="mt-4 font-display text-2xl font-bold">{t("contact.thanksTitle")}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{t("contact.thanksBody", { email })}</p>
                 <Button variant="gold" className="mt-8" asChild>
@@ -198,7 +198,7 @@ const ContactPage = () => {
 
                 <p className="mt-4 text-xs text-muted-foreground">
                   {t("contact.submitAgree")}{" "}
-                  <Link to="/privacy" className="text-[#d4af37] hover:underline">
+                  <Link to="/privacy" className="text-gold hover:underline">
                     {t("common.privacy")}
                   </Link>
                   .

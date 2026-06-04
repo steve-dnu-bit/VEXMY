@@ -17,7 +17,7 @@ export const BRANDING = {
     "dpo@example.com",
   websiteUrl: import.meta.env.VITE_SHOP_WEBSITE_URL || "",
   address: import.meta.env.VITE_SHOP_ADDRESS || "",
-  accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "#d4af37",
+  accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "hsl(43, 34%, 54%)",
 } as const;
 
 export const STORAGE_PREFIX = "velbok";

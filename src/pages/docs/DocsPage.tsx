@@ -29,7 +29,7 @@ const DocSectionView = ({
       </ul>
     ) : null}
     {note ? (
-      <p className="mt-4 rounded-lg border border-[#d4af37]/25 bg-[#d4af37]/5 px-4 py-3 text-sm text-muted-foreground">
+      <p className="mt-4 rounded-lg border border-gold/25 bg-gold/5 px-4 py-3 text-sm text-muted-foreground">
         {note}
       </p>
     ) : null}
@@ -56,7 +56,7 @@ const DocsPage = () => {
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:flex-row lg:py-14">
         <aside className="lg:w-64 lg:shrink-0">
           <nav className="sticky top-24 rounded-xl border border-border/70 bg-card/55 p-4">
-            <Link to="/docs" className="text-sm font-semibold text-[#d4af37] hover:underline">
+            <Link to="/docs" className="text-sm font-semibold text-gold hover:underline">
               {allDocs}
             </Link>
             <div className="themed-scrollbar mt-4 max-h-[70vh] space-y-6 overflow-y-auto pr-1">
@@ -75,7 +75,7 @@ const DocsPage = () => {
                             to={`/docs/${p.slug}`}
                             className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
                               slug === p.slug
-                                ? "bg-[#d4af37]/15 text-[#d4af37]"
+                                ? "bg-gold/15 text-gold"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
                           >
@@ -102,7 +102,7 @@ const DocsPage = () => {
                   if (!catPages.length) return null;
                   return (
                     <div key={cat.id}>
-                      <h2 className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]/80">
+                      <h2 className="text-xs font-semibold uppercase tracking-wider text-gold/80">
                         {cat.label}
                       </h2>
                       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -110,13 +110,13 @@ const DocsPage = () => {
                           <li key={docPage.slug}>
                             <Link
                               to={`/docs/${docPage.slug}`}
-                              className="group flex items-start justify-between rounded-lg border border-border/70 bg-card/55 p-4 transition-colors hover:border-[#d4af37]/40"
+                              className="group flex items-start justify-between rounded-lg border border-border/70 bg-card/55 p-4 transition-colors hover:border-gold/40"
                             >
                               <div>
-                                <p className="font-medium group-hover:text-[#d4af37]">{docPage.title}</p>
+                                <p className="font-medium group-hover:text-gold">{docPage.title}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">{docPage.description}</p>
                               </div>
-                              <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-[#d4af37]" />
+                              <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-gold" />
                             </Link>
                           </li>
                         ))}
@@ -131,7 +131,7 @@ const DocsPage = () => {
           ) : (
             <>
               <nav className="mb-6 text-xs text-muted-foreground">
-                <Link to="/docs" className="hover:text-[#d4af37]">
+                <Link to="/docs" className="hover:text-gold">
                   {breadcrumb}
                 </Link>
                 <span className="mx-2">/</span>
@@ -150,7 +150,7 @@ const DocsPage = () => {
                     <Link
                       key={p.slug}
                       to={`/docs/${pages[i + 1].slug}`}
-                      className="text-[#d4af37] hover:underline"
+                      className="text-gold hover:underline"
                     >
                       {nextLabel(pages[i + 1].title)}
                     </Link>

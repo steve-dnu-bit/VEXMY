@@ -57,7 +57,7 @@ const CustomerLayout = ({
     <div className="min-h-screen bg-background flex flex-col" style={shellStyle}>
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="flex h-14 items-center justify-between px-4 max-w-lg mx-auto w-full">
-          <span className="font-display font-bold text-gradient-gold">{BRANDING.platformName.toUpperCase()}</span>
+          <span className="font-display font-bold text-gold">{BRANDING.platformName.toUpperCase()}</span>
           <button type="button" className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label={t("customer.menu")}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

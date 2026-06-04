@@ -448,7 +448,7 @@ const AdminPage = () => {
                   {!seatUsage.canAdd ? t("admin.limitReached") : ""}
                 </p>
                 {!seatUsage.canAdd ? (
-                  <Button variant="link" className="h-auto p-0 mt-2 text-[#d4af37]" asChild>
+                  <Button variant="link" className="h-auto p-0 mt-2 text-gold" asChild>
                     <Link
                       to={
                         seatUsage.planId === "starter"

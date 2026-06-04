@@ -289,19 +289,19 @@ const ShopSetupWizardPage = () => {
     <MarketingLayout>
       <section className="mx-auto max-w-2xl px-4 py-10">
         <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d4af37]/80">{t("setup.label")}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold/80">{t("setup.label")}</p>
           <h1 className="mt-2 font-display text-3xl font-bold">{t("setup.title")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("setup.subtitle")}</p>
         </div>
 
         <div className="mb-6 h-1.5 rounded-full bg-secondary overflow-hidden">
-          <div className="h-full bg-[#d4af37] transition-all" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} />
         </div>
 
         <Card className="border-border bg-card/90">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Icon className="h-5 w-5 text-[#d4af37]" />
+              <Icon className="h-5 w-5 text-gold" />
               {stepMeta[step].title}
             </CardTitle>
             <CardDescription>{stepMeta[step].desc}</CardDescription>
@@ -450,7 +450,7 @@ const ShopSetupWizardPage = () => {
                           key={preset.key}
                           type="button"
                           onClick={() => setDashboardTheme((d) => ({ ...d, portalBgColor: preset.bgColor }))}
-                          className={`rounded-md border p-2 text-left ${dashboardTheme.portalBgColor === preset.bgColor ? "border-[#d4af37] ring-1 ring-[#d4af37]" : "border-border"}`}
+                          className={`rounded-md border p-2 text-left ${dashboardTheme.portalBgColor === preset.bgColor ? "border-gold ring-1 ring-gold" : "border-border"}`}
                         >
                           <span className="inline-block h-4 w-4 rounded-full border border-border mr-1 align-middle" style={{ backgroundColor: preset.bgColor }} />
                           <span className="text-xs">{preset.label}</span>

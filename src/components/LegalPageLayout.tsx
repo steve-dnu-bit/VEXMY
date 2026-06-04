@@ -13,7 +13,7 @@ const LegalPageLayout = ({
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-3xl rounded-xl border border-border bg-card p-6 md:p-8">
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">{title}</h1>
+          <h1 className="font-display text-2xl font-bold text-gold">{title}</h1>
           <p className="mt-1 text-xs text-muted-foreground">Last updated: {lastUpdated}</p>
           <div className="mt-3 flex flex-wrap gap-3 text-xs">
             <Link to="/terms" className="text-primary hover:underline">Terms</Link>

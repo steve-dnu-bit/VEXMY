@@ -255,7 +255,7 @@ const CustomerAccountPage = () => {
       <div className="space-y-8">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-gradient-gold">{t("customer.myAccountTitle")}</h1>
+            <h1 className="font-display text-2xl font-bold text-gold">{t("customer.myAccountTitle")}</h1>
             {isVipClient ? (
               <Badge className="gap-1 bg-yellow-500/15 text-yellow-200 border-yellow-500/35 font-medium">
                 <Star className="h-3 w-3 fill-yellow-400/80 text-yellow-300" />

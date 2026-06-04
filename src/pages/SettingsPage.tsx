@@ -108,7 +108,7 @@ const SettingsPage = () => {
       <div className="p-4 md:p-6 max-w-2xl">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-gold">{t("settings.title")}</span>
+            <span className="text-gold">{t("settings.title")}</span>
           </h1>
           <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
         </div>

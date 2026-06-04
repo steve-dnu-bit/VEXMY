@@ -79,7 +79,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
     <AppLayout>
       <div className="max-w-3xl mx-auto p-4 space-y-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">Signed consent forms</h1>
+          <h1 className="font-display text-2xl font-bold text-gold">Signed consent forms</h1>
           <p className="text-sm text-muted-foreground mt-1">View, print, or download consent PDFs for your bookings.</p>
         </div>
 
@@ -567,7 +567,7 @@ const ConsentPage = () => {
     <CustomerLayout portalBrand={portalBrand}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-gold">{activeTemplate?.content.formTitle ?? "Consent form"}</h1>
+          <h1 className="font-display text-2xl font-bold text-gold">{activeTemplate?.content.formTitle ?? "Consent form"}</h1>
           <p className="text-sm text-muted-foreground mt-1">Fill the form and sign. No reference image or ID upload is required.</p>
         </div>
 

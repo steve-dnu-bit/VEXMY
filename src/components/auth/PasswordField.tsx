@@ -35,7 +35,7 @@ const PasswordField = ({
   return (
     <div className={cn("relative", className)}>
       {showLockIcon ? (
-        <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#d4af37]/85" />
+        <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gold/85" />
       ) : null}
       <Input
         id={id}
@@ -51,7 +51,7 @@ const PasswordField = ({
       <button
         type="button"
         tabIndex={-1}
-        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-[#d4af37]/85 transition-colors hover:text-[#d4af37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/50"
+        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-gold/85 transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? t("mfa.hidePassword") : t("mfa.showPassword")}
         aria-pressed={visible}

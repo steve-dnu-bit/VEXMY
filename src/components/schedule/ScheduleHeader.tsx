@@ -196,7 +196,7 @@ const ScheduleHeader = ({
             {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
           </Button>
           <div className="min-w-0">
-            <h1 className="font-display text-lg md:text-xl font-bold text-gradient-gold">{t("schedule.title")}</h1>
+            <h1 className="font-display text-lg md:text-xl font-bold text-gold">{t("schedule.title")}</h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest hidden sm:block">{t("schedule.subtitle")}</p>
           </div>
         </div>
