@@ -199,9 +199,9 @@ const AuthPage = () => {
 
       <div className="relative z-10 w-full max-w-[345px]">
         <div className="mb-4 text-center">
-          <h1 className="font-display text-3xl font-bold tracking-[0.08em] text-[#d4af37]">{BRANDING.platformName.toUpperCase()}</h1>
-          <div className="mx-auto mt-2 h-px w-36 bg-gradient-to-r from-transparent via-[#d4af37]/80 to-transparent" />
-          <p className="mt-1.5 text-[10px] tracking-[0.3em] text-[#d4af37]/85">{BRANDING.platformTagline.toUpperCase()}</p>
+          <h1 className="font-display text-3xl font-bold tracking-[0.08em] text-gold">{BRANDING.platformName.toUpperCase()}</h1>
+          <div className="mx-auto mt-2 h-px w-36 bg-gradient-to-r from-transparent via-gold/80 to-transparent" />
+          <p className="mt-1.5 text-[10px] tracking-[0.3em] text-gold/90">{BRANDING.platformTagline.toUpperCase()}</p>
         </div>
 
         {configError ? (
