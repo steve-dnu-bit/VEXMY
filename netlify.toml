@@ -5,6 +5,12 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Allow studios to embed customer login on their own websites
+[[headers]]
+  for = "/embed/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors *"
+
 # SPA client-side routing (React Router)
 [[redirects]]
   from = "/*"

@@ -465,7 +465,21 @@
     "removeArtistKeepsAdminNote": " Ze behouden winkelbeheerderstoegang.",
     "removeArtistSuccess": "{{name}} is uit de winkel verwijderd.",
     "removeArtistSuccessAdmin": "{{name}} is als artiest verwijderd maar heeft nog beheerderstoegang.",
-    "removeArtistFailed": "Kon artiest niet verwijderen"
+    "removeArtistFailed": "Kon artiest niet verwijderen",
+    "tabWebsiteEmbed": "Website login",
+    "websiteEmbedTitle": "Customer login embed",
+    "websiteEmbedIntro": "Copy HTML to paste on your studio website so clients can sign in to their customer portal (bookings, deposits, messages).",
+    "websiteEmbedButtonTab": "Login button",
+    "websiteEmbedIframeTab": "Login form (iframe)",
+    "websiteEmbedButtonDesc": "Shows your shop name, a Login button, and Powered by Velbok. Opens the Velbok sign-in page in a new tab — works on any website.",
+    "websiteEmbedIframeDesc": "Embeds email and password fields on your page via an iframe. Some website builders restrict iframes; use the Login button if needed.",
+    "websiteEmbedCopyButton": "Copy button HTML",
+    "websiteEmbedCopyIframe": "Copy iframe HTML",
+    "websiteEmbedCopied": "Embed code copied to clipboard",
+    "websiteEmbedPreview": "Preview",
+    "websiteEmbedLoginUrl": "Customer login URL",
+    "websiteEmbedPoweredBy": "Powered by {{platform}}",
+    "websiteEmbedOpenPage": "Open embed page"
   },
   "notFound": {
     "title": "Pagina niet gevonden",
@@ -1318,5 +1332,9 @@
     "finishing": "Afronden…",
     "completeToast": "Je studio is klaar — welkom bij Velbok!",
     "reviewHint": "Je kunt dit later wijzigen onder Admin en Instellingen."
+  },
+  "embed": {
+    "customerPortalSubtitle": "Customer portal",
+    "poweredBy": "Powered by {{platform}}"
   }
 }

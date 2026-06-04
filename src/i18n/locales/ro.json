@@ -465,7 +465,21 @@
     "removeArtistKeepsAdminNote": "Aceștia vor păstra accesul administratorului magazinului.",
     "removeArtistSuccess": "{{name}} a fost eliminat din magazin.",
     "removeArtistSuccessAdmin": "{{name}} a fost eliminat ca artist, dar are încă acces de administrator.",
-    "removeArtistFailed": "Artistul nu a putut fi eliminat"
+    "removeArtistFailed": "Artistul nu a putut fi eliminat",
+    "tabWebsiteEmbed": "Website login",
+    "websiteEmbedTitle": "Customer login embed",
+    "websiteEmbedIntro": "Copy HTML to paste on your studio website so clients can sign in to their customer portal (bookings, deposits, messages).",
+    "websiteEmbedButtonTab": "Login button",
+    "websiteEmbedIframeTab": "Login form (iframe)",
+    "websiteEmbedButtonDesc": "Shows your shop name, a Login button, and Powered by Velbok. Opens the Velbok sign-in page in a new tab — works on any website.",
+    "websiteEmbedIframeDesc": "Embeds email and password fields on your page via an iframe. Some website builders restrict iframes; use the Login button if needed.",
+    "websiteEmbedCopyButton": "Copy button HTML",
+    "websiteEmbedCopyIframe": "Copy iframe HTML",
+    "websiteEmbedCopied": "Embed code copied to clipboard",
+    "websiteEmbedPreview": "Preview",
+    "websiteEmbedLoginUrl": "Customer login URL",
+    "websiteEmbedPoweredBy": "Powered by {{platform}}",
+    "websiteEmbedOpenPage": "Open embed page"
   },
   "notFound": {
     "title": "Pagină negăsită",
@@ -1318,5 +1332,9 @@
     "finishing": "Finalizare…",
     "completeToast": "Studioul tău este gata. Bine ai venit la Velbok!",
     "reviewHint": "Poți modifica oricare dintre acestea mai târziu în Admin și Setări."
+  },
+  "embed": {
+    "customerPortalSubtitle": "Customer portal",
+    "poweredBy": "Powered by {{platform}}"
   }
 }

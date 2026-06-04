@@ -24,6 +24,7 @@ import AdminAftercareSettingsPanel from "@/components/admin/AdminAftercareSettin
 import AdminConsentFormsPanel from "@/components/admin/AdminConsentFormsPanel";
 import AdminScheduleHoursPanel from "@/components/admin/AdminScheduleHoursPanel";
 import AdminDashboardThemePanel from "@/components/admin/AdminDashboardThemePanel";
+import AdminWebsiteEmbedPanel from "@/components/admin/AdminWebsiteEmbedPanel";
 
 interface Profile {
   user_id: string;
@@ -89,6 +90,7 @@ const ADMIN_TABS = [
   "aftercare",
   "schedule-hours",
   "dashboard-theme",
+  "website-embed",
 ] as const;
 
 type AdminTab = (typeof ADMIN_TABS)[number];
@@ -522,6 +524,7 @@ const AdminPage = () => {
             <TabsTrigger value="aftercare">{t("admin.tabAftercare")}</TabsTrigger>
             <TabsTrigger value="schedule-hours">{t("admin.tabScheduleHours")}</TabsTrigger>
             <TabsTrigger value="dashboard-theme">{t("admin.tabDashboardTheme")}</TabsTrigger>
+            <TabsTrigger value="website-embed">{t("admin.tabWebsiteEmbed")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="defaults" className="space-y-4 mt-4">
@@ -740,6 +743,10 @@ const AdminPage = () => {
 
           <TabsContent value="dashboard-theme" className="mt-4">
             <AdminDashboardThemePanel />
+          </TabsContent>
+
+          <TabsContent value="website-embed" className="mt-4">
+            <AdminWebsiteEmbedPanel />
           </TabsContent>
         </Tabs>
 

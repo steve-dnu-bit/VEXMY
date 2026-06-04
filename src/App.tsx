@@ -44,6 +44,7 @@ const CustomerDepositsPage = lazy(() => import("./pages/CustomerDepositsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
+const CustomerEmbedLoginPage = lazy(() => import("./pages/CustomerEmbedLoginPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +111,7 @@ const App = () => (
                 <Route path="/cookies" element={<CookiePolicyPage />} />
                 <Route path="/consent" element={<ConsentPage />} />
                 <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
+                <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
                 <Route path="/account" element={<ProtectedRoute><CustomerAccountPage /></ProtectedRoute>} />
                 <Route path="/account/security" element={<ProtectedRoute><CustomerSecurityPage /></ProtectedRoute>} />
                 <Route path="/account/chats" element={<ProtectedRoute><CustomerChatsPage /></ProtectedRoute>} />

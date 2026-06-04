@@ -465,7 +465,21 @@
     "removeArtistKeepsAdminNote": " Ще запазят достъп като администратор на магазина.",
     "removeArtistSuccess": "{{name}} бе премахнат от магазина.",
     "removeArtistSuccessAdmin": "{{name}} бе премахнат като артист, но все още има администраторски достъп.",
-    "removeArtistFailed": "Артистът не можа да бъде премахнат"
+    "removeArtistFailed": "Артистът не можа да бъде премахнат",
+    "tabWebsiteEmbed": "Website login",
+    "websiteEmbedTitle": "Customer login embed",
+    "websiteEmbedIntro": "Copy HTML to paste on your studio website so clients can sign in to their customer portal (bookings, deposits, messages).",
+    "websiteEmbedButtonTab": "Login button",
+    "websiteEmbedIframeTab": "Login form (iframe)",
+    "websiteEmbedButtonDesc": "Shows your shop name, a Login button, and Powered by Velbok. Opens the Velbok sign-in page in a new tab — works on any website.",
+    "websiteEmbedIframeDesc": "Embeds email and password fields on your page via an iframe. Some website builders restrict iframes; use the Login button if needed.",
+    "websiteEmbedCopyButton": "Copy button HTML",
+    "websiteEmbedCopyIframe": "Copy iframe HTML",
+    "websiteEmbedCopied": "Embed code copied to clipboard",
+    "websiteEmbedPreview": "Preview",
+    "websiteEmbedLoginUrl": "Customer login URL",
+    "websiteEmbedPoweredBy": "Powered by {{platform}}",
+    "websiteEmbedOpenPage": "Open embed page"
   },
   "notFound": {
     "title": "Страницата не е намерена",
@@ -1318,5 +1332,9 @@
     "finishing": "Финализиране…",
     "completeToast": "Студиото ви е готово — добре дошли в Velbok!",
     "reviewHint": "Можете да промените това по-късно в Админ и Настройки."
+  },
+  "embed": {
+    "customerPortalSubtitle": "Customer portal",
+    "poweredBy": "Powered by {{platform}}"
   }
 }

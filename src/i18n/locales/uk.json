@@ -465,7 +465,21 @@
     "removeArtistKeepsAdminNote": " Вони збережуть доступ адміністратора магазину.",
     "removeArtistSuccess": "{{name}} видалено з магазину.",
     "removeArtistSuccessAdmin": "{{name}} видалено як артиста, але доступ адміністратора збережено.",
-    "removeArtistFailed": "Не вдалося видалити артиста"
+    "removeArtistFailed": "Не вдалося видалити артиста",
+    "tabWebsiteEmbed": "Website login",
+    "websiteEmbedTitle": "Customer login embed",
+    "websiteEmbedIntro": "Copy HTML to paste on your studio website so clients can sign in to their customer portal (bookings, deposits, messages).",
+    "websiteEmbedButtonTab": "Login button",
+    "websiteEmbedIframeTab": "Login form (iframe)",
+    "websiteEmbedButtonDesc": "Shows your shop name, a Login button, and Powered by Velbok. Opens the Velbok sign-in page in a new tab — works on any website.",
+    "websiteEmbedIframeDesc": "Embeds email and password fields on your page via an iframe. Some website builders restrict iframes; use the Login button if needed.",
+    "websiteEmbedCopyButton": "Copy button HTML",
+    "websiteEmbedCopyIframe": "Copy iframe HTML",
+    "websiteEmbedCopied": "Embed code copied to clipboard",
+    "websiteEmbedPreview": "Preview",
+    "websiteEmbedLoginUrl": "Customer login URL",
+    "websiteEmbedPoweredBy": "Powered by {{platform}}",
+    "websiteEmbedOpenPage": "Open embed page"
   },
   "notFound": {
     "title": "Сторінку не знайдено",
@@ -1318,5 +1332,9 @@
     "finishing": "Завершення…",
     "completeToast": "Ваша студія готова — ласкаво просимо до Velbok!",
     "reviewHint": "Ви можете змінити це пізніше в Адмін і Налаштуваннях."
+  },
+  "embed": {
+    "customerPortalSubtitle": "Customer portal",
+    "poweredBy": "Powered by {{platform}}"
   }
 }
