@@ -235,9 +235,11 @@
         {
           "heading": "Utilizarea șabloanelor",
           "paragraphs": [
-            "Artiștii cu permisiune de șablon pot încărca imagini de referință și genera variații de șablon. Rezultatele sunt salvate în biblioteca de șabloane a artistului."
+            "Artiștii cu permisiune de șablon pot încărca imagini de referință și genera variații de șablon în mai multe stiluri, fiecare numit după o capitală — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork și Madrid blackwork. Fiecare stil afișează un exemplu de randare pe care îl puteți atinge pentru a-l mări, astfel încât să vedeți cum arată liniile înainte de generare.",
+            "Generarea cu AI este limitată: fiecare cont poate produce până la 10 șabloane AI într-o perioadă glisantă de 24 de ore. Un numărător invers live arată câte generări rămân, iar un randaj eșuat nu se scade din limită.",
+            "Șabloanele generate sunt păstrate în stocare timp de 24 de ore, astfel încât pot fi redeschise și descărcate din nou din folderul Recent stencils, apoi șterse automat. Motorul Basic din browser este gratuit și nelimitat."
           ],
-          "note": "Necesită funcția edge generate-stencil și credențiale API configurate pentru studioul dvs."
+          "note": "Modul Basic rulează complet în browser și este gratuit. Modul AI generează șabloane profesionale prin Netlify AI Gateway, fără chei API de gestionat."
         }
       ]
     },

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { PricingPlan } from "@/lib/pricingPlans";
+import { PLAN_PRICES_GBP, formatPlanPriceGbp } from "@/lib/pricingPlans";
 
 export function usePricingPlansI18n(): PricingPlan[] {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ export function usePricingPlansI18n(): PricingPlan[] {
       return {
         id,
         name: t(`pricing.${id}.name`),
-        price: id === "starter" ? "£29.50" : id === "studio" ? "£39.50" : "£59.50",
+        price: formatPlanPriceGbp(PLAN_PRICES_GBP[id]),
         period: t("common.month"),
         tagline: t(`pricing.${id}.tagline`),
         description: t(`pricing.${id}.description`),
@@ -46,7 +47,12 @@ export function useComparisonRowsI18n() {
   const no = t("pricing.comparison.notIncluded");
   return useMemo(
     () => [
-      { label: t("pricing.comparison.monthlyPrice"), starter: "£29.50", studio: "£39.50", enterprise: "£59.50" },
+      {
+        label: t("pricing.comparison.monthlyPrice"),
+        starter: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
+        studio: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
+        enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
+      },
       { label: t("pricing.comparison.artistSeats"), starter: "3", studio: "6", enterprise: "10" },
       { label: t("pricing.comparison.scheduleCrm"), starter: yes, studio: yes, enterprise: yes },
       { label: t("pricing.comparison.consentForms"), starter: yes, studio: yes, enterprise: yes },

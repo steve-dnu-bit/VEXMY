@@ -235,9 +235,11 @@
         {
           "heading": "Utiliser les pochoirs",
           "paragraphs": [
-            "Les artistes autorisés pour les pochoirs peuvent téléverser des images de référence et générer des variantes de pochoir. Les résultats sont enregistrés dans la bibliothèque de pochoirs de l'artiste."
+            "Les artistes autorisés pour les pochoirs peuvent téléverser des images de référence et générer des variantes de pochoir dans plusieurs styles, chacun nommé d'après une capitale — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork et Madrid blackwork. Chaque style affiche un rendu d'exemple que vous pouvez toucher pour l'agrandir, afin de voir le rendu de ses lignes avant de générer.",
+            "La génération par IA est limitée : chaque compte peut produire jusqu'à 10 pochoirs IA sur une période glissante de 24 heures. Un compte à rebours en direct indique le nombre de générations restantes, et un rendu échoué n'est pas décompté.",
+            "Les pochoirs générés sont conservés en stockage pendant 24 heures afin de pouvoir être rouverts et retéléchargés depuis le dossier Recent stencils, puis supprimés automatiquement. Le moteur Basic dans le navigateur est gratuit et sans limite."
           ],
-          "note": "Nécessite la fonction edge generate-stencil et des identifiants API configurés pour votre studio."
+          "note": "Le mode Basic s'exécute entièrement dans le navigateur et est gratuit. Le mode IA produit des pochoirs professionnels via Netlify AI Gateway, sans clés API à gérer."
         }
       ]
     },

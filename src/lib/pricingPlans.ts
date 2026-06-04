@@ -12,11 +12,21 @@ export type PricingPlan = {
   highlighted: boolean;
 };
 
+export const PLAN_PRICES_GBP = {
+  starter: 14.95,
+  studio: 19.95,
+  enterprise: 29.9,
+} as const;
+
+export function formatPlanPriceGbp(amount: number): string {
+  return `£${amount.toFixed(2)}`;
+}
+
 export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: "£29.50",
+    price: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
     period: "/ month",
     tagline: "Small team",
     description: "Run bookings professionally with up to 3 artists on your schedule.",
@@ -36,7 +46,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "studio",
     name: "Studio",
-    price: "£39.50",
+    price: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
     period: "/ month",
     tagline: "Growing shop",
     description: "The full Velbok toolkit for busy studios — up to 6 artists and front-desk staff.",
@@ -57,7 +67,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "£59.50",
+    price: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
     period: "/ month",
     tagline: "Large studio",
     description: "For established shops with larger teams — up to 10 artists plus priority support.",
@@ -100,7 +110,12 @@ export const PRICING_FAQ = [
 ];
 
 export const COMPARISON_ROWS: { label: string; starter: string; studio: string; enterprise: string }[] = [
-  { label: "Monthly price (GBP)", starter: "£29.50", studio: "£39.50", enterprise: "£59.50" },
+  {
+    label: "Monthly price (GBP)",
+    starter: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
+    studio: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
+    enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
+  },
   { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
   { label: "Schedule & CRM", starter: "✓", studio: "✓", enterprise: "✓" },
   { label: "Consent forms", starter: "✓", studio: "✓", enterprise: "✓" },

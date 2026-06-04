@@ -1,0 +1,32 @@
+{
+  "ro": {
+    "Schedule": "Program",
+    "Stencil": "Șablon",
+    "Touch-up": "Retuș",
+    "Delete": "Șterge",
+    "Cancel": "Anulează"
+  },
+  "it": {
+    "Schedule": "Agenda",
+    "Book": "Prenota",
+    "Clients": "Clienti",
+    "Chat": "Chat",
+    "Actions": "Azioni",
+    "Service *": "Servizio *",
+    "Name *": "Nome *"
+  },
+  "es": {
+    "Book": "Reservar",
+    "Actions": "Acciones",
+    "Chat": "Chat",
+    "Touch-up": "Retoque",
+    "Clients": "Clientes"
+  },
+  "sv": {
+    "Schedule": "Schema"
+  },
+  "no": {
+    "Schedule": "Timeplan",
+    "Book": "Bestill"
+  }
+}

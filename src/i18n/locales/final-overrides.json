@@ -1,0 +1,42 @@
+{
+  "ro": {
+    "1 artist": "1 artist",
+    "Artist": "Artist",
+    "Contact": "Contact",
+    "Client": "Client",
+    "Total": "Total",
+    "Card": "Card",
+    "Subtotal": "Subtotal",
+    "Chat": "Chat",
+    "Contrast": "Contrast",
+    "Admin": "Admin"
+  },
+  "it": {
+    "Team": "Squadra",
+    "Menu": "Menù",
+    "Your Studio Ltd": "Il tuo Studio Srl"
+  },
+  "es": {
+    "Total": "Total",
+    "Color": "Color",
+    "Original": "Original"
+  },
+  "sv": {
+    "Team": "Team",
+    "Artist *": "Konstnär *",
+    "Status": "Status",
+    "Original": "Original",
+    "Stencil": "Stencil"
+  },
+  "no": {
+    "1 artist": "1 artist",
+    "Team": "Team",
+    "Artist": "Artist",
+    "Artist *": "Artist *",
+    "Status": "Status",
+    "Type": "Type",
+    "Chat": "Chat",
+    "Start chat": "Start chat",
+    "Admin": "Admin"
+  }
+}

@@ -235,9 +235,11 @@
         {
           "heading": "Använda stenciler",
           "paragraphs": [
-            "Artister med stencilbehörighet kan ladda upp referensbilder och generera stencilvariationer. Resultat sparas i artistens stencilbibliotek."
+            "Artister med stencilbehörighet kan ladda upp referensbilder och generera stencilvariationer i flera stilar, var och en uppkallad efter en huvudstad — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork och Madrid blackwork. Varje stil visar ett exempelrendering som du kan trycka på för att förstora, så att du kan se hur linjerna ser ut innan du genererar.",
+            "AI-generering är begränsad: varje konto kan producera upp till 10 AI-stenciler under en rullande 24-timmarsperiod. En live-nedräkning visar hur många generationer som återstår, och en misslyckad rendering räknas inte.",
+            "Genererade stenciler sparas i lagring i 24 timmar så att de kan öppnas och laddas ned igen från mappen Recent stencils, och raderas sedan automatiskt. Basic-motorn i webbläsaren är gratis och obegränsad."
           ],
-          "note": "Kräver edge-funktionen generate-stencil och API-uppgifter konfigurerade för din studio."
+          "note": "Basic-läget körs helt i webbläsaren och är gratis. AI-läget renderar professionella stenciler via Netlify AI Gateway utan API-nycklar att hantera."
         }
       ]
     },

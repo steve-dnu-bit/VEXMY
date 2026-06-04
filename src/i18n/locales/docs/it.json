@@ -235,9 +235,11 @@
         {
           "heading": "Utilizzo degli stencil",
           "paragraphs": [
-            "Gli artisti con permesso stencil possono caricare immagini di riferimento e generare variazioni di stencil. I risultati vengono salvati nella libreria stencil dell'artista."
+            "Gli artisti con permesso stencil possono caricare immagini di riferimento e generare variazioni di stencil in diversi stili, ciascuno nominato come una capitale — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork e Madrid blackwork. Ogni stile mostra un esempio di rendering che puoi toccare per ingrandirlo, così puoi vedere come appaiono le linee prima di generare.",
+            "La generazione con IA è limitata: ogni account può produrre fino a 10 stencil IA in un periodo mobile di 24 ore. Un conto alla rovescia in tempo reale mostra quante generazioni restano, e un rendering non riuscito non viene conteggiato.",
+            "Gli stencil generati vengono conservati in archivio per 24 ore, così possono essere riaperti e scaricati di nuovo dalla cartella Recent stencils, poi eliminati automaticamente. Il motore Basic nel browser è gratuito e senza limiti."
           ],
-          "note": "Richiede la funzione edge generate-stencil e le credenziali API configurate per il tuo studio."
+          "note": "La modalità Basic funziona interamente nel browser ed è gratuita. La modalità IA genera stencil professionali tramite Netlify AI Gateway, senza chiavi API da gestire."
         }
       ]
     },

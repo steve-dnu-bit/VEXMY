@@ -235,9 +235,11 @@
         {
           "heading": "Stencils nutzen",
           "paragraphs": [
-            "Artists mit Stencil-Berechtigung können Referenzbilder hochladen und Stencil-Varianten generieren. Ausgaben werden in der Stencil-Bibliothek des Artists gespeichert."
+            "Artists mit Stencil-Berechtigung können Referenzbilder hochladen und Stencil-Varianten in mehreren Stilen generieren, die jeweils nach einer Hauptstadt benannt sind — Paris Signature Line, London Traditional, Tokyo Fine Line, Rome Sketch, Berlin Dotwork und Madrid Blackwork. Jeder Stil zeigt ein Beispiel-Rendering, das Sie antippen können, um es zu vergrößern, damit Sie vor der Generierung sehen, wie seine Linien aussehen.",
+            "Die KI-Generierung ist kontingentiert: Jedes Konto kann innerhalb eines rollierenden 24-Stunden-Zeitraums bis zu 10 KI-Stencils erstellen. Ein Live-Countdown zeigt, wie viele Generationen noch übrig sind, und ein fehlgeschlagenes Rendering wird nicht angerechnet.",
+            "Generierte Stencils werden 24 Stunden lang gespeichert, damit sie im Ordner Recent stencils erneut geöffnet und heruntergeladen werden können, und anschließend automatisch gelöscht. Die Basic-Engine im Browser ist kostenlos und nicht kontingentiert."
           ],
-          "note": "Erfordert die Edge-Funktion generate-stencil und für Ihr Studio konfigurierte API-Zugangsdaten."
+          "note": "Der Basic-Modus läuft vollständig im Browser und ist kostenlos. Der KI-Modus rendert professionelle Stencils über Netlify AI Gateway, ohne dass API-Schlüssel verwaltet werden müssen."
         }
       ]
     },

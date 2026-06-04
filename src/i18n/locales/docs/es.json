@@ -235,9 +235,11 @@
         {
           "heading": "Uso de plantillas",
           "paragraphs": [
-            "Los artistas con permiso de plantillas pueden subir imágenes de referencia y generar variaciones de plantilla. Los resultados se guardan en la biblioteca de plantillas del artista."
+            "Los artistas con permiso de plantillas pueden subir imágenes de referencia y generar variaciones de plantilla en varios estilos, cada uno nombrado como una capital — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork y Madrid blackwork. Cada estilo muestra un ejemplo de renderizado que puedes tocar para ampliarlo, así puedes ver cómo se ven sus líneas antes de generar.",
+            "La generación con IA está limitada: cada cuenta puede producir hasta 10 plantillas con IA en un periodo móvil de 24 horas. Una cuenta atrás en vivo muestra cuántas generaciones quedan, y un renderizado fallido no se descuenta.",
+            "Las plantillas generadas se guardan en almacenamiento durante 24 horas para poder volver a abrirlas y descargarlas desde la carpeta Recent stencils, y luego se eliminan automáticamente. El motor Basic en el navegador es gratuito y sin límite."
           ],
-          "note": "Requiere la función edge generate-stencil y credenciales API configuradas para tu estudio."
+          "note": "El modo Basic funciona completamente en el navegador y es gratuito. El modo IA genera plantillas profesionales a través de Netlify AI Gateway, sin claves API que gestionar."
         }
       ]
     },

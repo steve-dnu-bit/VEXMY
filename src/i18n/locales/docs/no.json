@@ -235,9 +235,11 @@
         {
           "heading": "Bruke stenciler",
           "paragraphs": [
-            "Artister med stenciltillatelse kan laste opp referansebilder og generere stencilvariasjoner. Resultater lagres i artistens stencilbibliotek."
+            "Artister med stenciltillatelse kan laste opp referansebilder og generere stencilvariasjoner i flere stiler, hver oppkalt etter en hovedstad — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork og Madrid blackwork. Hver stil viser et eksempelrender som du kan trykke på for å forstørre, slik at du kan se hvordan linjene ser ut før du genererer.",
+            "AI-generering er begrenset: hver konto kan produsere opptil 10 AI-stenciler i en rullerende 24-timersperiode. En live-nedtelling viser hvor mange genereringer som gjenstår, og en mislykket rendering teller ikke.",
+            "Genererte stenciler lagres i 24 timer slik at de kan åpnes og lastes ned igjen fra mappen Recent stencils, og slettes deretter automatisk. Basic-motoren i nettleseren er gratis og ubegrenset."
           ],
-          "note": "Krever edge-funksjonen generate-stencil og API-legitimasjon konfigurert for studioet ditt."
+          "note": "Basic-modus kjører helt i nettleseren og er gratis. AI-modus renderer profesjonelle stenciler via Netlify AI Gateway uten API-nøkler å administrere."
         }
       ]
     },

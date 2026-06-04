@@ -235,9 +235,11 @@
         {
           "heading": "Stencils gebruiken",
           "paragraphs": [
-            "Artists met stencilrechten kunnen referentieafbeeldingen uploaden en stencilvarianten genereren. Output wordt opgeslagen in de stencilbibliotheek van de artist."
+            "Artists met stencilrechten kunnen referentieafbeeldingen uploaden en stencilvarianten genereren in meerdere stijlen, elk vernoemd naar een hoofdstad — Paris signature line, London traditional, Tokyo fine line, Rome sketch, Berlin dotwork en Madrid blackwork. Elke stijl toont een voorbeeldrender die u kunt tikken om te vergroten, zodat u kunt zien hoe de lijnen eruitzien voordat u genereert.",
+            "AI-generatie is beperkt: elk account kan maximaal 10 AI-stencils produceren over een rollende periode van 24 uur. Een live countdown toont hoeveel generaties resteren, en een mislukte render telt niet mee.",
+            "Gegenereerde stencils worden 24 uur bewaard in opslag, zodat ze opnieuw kunnen worden geopend en gedownload vanuit de map Recent stencils, en daarna automatisch worden verwijderd. De Basic-engine in de browser is gratis en onbeperkt."
           ],
-          "note": "Vereist de edge function generate-stencil en API-referenties geconfigureerd voor uw studio."
+          "note": "De Basic-modus draait volledig in de browser en is gratis. De AI-modus rendert professionele stencils via Netlify AI Gateway, zonder API-sleutels te beheren."
         }
       ]
     },
