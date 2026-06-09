@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, Clock, LayoutDashboard, MapPin, Palette, CheckCircle2 } from "lucide-react";
+import { Building2, Clock, Landmark, LayoutDashboard, MapPin, Palette, CheckCircle2 } from "lucide-react";
+import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import {
   completeShopSetup,
   loadShopSettings,
@@ -34,13 +35,14 @@ import {
 } from "@/lib/shopDashboardTheme";
 import { THEME_PRESETS } from "@/lib/themePresets";
 
-const STEPS = ["brand", "contact", "billing", "hours", "look", "review"] as const;
+const STEPS = ["brand", "contact", "billing", "payouts", "hours", "look", "review"] as const;
 type Step = (typeof STEPS)[number];
 
 const ShopSetupWizardPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -69,6 +71,13 @@ const ShopSetupWizardPage = () => {
 
   const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
   const [dashboardTheme, setDashboardTheme] = useState<ShopDashboardThemeSettings>(defaultShopDashboardThemeSettings);
+
+  useEffect(() => {
+    const stepParam = searchParams.get("step");
+    if (stepParam && (STEPS as readonly string[]).includes(stepParam)) {
+      setStep(stepParam as Step);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user) return;
@@ -268,6 +277,7 @@ const ShopSetupWizardPage = () => {
     brand: { title: t("setup.stepBrandTitle"), desc: t("setup.stepBrandDesc"), icon: Palette },
     contact: { title: t("setup.stepContactTitle"), desc: t("setup.stepContactDesc"), icon: MapPin },
     billing: { title: t("setup.stepBillingTitle"), desc: t("setup.stepBillingDesc"), icon: Building2 },
+    payouts: { title: t("setup.stepPayoutsTitle"), desc: t("setup.stepPayoutsDesc"), icon: Landmark },
     hours: { title: t("setup.stepHoursTitle"), desc: t("setup.stepHoursDesc"), icon: Clock },
     look: { title: t("setup.stepLookTitle"), desc: t("setup.stepLookDesc"), icon: LayoutDashboard },
     review: { title: t("setup.stepReviewTitle"), desc: t("setup.stepReviewDesc"), icon: CheckCircle2 },
@@ -386,6 +396,17 @@ const ShopSetupWizardPage = () => {
                   <Input className="mt-1 bg-secondary" value={form.company_legal_name} onChange={(e) => patchForm({ company_legal_name: e.target.value })} placeholder="Studio Name Ltd" />
                 </div>
                 <p className="text-xs text-muted-foreground">{t("setup.billingHint")}</p>
+              </>
+            ) : null}
+
+            {step === "payouts" ? (
+              <>
+                <StripeConnectCard
+                  compact
+                  returnPath="/shop-setup?step=payouts"
+                  refreshPath="/shop-setup?step=payouts"
+                />
+                <p className="text-xs text-muted-foreground">{t("setup.stepPayoutsSkipHint")}</p>
               </>
             ) : null}
 

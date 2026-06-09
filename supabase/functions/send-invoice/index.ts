@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import { getShopBranding } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildInvoiceEmail } from "../_shared/email-templates.ts";
+import { getActiveConnectAccount } from "../_shared/stripe-connect.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -32,34 +33,42 @@ async function createInvoiceCheckoutUrl(params: {
     client_email: string | null;
     total: number;
   };
+  connectAccountId?: string | null;
+  organizationId?: string | null;
 }) {
-  const { stripeSecret, invoice } = params;
+  const { stripeSecret, invoice, connectAccountId, organizationId } = params;
   const brand = getShopBranding();
   const stripe = new Stripe(stripeSecret);
   const baseUrl = (Deno.env.get("SITE_URL") || "http://localhost:5173").replace(/\/$/, "");
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    success_url: `${baseUrl}/account?invoice=success&invoiceId=${invoice.id}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/account?invoice=cancel&invoiceId=${invoice.id}`,
-    customer_email: invoice.client_email || undefined,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "gbp",
-          product_data: {
-            name: `Invoice ${invoice.invoice_number}`,
-            description: `${brand.shopName} - ${invoice.client_name}`,
+  const connectOpts = connectAccountId ? { stripeAccount: connectAccountId } : undefined;
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      success_url: `${baseUrl}/account?invoice=success&invoiceId=${invoice.id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/account?invoice=cancel&invoiceId=${invoice.id}`,
+      customer_email: invoice.client_email || undefined,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "gbp",
+            product_data: {
+              name: `Invoice ${invoice.invoice_number}`,
+              description: `${brand.shopName} - ${invoice.client_name}`,
+            },
+            unit_amount: Math.round(Number(invoice.total || 0) * 100),
           },
-          unit_amount: Math.round(Number(invoice.total || 0) * 100),
         },
+      ],
+      metadata: {
+        kind: "invoice",
+        invoice_id: invoice.id,
+        organization_id: organizationId ?? "",
+        stripe_connect_account_id: connectAccountId ?? "",
       },
-    ],
-    metadata: {
-      kind: "invoice",
-      invoice_id: invoice.id,
     },
-  });
+    connectOpts,
+  );
   return { url: session.url, id: session.id };
 }
 
@@ -285,6 +294,7 @@ serve(async (req) => {
       const totalPence = Math.round(Number(invoice.total || 0) * 100);
       if (totalPence >= 30) {
         try {
+          const connectCtx = await getActiveConnectAccount(adminClient);
           const checkout = await createInvoiceCheckoutUrl({
             stripeSecret,
             invoice: {
@@ -294,6 +304,8 @@ serve(async (req) => {
               client_email: invoice.client_email,
               total: Number(invoice.total),
             },
+            connectAccountId: connectCtx?.stripeConnectAccountId ?? null,
+            organizationId: connectCtx?.organizationId ?? null,
           });
           payUrl = checkout.url || null;
           await adminClient

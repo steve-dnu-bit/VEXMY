@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading…",
+    "refresh": "Refresh",
     "save": "Save",
     "cancel": "Cancel",
     "close": "Close",
@@ -367,6 +368,9 @@
     "stepContactDesc": "How clients reach you and where you are located.",
     "stepBillingTitle": "Billing company",
     "stepBillingDesc": "Legal company details used on invoices and receipts.",
+    "stepPayoutsTitle": "Card payouts",
+    "stepPayoutsDesc": "Connect your bank account so deposit and invoice payments go to your studio.",
+    "stepPayoutsSkipHint": "You can finish setup now and connect payouts later from Admin.",
     "stepHoursTitle": "Working hours",
     "stepHoursDesc": "Default open hours for your schedule grid.",
     "stepLookTitle": "Dashboard look",
@@ -423,6 +427,26 @@
     "trialEnds": "Trial ends {{date}}",
     "renews": "Renews {{date}}",
     "portalUnavailable": "Billing portal unavailable"
+  },
+  "stripeConnect": {
+    "title": "Client payments & payouts",
+    "desc": "Connect your studio bank account to receive deposit and invoice card payments directly. Identity verification is handled securely by Stripe — you stay inside Velbok.",
+    "compactDesc": "Required to receive card payments from clients.",
+    "notStartedBody": "Set up payouts so client card payments are deposited to your studio bank account instead of Velbok's platform account.",
+    "incompleteBody": "Your payout setup is incomplete. Continue to add bank details and verify your business.",
+    "readyBody": "Payouts are active. Client card payments for deposits and invoices are routed to your connected account.",
+    "startSetup": "Set up payouts",
+    "continueSetup": "Continue payout setup",
+    "managePayouts": "Manage payouts",
+    "statusReady": "Connected",
+    "statusIncomplete": "Action required",
+    "statusNotStarted": "Not connected",
+    "stripeHostedNote": "You'll complete a short Stripe form for bank and identity checks. No separate Stripe account signup is needed.",
+    "returnToast": "Payout setup updated — checking status…",
+    "refreshToast": "Continue payout setup where you left off.",
+    "loadFailed": "Could not load payout status",
+    "onboardFailed": "Could not start payout setup",
+    "dashboardFailed": "Could not open payout dashboard"
   },
   "settings": {
     "title": "Settings",

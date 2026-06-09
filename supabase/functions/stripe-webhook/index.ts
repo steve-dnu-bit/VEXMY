@@ -4,6 +4,7 @@ import Stripe from "npm:stripe@16.12.0";
 import { getShopBranding } from "../_shared/branding.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
+import { syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
 
 function mapStripeSubStatus(status: Stripe.Subscription.Status): string {
   const allowed = ["trialing", "active", "past_due", "canceled", "unpaid", "incomplete", "paused"];
@@ -232,6 +233,13 @@ serve(async (req) => {
       if (invoice.subscription) {
         const subscription = await stripe.subscriptions.retrieve(String(invoice.subscription));
         await syncPlatformSubscription(subscription);
+      }
+    }
+
+    if (event.type === "account.updated") {
+      const account = event.data.object as Stripe.Account;
+      if (account.id) {
+        await syncConnectAccountFromStripe(admin, stripe, account.id);
       }
     }
 

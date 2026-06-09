@@ -8,6 +8,7 @@ import {
   buildDepositRequestEmail,
   type BookingEmailDetails,
 } from "../_shared/email-templates.ts";
+import { getActiveConnectAccount, stripeRequestOptions } from "../_shared/stripe-connect.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -88,6 +89,8 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeSecret);
+    const connectCtx = await getActiveConnectAccount(admin);
+    const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
     const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "http://localhost:5173";
     const baseUrl = origin.replace(/\/$/, "");
 
@@ -136,7 +139,14 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        let session: Stripe.Checkout.Session;
+        try {
+          session = connectOpts
+            ? await stripe.checkout.sessions.retrieve(sessionId, {}, connectOpts)
+            : await stripe.checkout.sessions.retrieve(sessionId);
+        } catch {
+          session = await stripe.checkout.sessions.retrieve(sessionId);
+        }
         const sessionBookingId = session.metadata?.booking_id || null;
         const paid =
           session.mode === "payment" &&
@@ -227,29 +237,34 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        success_url: `${baseUrl}/deposit-payment?status=success&bookingId=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/deposit-payment/checkout?bookingId=${booking.id}&status=cancel`,
-        customer_email: booking.client_email || user.email || undefined,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: "gbp",
-              product_data: {
-                name: `Deposit - ${booking.client_name}`,
-                description: `Booking on ${new Date(booking.starts_at).toLocaleString("en-GB", { timeZone: "Europe/London" })}`,
+      const session = await stripe.checkout.sessions.create(
+        {
+          mode: "payment",
+          success_url: `${baseUrl}/deposit-payment?status=success&bookingId=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${baseUrl}/deposit-payment/checkout?bookingId=${booking.id}&status=cancel`,
+          customer_email: booking.client_email || user.email || undefined,
+          line_items: [
+            {
+              quantity: 1,
+              price_data: {
+                currency: "gbp",
+                product_data: {
+                  name: `Deposit - ${booking.client_name}`,
+                  description: `Booking on ${new Date(booking.starts_at).toLocaleString("en-GB", { timeZone: "Europe/London" })}`,
+                },
+                unit_amount: amountPence,
               },
-              unit_amount: amountPence,
             },
+          ],
+          metadata: {
+            kind: "deposit",
+            booking_id: booking.id,
+            organization_id: connectCtx?.organizationId ?? "",
+            stripe_connect_account_id: connectCtx?.stripeConnectAccountId ?? "",
           },
-        ],
-        metadata: {
-          kind: "deposit",
-          booking_id: booking.id,
         },
-      });
+        connectOpts,
+      );
 
       await admin
         .from("bookings")
@@ -341,29 +356,34 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      success_url: `${baseUrl}/account?invoice=success&invoiceId=${invoice.id}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/account?invoice=cancel&invoiceId=${invoice.id}`,
-      customer_email: invoice.client_email || user.email || undefined,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: `Invoice ${invoice.invoice_number}`,
-              description: `${getShopBranding().shopName} - ${invoice.client_name}`,
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        success_url: `${baseUrl}/account?invoice=success&invoiceId=${invoice.id}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/account?invoice=cancel&invoiceId=${invoice.id}`,
+        customer_email: invoice.client_email || user.email || undefined,
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "gbp",
+              product_data: {
+                name: `Invoice ${invoice.invoice_number}`,
+                description: `${getShopBranding().shopName} - ${invoice.client_name}`,
+              },
+              unit_amount: amountPence,
             },
-            unit_amount: amountPence,
           },
+        ],
+        metadata: {
+          kind: "invoice",
+          invoice_id: invoice.id,
+          organization_id: connectCtx?.organizationId ?? "",
+          stripe_connect_account_id: connectCtx?.stripeConnectAccountId ?? "",
         },
-      ],
-      metadata: {
-        kind: "invoice",
-        invoice_id: invoice.id,
       },
-    });
+      connectOpts,
+    );
 
     await admin
       .from("invoices")

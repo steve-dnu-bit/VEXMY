@@ -16,6 +16,7 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { Link, useSearchParams } from "react-router-dom";
 import { useArtistSeats } from "@/hooks/useSubscription";
 import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
+import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
 import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
@@ -750,8 +751,11 @@ const AdminPage = () => {
           </TabsContent>
         </Tabs>
 
-        <div id="subscription" className="scroll-mt-6">
+        <div id="subscription" className="scroll-mt-6 space-y-6">
           <SubscriptionSettingsCard />
+          <div id="payouts" className="scroll-mt-6">
+            <StripeConnectCard returnPath="/admin" refreshPath="/admin" />
+          </div>
         </div>
       </div>
     </AppLayout>
