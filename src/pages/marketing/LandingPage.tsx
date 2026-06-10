@@ -47,10 +47,8 @@ const LandingPage = () => {
           </p>
         </div>
 
-        <div className="relative mx-auto mt-16 max-w-5xl px-2">
-          <div className="rounded-2xl border border-gold/25 bg-[#101216]/80 p-1 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-sm">
-            <LandingHeroCarousel />
-          </div>
+        <div className="relative mx-auto mt-12 max-w-6xl">
+          <LandingHeroCarousel />
         </div>
       </section>
 
