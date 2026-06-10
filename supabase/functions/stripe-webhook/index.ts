@@ -5,6 +5,7 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
+import { getShopPaymentSettings } from "../_shared/shop-currency.ts";
 
 function mapStripeSubStatus(status: Stripe.Subscription.Status): string {
   const allowed = ["trialing", "active", "past_due", "canceled", "unpaid", "incomplete", "paused"];
@@ -165,10 +166,13 @@ serve(async (req) => {
             deposit_amount: paidBooking.deposit_amount,
             deposit_paid: true,
           };
+          const orgId = session.metadata?.organization_id ?? null;
+          const { currency: shopCurrency } = await getShopPaymentSettings(admin, orgId);
           const receipt = buildDepositReceiptEmail({
             clientName: paidBooking.client_name || "there",
             startsAt: paidBooking.starts_at,
-            amountGbp: Number(paidBooking.deposit_amount ?? 50),
+            amount: Number(paidBooking.deposit_amount ?? 50),
+            currency: shopCurrency,
             booking: bookingDetails,
           });
           await sendTransactionalEmail({

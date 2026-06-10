@@ -6,6 +6,7 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildInvoiceEmail } from "../_shared/email-templates.ts";
 import { getActiveConnectAccount } from "../_shared/stripe-connect.ts";
+import { formatShopMoney, getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -20,12 +21,9 @@ function parseBearerJwt(req: Request): string | null {
   return m ? m[1].trim() : null;
 }
 
-function toCurrency(n: number): string {
-  return `£${Number(n).toFixed(2)}`;
-}
-
 async function createInvoiceCheckoutUrl(params: {
   stripeSecret: string;
+  currency: string;
   invoice: {
     id: string;
     invoice_number: string;
@@ -36,7 +34,7 @@ async function createInvoiceCheckoutUrl(params: {
   connectAccountId?: string | null;
   organizationId?: string | null;
 }) {
-  const { stripeSecret, invoice, connectAccountId, organizationId } = params;
+  const { stripeSecret, invoice, connectAccountId, organizationId, currency } = params;
   const brand = getShopBranding();
   const stripe = new Stripe(stripeSecret);
   const baseUrl = (Deno.env.get("SITE_URL") || "http://localhost:5173").replace(/\/$/, "");
@@ -51,7 +49,7 @@ async function createInvoiceCheckoutUrl(params: {
         {
           quantity: 1,
           price_data: {
-            currency: "gbp",
+            currency,
             product_data: {
               name: `Invoice ${invoice.invoice_number}`,
               description: `${brand.shopName} - ${invoice.client_name}`,
@@ -84,9 +82,11 @@ async function buildInvoicePdf(params: {
   paymentMethodLabel: string;
   paymentTermLabel: string;
   notes: string | null;
+  currency: string;
   items: Array<{ description: string; quantity: number; unit_price: number }>;
 }): Promise<string> {
   const brand = getShopBranding();
+  const fmt = (n: number) => formatShopMoney(Number(n), params.currency);
   const pdf = await PDFDocument.create();
   let page = pdf.addPage([595, 842]); // A4
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -149,8 +149,8 @@ async function buildInvoicePdf(params: {
   for (const item of params.items) {
     const description = item.description.length > 44 ? `${item.description.slice(0, 41)}...` : item.description;
     const qty = String(item.quantity).padStart(2, " ");
-    const unit = toCurrency(item.unit_price).padStart(9, " ");
-    const lineTotal = toCurrency(item.quantity * item.unit_price).padStart(9, " ");
+    const unit = fmt(item.unit_price).padStart(9, " ");
+    const lineTotal = fmt(item.quantity * item.unit_price).padStart(9, " ");
     const line = `${description.padEnd(50, " ")}${qty}     ${unit}       ${lineTotal}`;
     draw(line, 10);
     if (y < 100) {
@@ -168,9 +168,9 @@ async function buildInvoicePdf(params: {
     borderColor: rgb(0.88, 0.88, 0.88),
     borderWidth: 1,
   });
-  draw(`Subtotal: ${toCurrency(params.subtotal)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
-  draw(`VAT: ${toCurrency(params.taxAmount)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
-  draw(`Total due: ${toCurrency(params.total)}`, 12, true, rgb(0.06, 0.06, 0.06), 342);
+  draw(`Subtotal: ${fmt(params.subtotal)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
+  draw(`VAT: ${fmt(params.taxAmount)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
+  draw(`Total due: ${fmt(params.total)}`, 12, true, rgb(0.06, 0.06, 0.06), 342);
   if (params.notes) {
     y -= 6;
     draw("Notes:", 11, true);
@@ -288,15 +288,21 @@ serve(async (req) => {
       unit_price: Number(r?.unit_price || 0),
     }));
 
-    // Stripe pay-link is optional: never block invoice email/PDF if checkout fails (bad key, £0 total, DB column drift, etc.)
+    const connectCtx = await getActiveConnectAccount(adminClient, { userId: authData.user.id });
+    const { currency: shopCurrency } = await getShopPaymentSettings(
+      adminClient,
+      connectCtx?.organizationId ?? null,
+    );
+
+    // Stripe pay-link is optional: never block invoice email/PDF if checkout fails (bad key, low total, DB column drift, etc.)
     let payUrl: string | null = null;
     if (stripeSecret && action !== "pdf" && invoice.payment_method === "card" && invoice.payment_term === "due") {
-      const totalPence = Math.round(Number(invoice.total || 0) * 100);
-      if (totalPence >= 30) {
+      const invoiceTotal = Number(invoice.total || 0);
+      if (invoiceTotal >= stripeMinimumChargeMajor(shopCurrency)) {
         try {
-          const connectCtx = await getActiveConnectAccount(adminClient, { userId: authData.user.id });
           const checkout = await createInvoiceCheckoutUrl({
             stripeSecret,
+            currency: shopCurrency,
             invoice: {
               id: invoice.id,
               invoice_number: invoice.invoice_number,
@@ -334,6 +340,7 @@ serve(async (req) => {
       paymentTermLabel,
       notes: invoice.notes,
       payUrl,
+      currency: shopCurrency,
     });
 
     const pdfBase64 = await buildInvoicePdf({
@@ -348,6 +355,7 @@ serve(async (req) => {
       paymentMethodLabel,
       paymentTermLabel,
       notes: invoice.notes,
+      currency: shopCurrency,
       items: parsedItems,
     });
 

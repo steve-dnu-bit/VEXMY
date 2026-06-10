@@ -15,7 +15,6 @@ const TARGETS = {
   sv: "sv",
   no: "no",
   nl: "nl",
-  uk: "uk",
   bg: "bg",
 };
 

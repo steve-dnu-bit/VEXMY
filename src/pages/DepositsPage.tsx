@@ -7,12 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isAfter, parseISO, startOfDay, subDays } from "date-fns";
-import { Send, CheckCircle, Clock, Star } from "lucide-react";
+import { Send, CheckCircle, Clock, Star, Settings2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { maxDepositAmountForCurrency } from "@/lib/depositLimits";
+import {
+  loadShopDefaultDepositAmount,
+  parseDepositInput,
+  saveShopDefaultDepositAmount,
+} from "@/lib/shopDepositSettings";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { useTranslation } from "react-i18next";
+import { loadShopSettings } from "@/lib/shopSettings";
+import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 
 interface BookingWithDeposit {
   id: string;
@@ -41,10 +51,45 @@ const DepositsPage = () => {
    * Querying the whole table hits the ~1000 row cap and returns the *oldest* rows first — wrong for deposits.
    */
   const [daysBack, setDaysBack] = useState<14 | 90>(14);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
+  const [defaultDeposit, setDefaultDeposit] = useState(50);
+  const [defaultDepositInput, setDefaultDepositInput] = useState("50");
+  const [savingDefaultDeposit, setSavingDefaultDeposit] = useState(false);
+
+  useEffect(() => {
+    void Promise.all([loadShopSettings(), loadShopDefaultDepositAmount()]).then(([shop, amount]) => {
+      setShopCurrency(currencyForShopCountry(shop?.country));
+      setDefaultDeposit(amount);
+      setDefaultDepositInput(String(amount));
+    });
+  }, []);
 
   useEffect(() => {
     fetchBookings();
   }, [daysBack]);
+
+  const formatAmount = (amount: number | null | undefined) =>
+    formatShopMoney(amount ?? defaultDeposit, shopCurrency);
+
+  const maxDeposit = maxDepositAmountForCurrency(shopCurrency);
+
+  const saveDefaultDeposit = async () => {
+    const parsed = parseDepositInput(defaultDepositInput, shopCurrency);
+    if (parsed == null) {
+      toast.error(t("deposits.defaultDepositInvalid", { max: formatShopMoney(maxDeposit, shopCurrency) }));
+      return;
+    }
+    setSavingDefaultDeposit(true);
+    const { error } = await saveShopDefaultDepositAmount(parsed);
+    setSavingDefaultDeposit(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setDefaultDeposit(parsed);
+    setDefaultDepositInput(String(parsed));
+    toast.success(t("deposits.defaultDepositSaved"));
+  };
 
   useEffect(() => {
     const channel = supabase
@@ -193,7 +238,7 @@ const DepositsPage = () => {
   const upcomingCount = bookings.filter((b) => isUpcomingBooking(b.starts_at)).length;
   const totalCollected = bookings
     .filter((b) => !!b.deposit_paid)
-    .reduce((sum, b) => sum + (b.deposit_amount || 50), 0);
+    .reduce((sum, b) => sum + (b.deposit_amount || defaultDeposit), 0);
 
   return (
     <AppLayout>
@@ -218,6 +263,38 @@ const DepositsPage = () => {
             {daysBack === 14 ? t("deposits.widerWindow") : t("deposits.defaultWindow")}
           </Button>
         </div>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-primary" />
+              {t("deposits.defaultDepositTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4 max-w-md">
+            <div className="flex-1">
+              <Label htmlFor="default-deposit">{t("deposits.defaultDepositLabel")}</Label>
+              <Input
+                id="default-deposit"
+                type="number"
+                min={0.3}
+                max={maxDeposit}
+                step={0.01}
+                value={defaultDepositInput}
+                onChange={(e) => setDefaultDepositInput(e.target.value)}
+                className="mt-1 bg-secondary"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("deposits.defaultDepositHint", {
+                  max: formatShopMoney(maxDeposit, shopCurrency),
+                })}
+              </p>
+            </div>
+            <Button onClick={saveDefaultDeposit} disabled={savingDefaultDeposit} className="shrink-0">
+              {savingDefaultDeposit ? t("settings.saving") : t("common.save")}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -337,7 +414,7 @@ const DepositsPage = () => {
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{b.booking_type}</TableCell>
-                        <TableCell>£{b.deposit_amount ?? 50}</TableCell>
+                        <TableCell>{formatAmount(b.deposit_amount)}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex gap-1 flex-wrap">
                             {b.client_email && <Badge variant="outline" className="text-[10px]">{t("deposits.badgeEmail")}</Badge>}

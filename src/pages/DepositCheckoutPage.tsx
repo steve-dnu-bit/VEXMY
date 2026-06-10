@@ -9,6 +9,9 @@ import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { loadShopSettings } from "@/lib/shopSettings";
+import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
+import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
 
 type BookingForCheckout = {
   id: string;
@@ -19,9 +22,8 @@ type BookingForCheckout = {
   status: string;
   deposit_paid: boolean | null;
   vip_client: boolean | null;
+  deposit_amount: number | null;
 };
-
-const DEPOSIT_GBP = 50;
 
 const DepositCheckoutPage = () => {
   const { user } = useAuth();
@@ -32,6 +34,8 @@ const DepositCheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(false);
   const [booking, setBooking] = useState<BookingForCheckout | null>(null);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
+  const [defaultDeposit, setDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +49,7 @@ const DepositCheckoutPage = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, artist_id, client_name, starts_at, booking_type, status, deposit_paid, vip_client")
+        .select("id, artist_id, client_name, starts_at, booking_type, status, deposit_paid, vip_client, deposit_amount")
         .eq("id", bookingId)
         .maybeSingle();
 
@@ -56,6 +60,9 @@ const DepositCheckoutPage = () => {
         return;
       }
       setBooking((data as BookingForCheckout) || null);
+      const [shop, shopDefault] = await Promise.all([loadShopSettings(), loadShopDefaultDepositAmount()]);
+      setShopCurrency(currencyForShopCountry(shop?.country));
+      setDefaultDeposit(shopDefault);
       setLoading(false);
     })();
     return () => {
@@ -103,7 +110,10 @@ const DepositCheckoutPage = () => {
                   ) : (
                     <>
                       <p className="text-sm mt-2">
-                        Amount: <span className="font-semibold">£{DEPOSIT_GBP}</span>
+                        Amount:{" "}
+                        <span className="font-semibold">
+                          {formatShopMoney(booking.deposit_amount ?? defaultDeposit, shopCurrency)}
+                        </span>
                       </p>
                       {booking.deposit_paid ? (
                         <p className="text-xs text-primary mt-1">Deposit already marked as paid.</p>
@@ -132,7 +142,9 @@ const DepositCheckoutPage = () => {
                       window.location.href = (data as any).checkoutUrl as string;
                     }}
                   >
-                    {redirecting ? "Redirecting to Stripe..." : `Pay £${DEPOSIT_GBP} deposit`}
+                    {redirecting
+                      ? "Redirecting to Stripe..."
+                      : `Pay ${formatShopMoney(booking.deposit_amount ?? defaultDeposit, shopCurrency)} deposit`}
                   </Button>
                 ) : null}
 

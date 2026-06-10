@@ -17,6 +17,7 @@ import {
 } from "./email.ts";
 import { bookingIcsAttachment, type IcsBookingEvent } from "./ics.ts";
 import type { EmailAttachment } from "./email.ts";
+import { formatShopMoney } from "./shop-currency.ts";
 
 export type BookingEmailDetails = {
   id: string;
@@ -45,9 +46,13 @@ function formatBookingType(booking: Pick<BookingEmailDetails, "booking_type" | "
   return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-function depositStatusLabel(paid: boolean | null | undefined, amount: number | null | undefined): string {
-  if (paid) return amount ? `Paid (£${Number(amount).toFixed(2)})` : "Paid";
-  if (amount) return `Outstanding (£${Number(amount).toFixed(2)})`;
+function depositStatusLabel(
+  paid: boolean | null | undefined,
+  amount: number | null | undefined,
+  currency = "gbp",
+): string {
+  if (paid) return amount ? `Paid (${formatShopMoney(Number(amount), currency)})` : "Paid";
+  if (amount) return `Outstanding (${formatShopMoney(Number(amount), currency)})`;
   return "Outstanding";
 }
 
@@ -170,7 +175,9 @@ export function buildDepositReminderEmail(booking: BookingEmailDetails, checkout
   attachments: EmailAttachment[];
 } {
   const brand = getShopBranding();
-  const amount = booking.deposit_amount ? `£${Number(booking.deposit_amount).toFixed(2)}` : "your deposit";
+  const amount = booking.deposit_amount
+    ? formatShopMoney(Number(booking.deposit_amount), "gbp")
+    : "your deposit";
   const payBlock = checkoutUrl
     ? emailButton(checkoutUrl, "Pay deposit securely")
     : emailNoteBox("Payment", `Please contact ${brand.supportEmail} to complete your ${amount} deposit.`);
@@ -199,9 +206,12 @@ export function buildDepositRequestEmail(params: {
   startsAt: string;
   checkoutUrl: string;
   depositAmount?: number | null;
+  currency?: string;
 }): string {
   const brand = getShopBranding();
-  const amount = params.depositAmount ? `£${Number(params.depositAmount).toFixed(2)}` : "your deposit";
+  const amount = params.depositAmount
+    ? formatShopMoney(Number(params.depositAmount), params.currency ?? "gbp")
+    : "your deposit";
   return emailLayout({
     brand,
     badge: "Deposit payment",
@@ -215,12 +225,14 @@ export function buildDepositRequestEmail(params: {
 export function buildDepositReceiptEmail(params: {
   clientName: string;
   startsAt: string;
-  amountGbp: number;
+  amount: number;
+  currency?: string;
   booking?: BookingEmailDetails | null;
 }): { html: string; attachments?: EmailAttachment[] } {
   const brand = getShopBranding();
+  const currency = params.currency ?? "gbp";
   const body = emailDetailTable([
-    { label: "Amount received", value: `£${params.amountGbp.toFixed(2)}` },
+    { label: "Amount received", value: formatShopMoney(params.amount, currency) },
     { label: "Session date", value: formatDateTimeGb(params.startsAt) },
     { label: "Status", value: "Deposit paid — session secured" },
   ]);
@@ -274,9 +286,11 @@ export function buildInvoiceEmail(params: {
   paymentTermLabel: string;
   notes?: string | null;
   payUrl?: string | null;
+  currency?: string;
 }): string {
   const brand = getShopBranding();
-  const fmt = (n: number) => `£${Number(n).toFixed(2)}`;
+  const currency = params.currency ?? "gbp";
+  const fmt = (n: number) => formatShopMoney(Number(n), currency);
   const details = emailDetailTable([
     { label: "Invoice number", value: params.invoiceNumber },
     { label: "Issue date", value: params.issueText },

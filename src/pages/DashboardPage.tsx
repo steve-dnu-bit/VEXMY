@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Calendar, Users, MessageSquare, FileSignature, Eye, CreditCard, Receipt, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { loadShopSettings } from "@/lib/shopSettings";
+import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/AppLayout";
@@ -36,6 +38,15 @@ const DashboardPage = () => {
   const [stripeInvoicePaidCount, setStripeInvoicePaidCount] = useState(0);
   const [stripeInvoicePaidValue, setStripeInvoicePaidValue] = useState(0);
   const [stripeDepositPaidCount, setStripeDepositPaidCount] = useState(0);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
+
+  useEffect(() => {
+    void loadShopSettings().then((shop) => {
+      setShopCurrency(currencyForShopCountry(shop?.country));
+    });
+  }, []);
+
+  const money = (amount: number) => formatShopMoney(amount, shopCurrency);
   const [recentConsents, setRecentConsents] = useState<
     Array<{
       id: string;
@@ -222,7 +233,7 @@ const DashboardPage = () => {
                 <CreditCard className="h-4 w-4" />
                 {t("dashboard.invoiceValuePaid")}
               </div>
-              <p className="font-display text-2xl font-bold mt-1">£{stripeInvoicePaidValue.toFixed(2)}</p>
+              <p className="font-display text-2xl font-bold mt-1">{money(stripeInvoicePaidValue)}</p>
             </div>
             <div className="rounded-lg border border-border bg-secondary/70 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -249,7 +260,7 @@ const DashboardPage = () => {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold">£{Number(inv.total || 0).toFixed(2)}</p>
+                        <p className="text-sm font-semibold">{money(Number(inv.total || 0))}</p>
                         <Badge variant={inv.stripe_payment_intent_id ? "default" : "outline"} className="text-[10px]">
                           {inv.stripe_payment_intent_id ? t("dashboard.stripe") : t("dashboard.manual")}
                         </Badge>
@@ -273,7 +284,7 @@ const DashboardPage = () => {
                         <p className="text-xs text-muted-foreground">{new Date(dep.starts_at).toLocaleString()}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold">£{Number(dep.deposit_amount ?? 50).toFixed(2)}</p>
+                        <p className="text-sm font-semibold">{money(Number(dep.deposit_amount ?? 50))}</p>
                         <Badge
                           variant={dep.deposit_payment_id && !dep.deposit_payment_id.startsWith("manual_") ? "default" : "outline"}
                           className="text-[10px]"

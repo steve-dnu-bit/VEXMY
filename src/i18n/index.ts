@@ -11,7 +11,6 @@ import es from "./locales/es.json";
 import sv from "./locales/sv.json";
 import no from "./locales/no.json";
 import nl from "./locales/nl.json";
-import uk from "./locales/uk.json";
 import bg from "./locales/bg.json";
 import enDocs from "./locales/docs/en.json";
 import deDocs from "./locales/docs/de.json";
@@ -22,7 +21,6 @@ import esDocs from "./locales/docs/es.json";
 import svDocs from "./locales/docs/sv.json";
 import noDocs from "./locales/docs/no.json";
 import nlDocs from "./locales/docs/nl.json";
-import ukDocs from "./locales/docs/uk.json";
 import bgDocs from "./locales/docs/bg.json";
 
 const resources = {
@@ -35,7 +33,6 @@ const resources = {
   sv: { translation: sv, docs: svDocs },
   no: { translation: no, docs: noDocs },
   nl: { translation: nl, docs: nlDocs },
-  uk: { translation: uk, docs: ukDocs },
   bg: { translation: bg, docs: bgDocs },
 };
 

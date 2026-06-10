@@ -33,6 +33,14 @@ import {
   type DashboardThemeMode,
   type ShopDashboardThemeSettings,
 } from "@/lib/shopDashboardTheme";
+import {
+  SHOP_COUNTRIES,
+  currencyForShopCountry,
+  formatShopMoney,
+  normalizeShopCountryCode,
+  type ShopCountryCode,
+} from "@/lib/shopCurrency";
+import { detectShopCountryFromIp, shouldSuggestCountryFromGeo } from "@/lib/detectShopCountry";
 import { THEME_PRESETS } from "@/lib/themePresets";
 
 const STEPS = ["brand", "contact", "billing", "payouts", "hours", "look", "review"] as const;
@@ -64,13 +72,14 @@ const ShopSetupWizardPage = () => {
     address_line2: "",
     city: "",
     postcode: "",
-    country: "UK",
+    country: "UK" as ShopCountryCode,
     company_name: "",
     company_legal_name: "",
   });
 
   const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
   const [dashboardTheme, setDashboardTheme] = useState<ShopDashboardThemeSettings>(defaultShopDashboardThemeSettings);
+  const [countrySuggestedFromGeo, setCountrySuggestedFromGeo] = useState(false);
 
   useEffect(() => {
     const stepParam = searchParams.get("step");
@@ -103,6 +112,15 @@ const ShopSetupWizardPage = () => {
           support_email: wizardData.support_email || user.email || "",
         });
       }
+
+      if (shouldSuggestCountryFromGeo(shop)) {
+        const geo = await detectShopCountryFromIp();
+        if (geo) {
+          setForm((prev) => ({ ...prev, country: geo.shopCountry }));
+          setCountrySuggestedFromGeo(true);
+        }
+      }
+
       if (companyRes.data?.[0]?.id) setCompanyId(companyRes.data[0].id);
       setScheduleHours(hours);
       setDashboardTheme(theme);
@@ -165,7 +183,7 @@ const ShopSetupWizardPage = () => {
       address_line2: form.address_line2.trim() || null,
       city: form.city.trim() || null,
       postcode: form.postcode.trim() || null,
-      country: form.country.trim() || "UK",
+      country: normalizeShopCountryCode(form.country),
     });
     if (error) {
       toast.error(error);
@@ -379,7 +397,32 @@ const ShopSetupWizardPage = () => {
                   </div>
                   <div>
                     <Label>{t("setup.country")}</Label>
-                    <Input className="mt-1 bg-secondary" value={form.country} onChange={(e) => patchForm({ country: e.target.value })} />
+                    <Select
+                      value={normalizeShopCountryCode(form.country)}
+                      onValueChange={(code) => {
+                        setCountrySuggestedFromGeo(false);
+                        patchForm({ country: code as ShopCountryCode });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1 bg-secondary">
+                        <SelectValue placeholder={t("setup.country")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SHOP_COUNTRIES.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.label} ({c.currency.toUpperCase()})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t("setup.currencyHint", {
+                        currency: formatShopMoney(50, currencyForShopCountry(form.country)),
+                      })}
+                    </p>
+                    {countrySuggestedFromGeo ? (
+                      <p className="mt-1 text-xs text-muted-foreground">{t("setup.countryGeoHint")}</p>
+                    ) : null}
                   </div>
                 </div>
               </>

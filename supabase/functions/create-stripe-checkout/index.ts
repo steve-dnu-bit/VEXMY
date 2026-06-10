@@ -10,6 +10,8 @@ import {
 } from "../_shared/email-templates.ts";
 import { resolveOrganizationForUser } from "../_shared/organization.ts";
 import { getActiveConnectAccount, stripeRequestOptions } from "../_shared/stripe-connect.ts";
+import { maxDepositAmountForCurrency, resolveBookingDepositAmount } from "../_shared/deposit-limits.ts";
+import { formatShopMoney, getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -139,6 +141,12 @@ serve(async (req) => {
         userId: user.id,
       });
       const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
+      const { currency: shopCurrency, defaultDepositAmount } = await getShopPaymentSettings(admin, bookingOrgId);
+      const resolvedDeposit = resolveBookingDepositAmount(
+        booking.deposit_amount,
+        defaultDepositAmount,
+        shopCurrency,
+      );
 
       if (action === "create" && !connectCtx) {
         return new Response(
@@ -219,7 +227,8 @@ serve(async (req) => {
             const receipt = buildDepositReceiptEmail({
               clientName: booking.client_name || "there",
               startsAt: booking.starts_at,
-              amountGbp: Number(booking.deposit_amount ?? 50),
+              amount: resolvedDeposit,
+              currency: shopCurrency,
               booking: bookingDetails,
             });
             await sendTransactionalEmail({
@@ -248,13 +257,32 @@ serve(async (req) => {
         );
       }
 
-      const amountPence = Math.round(Number(booking.deposit_amount ?? 50) * 100);
-      if (amountPence < 30) {
-        return new Response(JSON.stringify({ error: "Deposit amount is too small for online checkout (minimum £0.30)." }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      const depositAmount = resolvedDeposit;
+      const maxDeposit = maxDepositAmountForCurrency(shopCurrency);
+      if (depositAmount > maxDeposit) {
+        return new Response(
+          JSON.stringify({
+            error: `Deposit amount cannot exceed ${formatShopMoney(maxDeposit, shopCurrency)} (equivalent of £200).`,
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
+      const minCharge = stripeMinimumChargeMajor(shopCurrency);
+      if (depositAmount < minCharge) {
+        return new Response(
+          JSON.stringify({
+            error: `Deposit amount is too small for online checkout (minimum ${formatShopMoney(minCharge, shopCurrency)}).`,
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+      const amountPence = Math.round(depositAmount * 100);
       const session = await stripe.checkout.sessions.create(
         {
           mode: "payment",
@@ -265,7 +293,7 @@ serve(async (req) => {
             {
               quantity: 1,
               price_data: {
-                currency: "gbp",
+                currency: shopCurrency,
                 product_data: {
                   name: `Deposit - ${booking.client_name}`,
                   description: `Booking on ${new Date(booking.starts_at).toLocaleString("en-GB", { timeZone: "Europe/London" })}`,
@@ -307,6 +335,7 @@ serve(async (req) => {
               startsAt: booking.starts_at,
               checkoutUrl: session.url,
               depositAmount: booking.deposit_amount,
+              currency: shopCurrency,
             });
             await sendTransactionalEmail({
               to: booking.client_email,
@@ -347,6 +376,7 @@ serve(async (req) => {
       userId: user.id,
     });
     const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
+    const { currency: invoiceCurrency } = await getShopPaymentSettings(admin, connectCtx?.organizationId ?? invoiceOrgId);
 
     if (!connectCtx) {
       return new Response(
@@ -384,13 +414,20 @@ serve(async (req) => {
       });
     }
 
-    const amountPence = Math.round(Number(invoice.total ?? 0) * 100);
-    if (amountPence < 30) {
-      return new Response(JSON.stringify({ error: "Invoice total is too small for online checkout (minimum £0.30)." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const invoiceTotal = Number(invoice.total ?? 0);
+    const invoiceMin = stripeMinimumChargeMajor(invoiceCurrency);
+    if (invoiceTotal < invoiceMin) {
+      return new Response(
+        JSON.stringify({
+          error: `Invoice total is too small for online checkout (minimum ${formatShopMoney(invoiceMin, invoiceCurrency)}).`,
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
+    const amountPence = Math.round(invoiceTotal * 100);
     const session = await stripe.checkout.sessions.create(
       {
         mode: "payment",
@@ -401,7 +438,7 @@ serve(async (req) => {
           {
             quantity: 1,
             price_data: {
-              currency: "gbp",
+              currency: invoiceCurrency,
               product_data: {
                 name: `Invoice ${invoice.invoice_number}`,
                 description: `${getShopBranding().shopName} - ${invoice.client_name}`,

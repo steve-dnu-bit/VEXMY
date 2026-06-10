@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { useTranslation } from "react-i18next";
+import { loadShopSettings } from "@/lib/shopSettings";
+import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
+import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
 
 type BookingDepositRow = {
   id: string;
@@ -18,9 +21,8 @@ type BookingDepositRow = {
   status: string;
   deposit_paid: boolean | null;
   vip_client: boolean | null;
+  deposit_amount: number | null;
 };
-
-const DEPOSIT_GBP = 50;
 
 const CustomerDepositsPage = () => {
   const { t } = useTranslation();
@@ -29,13 +31,15 @@ const CustomerDepositsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<BookingDepositRow[]>([]);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
+  const [defaultDeposit, setDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
 
   const loadDeposits = useCallback(async (opts?: { silent?: boolean }) => {
     if (!user) return;
     if (!opts?.silent) setLoading(true);
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, starts_at, booking_type, status, deposit_paid, vip_client")
+      .select("id, starts_at, booking_type, status, deposit_paid, vip_client, deposit_amount")
       .or(buildCustomerBookingsOrFilter(user.id, user.email))
       .order("starts_at", { ascending: true });
     if (error) {
@@ -46,6 +50,13 @@ const CustomerDepositsPage = () => {
     setRows((data as BookingDepositRow[]) || []);
     setLoading(false);
   }, [user, t]);
+
+  useEffect(() => {
+    void Promise.all([loadShopSettings(), loadShopDefaultDepositAmount()]).then(([shop, amount]) => {
+      setShopCurrency(currencyForShopCountry(shop?.country));
+      setDefaultDeposit(amount);
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +162,9 @@ const CustomerDepositsPage = () => {
       <div className="space-y-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-gold">{t("customer.depositPayment")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("customer.depositSubtitle", { amount: DEPOSIT_GBP })}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("customer.depositSubtitle", { amount: formatShopMoney(defaultDeposit, shopCurrency) })}
+          </p>
         </div>
 
         <Card>
@@ -182,7 +195,9 @@ const CustomerDepositsPage = () => {
                       className="shrink-0 self-start sm:self-center"
                       onClick={() => navigate(`/deposit-payment/checkout?bookingId=${encodeURIComponent(b.id)}`)}
                     >
-                      {t("customer.payAmount", { amount: DEPOSIT_GBP })}
+                      {t("customer.payAmount", {
+                        amount: formatShopMoney(b.deposit_amount ?? defaultDeposit, shopCurrency),
+                      })}
                     </Button>
                   )}
                 </div>

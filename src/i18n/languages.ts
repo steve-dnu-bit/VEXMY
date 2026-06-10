@@ -8,7 +8,6 @@ export const SUPPORTED_LANGUAGES = [
   { code: "sv", label: "Swedish", nativeLabel: "Svenska" },
   { code: "no", label: "Norwegian", nativeLabel: "Norsk" },
   { code: "nl", label: "Dutch", nativeLabel: "Nederlands" },
-  { code: "uk", label: "Ukrainian", nativeLabel: "Українська" },
   { code: "bg", label: "Bulgarian", nativeLabel: "Български" },
 ] as const;
 

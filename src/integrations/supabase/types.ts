@@ -912,6 +912,7 @@ export type Database = {
           p_client_phone: string | null
           p_client_user_id: string | null
           p_deposit_paid: boolean
+          p_deposit_amount?: number | null
           p_ends_at: string
           p_notes: string | null
           p_service_category?: string

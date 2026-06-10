@@ -36,6 +36,7 @@ interface Booking {
   starts_at: string;
   ends_at: string;
   deposit_paid: boolean | null;
+  deposit_amount?: number | null;
 }
 
 interface Profile {

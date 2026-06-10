@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { currencyForShopCountry, normalizeShopCountryCode } from "@/lib/shopCurrency";
 
 export interface ShopSettingsRow {
   id: string;
@@ -129,7 +130,7 @@ export function shopRowToWizardData(
     address_line2: shop?.address_line2 ?? "",
     city: shop?.city ?? "",
     postcode: shop?.postcode ?? "",
-    country: shop?.country ?? "UK",
+    country: normalizeShopCountryCode(shop?.country),
     company_name: company?.name ?? shop?.trading_name ?? shop?.shop_name ?? "",
     company_legal_name: company?.legal_name ?? shop?.legal_name ?? "",
   };

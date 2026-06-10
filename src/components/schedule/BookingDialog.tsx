@@ -16,6 +16,15 @@ import BookingLinkAccount from "./BookingLinkAccount";
 import BookingConsentSection from "./BookingConsentSection";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
+import { maxDepositAmountForCurrency } from "@/lib/depositLimits";
+import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
+import { loadShopSettings } from "@/lib/shopSettings";
+import {
+  clampDepositAmount,
+  DEFAULT_DEPOSIT_AMOUNT,
+  loadShopDefaultDepositAmount,
+  parseDepositInput,
+} from "@/lib/shopDepositSettings";
 
 /** Escape user text for PostgREST ilike patterns */
 function escapeIlike(s: string) {
@@ -86,6 +95,7 @@ type BookingSavePayload = {
   service_category: string;
   status: string;
   deposit_paid: boolean;
+  deposit_amount: number;
   starts_at: string;
   ends_at: string;
 };
@@ -97,6 +107,10 @@ function diffBookingPayload(next: BookingSavePayload, baseline: BookingSavePaylo
     const bv = baseline[k];
     if (k === "starts_at" || k === "ends_at") {
       if (!timeEqualIso(nv as string, bv as string)) patch[k] = nv as never;
+      return;
+    }
+    if (k === "deposit_amount") {
+      if (Math.abs((nv as number) - (bv as number)) > 0.001) patch[k] = nv as never;
       return;
     }
     if (nv === bv) return;
@@ -158,6 +172,7 @@ interface BookingDialogProps {
     service_category?: string | null;
     status: string;
     deposit_paid: boolean | null;
+    deposit_amount?: number | null;
   } | null;
   onSaved?: () => void;
 }
@@ -209,6 +224,9 @@ const BookingDialog = ({
   >([]);
   const [bookingConsentLoading, setBookingConsentLoading] = useState(false);
   const [consentDownloadBusy, setConsentDownloadBusy] = useState(false);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
+
+  const maxDeposit = maxDepositAmountForCurrency(shopCurrency);
 
   const [form, setForm] = useState({
     client_name: "",
@@ -222,66 +240,85 @@ const BookingDialog = ({
     start_time: defaultStartTime,
     status: "confirmed",
     deposit_paid: false,
+    deposit_amount: DEFAULT_DEPOSIT_AMOUNT,
   });
 
   useEffect(() => {
     if (!open) return;
-    if (bookingToEdit) {
-      setArtistId(bookingToEdit.artist_id || userId);
-      setClientUserId((bookingToEdit.client_user_id || "").trim());
-      const cuEdit = (bookingToEdit.client_user_id || "").trim();
-      if (cuEdit) {
-        setLinkAccountInput("");
-        void (async () => {
-          const { data: prof } = await supabase.from("profiles").select("display_name").eq("user_id", cuEdit).maybeSingle();
-          if (prof?.display_name) {
-            suppressLinkSearchRef.current = true;
-            setLinkAccountInput(prof.display_name);
-          }
-        })();
+    let cancelled = false;
+    void (async () => {
+      const shop = await loadShopSettings();
+      const currency = currencyForShopCountry(shop?.country);
+      if (cancelled) return;
+      setShopCurrency(currency);
+
+      if (bookingToEdit) {
+        setArtistId(bookingToEdit.artist_id || userId);
+        setClientUserId((bookingToEdit.client_user_id || "").trim());
+        const cuEdit = (bookingToEdit.client_user_id || "").trim();
+        if (cuEdit) {
+          setLinkAccountInput("");
+          void (async () => {
+            const { data: prof } = await supabase.from("profiles").select("display_name").eq("user_id", cuEdit).maybeSingle();
+            if (prof?.display_name) {
+              suppressLinkSearchRef.current = true;
+              setLinkAccountInput(prof.display_name);
+            }
+          })();
+        } else {
+          setLinkAccountInput("");
+        }
+        const start = new Date(bookingToEdit.starts_at);
+        setForm({
+          client_name: bookingToEdit.client_name || "",
+          client_phone: bookingToEdit.client_phone || "",
+          client_email: bookingToEdit.client_email || "",
+          tattoo_style: bookingToEdit.tattoo_style || "",
+          tattoo_size: bookingToEdit.tattoo_size || "",
+          tattoo_placement: bookingToEdit.tattoo_placement || "",
+          notes: bookingToEdit.notes || "",
+          date: format(start, "yyyy-MM-dd"),
+          start_time: format(start, "HH:mm"),
+          status: bookingToEdit.status || "confirmed",
+          deposit_paid: !!bookingToEdit.deposit_paid,
+          deposit_amount: clampDepositAmount(
+            Number(bookingToEdit.deposit_amount ?? DEFAULT_DEPOSIT_AMOUNT),
+            currency,
+          ),
+        });
+        const sid = pickServiceIdForBooking(services, {
+          booking_type: bookingToEdit.booking_type,
+          starts_at: bookingToEdit.starts_at,
+          ends_at: bookingToEdit.ends_at,
+          service_category: bookingToEdit.service_category,
+        });
+        setServiceId(sid || (services[0]?.id ?? ""));
       } else {
+        setClientUserId("");
         setLinkAccountInput("");
+        skipAutoLinkFromEmailRef.current = false;
+        const prefillArtist =
+          prefillArtistId && artists.some((a) => a.user_id === prefillArtistId) ? prefillArtistId : userId;
+        setArtistId(prefillArtist);
+        const startTime =
+          prefillHour !== undefined
+            ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
+            : "10:00";
+        const defaultAmount = await loadShopDefaultDepositAmount();
+        if (cancelled) return;
+        setForm((f) => ({
+          ...f,
+          date: format(prefillDate || new Date(), "yyyy-MM-dd"),
+          start_time: startTime,
+          deposit_amount: defaultAmount,
+        }));
+        if (services.length > 0) setServiceId(services[0].id);
+        else setServiceId("");
       }
-      const start = new Date(bookingToEdit.starts_at);
-      setForm({
-        client_name: bookingToEdit.client_name || "",
-        client_phone: bookingToEdit.client_phone || "",
-        client_email: bookingToEdit.client_email || "",
-        tattoo_style: bookingToEdit.tattoo_style || "",
-        tattoo_size: bookingToEdit.tattoo_size || "",
-        tattoo_placement: bookingToEdit.tattoo_placement || "",
-        notes: bookingToEdit.notes || "",
-        date: format(start, "yyyy-MM-dd"),
-        start_time: format(start, "HH:mm"),
-        status: bookingToEdit.status || "confirmed",
-        deposit_paid: !!bookingToEdit.deposit_paid,
-      });
-      const sid = pickServiceIdForBooking(services, {
-        booking_type: bookingToEdit.booking_type,
-        starts_at: bookingToEdit.starts_at,
-        ends_at: bookingToEdit.ends_at,
-        service_category: bookingToEdit.service_category,
-      });
-      setServiceId(sid || (services[0]?.id ?? ""));
-    } else {
-      setClientUserId("");
-      setLinkAccountInput("");
-      skipAutoLinkFromEmailRef.current = false;
-      const prefillArtist =
-        prefillArtistId && artists.some((a) => a.user_id === prefillArtistId) ? prefillArtistId : userId;
-      setArtistId(prefillArtist);
-      const startTime =
-        prefillHour !== undefined
-          ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
-          : "10:00";
-      setForm((f) => ({
-        ...f,
-        date: format(prefillDate || new Date(), "yyyy-MM-dd"),
-        start_time: startTime,
-      }));
-      if (services.length > 0) setServiceId(services[0].id);
-      else setServiceId("");
-    }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [open, prefillDate, prefillHour, prefillMinute, prefillArtistId, artists, services, bookingToEdit, userId]);
 
   useEffect(() => {
@@ -304,10 +341,14 @@ const BookingDialog = ({
       service_category: (bookingToEdit.service_category || "tattoo").toLowerCase(),
       status: bookingToEdit.status || "confirmed",
       deposit_paid: !!bookingToEdit.deposit_paid,
+      deposit_amount: clampDepositAmount(
+        Number(bookingToEdit.deposit_amount ?? DEFAULT_DEPOSIT_AMOUNT),
+        shopCurrency,
+      ),
       starts_at: bookingToEdit.starts_at,
       ends_at: bookingToEdit.ends_at,
     };
-  }, [open, bookingToEdit]);
+  }, [open, bookingToEdit, shopCurrency]);
 
   useEffect(() => {
     if (!open || !bookingToEdit?.id) {
@@ -664,6 +705,12 @@ const BookingDialog = ({
       }
       const starts_at = startsAtLocal.toISOString();
       const ends_at = endsAtLocal.toISOString();
+      const depositAmount = parseDepositInput(String(form.deposit_amount), shopCurrency);
+      if (depositAmount == null) {
+        toast.error(t("schedule.depositAmountInvalid", { max: formatShopMoney(maxDeposit, shopCurrency) }));
+        return;
+      }
+
       const nextPayload: BookingSavePayload = {
         artist_id: artistId || userId,
         client_name: form.client_name.trim(),
@@ -678,6 +725,7 @@ const BookingDialog = ({
         service_category: String(selectedService?.service_category || "tattoo").toLowerCase(),
         status: form.status || "confirmed",
         deposit_paid: !!form.deposit_paid,
+        deposit_amount: depositAmount,
         starts_at,
         ends_at,
       };
@@ -730,6 +778,7 @@ const BookingDialog = ({
             p_starts_at: nextPayload.starts_at,
             p_ends_at: nextPayload.ends_at,
             p_service_category: nextPayload.service_category,
+            p_deposit_amount: nextPayload.deposit_amount,
           })
           .single();
         if (error || !createdBooking) {
@@ -758,6 +807,7 @@ const BookingDialog = ({
         client_name: "", client_phone: "", client_email: "", tattoo_style: "",
         tattoo_size: "", tattoo_placement: "", notes: "",
         date: format(new Date(), "yyyy-MM-dd"), start_time: "10:00", status: "confirmed", deposit_paid: false,
+        deposit_amount: DEFAULT_DEPOSIT_AMOUNT,
       });
     } finally {
       setIsSaving(false);
@@ -922,15 +972,36 @@ const BookingDialog = ({
               </Select>
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.deposit")}</Label>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
               <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.deposit")} /></SelectTrigger>
+                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
                   <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div>
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositAmount")}</Label>
+            <Input
+              type="number"
+              min={0.3}
+              max={maxDeposit}
+              step={0.01}
+              value={form.deposit_amount}
+              onChange={(e) => {
+                const parsed = parseDepositInput(e.target.value, shopCurrency);
+                setForm((f) => ({
+                  ...f,
+                  deposit_amount: parsed ?? (Number(e.target.value) || 0),
+                }));
+              }}
+              className="mt-1 bg-secondary border-border"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("schedule.depositAmountHint", { max: formatShopMoney(maxDeposit, shopCurrency) })}
+            </p>
           </div>
           <div className="text-xs text-muted-foreground">
             {t("schedule.durationEnds", { duration, endTime })}

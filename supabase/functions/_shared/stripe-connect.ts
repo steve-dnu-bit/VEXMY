@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
 import { resolveOrganizationForUser } from "./organization.ts";
+import { stripeCountryForShopCountry } from "./shop-currency.ts";
 
 export type ConnectAccountContext = {
   organizationId: string;
@@ -17,10 +18,7 @@ export type ConnectStatus = {
 };
 
 export function mapShopCountryToStripe(country: string | null | undefined): string {
-  const normalized = (country || "GB").trim().toUpperCase();
-  if (normalized === "UK" || normalized === "UNITED KINGDOM") return "GB";
-  if (normalized.length === 2) return normalized;
-  return "GB";
+  return stripeCountryForShopCountry(country);
 }
 
 export async function canManageStripeConnect(
