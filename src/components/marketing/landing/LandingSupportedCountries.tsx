@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { maxDepositAmountForCurrency } from "@/lib/depositLimits";
-import { formatShopMoney, SHOP_COUNTRIES } from "@/lib/shopCurrency";
+import { SHOP_COUNTRIES } from "@/lib/shopCurrency";
 
 const COUNTRY_FLAG: Record<string, string> = {
   UK: "🇬🇧",
@@ -18,47 +17,44 @@ const COUNTRY_FLAG: Record<string, string> = {
   BG: "🇧🇬",
 };
 
+const FLAG_ITEMS = SHOP_COUNTRIES.map((country) => ({
+  code: country.code,
+  label: country.label,
+  flag: COUNTRY_FLAG[country.code] ?? "🌍",
+}));
+
 const LandingSupportedCountries = () => {
   const { t } = useTranslation();
-  const currencies = [...new Set(SHOP_COUNTRIES.map((c) => c.currency))];
+  const marqueeItems = [...FLAG_ITEMS, ...FLAG_ITEMS];
 
   return (
-    <section id="regions" className="border-t border-gold/10 px-4 py-20 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold sm:text-4xl">{t("landing.regionsTitle")}</h2>
-          <p className="mt-4 text-muted-foreground">{t("landing.regionsSubtitle")}</p>
-        </div>
+    <section id="regions" className="border-t border-gold/10 px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-4xl text-center">
+        <p className="text-xs uppercase tracking-[0.2em] text-gold/70">{t("landing.regionsTitle")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("landing.regionsSubtitle")}</p>
+      </div>
 
-        <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {SHOP_COUNTRIES.map((country) => (
+      <div
+        className="relative mx-auto mt-8 max-w-5xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]"
+        aria-label={t("landing.regionsCarouselLabel")}
+      >
+        <div className="flex w-max animate-flag-marquee items-center gap-8 px-4 hover:[animation-play-state:paused] motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-4">
+          {marqueeItems.map((country, i) => (
             <div
-              key={country.code}
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/45 px-4 py-3 transition-colors hover:border-gold/30"
+              key={`${country.code}-${i}`}
+              className="flex shrink-0 flex-col items-center gap-1.5"
+              title={country.label}
             >
-              <span className="text-2xl" aria-hidden>
-                {COUNTRY_FLAG[country.code] ?? "🌍"}
+              <span
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-border/40 bg-card/30 text-2xl sm:h-14 sm:w-14 sm:text-3xl"
+                aria-hidden
+              >
+                {country.flag}
               </span>
-              <div className="min-w-0">
-                <p className="truncate font-medium">{country.label}</p>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {country.currency.toUpperCase()} · {t("landing.regionsPayments")}
-                </p>
-              </div>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
+                {country.code}
+              </span>
             </div>
-          ))}
-        </div>
-
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          {currencies.map((currency) => (
-            <span
-              key={currency}
-              className="rounded-full border border-gold/20 bg-gold/5 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gold"
-            >
-              {currency} · {t("landing.regionsDepositCap", {
-                amount: formatShopMoney(maxDepositAmountForCurrency(currency), currency),
-              })}
-            </span>
           ))}
         </div>
       </div>
