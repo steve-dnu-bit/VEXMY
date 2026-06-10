@@ -103,7 +103,38 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
   const labelForThread = (thread: Thread): string => {
     if (!user) return t("chat.threadLabelFallback");
     const otherId = mode === "staff" ? thread.customer_id : thread.artist_id;
-    return profileNames[otherId] || otherId;
+    const name = profileNames[otherId]?.trim();
+    if (name) return name;
+    return mode === "staff" ? t("chat.customerFallback") : t("chat.artistFallback");
+  };
+
+  const resolveProfileNamesForThreads = async (rows: Thread[]): Promise<Record<string, string>> => {
+    const userIds = [...new Set(rows.flatMap((r) => [r.artist_id, r.customer_id]))];
+    if (userIds.length === 0) return {};
+
+    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", userIds);
+    const names: Record<string, string> = {};
+    (profiles || []).forEach((p: any) => {
+      const name = (p.display_name || "").trim();
+      if (name) names[p.user_id] = name;
+    });
+
+    if (mode === "staff") {
+      const missingCustomerIds = [...new Set(rows.map((r) => r.customer_id).filter((id) => !names[id]))];
+      if (missingCustomerIds.length > 0) {
+        const { data: bookings } = await supabase
+          .from("bookings")
+          .select("client_user_id, client_name")
+          .in("client_user_id", missingCustomerIds);
+        (bookings || []).forEach((b: any) => {
+          const id = b.client_user_id as string | null;
+          const clientName = (b.client_name || "").trim();
+          if (id && clientName && !names[id]) names[id] = clientName;
+        });
+      }
+    }
+
+    return names;
   };
 
   const refreshThreadMeta = async (rows: Thread[]) => {
@@ -145,14 +176,6 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     });
     setLatestByThread(latest);
     setUnreadByThread(unread);
-
-    const userIds = [...new Set(rows.flatMap((r) => [r.artist_id, r.customer_id]))];
-    const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", userIds);
-    const names: Record<string, string> = {};
-    (profiles || []).forEach((p: any) => {
-      names[p.user_id] = p.display_name || p.user_id;
-    });
-    setProfileNames(names);
   };
 
   const fetchThreads = async () => {
@@ -167,6 +190,8 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     const rows = ((data || []) as Thread[]).filter((r) =>
       mode === "staff" ? !r.archived_by_artist : !r.archived_by_customer,
     );
+    const names = await resolveProfileNamesForThreads(rows);
+    setProfileNames(names);
     setThreads(rows);
     if (!selectedThreadId && rows.length > 0) setSelectedThreadId(rows[0].id);
     if (selectedThreadId && !rows.some((r) => r.id === selectedThreadId)) setSelectedThreadId(rows[0]?.id || null);
@@ -293,8 +318,8 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     );
 
     const activeTyping = ((typingRows || []) as TypingRow[])
-      .filter((t) => t.user_id !== user?.id && new Date(t.expires_at).getTime() > Date.now())
-      .map((t) => profileNames[t.user_id] || t.user_id);
+      .filter((row) => row.user_id !== user?.id && new Date(row.expires_at).getTime() > Date.now())
+      .map((row) => profileNames[row.user_id]?.trim() || t("chat.someone"));
     setTypingUsers(activeTyping);
 
     const urlEntries = await Promise.all(

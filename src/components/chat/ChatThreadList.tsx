@@ -88,8 +88,11 @@ const ChatThreadList = ({
           </Select>
         </div>
       ) : (
-        <div className="mt-3 space-y-2">
-          <Label className="text-xs">{t("chat.startChatWithCustomer")}</Label>
+        <div className="mt-3 rounded-md border border-border/60 bg-secondary/20 p-2.5 space-y-2">
+          <div>
+            <Label className="text-xs">{t("chat.startChatWithCustomer")}</Label>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{t("chat.staffChatHint")}</p>
+          </div>
           <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
             <SelectTrigger className="h-8">
               <SelectValue placeholder={t("chat.chooseCustomer")} />
@@ -106,7 +109,6 @@ const ChatThreadList = ({
               )}
             </SelectContent>
           </Select>
-          <p className="text-[11px] text-muted-foreground">{t("chat.staffChatHint")}</p>
           <Button
             size="sm"
             variant="outline"
