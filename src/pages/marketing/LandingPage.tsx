@@ -4,12 +4,14 @@ import LandingFeatureTour from "@/components/marketing/landing/LandingFeatureTou
 import LandingScreenshotGallery from "@/components/marketing/landing/LandingScreenshotGallery";
 import LandingStripeSection from "@/components/marketing/landing/LandingStripeSection";
 import LandingSupportedCountries from "@/components/marketing/landing/LandingSupportedCountries";
+import LandingVideoFrame from "@/components/marketing/landing/LandingVideoFrame";
+import { LANDING_HERO_VIDEO } from "@/components/marketing/landing/landingMedia";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLandingI18n } from "@/hooks/useLandingI18n";
 
 const LandingPage = () => {
-  const { features, steps, audiences, faqs, previewSlots, heroSubtitle, t } = useLandingI18n();
+  const { features, steps, audiences, faqs, heroSubtitle, t } = useLandingI18n();
 
   return (
     <MarketingLayout>
@@ -48,26 +50,13 @@ const LandingPage = () => {
 
         <div className="relative mx-auto mt-16 max-w-5xl px-2">
           <div className="rounded-2xl border border-gold/25 bg-[#101216]/80 p-1 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-sm">
-            <div className="rounded-xl border border-border/50 bg-[#0c0d12] p-6 sm:p-8">
-              <div className="mb-6 flex items-center justify-between border-b border-border/40 pb-4">
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-gold/70">{t("landing.previewDashboard")}</p>
-                  <p className="font-display text-lg font-semibold">{t("landing.previewToday")}</p>
-                </div>
-                <div className="flex gap-2">
-                  <span className="rounded-md bg-gold/15 px-2 py-1 text-xs text-gold">{t("landing.previewBookings")}</span>
-                  <span className="rounded-md bg-emerald-500/15 px-2 py-1 text-xs text-emerald-400">{t("landing.previewDeposits")}</span>
-                </div>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {previewSlots.map((slot) => (
-                  <div key={slot.time} className="rounded-lg border border-border/60 bg-card/50 p-4 text-sm">
-                    <p className="text-muted-foreground">{slot.time}</p>
-                    <p className="mt-1 font-medium">{slot.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <LandingVideoFrame
+              src={LANDING_HERO_VIDEO.src}
+              poster={LANDING_HERO_VIDEO.poster}
+              alt={t(LANDING_HERO_VIDEO.altKey)}
+              title={LANDING_HERO_VIDEO.title}
+              loop
+            />
           </div>
         </div>
       </section>
