@@ -79,7 +79,7 @@ npx supabase secrets set `
   SMTP_PASS=re_YOUR_API_KEY `
   EMAIL_FROM="Velbok <no-reply@velbok.com>" `
   SITE_URL=https://velbok.com `
-  SHOP_SUPPORT_EMAIL=no-reply@velbok.com `
+  SHOP_SUPPORT_EMAIL=support@velbok.com `
   SHOP_NAME="Velbok" `
   SHOP_WEBSITE_URL=https://velbok.com
 ```
@@ -145,6 +145,42 @@ After changing template code, redeploy affected edge functions:
 cd inkaholics-29cc97fa-main
 npx supabase functions deploy booking-notifications send-booking-reminders create-stripe-checkout stripe-webhook send-chat-update-email send-invoice send-aftercare-emails invite-user --project-ref tkremoxfkgoiuwghtzwd
 ```
+
+---
+
+## Inbound email (`email.velbok.com`)
+
+Use a **subdomain** so Resend can receive mail without breaking existing `@velbok.com` mailboxes.
+
+### DNS (Resend dashboard)
+
+1. Resend → **Domains** → add **`email.velbok.com`** (or open it if already added).
+2. Enable **Receiving / Inbound** and add the **MX** record Resend shows.
+3. Wait until the domain is verified.
+
+Any address on that subdomain works, e.g. `support@email.velbok.com`, `bookings@email.velbok.com`.
+
+### Webhook
+
+1. Deploy the edge function:
+
+```powershell
+npx supabase functions deploy resend-inbound --project-ref tkremoxfkgoiuwghtzwd
+```
+
+2. Resend → **Webhooks** → **Add Webhook**:
+   - **URL:** `https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/resend-inbound`
+   - **Event:** `email.received`
+3. Copy the signing secret (`whsec_...`) into Supabase Edge secrets as **`RESEND_WEBHOOK_SECRET`**.
+
+Optional secrets:
+
+| Secret | Purpose |
+|--------|---------|
+| `RESEND_INBOUND_DOMAIN` | Defaults to `email.velbok.com` |
+| `RESEND_INBOUND_FORWARD_TO` | Forward copies to your personal inbox (else uses `SHOP_SUPPORT_EMAIL`) |
+
+Inbound mail is stored in the **`messages`** table (`channel: email`, `direction: inbound`) for the staff dashboard unread count. Set `BOOKINGS_REPLY_TO=bookings@email.velbok.com` if you want booking replies to go there.
 
 ---
 

@@ -9,6 +9,12 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.resend-inbound]
+verify_jwt = false
+
+[functions.bootstrap-resend-webhook]
+verify_jwt = false
+
 [functions.send-booking-reminders]
 verify_jwt = false
 

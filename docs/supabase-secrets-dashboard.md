@@ -19,13 +19,17 @@ Add or update each row. You only need to paste your **Resend API key** yourself 
 | `SMTP_PASS` | *Your Resend API key* (`re_...`) |
 | `EMAIL_FROM` | `Velbok <no-reply@velbok.com>` |
 | `SITE_URL` | `https://velbok.com` |
-| `SHOP_SUPPORT_EMAIL` | `no-reply@velbok.com` |
+| `SHOP_SUPPORT_EMAIL` | `support@velbok.com` |
 | `SHOP_NAME` | `Velbok` |
 | `SHOP_WEBSITE_URL` | `https://velbok.com` |
 | `RESEND_API_KEY` | *Same Resend API key* (`re_...`) — **required** for booking emails |
 | `BOOKINGS_EMAIL_FROM` | `Velbok <no-reply@velbok.com>` (must be on verified domain) |
 | `NOTIFICATIONS_EMAIL_FROM` | `Velbok <no-reply@velbok.com>` |
 | `CRON_SECRET` | *Random 32+ char string* — must match database vault secret `cron_secret` (see below) |
+| `RESEND_WEBHOOK_SECRET` | `whsec_...` from Resend → Webhooks (inbound `email.received` on `resend-inbound`) |
+| `RESEND_INBOUND_DOMAIN` | `velbok.com` (receiving domain — use root on free Resend plan; Pro can use `email.velbok.com`) |
+| `BOOKINGS_REPLY_TO` | `bookings@velbok.com` (reply-to on booking emails when inbound is on root domain) |
+| `RESEND_INBOUND_FORWARD_TO` | Optional — forward inbound mail to this inbox (defaults to `SHOP_SUPPORT_EMAIL`) |
 
 Click **Save** after each secret (or bulk add if your dashboard supports it).
 
@@ -117,4 +121,4 @@ Required for `/subscribe` checkout. **All three** price secrets must be set.
 
 ## Note on reply-to
 
-`no-reply@` is fine for system mail (reset, reminders). If you want customers to reply to a real inbox later, change `SHOP_SUPPORT_EMAIL` to e.g. `hello@velbok.com` — emails can still send **from** `no-reply@velbok.com`.
+System mail (reset, reminders) sends **from** `no-reply@velbok.com`. Customer-facing contact and reply-to use `SHOP_SUPPORT_EMAIL` (`support@velbok.com`).
