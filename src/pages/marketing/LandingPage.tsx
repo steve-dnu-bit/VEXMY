@@ -4,8 +4,7 @@ import LandingFeatureTour from "@/components/marketing/landing/LandingFeatureTou
 import LandingScreenshotGallery from "@/components/marketing/landing/LandingScreenshotGallery";
 import LandingStripeSection from "@/components/marketing/landing/LandingStripeSection";
 import LandingSupportedCountries from "@/components/marketing/landing/LandingSupportedCountries";
-import LandingVideoFrame from "@/components/marketing/landing/LandingVideoFrame";
-import { LANDING_HERO_VIDEO } from "@/components/marketing/landing/landingMedia";
+import LandingHeroCarousel from "@/components/marketing/landing/LandingHeroCarousel";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLandingI18n } from "@/hooks/useLandingI18n";
@@ -50,13 +49,7 @@ const LandingPage = () => {
 
         <div className="relative mx-auto mt-16 max-w-5xl px-2">
           <div className="rounded-2xl border border-gold/25 bg-[#101216]/80 p-1 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-sm">
-            <LandingVideoFrame
-              src={LANDING_HERO_VIDEO.src}
-              poster={LANDING_HERO_VIDEO.poster}
-              alt={t(LANDING_HERO_VIDEO.altKey)}
-              title={LANDING_HERO_VIDEO.title}
-              loop
-            />
+            <LandingHeroCarousel />
           </div>
         </div>
       </section>
