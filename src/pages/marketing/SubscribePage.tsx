@@ -60,8 +60,11 @@ const SubscribePage = () => {
         organizationId,
       });
 
-      if (error || !data.checkoutUrl) {
-        throw new Error(data.error || error?.message || t("subscribe.checkoutFailed"));
+      if (error) {
+        throw new Error(error.message || data.error || t("subscribe.checkoutFailed"));
+      }
+      if (!data.checkoutUrl) {
+        throw new Error(data.error || t("subscribe.checkoutFailed"));
       }
 
       window.location.href = data.checkoutUrl;

@@ -62,6 +62,26 @@ SELECT vault.update_secret(
 
 ---
 
+## Platform subscription billing (Stripe)
+
+Required for `/subscribe` checkout. **All three** price secrets must be set.
+
+| Secret | Value |
+|--------|--------|
+| `STRIPE_SECRET_KEY` | `sk_test_...` (dev) or `sk_live_...` (production) |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` from Stripe webhook endpoint |
+| `STRIPE_PRICE_STARTER` | `price_...` recurring monthly price (**not** `prod_...`) |
+| `STRIPE_PRICE_STUDIO` | `price_...` |
+| `STRIPE_PRICE_ENTERPRISE` | `price_...` |
+
+**How to get price IDs:** Stripe Dashboard → **Products** → open plan → **Pricing** → copy **Price ID** (`price_...`). Create a **recurring** monthly price if none exists.
+
+**Test vs live:** If `STRIPE_SECRET_KEY` is `sk_test_...`, all `STRIPE_PRICE_*` must be from **Test mode** in Stripe (toggle top-right).
+
+**Validate (admin):** After deploy, signed-in admin can POST to edge function `validate-platform-billing` (empty body) to see which secrets fail.
+
+---
+
 ## Auth SMTP (password reset — separate page)
 
 **Where:** **Authentication** → **SMTP Settings** → **Enable Custom SMTP**

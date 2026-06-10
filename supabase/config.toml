@@ -21,7 +21,16 @@ verify_jwt = false
 [functions.create-platform-checkout]
 verify_jwt = false
 
+[functions.validate-platform-billing]
+verify_jwt = false
+
+[functions.setup-platform-stripe-prices]
+verify_jwt = false
+
 [functions.create-billing-portal]
+verify_jwt = false
+
+[functions.change-platform-plan]
 verify_jwt = false
 
 [functions.stripe-connect-onboarding]

@@ -62,73 +62,50 @@
   "marketing": {
     "footerTagline": "The all-in-one platform for tattoo studios — scheduling, deposits, consent, billing, and client communication in one place.",
     "pricingTitle": "Plans that scale with your studio",
-    "pricingSubtitle": "Transparent monthly pricing. Every plan includes hosting, updates, and full documentation. No setup fees on Starter and Studio.",
+    "pricingSubtitle": "Transparent monthly pricing. Every plan includes the full platform — only artist seat limits differ.",
     "comparePlans": "Compare plans",
     "pricingFaq": "Pricing FAQ",
     "notSurePlan": "Not sure which plan fits?",
-    "notSurePlanBody": "Tell us about your studio and we'll recommend the right setup — or start a free trial on Starter or Studio.",
+    "notSurePlanBody": "Tell us about your studio and we'll recommend the right seat count — or start a free trial on any plan.",
     "pricesGbp": "Prices in GBP, billed monthly. Stripe card fees apply separately to client payments. Questions?",
     "mostPopular": "Most popular"
   },
   "pricing": {
+    "sharedFeatures": {
+      "0": "Full schedule & multi-artist calendar",
+      "1": "Client CRM & CSV import",
+      "2": "Digital consent forms & customer portal",
+      "3": "Stripe deposits & invoice payments",
+      "4": "Staff inbox & role permissions",
+      "5": "Automated reminders & aftercare emails",
+      "6": "Stock management & billing records",
+      "7": "Documentation & email support"
+    },
     "starter": {
       "name": "Starter",
       "tagline": "Small team",
-      "description": "Run bookings professionally with up to 3 artists on your schedule.",
+      "description": "The full Velbok platform for shops with up to 3 artists.",
       "seats": "Up to 3 artist seats",
-      "cta": "Start with Starter",
-      "features": {
-        "0": "Multi-artist schedule (up to 3 seats)",
-        "1": "Client CRM & CSV import",
-        "2": "Digital consent forms",
-        "3": "Customer portal",
-        "4": "Booking reminders (when email configured)",
-        "5": "Documentation & email support"
-      }
+      "cta": "Start with Starter"
     },
     "studio": {
       "name": "Studio",
       "tagline": "Growing shop",
-      "description": "The full Velbok toolkit for busy studios — up to 6 artists and front-desk staff.",
+      "description": "The full Velbok platform for shops with up to 6 artists.",
       "seats": "Up to 6 artist seats",
-      "cta": "Start free trial",
-      "features": {
-        "0": "Everything in Starter",
-        "1": "Stripe deposits & invoice payments",
-        "2": "Staff inbox & role permissions",
-        "3": "Automated reminders & aftercare emails",
-        "4": "Stock management",
-        "5": "Billing & company records",
-        "6": "Priority email support"
-      }
+      "cta": "Start free trial"
     },
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Large studio",
-      "description": "For established shops with larger teams — up to 10 artists plus priority support.",
+      "description": "The full Velbok platform for shops with up to 10 artists.",
       "seats": "Up to 10 artist seats",
-      "cta": "Start with Enterprise",
-      "features": {
-        "0": "Everything in Studio",
-        "1": "Up to 10 artist seats",
-        "2": "Dedicated setup & migration help",
-        "3": "Custom branding & domain guidance",
-        "4": "SLA & priority support",
-        "5": "Training for your team"
-      }
+      "cta": "Start with Enterprise"
     },
     "comparison": {
       "monthlyPrice": "Monthly price (GBP)",
       "artistSeats": "Artist seats",
-      "scheduleCrm": "Schedule & CRM",
-      "consentForms": "Consent forms",
-      "customerPortal": "Customer portal",
-      "stripeDeposits": "Stripe deposits",
-      "invoicing": "Invoicing",
-      "staffInbox": "Staff inbox",
-      "stockManagement": "Stock management",
-      "dedicatedOnboarding": "Dedicated onboarding",
-      "sla": "SLA",
+      "fullPlatform": "Full platform features",
       "included": "✓",
       "notIncluded": "—"
     },
@@ -136,13 +113,13 @@
       "trialQ": "Is there a free trial?",
       "trialA": "All plans include a 14-day free trial. Choose a plan on the subscribe page — you'll enter card details on Stripe but won't be charged until the trial ends.",
       "includedQ": "What's included in every plan?",
-      "includedA": "Secure cloud hosting, product updates, access to documentation, SSL, and data stored on isolated Supabase infrastructure per studio.",
+      "includedA": "Every plan includes the full Velbok platform — scheduling, CRM, deposits, consent, inbox, stock, billing, and more. The only difference is how many artists you can add.",
       "stripeFeesQ": "Are Stripe fees included?",
       "stripeFeesA": "No. Card processing fees are charged by Stripe on top of your subscription. Velbok integrates with your Stripe account for deposits and invoices.",
       "switchQ": "Can I switch plans later?",
-      "switchA": "Yes. Upgrade or downgrade as your team grows — Starter (3 artists), Studio (6), or Enterprise (10).",
+      "switchA": "Yes. Upgrade or downgrade anytime from Admin — Starter (3 artists), Studio (6), or Enterprise (10).",
       "migrateQ": "Do you help migrate from my current system?",
-      "migrateA": "Studio and Enterprise plans include client CSV import in the app. Enterprise includes hands-on migration assistance for bookings and records."
+      "migrateA": "All plans include client CSV import in the app. Contact us if you need hands-on migration help for bookings and records."
     }
   },
   "auth": {
@@ -411,9 +388,18 @@
     "seatsInUse": "{{used}} / {{max}} artist seats in use",
     "upToSeats": "Up to {{max}} artist seats",
     "unlimitedSeats": "Unlimited artist seats",
-    "upgradeRequired": "Upgrade required",
-    "upgradeRequiredDesc": "This feature is included on the {{plan}} plan and above.",
+    "upgradeRequired": "Subscription required",
+    "upgradeRequiredDesc": "Subscribe to Velbok to use this feature. All plans include the full platform — only artist seat limits differ.",
     "upgradeTo": "Upgrade to {{plan}}",
+    "downgradeTo": "Downgrade to {{plan}}",
+    "downgradeBlocked": "Too many artists",
+    "changePlanTitle": "Change plan",
+    "changePlanDesc": "All plans include the same features. Choose based on how many artists you need.",
+    "currentPlan": "Current",
+    "planChanged": "Plan updated",
+    "planChangedDesc": "You are now on the {{plan}} plan.",
+    "planChangeFailed": "Could not change plan",
+    "alreadyOnPlan": "You are already on this plan",
     "status": {
       "trialing": "Trial",
       "active": "Active",

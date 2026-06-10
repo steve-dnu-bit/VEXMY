@@ -1,6 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
+import {
+  canManageOrganizationBilling,
+  loadOrganizationRecord,
+  resolveOrganizationForUser,
+} from "../_shared/organization.ts";
+import {
+  checkPlatformPrice,
+  formatPriceSecretError,
+  getPlatformPriceSecret,
+  type PlatformPlanId,
+} from "../_shared/stripe-platform-billing.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -21,15 +32,6 @@ function slugify(name: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 63) || "studio";
-}
-
-function getStripePriceId(planId: string): string | null {
-  const map: Record<string, string | undefined> = {
-    starter: Deno.env.get("STRIPE_PRICE_STARTER"),
-    studio: Deno.env.get("STRIPE_PRICE_STUDIO"),
-    enterprise: Deno.env.get("STRIPE_PRICE_ENTERPRISE"),
-  };
-  return map[planId] ?? null;
 }
 
 serve(async (req) => {
@@ -76,10 +78,28 @@ serve(async (req) => {
       });
     }
 
-    const stripePriceId = getStripePriceId(planId);
+    const platformPlanId = planId as PlatformPlanId;
+    const stripePriceId = getPlatformPriceSecret(platformPlanId);
     if (!stripePriceId) {
       return new Response(JSON.stringify({ error: "Stripe price not configured for this plan" }), {
         status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const formatError = formatPriceSecretError(stripePriceId, platformPlanId);
+    if (formatError) {
+      return new Response(JSON.stringify({ error: formatError }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const stripe = new Stripe(stripeSecret);
+    const priceCheck = await checkPlatformPrice(stripe, platformPlanId);
+    if (!priceCheck.ok && priceCheck.error) {
+      return new Response(JSON.stringify({ error: priceCheck.error }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -98,38 +118,34 @@ serve(async (req) => {
       });
     }
 
-    const stripe = new Stripe(stripeSecret);
     const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "http://localhost:8080";
     const baseUrl = origin.replace(/\/$/, "");
 
-    let orgId = organizationId;
+    let orgId = organizationId ?? (await resolveOrganizationForUser(admin, user.id));
     let orgRecord: { id: string; name: string; stripe_customer_id: string | null } | null = null;
 
     if (orgId) {
-      const { data: existingOrg } = await admin
-        .from("organizations")
-        .select("id, name, stripe_customer_id")
-        .eq("id", orgId)
-        .single();
-      if (!existingOrg) {
-        return new Response(JSON.stringify({ error: "Organization not found" }), {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const { data: membership } = await admin
-        .from("organization_members")
-        .select("role")
-        .eq("organization_id", orgId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (!membership || !["owner", "admin"].includes(membership.role)) {
+      if (!(await canManageOrganizationBilling(admin, user.id, orgId))) {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      orgRecord = existingOrg;
+
+      const { org, error: orgLoadError } = await loadOrganizationRecord(admin, orgId);
+      if (orgLoadError) {
+        return new Response(JSON.stringify({ error: orgLoadError }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!org) {
+        return new Response(JSON.stringify({ error: "Organization not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      orgRecord = org;
     } else {
       if (!studioName || studioName.length < 2) {
         return new Response(JSON.stringify({ error: "studioName is required for new subscriptions" }), {
@@ -200,26 +216,38 @@ serve(async (req) => {
 
     const trialDays = planRow?.trial_days ?? 14;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      success_url: `${baseUrl}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/subscribe?plan=${planId}&canceled=1`,
-      line_items: [{ price: stripePriceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: trialDays > 0 ? trialDays : undefined,
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: customerId,
+        success_url: `${baseUrl}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/subscribe?plan=${planId}&canceled=1`,
+        line_items: [{ price: stripePriceId, quantity: 1 }],
+        subscription_data: {
+          trial_period_days: trialDays > 0 ? trialDays : undefined,
+          metadata: {
+            organization_id: orgId!,
+            plan_id: planId,
+          },
+        },
         metadata: {
+          kind: "platform_subscription",
           organization_id: orgId!,
           plan_id: planId,
         },
-      },
-      metadata: {
-        kind: "platform_subscription",
-        organization_id: orgId!,
-        plan_id: planId,
-      },
-      allow_promotion_codes: true,
-    });
+        allow_promotion_codes: true,
+      });
+    } catch (checkoutError) {
+      const msg = checkoutError instanceof Error ? checkoutError.message : "Could not create Stripe checkout";
+      const friendly = msg.includes("No such price")
+        ? `Invalid Stripe price for ${planId}. Set STRIPE_PRICE_${planId.toUpperCase()} to a price_... ID (not prod_...) from the same test/live mode as STRIPE_SECRET_KEY.`
+        : msg;
+      return new Response(JSON.stringify({ error: friendly }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     await admin.from("platform_subscriptions").upsert(
       {

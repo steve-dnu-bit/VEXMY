@@ -452,17 +452,7 @@ const AdminPage = () => {
                 </p>
                 {!seatUsage.canAdd ? (
                   <Button variant="link" className="h-auto p-0 mt-2 text-gold" asChild>
-                    <Link
-                      to={
-                        seatUsage.planId === "starter"
-                          ? "/subscribe?plan=studio"
-                          : seatUsage.planId === "studio"
-                            ? "/subscribe?plan=enterprise"
-                            : "/contact"
-                      }
-                    >
-                      {t("admin.upgradeSeats")}
-                    </Link>
+                    <a href="#subscription">{t("admin.upgradeSeats")}</a>
                   </Button>
                 ) : null}
               </div>

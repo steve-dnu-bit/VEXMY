@@ -6,6 +6,7 @@ export type PricingPlan = {
   tagline: string;
   description: string;
   seats: string;
+  maxArtistSeats: number;
   features: string[];
   cta: string;
   ctaHref: string;
@@ -18,9 +19,29 @@ export const PLAN_PRICES_GBP = {
   enterprise: 29.9,
 } as const;
 
+export const PLAN_ARTIST_SEATS = {
+  starter: 3,
+  studio: 6,
+  enterprise: 10,
+} as const;
+
+export const PLAN_ORDER = ["starter", "studio", "enterprise"] as const;
+
 export function formatPlanPriceGbp(amount: number): string {
   return `£${amount.toFixed(2)}`;
 }
+
+/** Same feature set on every plan — only artist seat count differs. */
+export const SHARED_PLAN_FEATURES = [
+  "Full schedule & multi-artist calendar",
+  "Client CRM & CSV import",
+  "Digital consent forms & customer portal",
+  "Stripe deposits & invoice payments",
+  "Staff inbox & role permissions",
+  "Automated reminders & aftercare emails",
+  "Stock management & billing records",
+  "Documentation & email support",
+] as const;
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
@@ -29,16 +50,10 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
     period: "/ month",
     tagline: "Small team",
-    description: "Run bookings professionally with up to 3 artists on your schedule.",
+    description: "The full Velbok platform for shops with up to 3 artists.",
     seats: "Up to 3 artist seats",
-    features: [
-      "Multi-artist schedule (up to 3 seats)",
-      "Client CRM & CSV import",
-      "Digital consent forms",
-      "Customer portal",
-      "Booking reminders (when email configured)",
-      "Documentation & email support",
-    ],
+    maxArtistSeats: PLAN_ARTIST_SEATS.starter,
+    features: [...SHARED_PLAN_FEATURES],
     cta: "Start with Starter",
     ctaHref: "/subscribe?plan=starter",
     highlighted: false,
@@ -49,17 +64,10 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
     period: "/ month",
     tagline: "Growing shop",
-    description: "The full Velbok toolkit for busy studios — up to 6 artists and front-desk staff.",
+    description: "The full Velbok platform for shops with up to 6 artists.",
     seats: "Up to 6 artist seats",
-    features: [
-      "Everything in Starter",
-      "Stripe deposits & invoice payments",
-      "Staff inbox & role permissions",
-      "Automated reminders & aftercare emails",
-      "Stock management",
-      "Billing & company records",
-      "Priority email support",
-    ],
+    maxArtistSeats: PLAN_ARTIST_SEATS.studio,
+    features: [...SHARED_PLAN_FEATURES],
     cta: "Start free trial",
     ctaHref: "/subscribe?plan=studio",
     highlighted: true,
@@ -70,16 +78,10 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
     period: "/ month",
     tagline: "Large studio",
-    description: "For established shops with larger teams — up to 10 artists plus priority support.",
+    description: "The full Velbok platform for shops with up to 10 artists.",
     seats: "Up to 10 artist seats",
-    features: [
-      "Everything in Studio",
-      "Up to 10 artist seats",
-      "Dedicated setup & migration help",
-      "Custom branding & domain guidance",
-      "SLA & priority support",
-      "Training for your team",
-    ],
+    maxArtistSeats: PLAN_ARTIST_SEATS.enterprise,
+    features: [...SHARED_PLAN_FEATURES],
     cta: "Start with Enterprise",
     ctaHref: "/subscribe?plan=enterprise",
     highlighted: false,
@@ -93,7 +95,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in every plan?",
-    a: "Secure cloud hosting, product updates, access to documentation, SSL, and data stored on isolated Supabase infrastructure per studio.",
+    a: "Every plan includes the full Velbok platform — scheduling, CRM, deposits, consent, inbox, stock, billing, and more. The only difference is how many artists you can add.",
   },
   {
     q: "Are Stripe fees included?",
@@ -101,11 +103,11 @@ export const PRICING_FAQ = [
   },
   {
     q: "Can I switch plans later?",
-    a: "Yes. Upgrade or downgrade as your team grows — Starter (3 artists), Studio (6), or Enterprise (10).",
+    a: "Yes. Upgrade or downgrade anytime from Admin — Starter (3 artists), Studio (6), or Enterprise (10).",
   },
   {
     q: "Do you help migrate from my current system?",
-    a: "Studio and Enterprise plans include client CSV import in the app. Enterprise includes hands-on migration assistance for bookings and records.",
+    a: "All plans include client CSV import in the app. Contact us if you need hands-on migration help for bookings and records.",
   },
 ];
 
@@ -117,18 +119,14 @@ export const COMPARISON_ROWS: { label: string; starter: string; studio: string; 
     enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
   },
   { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
-  { label: "Schedule & CRM", starter: "✓", studio: "✓", enterprise: "✓" },
-  { label: "Consent forms", starter: "✓", studio: "✓", enterprise: "✓" },
-  { label: "Customer portal", starter: "✓", studio: "✓", enterprise: "✓" },
-  { label: "Stripe deposits", starter: "—", studio: "✓", enterprise: "✓" },
-  { label: "Invoicing", starter: "—", studio: "✓", enterprise: "✓" },
-  { label: "Staff inbox", starter: "—", studio: "✓", enterprise: "✓" },
-  { label: "Stock management", starter: "—", studio: "✓", enterprise: "✓" },
-  { label: "Dedicated onboarding", starter: "—", studio: "—", enterprise: "✓" },
-  { label: "SLA", starter: "—", studio: "—", enterprise: "✓" },
+  { label: "Full platform features", starter: "✓", studio: "✓", enterprise: "✓" },
 ];
 
 export function getPlanById(id: string | null): PricingPlan | undefined {
   if (!id) return undefined;
   return PRICING_PLANS.find((p) => p.id === id.toLowerCase());
+}
+
+export function comparePlanOrder(a: string, b: string): number {
+  return PLAN_ORDER.indexOf(a as (typeof PLAN_ORDER)[number]) - PLAN_ORDER.indexOf(b as (typeof PLAN_ORDER)[number]);
 }

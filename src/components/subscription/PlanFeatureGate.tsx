@@ -4,20 +4,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSubscription, type PlanFeatures } from "@/hooks/useSubscription";
-import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 
 type PlanFeatureGateProps = {
   feature: keyof PlanFeatures;
   children: React.ReactNode;
-  requiredPlanId?: "studio" | "enterprise";
 };
 
-const PlanFeatureGate = ({ feature, children, requiredPlanId = "studio" }: PlanFeatureGateProps) => {
+const PlanFeatureGate = ({ feature, children }: PlanFeatureGateProps) => {
   const { t } = useTranslation();
-  const pricingPlans = usePricingPlansI18n();
   const { isLoading, hasFeature, isActive } = useSubscription();
-  const requiredPlan = pricingPlans.find((p) => p.id === requiredPlanId);
-  const planName = requiredPlan?.name ?? "Studio";
 
   if (isLoading) return <>{children}</>;
 
@@ -31,15 +26,13 @@ const PlanFeatureGate = ({ feature, children, requiredPlanId = "studio" }: PlanF
             <Lock className="h-6 w-6 text-gold" />
           </div>
           <CardTitle className="font-display">{t("subscription.upgradeRequired")}</CardTitle>
-          <CardDescription>
-            {t("subscription.upgradeRequiredDesc", { plan: planName })}
-          </CardDescription>
+          <CardDescription>{t("subscription.upgradeRequiredDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3">
           <Button variant="gold" asChild>
-            <Link to={`/subscribe?plan=${requiredPlanId}`}>
+            <Link to="/subscribe?plan=studio">
               <Crown className="mr-2 h-4 w-4" />
-              {t("subscription.upgradeTo", { plan: planName })}
+              {t("common.subscribeNow")}
             </Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
