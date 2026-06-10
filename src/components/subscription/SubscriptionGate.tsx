@@ -3,18 +3,18 @@ import { Crown, Loader2, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSubscription, type PlanFeatures } from "@/hooks/useSubscription";
+import { useArtistSeats, useSubscription } from "@/hooks/useSubscription";
 
-type PlanFeatureGateProps = {
-  feature: keyof PlanFeatures;
-  children: React.ReactNode;
-};
-
-const PlanFeatureGate = ({ feature, children }: PlanFeatureGateProps) => {
+/**
+ * Blocks pages that require a paid platform subscription.
+ * Uses both subscription status and seat-usage RPC (reliable across RLS / multi-tenant).
+ */
+const SubscriptionGate = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
-  const { isLoading, isActive } = useSubscription();
+  const { isLoading: subLoading, isActive } = useSubscription();
+  const { data: seats, isLoading: seatLoading } = useArtistSeats();
 
-  if (isLoading) {
+  if (subLoading || seatLoading) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -22,7 +22,7 @@ const PlanFeatureGate = ({ feature, children }: PlanFeatureGateProps) => {
     );
   }
 
-  if (isActive) return <>{children}</>;
+  if (isActive || seats?.planId) return <>{children}</>;
 
   return (
     <div className="mx-auto max-w-lg py-12 px-4">
@@ -36,7 +36,7 @@ const PlanFeatureGate = ({ feature, children }: PlanFeatureGateProps) => {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3">
           <Button variant="gold" asChild>
-            <Link to="/subscribe?plan=studio">
+            <Link to="/subscribe?plan=enterprise">
               <Crown className="mr-2 h-4 w-4" />
               {t("common.subscribeNow")}
             </Link>
@@ -50,4 +50,4 @@ const PlanFeatureGate = ({ feature, children }: PlanFeatureGateProps) => {
   );
 };
 
-export default PlanFeatureGate;
+export default SubscriptionGate;

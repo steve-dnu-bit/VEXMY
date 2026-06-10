@@ -61,60 +61,56 @@ export function isSubscriptionActive(status: SubscriptionStatus | null | undefin
   return !!status && ACTIVE_STATUSES.includes(status);
 }
 
-export function planHasFeature(plan: SubscriptionPlan | null, feature: keyof PlanFeatures): boolean {
+export function planHasFeature(
+  plan: SubscriptionPlan | null,
+  feature: keyof PlanFeatures,
+  subscriptionActive = false,
+): boolean {
+  // All plans include the same platform features; seat count is the only difference.
+  if (subscriptionActive) return true;
   if (!plan?.features) return false;
   return plan.features[feature] === true;
 }
 
+type SubscriptionRpcPayload = {
+  organizationId?: string;
+  organizationName?: string;
+  organizationSlug?: string;
+  memberRole?: OrganizationSubscription["memberRole"];
+  subscription?: {
+    id: string;
+    planId: string;
+    status: SubscriptionStatus;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    trialEnd: string | null;
+  } | null;
+  plan?: SubscriptionPlan | null;
+};
+
 async function fetchOrganizationSubscription(userId: string): Promise<OrganizationSubscription | null> {
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id, role, organizations(id, name, slug)")
-    .eq("user_id", userId)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("get_organization_subscription_for_user", {
+    _user_id: userId,
+  });
 
-  if (!membership?.organizations) return null;
+  if (error || !data || typeof data !== "object") return null;
 
-  const org = membership.organizations as { id: string; name: string; slug: string };
+  const row = data as SubscriptionRpcPayload;
+  if (!row.organizationId || !row.organizationName || !row.organizationSlug) return null;
 
-  const { data: subRow } = await supabase
-    .from("platform_subscriptions")
-    .select("id, plan_id, status, current_period_end, cancel_at_period_end, trial_end")
-    .eq("organization_id", org.id)
-    .maybeSingle();
-
-  let plan: SubscriptionPlan | null = null;
-  if (subRow?.plan_id) {
-    const { data: planRow } = await supabase
-      .from("subscription_plans")
-      .select("id, name, description, price_gbp_monthly, max_artist_seats, trial_days, features")
-      .eq("id", subRow.plan_id)
-      .maybeSingle();
-    if (planRow) {
-      plan = {
-        ...planRow,
-        features: (planRow.features as PlanFeatures) ?? {},
-      };
-    }
-  }
+  const plan = row.plan
+    ? {
+        ...row.plan,
+        features: (row.plan.features as PlanFeatures) ?? {},
+      }
+    : null;
 
   return {
-    organizationId: org.id,
-    organizationName: org.name,
-    organizationSlug: org.slug,
-    memberRole: membership.role as OrganizationSubscription["memberRole"],
-    subscription: subRow
-      ? {
-          id: subRow.id,
-          planId: subRow.plan_id,
-          status: subRow.status as SubscriptionStatus,
-          currentPeriodEnd: subRow.current_period_end,
-          cancelAtPeriodEnd: subRow.cancel_at_period_end,
-          trialEnd: subRow.trial_end,
-        }
-      : null,
+    organizationId: row.organizationId,
+    organizationName: row.organizationName,
+    organizationSlug: row.organizationSlug,
+    memberRole: row.memberRole ?? null,
+    subscription: row.subscription ?? null,
     plan,
   };
 }
@@ -161,8 +157,11 @@ export function useSubscription() {
     staleTime: 60_000,
   });
 
-  const isActive = isSubscriptionActive(query.data?.subscription?.status);
-  const hasFeature = (feature: keyof PlanFeatures) => planHasFeature(query.data?.plan ?? null, feature);
+  const seatQuery = useArtistSeats();
+  const isActive =
+    isSubscriptionActive(query.data?.subscription?.status) || !!seatQuery.data?.planId;
+  const hasFeature = (feature: keyof PlanFeatures) =>
+    planHasFeature(query.data?.plan ?? null, feature, isActive);
   const canManageBilling = query.data?.memberRole === "owner" || query.data?.memberRole === "admin";
 
   return {
