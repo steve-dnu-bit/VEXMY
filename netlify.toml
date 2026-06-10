@@ -11,11 +11,12 @@
   [headers.values]
     Content-Security-Policy = "frame-ancestors *"
 
-# SPA client-side routing (React Router)
+# SPA client-side routing (React Router) — exclude edge API routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
 
 # Manual deploy workflow: disable auto-builds in Netlify UI to save credits.
 # See docs/deploy-workflow.md — use npm run deploy:preview / deploy:prod

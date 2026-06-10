@@ -1,3 +1,4 @@
+import { appLanguageFromShopCountry, type AppLanguage } from "@/i18n/languages";
 import { shopCountryFromGeoCode, type ShopCountryCode } from "@/lib/shopCurrency";
 
 const GEO_COUNTRY_PATH = "/api/geo-country";
@@ -14,6 +15,13 @@ export { shopCountryFromGeoCode };
  * Suggest shop country from visitor IP (Netlify Edge on production).
  * Returns null when geo is unavailable (local dev, unsupported country, network error).
  */
+/** Suggest app UI language from visitor IP (Netlify Edge). Returns null when unavailable. */
+export async function detectAppLanguageFromIp(): Promise<AppLanguage | null> {
+  const geo = await detectShopCountryFromIp();
+  if (!geo) return null;
+  return appLanguageFromShopCountry(geo.shopCountry);
+}
+
 export async function detectShopCountryFromIp(): Promise<GeoCountryResult | null> {
   try {
     const res = await fetch(GEO_COUNTRY_PATH, {

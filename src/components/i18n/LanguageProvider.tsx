@@ -10,6 +10,7 @@ import {
   SUPPORTED_LANGUAGES,
   type AppLanguage,
 } from "@/i18n/languages";
+import { detectAppLanguageFromIp } from "@/lib/detectShopCountry";
 
 type LanguageContextValue = {
   language: AppLanguage;
@@ -18,6 +19,20 @@ type LanguageContextValue = {
 };
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
+
+function hasStoredLanguage(): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  return isAppLanguage(stored);
+}
+
+async function applyNavigatorFallback(i18nInstance: typeof i18n): Promise<void> {
+  const base = navigator.language?.split("-")[0];
+  if (isAppLanguage(base)) {
+    await i18nInstance.changeLanguage(base);
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, base);
+  }
+}
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
@@ -32,22 +47,39 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     let cancelled = false;
+
     const sync = async () => {
-      if (!user) {
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("app_language_preference")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const remote = (data as { app_language_preference?: string } | null)?.app_language_preference;
+        if (!cancelled && isAppLanguage(remote)) {
+          await i18nInstance.changeLanguage(remote);
+          window.localStorage.setItem(LANGUAGE_STORAGE_KEY, remote);
+          setReady(true);
+          return;
+        }
+      }
+
+      if (hasStoredLanguage()) {
         if (!cancelled) setReady(true);
         return;
       }
-      const { data } = await supabase
-        .from("profiles")
-        .select("app_language_preference")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const remote = (data as { app_language_preference?: string } | null)?.app_language_preference;
-      if (!cancelled && isAppLanguage(remote) && remote !== i18nInstance.language) {
-        await i18nInstance.changeLanguage(remote);
+
+      const fromIp = await detectAppLanguageFromIp();
+      if (!cancelled && fromIp) {
+        await i18nInstance.changeLanguage(fromIp);
+        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, fromIp);
+      } else if (!cancelled) {
+        await applyNavigatorFallback(i18nInstance);
       }
+
       if (!cancelled) setReady(true);
     };
+
     void sync();
     return () => {
       cancelled = true;

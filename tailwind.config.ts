@@ -108,6 +108,10 @@ export default {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
+        "flag-float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -116,6 +120,7 @@ export default {
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
         "scale-in": "scale-in 0.4s ease-out forwards",
         "flag-marquee": "flag-marquee 45s linear infinite",
+        "flag-float": "flag-float 3.5s ease-in-out infinite",
       },
     },
   },
