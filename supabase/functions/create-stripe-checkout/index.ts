@@ -8,6 +8,7 @@ import {
   buildDepositRequestEmail,
   type BookingEmailDetails,
 } from "../_shared/email-templates.ts";
+import { resolveOrganizationForUser } from "../_shared/organization.ts";
 import { getActiveConnectAccount, stripeRequestOptions } from "../_shared/stripe-connect.ts";
 
 const corsHeaders: Record<string, string> = {
@@ -89,8 +90,6 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeSecret);
-    const connectCtx = await getActiveConnectAccount(admin);
-    const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
     const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "http://localhost:5173";
     const baseUrl = origin.replace(/\/$/, "");
 
@@ -104,7 +103,7 @@ serve(async (req) => {
 
       const { data: booking, error } = await admin
         .from("bookings")
-        .select("id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid, vip_client")
+        .select("id, artist_id, organization_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid, vip_client")
         .eq("id", bookingId)
         .single();
       if (error || !booking) {
@@ -130,6 +129,25 @@ serve(async (req) => {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+
+      const bookingOrgId =
+        booking.organization_id ??
+        (await resolveOrganizationForUser(admin, booking.artist_id));
+      const connectCtx = await getActiveConnectAccount(admin, {
+        organizationId: bookingOrgId,
+        userId: user.id,
+      });
+      const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
+
+      if (action === "create" && !connectCtx) {
+        return new Response(
+          JSON.stringify({
+            error: "Set up client payouts (Stripe Connect) before sending deposit payment links.",
+            code: "connect_required",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
 
       if (action === "confirm") {
@@ -321,6 +339,23 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    const invoiceOrgId = await resolveOrganizationForUser(admin, user.id);
+    const connectCtx = await getActiveConnectAccount(admin, {
+      organizationId: invoiceOrgId,
+      userId: user.id,
+    });
+    const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
+
+    if (!connectCtx) {
+      return new Response(
+        JSON.stringify({
+          error: "Set up client payouts (Stripe Connect) before creating invoice payment links.",
+          code: "connect_required",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const { data: invoice, error } = await admin

@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
+import { resolveOrganizationForUser } from "../_shared/organization.ts";
 import {
+  canManageStripeConnect,
   getConnectStatusForOrg,
   mapShopCountryToStripe,
   syncConnectAccountFromStripe,
@@ -63,24 +65,18 @@ serve(async (req) => {
       });
     }
 
-    const { data: membership } = await admin
-      .from("organization_members")
-      .select("organization_id, role")
-      .eq("user_id", user.id)
-      .in("role", ["owner", "admin"])
-      .limit(1)
-      .maybeSingle();
-
-    let organizationId = membership?.organization_id ?? null;
-    if (!organizationId) {
-      const { data: orgId } = await admin.rpc("get_user_organization_id", { _user_id: user.id });
-      const { data: isAdmin } = await admin.rpc("has_role", { _user_id: user.id, _role: "admin" });
-      if (isAdmin && orgId) organizationId = orgId as string;
-    }
+    const organizationId = await resolveOrganizationForUser(admin, user.id);
 
     if (!organizationId) {
       return new Response(JSON.stringify({ error: "No organization found. Subscribe to a plan first." }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!(await canManageStripeConnect(admin, user.id, organizationId))) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -93,11 +89,18 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeSecret);
 
-    const { data: org } = await admin
+    const { data: org, error: orgError } = await admin
       .from("organizations")
       .select("id, name, stripe_connect_account_id")
       .eq("id", organizationId)
-      .single();
+      .maybeSingle();
+
+    if (orgError) {
+      return new Response(JSON.stringify({ error: orgError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!org) {
       return new Response(JSON.stringify({ error: "Organization not found" }), {

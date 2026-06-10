@@ -15,6 +15,11 @@ export async function resolveOrganizationForUser(
   admin: SupabaseClient,
   userId: string,
 ): Promise<string | null> {
+  const { data: resolvedOrgId } = await admin.rpc("resolve_user_organization_id", { _user_id: userId });
+  if (resolvedOrgId && (await organizationExists(admin, resolvedOrgId as string))) {
+    return resolvedOrgId as string;
+  }
+
   const { data: memberOrgId } = await admin.rpc("get_user_organization_id", { _user_id: userId });
   if (memberOrgId && (await organizationExists(admin, memberOrgId as string))) {
     return memberOrgId as string;

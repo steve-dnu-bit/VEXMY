@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
+import { resolveOrganizationForUser } from "./organization.ts";
 
 export type ConnectAccountContext = {
   organizationId: string;
@@ -20,6 +21,24 @@ export function mapShopCountryToStripe(country: string | null | undefined): stri
   if (normalized === "UK" || normalized === "UNITED KINGDOM") return "GB";
   if (normalized.length === 2) return normalized;
   return "GB";
+}
+
+export async function canManageStripeConnect(
+  admin: SupabaseClient,
+  userId: string,
+  organizationId: string,
+): Promise<boolean> {
+  const { data: isPlatformAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
+  if (isPlatformAdmin) return true;
+
+  const { data: membership } = await admin
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return !!membership && ["owner", "admin"].includes(membership.role);
 }
 
 export async function syncConnectAccountFromStripe(
@@ -106,33 +125,14 @@ export async function getConnectStatusForOrg(
   };
 }
 
-export async function getActiveConnectAccount(
+export async function getConnectAccountForOrganization(
   admin: SupabaseClient,
+  organizationId: string,
 ): Promise<ConnectAccountContext | null> {
-  const { data: shop } = await admin
-    .from("shop_settings")
-    .select("organization_id")
-    .not("organization_id", "is", null)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  let orgId = shop?.organization_id ?? null;
-  if (!orgId) {
-    const { data: org } = await admin
-      .from("organizations")
-      .select("id")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    orgId = org?.id ?? null;
-  }
-  if (!orgId) return null;
-
   const { data: org } = await admin
     .from("organizations")
     .select("id, stripe_connect_account_id, stripe_connect_charges_enabled")
-    .eq("id", orgId)
+    .eq("id", organizationId)
     .maybeSingle();
 
   if (!org?.stripe_connect_account_id || !org.stripe_connect_charges_enabled) return null;
@@ -141,6 +141,40 @@ export async function getActiveConnectAccount(
     organizationId: org.id,
     stripeConnectAccountId: org.stripe_connect_account_id,
   };
+}
+
+export async function getActiveConnectAccount(
+  admin: SupabaseClient,
+  options?: { organizationId?: string | null; userId?: string | null },
+): Promise<ConnectAccountContext | null> {
+  let orgId = options?.organizationId ?? null;
+
+  if (!orgId && options?.userId) {
+    orgId = await resolveOrganizationForUser(admin, options.userId);
+  }
+
+  if (!orgId) {
+    const { data: shop } = await admin
+      .from("shop_settings")
+      .select("organization_id")
+      .not("organization_id", "is", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    orgId = shop?.organization_id ?? null;
+    if (!orgId) {
+      const { data: org } = await admin
+        .from("organizations")
+        .select("id")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      orgId = org?.id ?? null;
+    }
+  }
+
+  if (!orgId) return null;
+  return getConnectAccountForOrganization(admin, orgId);
 }
 
 export function stripeRequestOptions(connectAccountId: string | null | undefined): Stripe.RequestOptions | undefined {

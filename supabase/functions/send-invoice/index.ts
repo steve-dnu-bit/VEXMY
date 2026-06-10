@@ -294,7 +294,7 @@ serve(async (req) => {
       const totalPence = Math.round(Number(invoice.total || 0) * 100);
       if (totalPence >= 30) {
         try {
-          const connectCtx = await getActiveConnectAccount(adminClient);
+          const connectCtx = await getActiveConnectAccount(adminClient, { userId: authData.user.id });
           const checkout = await createInvoiceCheckoutUrl({
             stripeSecret,
             invoice: {

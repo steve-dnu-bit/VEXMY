@@ -16,6 +16,7 @@ import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
+import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { useTranslation } from "react-i18next";
 
 interface Company {
@@ -123,7 +124,12 @@ const BillingPage = () => {
   const handleCreateInvoicePayLink = async (invoiceId: string) => {
     const { data, error } = await invokeEdgeFunctionJson("create-stripe-checkout", { type: "invoice", invoiceId });
     if (error || !(data as any)?.checkoutUrl) {
-      toast.error((data as any)?.error || error?.message || t("billing.failedCreatePaymentLink"));
+      const code = (data as any)?.code as string | undefined;
+      toast.error(
+        code === "connect_required"
+          ? t("billing.connectRequired")
+          : (data as any)?.error || error?.message || t("billing.failedCreatePaymentLink"),
+      );
       return;
     }
     const checkoutUrl = (data as any).checkoutUrl as string;
@@ -378,17 +384,7 @@ const BillingPage = () => {
           )}
         </div>
 
-        <Card className="border-amber-500/25 bg-amber-500/5">
-          <CardContent className="p-4 flex items-start gap-3">
-            <PoundSterling className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium">{t("billing.stripeEnabledTitle")}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t("billing.stripeEnabledDesc")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StripeConnectCard compact returnPath="/billing" refreshPath="/billing" />
       </div>
       </SubscriptionGate>
     </AppLayout>

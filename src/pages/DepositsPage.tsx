@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isAfter, parseISO, startOfDay, subDays } from "date-fns";
-import { Send, CheckCircle, Clock, AlertCircle, Star } from "lucide-react";
+import { Send, CheckCircle, Clock, Star } from "lucide-react";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
+import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { useTranslation } from "react-i18next";
 
 interface BookingWithDeposit {
@@ -90,7 +91,12 @@ const DepositsPage = () => {
       sendEmail: true,
     });
     if (error || !(data as any)?.checkoutUrl) {
-      toast.error((data as any)?.error || error?.message || t("deposits.failedGenerateLink"));
+      const code = (data as any)?.code as string | undefined;
+      toast.error(
+        code === "connect_required"
+          ? t("deposits.connectRequired")
+          : (data as any)?.error || error?.message || t("deposits.failedGenerateLink"),
+      );
       return;
     }
     const checkoutUrl = (data as any).checkoutUrl as string;
@@ -381,18 +387,7 @@ const DepositsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Stripe reconciliation note */}
-        <Card className="border-amber-500/25 bg-amber-500/5">
-          <CardContent className="p-4 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium">{t("deposits.stripeEnabledTitle")}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t("deposits.stripeEnabledDesc")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StripeConnectCard compact returnPath="/deposits" refreshPath="/deposits" />
       </div>
       </SubscriptionGate>
     </AppLayout>
