@@ -5,12 +5,16 @@
       <stop offset="45%" stop-color="#d6a23c" />
       <stop offset="100%" stop-color="#9f7420" />
     </linearGradient>
+    <linearGradient id="goldHighlight" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#fff0b8" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#9f7420" stop-opacity="0" />
+    </linearGradient>
     <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feGaussianBlur stdDeviation="3" result="blur" />
       <feColorMatrix
         in="blur"
         type="matrix"
-        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.35 0"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.3 0"
         result="glow"
       />
       <feMerge>
@@ -21,19 +25,42 @@
   </defs>
 
   <rect width="512" height="512" rx="110" fill="#0b0c12" />
-  <rect x="28" y="28" width="456" height="456" rx="92" fill="none" stroke="rgba(246,211,111,0.18)" stroke-width="3" />
+  <rect x="28" y="28" width="456" height="456" rx="92" fill="none" stroke="rgba(246,211,111,0.22)" stroke-width="3" />
 
-  <text
-    x="256"
-    y="290"
-    text-anchor="middle"
-    font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
-    font-size="96"
-    font-weight="700"
-    letter-spacing="4"
-    fill="url(#gold)"
-    filter="url(#softGlow)"
-  >
-    Velbok
-  </text>
+  <g filter="url(#softGlow)">
+    <!-- V left stroke -->
+    <path
+      fill="url(#gold)"
+      d="M132 132 L228 392 L268 392 L188 132 Z"
+    />
+    <!-- Shared spine: V right leg + B stem -->
+    <path
+      fill="url(#gold)"
+      d="M188 132 L268 392 L308 392 L308 132 Z"
+    />
+    <!-- B upper bowl -->
+    <path
+      fill="url(#gold)"
+      d="M308 132 H372 C418 132 418 188 372 188 H308 V132 Z"
+    />
+    <path
+      fill="url(#gold)"
+      d="M308 188 H372 C418 188 418 244 372 244 H308 V188 Z"
+    />
+    <!-- B lower bowl -->
+    <path
+      fill="url(#gold)"
+      d="M308 268 H380 C426 268 426 324 380 324 H308 V268 Z"
+    />
+    <path
+      fill="url(#gold)"
+      d="M308 324 H380 C426 324 426 380 380 380 H308 V324 Z"
+    />
+    <!-- Highlight sheen -->
+    <path
+      fill="url(#goldHighlight)"
+      d="M132 132 L228 392 L268 392 L188 132 Z"
+      opacity="0.6"
+    />
+  </g>
 </svg>
