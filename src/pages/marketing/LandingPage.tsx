@@ -1,5 +1,9 @@
 import { Link } from "react-router-dom";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
+import LandingFeatureTour from "@/components/marketing/landing/LandingFeatureTour";
+import LandingScreenshotGallery from "@/components/marketing/landing/LandingScreenshotGallery";
+import LandingStripeSection from "@/components/marketing/landing/LandingStripeSection";
+import LandingSupportedCountries from "@/components/marketing/landing/LandingSupportedCountries";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLandingI18n } from "@/hooks/useLandingI18n";
@@ -67,6 +71,11 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      <LandingFeatureTour />
+      <LandingScreenshotGallery />
+      <LandingStripeSection />
+      <LandingSupportedCountries />
 
       <section id="features" className="border-t border-gold/10 bg-[#0a0b10]/80 px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-6xl">

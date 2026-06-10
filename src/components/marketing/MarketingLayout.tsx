@@ -11,6 +11,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
+    { label: t("landing.navProductTour"), href: "/#product-tour" },
     { label: t("common.features"), href: "/#features" },
     { label: t("common.pricing"), href: "/pricing" },
     { label: t("common.documentation"), href: "/docs" },
