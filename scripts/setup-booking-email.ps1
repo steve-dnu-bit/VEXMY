@@ -36,7 +36,7 @@ npx supabase secrets set `
     "EMAIL_FROM=Velbok <no-reply@velbok.com>" `
     "BOOKINGS_EMAIL_FROM=Velbok <no-reply@velbok.com>" `
     "NOTIFICATIONS_EMAIL_FROM=Velbok <no-reply@velbok.com>" `
-    SHOP_SUPPORT_EMAIL=no-reply@velbok.com `
+    SHOP_SUPPORT_EMAIL=support@velbok.com `
     SHOP_NAME=Velbok `
     SHOP_WEBSITE_URL=https://velbok.com `
     SITE_URL=https://velbok.com

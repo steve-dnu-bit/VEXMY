@@ -24,7 +24,7 @@ function Read-Secret([string]$Prompt, [string]$Default = "") {
 }
 
 $siteUrl = Read-Secret "SITE_URL (links in emails)" "https://velbok.com"
-$supportEmail = Read-Secret "Support / reply-to email" "no-reply@velbok.com"
+$supportEmail = Read-Secret "Support / reply-to email" "support@velbok.com"
 $shopName = Read-Secret "SHOP_NAME (email branding)" "Velbok"
 
 switch ($Provider) {

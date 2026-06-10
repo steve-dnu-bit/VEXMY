@@ -5,7 +5,7 @@ export const BRANDING = {
   shopName: import.meta.env.VITE_SHOP_NAME || import.meta.env.VITE_PLATFORM_NAME || "Velbok",
   shopLegalName: import.meta.env.VITE_SHOP_LEGAL_NAME || "Your Studio Ltd",
   shopTradingName: import.meta.env.VITE_SHOP_TRADING_NAME || import.meta.env.VITE_SHOP_NAME || "Your Tattoo Studio",
-  supportEmail: import.meta.env.VITE_SHOP_SUPPORT_EMAIL || "support@example.com",
+  supportEmail: import.meta.env.VITE_SHOP_SUPPORT_EMAIL || "support@velbok.com",
   privacyEmail:
     import.meta.env.VITE_SHOP_PRIVACY_EMAIL ||
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL ||
