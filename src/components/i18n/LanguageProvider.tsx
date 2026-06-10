@@ -5,8 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import i18n from "@/i18n";
 import {
   DEFAULT_LANGUAGE,
+  hasResolvedLanguageChoice,
   isAppLanguage,
-  LANGUAGE_STORAGE_KEY,
+  persistLanguageChoice,
   SUPPORTED_LANGUAGES,
   type AppLanguage,
 } from "@/i18n/languages";
@@ -20,17 +21,11 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
-function hasStoredLanguage(): boolean {
-  if (typeof window === "undefined") return false;
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return isAppLanguage(stored);
-}
-
 async function applyNavigatorFallback(i18nInstance: typeof i18n): Promise<void> {
   const base = navigator.language?.split("-")[0];
   if (isAppLanguage(base)) {
     await i18nInstance.changeLanguage(base);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, base);
+    persistLanguageChoice(base, "navigator");
   }
 }
 
@@ -58,13 +53,13 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
         const remote = (data as { app_language_preference?: string } | null)?.app_language_preference;
         if (!cancelled && isAppLanguage(remote)) {
           await i18nInstance.changeLanguage(remote);
-          window.localStorage.setItem(LANGUAGE_STORAGE_KEY, remote);
+          persistLanguageChoice(remote, "profile");
           setReady(true);
           return;
         }
       }
 
-      if (hasStoredLanguage()) {
+      if (hasResolvedLanguageChoice()) {
         if (!cancelled) setReady(true);
         return;
       }
@@ -72,7 +67,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
       const fromIp = await detectAppLanguageFromIp();
       if (!cancelled && fromIp) {
         await i18nInstance.changeLanguage(fromIp);
-        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, fromIp);
+        persistLanguageChoice(fromIp, "ip");
       } else if (!cancelled) {
         await applyNavigatorFallback(i18nInstance);
       }
@@ -89,9 +84,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   const setLanguage = useCallback(
     async (next: AppLanguage) => {
       await i18nInstance.changeLanguage(next);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
-      }
+      persistLanguageChoice(next, "user");
       if (user) {
         await supabase
           .from("profiles")

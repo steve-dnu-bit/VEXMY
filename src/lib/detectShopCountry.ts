@@ -31,6 +31,9 @@ export async function detectShopCountryFromIp(): Promise<GeoCountryResult | null
     });
     if (!res.ok) return null;
 
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) return null;
+
     const data = (await res.json()) as { countryCode?: string | null };
     const geoCode = data.countryCode?.trim().toUpperCase();
     if (!geoCode) return null;

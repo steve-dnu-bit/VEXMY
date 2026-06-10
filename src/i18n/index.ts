@@ -49,7 +49,8 @@ void i18n
     detection: {
       order: ["localStorage"],
       lookupLocalStorage: LANGUAGE_STORAGE_KEY,
-      caches: ["localStorage"],
+      // Do not cache fallback here — LanguageProvider/bootstrap persist after IP or user choice.
+      caches: [],
       convertDetectedLanguage: (lng) => {
         const base = lng.split("-")[0];
         return isAppLanguage(base) ? base : DEFAULT_LANGUAGE;

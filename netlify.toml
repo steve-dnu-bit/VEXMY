@@ -11,6 +11,11 @@
   [headers.values]
     Content-Security-Policy = "frame-ancestors *"
 
+# Geo IP endpoint (Netlify Edge) — must run before SPA fallback
+[[edge_functions]]
+  path = "/api/geo-country"
+  function = "geo-country"
+
 # SPA client-side routing (React Router) — exclude edge API routes
 [[redirects]]
   from = "/*"
