@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { buildStaffQuickReplies } from "@/lib/chatQuickReplies";
 import { fetchThreadBookingContext, type ThreadBookingContext } from "@/lib/chatThreadContext";
 import { useTranslation } from "react-i18next";
+import { filterUserIdsByOrganization, loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import ChatThreadList from "./ChatThreadList";
 import ChatMessagePanel, { type MessageMediaPreview } from "./ChatMessagePanel";
 import ChatGalleryPanel from "./ChatGalleryPanel";
@@ -174,6 +175,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
 
   const fetchArtists = async () => {
     if (!user || mode !== "customer") return;
+    const orgMemberIds = await loadOrganizationMemberIds();
     const [{ data: roleRows }, { data: profileRows }] = await Promise.all([
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("profiles").select("user_id, display_name, public_profile_completed, customer_profile_completed"),
@@ -197,7 +199,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
         if (!hasArtistRole && profile?.customer_profile_completed === true) return false;
         return true;
       });
-    const uniqueStaffIds = [...new Set(staffIds)];
+    const uniqueStaffIds = filterUserIdsByOrganization([...new Set(staffIds)], orgMemberIds);
     if (uniqueStaffIds.length === 0) {
       setArtists([]);
       return;
@@ -217,8 +219,14 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     if (!user || mode !== "staff") return;
     const byId = new Map<string, CustomerOption>();
 
-    const { data: roleRows } = await supabase.from("user_roles").select("user_id, role").eq("role", "customer");
-    const customerIds = [...new Set((roleRows || []).map((r: any) => r.user_id).filter(Boolean))] as string[];
+    const orgMemberIds = await loadOrganizationMemberIds();
+    let customerIds: string[];
+    if (orgMemberIds) {
+      customerIds = [...(await loadOrganizationCustomerIds())];
+    } else {
+      const { data: roleRows } = await supabase.from("user_roles").select("user_id, role").eq("role", "customer");
+      customerIds = [...new Set((roleRows || []).map((r: any) => r.user_id).filter(Boolean))] as string[];
+    }
 
     if (customerIds.length > 0) {
       const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", customerIds);

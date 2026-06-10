@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours } from "@/lib/shopScheduleHours";
+import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -168,6 +169,8 @@ const SchedulePage = () => {
   };
 
   const fetchProfiles = async () => {
+    const orgMemberIds = await loadOrganizationMemberIds();
+
     const [{ data: allProfiles, error: profilesErr }, { data: allRoles, error: roleErr }] = await Promise.all([
       supabase.from("profiles").select("user_id, display_name, avatar_url, portal_bg_color"),
       supabase.from("user_roles").select("user_id, role"),
@@ -181,7 +184,7 @@ const SchedulePage = () => {
 
     // Can't tell customer vs staff — show every profile so the schedule stays usable.
     if (roleErr) {
-      const list = (allProfiles || []) as Profile[];
+      const list = filterByOrganizationMembers((allProfiles || []) as Profile[], orgMemberIds);
       setProfiles(list);
       writeScheduleArtistColors(list);
       setProfilesReady(true);
@@ -216,7 +219,7 @@ const SchedulePage = () => {
 
     // Filter artists + booking dialog: not customer-only; hard-hidden (e.g. Mr.Tattooist); then booking artists;
     // then drop admin-only. Hard-hidden wins over bookingArtistIds so owner never clutters the picker.
-    const team = (allProfiles || []).filter((p) => {
+    const team = filterByOrganizationMembers((allProfiles || []) as Profile[], orgMemberIds).filter((p) => {
       if (isPureCustomerOnly(p.user_id)) return false;
       if (isHardHiddenScheduleArtist(p)) return false;
       if (bookingArtistIds.has(p.user_id)) return true;
@@ -224,7 +227,7 @@ const SchedulePage = () => {
       return true;
     });
 
-    const teamList = team as Profile[];
+    const teamList = team;
     setProfiles(teamList);
     writeScheduleArtistColors(teamList);
     setProfilesReady(true);

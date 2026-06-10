@@ -407,6 +407,22 @@ serve(async (req) => {
         { user_id: inviteData.user.id, role: "customer" },
         { onConflict: "user_id,role" },
       );
+
+      let orgId: string | null = null;
+      const { data: resolvedOrgId } = await adminClient.rpc("get_user_organization_id", {
+        _user_id: authResult.user.id,
+      });
+      orgId = resolvedOrgId ?? null;
+      if (!orgId) {
+        const { data: soleOrg } = await adminClient.from("organizations").select("id").limit(1).maybeSingle();
+        orgId = soleOrg?.id ?? null;
+      }
+      if (orgId) {
+        await adminClient.from("organization_members").upsert(
+          { organization_id: orgId, user_id: inviteData.user.id, role: "member" },
+          { onConflict: "organization_id,user_id" },
+        );
+      }
     }
 
     return new Response(JSON.stringify({ ok: true, userId: inviteData.user?.id }), {

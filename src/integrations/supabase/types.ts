@@ -32,6 +32,7 @@ export type Database = {
           ends_at: string
           id: string
           notes: string | null
+          organization_id: string | null
           reference_image_url: string | null
           starts_at: string
           status: string
@@ -58,6 +59,7 @@ export type Database = {
           ends_at: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           reference_image_url?: string | null
           starts_at: string
           status?: string
@@ -84,6 +86,7 @@ export type Database = {
           ends_at?: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           reference_image_url?: string | null
           starts_at?: string
           status?: string

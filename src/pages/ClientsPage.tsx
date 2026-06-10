@@ -24,6 +24,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
+import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { Link } from "react-router-dom";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
 import { extractClientUserIdFromListKey } from "@/lib/messagingLinks";
@@ -234,9 +235,15 @@ const ClientsPage = () => {
       }
     }
 
-    // Also include signed-up customer accounts even if they have no bookings yet.
-    const { data: customerRoles } = await supabase.from("user_roles").select("user_id").eq("role", "customer");
-    const customerIds = (customerRoles ?? []).map((r) => r.user_id).filter(Boolean);
+    // Also include signed-up customer accounts linked to this studio (even without bookings yet).
+    const orgMemberIds = await loadOrganizationMemberIds();
+    let customerIds: string[];
+    if (orgMemberIds) {
+      customerIds = [...(await loadOrganizationCustomerIds())];
+    } else {
+      const { data: customerRoles } = await supabase.from("user_roles").select("user_id").eq("role", "customer");
+      customerIds = (customerRoles ?? []).map((r) => r.user_id).filter(Boolean);
+    }
 
     if (customerIds.length > 0) {
       const { data: customerProfiles } = await supabase

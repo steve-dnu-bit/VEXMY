@@ -15,6 +15,7 @@ import BookingClientSearch, { type ClientPick } from "./BookingClientSearch";
 import BookingLinkAccount from "./BookingLinkAccount";
 import BookingConsentSection from "./BookingConsentSection";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
+import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 
 /** Escape user text for PostgREST ilike patterns */
 function escapeIlike(s: string) {
@@ -454,13 +455,22 @@ const BookingDialog = ({
         return;
       }
       const uids = profs.map((p) => p.user_id);
+      const [orgMemberIds, orgCustomerIds] = await Promise.all([
+        loadOrganizationMemberIds(),
+        loadOrganizationCustomerIds(),
+      ]);
       const { data: roleRows } = await supabase
         .from("user_roles")
         .select("user_id")
         .eq("role", "customer")
         .in("user_id", uids);
       const ok = new Set((roleRows ?? []).map((r) => r.user_id));
-      setLinkAccountSuggestions(profs.filter((p) => ok.has(p.user_id)).slice(0, 20));
+      setLinkAccountSuggestions(
+        profs
+          .filter((p) => ok.has(p.user_id))
+          .filter((p) => !orgMemberIds || orgCustomerIds.has(p.user_id))
+          .slice(0, 20),
+      );
     } catch {
       setLinkAccountSuggestions([]);
     } finally {
