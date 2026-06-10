@@ -1,7 +1,7 @@
 # Supabase savepoint — 2026-06-10
 
 **Project:** `tkremoxfkgoiuwghtzwd` (Velbok production)  
-**Git commit:** _(filled in after commit)_  
+**Git commit:** `3e16684` — Add shop currency, configurable deposits, and multi-currency Stripe.  
 **Netlify:** production deploy `6a29d9b4738fb2beb9508a81` (includes `geo-country` edge function)
 
 ## How migrations were applied
