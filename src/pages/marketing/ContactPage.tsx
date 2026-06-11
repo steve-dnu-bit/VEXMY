@@ -7,14 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BRANDING } from "@/lib/branding";
+import { invokePublicEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 import { CheckCircle2, Mail, MessageSquare, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const FORM_NAME = "contact";
-
-const encodeFormBody = (data: Record<string, string>) =>
-  new URLSearchParams({ "form-name": FORM_NAME, ...data }).toString();
 
 const ContactPage = () => {
   const { t } = useTranslation();
@@ -37,19 +33,20 @@ const ContactPage = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const body = encodeFormBody({
-        name: name.trim(),
-        email: email.trim(),
-        studio: studio.trim(),
-        plan: plan || "not-sure",
-        message: message.trim(),
-      });
-      const res = await fetch("/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body,
-      });
-      if (!res.ok) throw new Error("Submit failed");
+      const botField = (e.currentTarget.elements.namedItem("bot-field") as HTMLInputElement | null)?.value ?? "";
+      const { data, error } = await invokePublicEdgeFunctionJson<{ ok?: boolean; error?: string }>(
+        "submit-contact",
+        {
+          name: name.trim(),
+          email: email.trim(),
+          studio: studio.trim(),
+          plan: plan || "not-sure",
+          message: message.trim(),
+          honeypot: botField,
+        },
+      );
+      if (error) throw error;
+      if (!data.ok) throw new Error(data.error || "Submit failed");
       setSubmitted(true);
       toast({
         title: t("contact.messageSent"),
@@ -122,18 +119,10 @@ const ContactPage = () => {
                 </Button>
               </div>
             ) : (
-              <form
-                name={FORM_NAME}
-                method="POST"
-                data-netlify="true"
-                data-netlify-honeypot="bot-field"
-                onSubmit={handleSubmit}
-                className="rounded-2xl border border-border/70 bg-card/55 p-6 sm:p-8"
-              >
-                <input type="hidden" name="form-name" value={FORM_NAME} />
-                <p className="hidden">
+              <form onSubmit={handleSubmit} className="rounded-2xl border border-border/70 bg-card/55 p-6 sm:p-8">
+                <p className="hidden" aria-hidden="true">
                   <label>
-                    Don&apos;t fill this out: <input name="bot-field" />
+                    Don&apos;t fill this out: <input name="bot-field" tabIndex={-1} autoComplete="off" />
                   </label>
                 </p>
 

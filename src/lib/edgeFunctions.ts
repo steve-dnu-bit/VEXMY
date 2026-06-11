@@ -59,6 +59,19 @@ async function extractFunctionError(data: unknown, err: unknown, fallback: strin
   return new Error(fallback);
 }
 
+/** Public Edge Functions (no login required) — e.g. marketing contact form. */
+export async function invokePublicEdgeFunctionJson<T = unknown>(
+  functionName: string,
+  body: Record<string, unknown>,
+): Promise<{ data: T; error: Error | null }> {
+  const { data, error } = await supabase.functions.invoke(functionName, { body });
+  const payload = (data ?? ({} as T)) as T;
+  const payloadMessage = messageFromPayload(payload);
+  if (!error && !payloadMessage) return { data: payload, error: null };
+  if (!error && payloadMessage) return { data: payload, error: new Error(payloadMessage) };
+  return { data: payload, error: await extractFunctionError(payload, error, "Request failed") };
+}
+
 export async function invokeEdgeFunctionJson<T = unknown>(
   functionName: string,
   body: Record<string, unknown>,

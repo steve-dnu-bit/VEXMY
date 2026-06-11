@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.purge-expired-stencils]
 verify_jwt = false
+
+[functions.submit-contact]
+verify_jwt = false
