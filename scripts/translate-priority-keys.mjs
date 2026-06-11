@@ -5,6 +5,7 @@ import { translate } from "@vitalets/google-translate-api";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const localesDir = join(__dirname, "../src/i18n/locales");
+const sourcePath = join(__dirname, "_patch-source-en.json");
 
 const TARGETS = {
   de: "de",
@@ -22,53 +23,19 @@ const BRANDS = [
   ["__Velbok__", "Velbok"],
   ["__STRIPE__", "Stripe"],
   ["__SUPABASE__", "Supabase"],
-  ["__GOOGLE_AUTH__", "Google Authenticator"],
-  ["__AUTHY__", "Authy"],
 ];
 
 const KEEP_AS_EN = new Set([
-  "Paris",
-  "London",
-  "Tokyo",
-  "Rome",
-  "Berlin",
-  "Madrid",
-  "Admin",
-  "CSV",
-  "JSON",
-  "SMS",
-  "VIP",
-  "Laser",
-  "Chat",
   "Stripe",
   "Velbok",
-  "Supabase",
-  "SLA",
-  "PMU",
+  "Admin",
+  "CSV",
   "PDF",
-  "HTML",
-  "URL",
-  "JPG",
-  "PNG",
-  "WebP",
-  "SMTP",
-  "SSL",
-  "Resend",
   "GBP",
+  "Starter",
+  "Studio",
+  "Enterprise",
 ]);
-
-function flatten(obj, prefix = "") {
-  const out = {};
-  for (const [k, v] of Object.entries(obj || {})) {
-    const key = prefix ? `${prefix}.${k}` : k;
-    if (v && typeof v === "object" && !Array.isArray(v)) {
-      Object.assign(out, flatten(v, key));
-    } else {
-      out[key] = v;
-    }
-  }
-  return out;
-}
 
 function setByPath(obj, dotPath, value) {
   const parts = dotPath.split(".");
@@ -124,20 +91,20 @@ async function translateText(text, langCode) {
   if (KEEP_AS_EN.has(text.trim())) return text;
 
   const { protectedText, tokens } = protectInterpolation(protectBrands(text));
-  for (let attempt = 0; attempt < 8; attempt++) {
+  for (let attempt = 0; attempt < 10; attempt++) {
     try {
-      await sleep(5000 + attempt * 2000);
+      await sleep(6000 + attempt * 3000);
       const { text: result } = await translate(protectedText, { from: "en", to: TARGETS[langCode] });
       return restoreInterpolation(restoreBrands(result), tokens);
     } catch (e) {
       if (isRateLimitError(e)) {
-        const waitMs = 45000 + attempt * 15000;
-        console.warn(`  Rate limited [${langCode}], waiting ${Math.round(waitMs / 1000)}s…`);
+        const waitMs = 60000 + attempt * 20000;
+        console.warn(`  Rate limited, waiting ${Math.round(waitMs / 1000)}s…`);
         await sleep(waitMs);
         continue;
       }
-      if (attempt === 7) {
-        console.warn(`  FAIL [${langCode}]: ${text.slice(0, 50)} (${e.message})`);
+      if (attempt === 9) {
+        console.warn(`  FAIL: ${text.slice(0, 50)} (${e.message})`);
         return text;
       }
     }
@@ -146,13 +113,10 @@ async function translateText(text, langCode) {
 }
 
 async function main() {
-  const en = JSON.parse(readFileSync(join(localesDir, "en.json"), "utf8"));
-  const enFlat = flatten(en);
-  const cachePath = join(localesDir, "_missing-keys-cache.json");
-  const cache = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, "utf8")) : {};
-
-  const retranslate = process.argv.includes("--retranslate");
-  const selected = process.argv.slice(2).filter((a) => a !== "--retranslate");
+  const source = JSON.parse(readFileSync(sourcePath, "utf8"));
+  const keys = Object.keys(source);
+  const selected = process.argv.slice(2).filter((a) => a !== "--force");
+  const force = process.argv.includes("--force");
   const langs = selected.length ? selected : Object.keys(TARGETS);
 
   for (const lang of langs) {
@@ -163,43 +127,35 @@ async function main() {
 
     const localePath = join(localesDir, `${lang}.json`);
     const locale = JSON.parse(readFileSync(localePath, "utf8"));
-    const locFlat = flatten(locale);
+    const todo = keys.filter((key) => force || locale[key.split(".").reduce((o, p, i, a) => {
+      if (i === a.length - 1) return o?.[p];
+      return o?.[p];
+    }, locale)] === source[key] || !key.split(".").reduce((o, p) => o?.[p], locale));
 
-    const todo = Object.keys(enFlat).filter((k) => {
-      if (!(k in locFlat)) return true;
-      if (retranslate && locFlat[k] === enFlat[k]) return true;
-      return false;
+    // simpler: translate if current value equals English source
+    const todoKeys = keys.filter((key) => {
+      const parts = key.split(".");
+      let cur = locale;
+      for (const p of parts) cur = cur?.[p];
+      return force || cur === source[key] || cur === undefined;
     });
 
-    if (!todo.length) {
-      console.log(`${lang}: nothing to translate`);
-      continue;
-    }
-
-    console.log(`${lang}: translating ${todo.length} keys...`);
+    console.log(`${lang}: translating ${todoKeys.length} priority keys…`);
     let translated = 0;
 
-    for (let i = 0; i < todo.length; i++) {
-      const key = todo[i];
-      const enVal = enFlat[key];
-      const cacheKey = `${lang}::${enVal}`;
-      let val = cache[cacheKey];
-
-      if (!val || val === enVal || retranslate) {
-        val = await translateText(enVal, lang);
-        cache[cacheKey] = val;
-        if (val !== enVal) translated++;
-        if ((i + 1) % 20 === 0) {
-          writeFileSync(cachePath, JSON.stringify(cache, null, 2));
-        }
-      }
-
+    for (let i = 0; i < todoKeys.length; i++) {
+      const key = todoKeys[i];
+      const enVal = source[key];
+      const val = await translateText(enVal, lang);
       setByPath(locale, key, val);
+      if (val !== enVal) translated++;
+      if ((i + 1) % 3 === 0) {
+        writeFileSync(localePath, JSON.stringify(locale, null, 2) + "\n", "utf8");
+      }
     }
 
     writeFileSync(localePath, JSON.stringify(locale, null, 2) + "\n", "utf8");
-    writeFileSync(cachePath, JSON.stringify(cache, null, 2));
-    console.log(`${lang}: done (${translated} newly translated)`);
+    console.log(`${lang}: done (${translated} translated)`);
   }
 }
 

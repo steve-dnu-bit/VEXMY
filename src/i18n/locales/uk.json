@@ -39,7 +39,8 @@
     "cookieSettings": "Налаштування cookies",
     "expandMenu": "Розгорнути меню",
     "collapseMenu": "Згорнути меню",
-    "and": "та"
+    "and": "та",
+    "refresh": "Refresh"
   },
   "nav": {
     "schedule": "Розклад",
@@ -61,7 +62,7 @@
   "marketing": {
     "footerTagline": "Універсальна платформа для тату-студій — розклад, депозити, згода, оплата та спілкування з клієнтами в одному місці.",
     "pricingTitle": "Плани, що зростають разом із вашою студією",
-    "pricingSubtitle": "Прозорі щомісячні ціни. Кожен план включає хостинг, оновлення та повну документацію. Без плати за налаштування для Starter і Studio.",
+    "pricingSubtitle": "Transparent monthly pricing. Every plan includes the full platform — only artist seat limits differ.",
     "comparePlans": "Порівняти плани",
     "pricingFaq": "FAQ про ціни",
     "notSurePlan": "Не впевнені, який план підходить?",
@@ -73,7 +74,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Мала команда",
-      "description": "Професійне керування бронюваннями з до 3 майстрів у розкладі.",
+      "description": "The full Velbok platform for shops with up to 3 artists.",
       "seats": "До 3 місць для майстрів",
       "cta": "Почати з Starter",
       "features": {
@@ -88,7 +89,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Студія, що зростає",
-      "description": "Повний набір інструментів Velbok для завантажених студій — до 6 майстрів і адміністраторів.",
+      "description": "The full Velbok platform for shops with up to 6 artists.",
       "seats": "До 6 місць для майстрів",
       "cta": "Почати безкоштовний пробний період",
       "features": {
@@ -104,7 +105,7 @@
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Велика студія",
-      "description": "Для досвідчених студій із великими командами — до 10 майстрів і пріоритетна підтримка.",
+      "description": "The full Velbok platform for shops with up to 10 artists.",
       "seats": "До 10 місць для майстрів",
       "cta": "Почати з Enterprise",
       "features": {
@@ -129,19 +130,30 @@
       "dedicatedOnboarding": "Персональне підключення",
       "sla": "SLA",
       "included": "✓",
-      "notIncluded": "—"
+      "notIncluded": "—",
+      "fullPlatform": "Full platform features"
     },
     "faq": {
       "trialQ": "Чи є безкоштовний пробний період?",
       "trialA": "Усі плани включають 14-денний безкоштовний пробний період. Оберіть план на сторінці підписки — ви введете дані картки в Stripe, але оплата почнеться лише після завершення пробного періоду.",
       "includedQ": "Що входить у кожен план?",
-      "includedA": "Безпечний хмарний хостинг, оновлення продукту, доступ до документації, SSL і дані на ізольованій інфраструктурі Supabase для кожної студії.",
+      "includedA": "Every plan includes the full Velbok platform — scheduling, CRM, deposits, consent, inbox, stock, billing, and more. The only difference is how many artists you can add.",
       "stripeFeesQ": "Чи включені комісії Stripe?",
       "stripeFeesA": "Ні. Комісії за обробку карток стягує Stripe окремо від вашої підписки. Velbok інтегрується з вашим обліковим записом Stripe для депозитів і рахунків.",
       "switchQ": "Чи можна змінити план пізніше?",
       "switchA": "Так. Оновлюйте або знижуйте план у міру зростання команди — Starter (3 майстри), Studio (6) або Enterprise (10).",
       "migrateQ": "Чи допомагаєте мігрувати з моєї поточної системи?",
       "migrateA": "Плани Studio і Enterprise включають імпорт CSV клієнтів у додатку. Enterprise включає практичну допомогу з міграції бронювань і записів."
+    },
+    "sharedFeatures": {
+      "0": "Full schedule & multi-artist calendar",
+      "1": "Client CRM & CSV import",
+      "2": "Digital consent forms & customer portal",
+      "3": "Stripe deposits & invoice payments",
+      "4": "Staff inbox & role permissions",
+      "5": "Automated reminders & aftercare emails",
+      "6": "Stock management & billing records",
+      "7": "Documentation & email support"
     }
   },
   "auth": {
@@ -241,7 +253,16 @@
     "cancelsAtPeriodEnd": "Скасовується наприкінці періоду",
     "trialEnds": "Пробний період закінчується {{date}}",
     "renews": "Поновлюється {{date}}",
-    "portalUnavailable": "Портал оплати недоступний"
+    "portalUnavailable": "Портал оплати недоступний",
+    "downgradeTo": "Downgrade to {{plan}}",
+    "downgradeBlocked": "Too many artists",
+    "changePlanTitle": "Change plan",
+    "changePlanDesc": "All plans include the same features. Choose based on how many artists you need.",
+    "currentPlan": "Current",
+    "planChanged": "Plan updated",
+    "planChangedDesc": "You are now on the {{plan}} plan.",
+    "planChangeFailed": "Could not change plan",
+    "alreadyOnPlan": "You are already on this plan"
   },
   "settings": {
     "title": "Налаштування",
@@ -641,7 +662,63 @@
     "faq3Q": "Чи можна використовувати власний брендинг?",
     "faq3A": "Так. Кожне розгортання студії підтримує власну назву, кольори, контактні дані та тему порталу.",
     "faq4Q": "Де зберігаються мої дані?",
-    "faq4A": "Velbok працює на Supabase (PostgreSQL) із безпекою на рівні рядків. Кожен екземпляр студії ізольований — ваші дані залишаються вашими."
+    "faq4A": "Velbok працює на Supabase (PostgreSQL) із безпекою на рівні рядків. Кожен екземпляр студії ізольований — ваші дані залишаються вашими.",
+    "heroShowcaseBadge": "Inside Velbok",
+    "heroShowcaseTitle": "Tattoo studio software for scheduling, deposits, and design prep",
+    "heroShowcaseScheduleTab": "Schedule",
+    "heroShowcaseScheduleTitle": "Multi-artist tattoo scheduling",
+    "heroShowcaseScheduleBody": "Velbok gives tattoo studios a shared week view with artist columns, booking types, and deposit status on every appointment — built for front-desk and artist workflows, not a generic calendar.",
+    "heroShowcaseSchedulePoint1": "Week and day views with per-artist columns and colour-coded booking types",
+    "heroShowcaseSchedulePoint2": "Consultations, sessions, and touch-ups with live confirmed status",
+    "heroShowcaseSchedulePoint3": "Deposits and client details tied to each slot from one schedule screen",
+    "heroShowcaseStencilTab": "AI stencil",
+    "heroShowcaseStencilTitle": "AI stencil generation for tattoo artists",
+    "heroShowcaseStencilBody": "Upload reference art and generate transfer-ready line stencils inside Velbok. Choose AI styles inspired by global tattoo cities, compare original vs stencil with a slider, and download print-ready files.",
+    "heroShowcaseStencilPoint1": "AI and basic stencil engines with before-and-after comparison",
+    "heroShowcaseStencilPoint2": "Signature line, fine line, dotwork, and blackwork style presets",
+    "heroShowcaseStencilPoint3": "Download stencils for transfer — saved securely for 24 hours",
+    "navProductTour": "Product tour",
+    "tourBadge": "See it in action",
+    "tourTitle": "A quick tour of Velbok",
+    "tourSubtitle": "Watch the core workflows cycle automatically — schedule, deposits, stencils, and consent — just like using the app.",
+    "screenshotScheduleAlt": "Velbok multi-artist weekly schedule with bookings and service types",
+    "screenshotStencilAlt": "Velbok AI stencil workspace with before and after comparison slider",
+    "tourPlay": "Play tour",
+    "tourPause": "Pause tour",
+    "tourScheduleTitle": "Multi-artist schedule",
+    "tourScheduleBody": "Book sessions, consultations, and touch-ups across your team with live status on every slot.",
+    "tourDepositsTitle": "Deposits with Stripe",
+    "tourDepositsBody": "Set deposit amounts, email payment links, and see paid vs pending at a glance.",
+    "tourStencilTitle": "AI stencil workspace",
+    "tourStencilBody": "Turn reference art into clean line stencils and export ready-to-print files.",
+    "tourConsentTitle": "Digital consent",
+    "tourConsentBody": "Clients sign tattoo and piercing forms online — PDFs stored with a full audit trail.",
+    "screensTitle": "Inside the studio app",
+    "screensSubtitle": "Purpose-built screens for the work you do every day — not a generic calendar with a logo slapped on.",
+    "screenScheduleTitle": "Schedule that fits tattooing",
+    "screenScheduleBody": "Artist columns, booking types, deposit status, and quick edits from the same view your front desk uses.",
+    "screenDepositsTitle": "Deposits & payment links",
+    "screenDepositsBody": "Track who paid, who needs a reminder, and send Stripe checkout links in one click.",
+    "screenStencilTitle": "Stencil generation",
+    "screenStencilBody": "Upload reference, refine contrast and line weight, and export stencils without leaving Velbok.",
+    "screenConsentTitle": "Consent & compliance",
+    "screenConsentBody": "Branded digital forms with e-signatures — linked to bookings and downloadable as PDF.",
+    "stripeBadge": "Payments",
+    "stripeTitle": "Stripe built in — not bolted on",
+    "stripeBody": "Velbok uses Stripe Connect so client card payments for deposits and invoices route to your studio account. Platform billing for your Velbok subscription is separate and secure.",
+    "stripePoint1": "Deposit checkout links emailed to clients",
+    "stripePoint2": "Invoice payments with Stripe Checkout",
+    "stripePoint3": "Express Connect onboarding for studio payouts",
+    "stripePoint4": "Automatic paid-status sync via webhooks",
+    "stripePowered": "Payments powered by Stripe",
+    "stripeCardDeposits": "Deposits",
+    "stripeCardInvoices": "Invoices",
+    "stripeCardConnect": "Connect payouts",
+    "stripeCardWebhook": "Auto reconcile",
+    "stripeCta": "See plans with Stripe",
+    "regionsTitle": "Available internationally",
+    "regionsSubtitle": "Studios in 13 countries — local currency and language support built in.",
+    "regionsCarouselLabel": "Supported countries"
   },
   "contact": {
     "title": "Зв'язатися з нами",
@@ -852,7 +929,8 @@
     "saveChanges": "Зберегти зміни",
     "lineNeedsDescription": "Кожен рядок потребує опису",
     "failedSaveInvoice": "Не вдалося зберегти рахунок",
-    "invoiceUpdated": "Рахунок оновлено"
+    "invoiceUpdated": "Рахунок оновлено",
+    "connectRequired": "Set up client payouts below before creating invoice payment links."
   },
   "deposits": {
     "title": "Депозити",
@@ -914,7 +992,13 @@
     "markedUnpaid": "Депозит позначено як неоплачений",
     "failedVipUpdate": "Не вдалося оновити VIP",
     "markedVip": "Позначено VIP для цього бронювання",
-    "vipRemoved": "VIP знято"
+    "vipRemoved": "VIP знято",
+    "defaultDepositTitle": "Default deposit amount",
+    "defaultDepositLabel": "Amount for new bookings",
+    "defaultDepositHint": "Used when creating bookings on the schedule. Maximum {{max}} (equivalent of £200). You can override per booking.",
+    "defaultDepositInvalid": "Enter a valid amount up to {{max}} (equivalent of £200).",
+    "defaultDepositSaved": "Default deposit amount saved",
+    "connectRequired": "Set up client payouts below before sending deposit payment links."
   },
   "chat": {
     "threadLabelFallback": "Чат",
@@ -960,7 +1044,26 @@
     "gallery": "Галерея",
     "chatMediaAlt": "Медіа в чаті",
     "pinned": "Закріплено",
-    "pin": "Закріпити"
+    "pin": "Закріпити",
+    "customerFallback": "Customer",
+    "noCustomersAvailable": "No customers yet. They appear here after a booking or signup.",
+    "staffChatHint": "Pick a customer to open or continue a conversation.",
+    "selectChatHint": "Choose a conversation from the list to view messages.",
+    "autoEmailNote": "Clients receive an email when they have unread messages.",
+    "depositPaid": "Deposit paid",
+    "depositPending": "Deposit pending",
+    "consentSigned": "Consent signed",
+    "consentPending": "Consent pending",
+    "noUpcomingBooking": "No upcoming booking for this customer.",
+    "whatsAppPrefill": "Hi {{name}}, this is your tattoo studio. How can we help?",
+    "quickReplyReferences": "Ask for references",
+    "quickReplyReferencesText": "Hi {{name}}, could you send over any reference images for your tattoo?",
+    "quickReplySeeYou": "Confirm appointment",
+    "quickReplySeeYouText": "Looking forward to seeing you on {{date}}.",
+    "quickReplyDeposit": "Deposit link",
+    "quickReplyDepositText": "Hi {{name}}, please pay your deposit here: {{url}}",
+    "quickReplyConsent": "Consent form",
+    "quickReplyConsentText": "Hi {{name}}, please complete your consent form here: {{url}}"
   },
   "services": {
     "title": "Послуги",
@@ -1286,7 +1389,11 @@
       "confirmationsOff": "Бронювання збережено, але листи підтвердження вимкнено. Увімкніть у Налаштування → Нагадування.",
       "noClientEmail": "Бронювання збережено, але email клієнта не вказано — додайте email для підтверджень.",
       "emailSent": "Email про бронювання надіслано ({{count}} одержувач{{suffix}}). Перевірте вхідні та спам."
-    }
+    },
+    "depositStatus": "Deposit status",
+    "depositAmount": "Deposit amount",
+    "depositAmountHint": "Maximum {{max}} (equivalent of £200). Applied when sending payment links.",
+    "depositAmountInvalid": "Enter a valid deposit up to {{max}} (equivalent of £200)."
   },
   "staff": {
     "loading": "Завантаження…"
@@ -1331,10 +1438,35 @@
     "finish": "Завершити налаштування",
     "finishing": "Завершення…",
     "completeToast": "Ваша студія готова — ласкаво просимо до Velbok!",
-    "reviewHint": "Ви можете змінити це пізніше в Адмін і Налаштуваннях."
+    "reviewHint": "Ви можете змінити це пізніше в Адмін і Налаштуваннях.",
+    "stepPayoutsTitle": "Card payouts",
+    "stepPayoutsDesc": "Connect your bank account so deposit and invoice payments go to your studio.",
+    "stepPayoutsSkipHint": "You can finish setup now and connect payouts later from Admin.",
+    "currencyHint": "Client deposits and card invoices will be charged in {{currency}}.",
+    "countryGeoHint": "Country suggested from your location — change if your studio is elsewhere."
   },
   "embed": {
     "customerPortalSubtitle": "Customer portal",
     "poweredBy": "Powered by {{platform}}"
+  },
+  "stripeConnect": {
+    "title": "Client payments & payouts",
+    "desc": "Connect your studio bank account to receive deposit and invoice card payments directly. Identity verification is handled securely by Stripe — you stay inside Velbok.",
+    "compactDesc": "Required to receive card payments from clients.",
+    "notStartedBody": "Set up payouts so client card payments are deposited to your studio bank account instead of Velbok's platform account.",
+    "incompleteBody": "Your payout setup is incomplete. Continue to add bank details and verify your business.",
+    "readyBody": "Payouts are active. Client card payments for deposits and invoices are routed to your connected account.",
+    "startSetup": "Set up payouts",
+    "continueSetup": "Continue payout setup",
+    "managePayouts": "Manage payouts",
+    "statusReady": "Connected",
+    "statusIncomplete": "Action required",
+    "statusNotStarted": "Not connected",
+    "stripeHostedNote": "You'll complete a short Stripe form for bank and identity checks. No separate Stripe account signup is needed.",
+    "returnToast": "Payout setup updated — checking status…",
+    "refreshToast": "Continue payout setup where you left off.",
+    "loadFailed": "Could not load payout status",
+    "onboardFailed": "Could not start payout setup",
+    "dashboardFailed": "Could not open payout dashboard"
   }
 }

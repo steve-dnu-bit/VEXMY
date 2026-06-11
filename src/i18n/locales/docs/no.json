@@ -2,7 +2,7 @@
   "indexTitle": "Dokumentasjon",
   "indexSubtitle": "Veiledninger for studiopersonale, administratorer og teknisk oppsett. Velg et emne i sidefeltet eller bla gjennom etter kategori nedenfor.",
   "allDocs": "All dokumentasjon",
-  "breadcrumb": "Docs",
+  "breadcrumb": "Dokumentasjon",
   "next": "Neste: {{title}} →",
   "categories": {
     "start": "Kom i gang",

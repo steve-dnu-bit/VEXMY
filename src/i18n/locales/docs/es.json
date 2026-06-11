@@ -2,7 +2,7 @@
   "indexTitle": "Documentación",
   "indexSubtitle": "Guías para el personal del estudio, administradores y configuración técnica. Selecciona un tema en la barra lateral o explora por categoría a continuación.",
   "allDocs": "Toda la documentación",
-  "breadcrumb": "Docs",
+  "breadcrumb": "Documentación",
   "next": "Siguiente: {{title}} →",
   "categories": {
     "start": "Primeros pasos",

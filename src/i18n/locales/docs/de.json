@@ -2,7 +2,7 @@
   "indexTitle": "Dokumentation",
   "indexSubtitle": "Anleitungen für Studio-Mitarbeiter, Admins und technische Einrichtung. Wählen Sie ein Thema in der Seitenleiste oder stöbern Sie unten nach Kategorie.",
   "allDocs": "Alle Dokumente",
-  "breadcrumb": "Docs",
+  "breadcrumb": "Dokumentation",
   "next": "Weiter: {{title}} →",
   "categories": {
     "start": "Erste Schritte",

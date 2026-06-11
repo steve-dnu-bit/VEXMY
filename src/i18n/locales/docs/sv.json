@@ -2,7 +2,7 @@
   "indexTitle": "Dokumentation",
   "indexSubtitle": "Guider för studiopersonal, administratörer och teknisk konfiguration. Välj ett ämne i sidofältet eller bläddra efter kategori nedan.",
   "allDocs": "All dokumentation",
-  "breadcrumb": "Docs",
+  "breadcrumb": "Dokumentation",
   "next": "Nästa: {{title}} →",
   "categories": {
     "start": "Kom igång",

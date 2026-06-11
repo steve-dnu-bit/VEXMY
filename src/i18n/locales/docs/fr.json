@@ -2,7 +2,7 @@
   "indexTitle": "Documentation",
   "indexSubtitle": "Guides pour le personnel du studio, les administrateurs et la configuration technique. Sélectionnez un sujet dans la barre latérale ou parcourez par catégorie ci-dessous.",
   "allDocs": "Toute la doc",
-  "breadcrumb": "Docs",
+  "breadcrumb": "Documentation",
   "next": "Suivant : {{title}} →",
   "categories": {
     "start": "Premiers pas",
@@ -76,7 +76,7 @@
       ]
     },
     "clients": {
-      "title": "Clients & CRM",
+      "title": "Clients et CRM",
       "description": "Importer, rechercher et gérer votre base de données clients.",
       "sections": [
         {
@@ -244,7 +244,7 @@
       ]
     },
     "admin": {
-      "title": "Admin & permissions",
+      "title": "Administration et permissions",
       "description": "Utilisateurs, rôles et accès aux fonctionnalités pour votre équipe studio.",
       "sections": [
         {

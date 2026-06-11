@@ -20,7 +20,7 @@ function deepMerge(base, overlay) {
   return out;
 }
 
-for (const file of readdirSync(localesDir).filter((f) => f.endsWith(".json") && f !== "en.json")) {
+for (const file of readdirSync(localesDir).filter((f) => f.endsWith(".json") && f !== "en.json" && !f.startsWith("_"))) {
   const path = join(localesDir, file);
   const locale = JSON.parse(readFileSync(path, "utf8"));
   const merged = deepMerge(locale, en);

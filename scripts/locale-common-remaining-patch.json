@@ -1,0 +1,48 @@
+{
+  "de": {
+    "admin.aftercareTabTattoo": "Tätowierung",
+    "admin.websiteEmbedPoweredBy": "Bereitgestellt von {{platform}}",
+    "embed.poweredBy": "Bereitgestellt von {{platform}}",
+    "services.nameLabel": "Bezeichnung *",
+    "services.categoryPiercing": "Piercing",
+    "stencil.styleDotworkDesc": "Punktarbeit",
+    "stencil.originalLabel": "Originalbild"
+  },
+  "fr": {
+    "admin.consentVersionLabel": "Version n° {{version}}",
+    "admin.websiteEmbedPoweredBy": "Propulsé par {{platform}}",
+    "embed.poweredBy": "Propulsé par {{platform}}"
+  },
+  "es": {
+    "admin.websiteEmbedPoweredBy": "Impulsado por {{platform}}",
+    "embed.poweredBy": "Impulsado por {{platform}}",
+    "stencil.originalLabel": "Imagen original"
+  },
+  "it": {
+    "admin.websiteEmbedPoweredBy": "Offerto da {{platform}}",
+    "embed.poweredBy": "Offerto da {{platform}}",
+    "services.categoryPiercing": "Piercing"
+  },
+  "nl": {
+    "admin.aftercareTabTattoo": "Tatoeage",
+    "admin.websiteEmbedPoweredBy": "Mogelijk gemaakt door {{platform}}",
+    "embed.poweredBy": "Mogelijk gemaakt door {{platform}}",
+    "services.categoryPiercing": "Piercing"
+  },
+  "ro": {
+    "admin.websiteEmbedPoweredBy": "Oferit de {{platform}}",
+    "embed.poweredBy": "Oferit de {{platform}}",
+    "services.categoryPiercing": "Piercing"
+  },
+  "bg": {
+    "admin.websiteEmbedPoweredBy": "Задвижвано от {{platform}}",
+    "embed.poweredBy": "Задвижвано от {{platform}}"
+  },
+  "sv": {
+    "admin.consentVersionLabel": "Version nr {{version}}",
+    "admin.websiteEmbedPoweredBy": "Drivs av {{platform}}",
+    "embed.poweredBy": "Drivs av {{platform}}",
+    "stencil.styleDotworkDesc": "Prickverk",
+    "stencil.originalLabel": "Originalbild"
+  }
+}

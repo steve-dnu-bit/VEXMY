@@ -1,0 +1,17 @@
+{
+  "fr": {
+    "landing.faqTitle": "Foire aux questions"
+  },
+  "es": {
+    "dashboard.manual": "Manual de usuario"
+  },
+  "nl": {
+    "setup.website": "Website-URL",
+    "stencil.engine": "Motor"
+  },
+  "ro": {
+    "dashboard.manual": "Manual de utilizare",
+    "billing.card": "Card bancar",
+    "billing.subtotal": "Subtotal parțial"
+  }
+}
