@@ -7,6 +7,8 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useState, type CSSProperties } from "react";
 import { BRANDING } from "@/lib/branding";
 import { useTranslation } from "react-i18next";
+import { useCustomerShop } from "@/hooks/useCustomerShop";
+import CustomerShopSelector from "@/components/customer/CustomerShopSelector";
 
 export interface PortalBrandProfile {
   display_name?: string | null;
@@ -19,7 +21,7 @@ export interface PortalBrandProfile {
   public_instagram?: string | null;
 }
 
-const CustomerLayout = ({
+const CustomerLayoutInner = ({
   children,
   portalBrand,
 }: {
@@ -31,13 +33,14 @@ const CustomerLayout = ({
   const { user } = useAuth();
   const { hasPermission } = usePermissions();
   const { t } = useTranslation();
+  const { selectedShop, hasMultipleShops } = useCustomerShop();
   const [open, setOpen] = useState(false);
 
   const items = [
     hasPermission("my_bookings") && { label: t("customer.myBookings"), path: "/account", icon: Calendar },
     hasPermission("my_bookings") && { label: t("customer.depositPayment"), path: "/deposit-payment", icon: CreditCard },
     hasPermission("my_bookings") && { label: t("customer.messages"), path: "/account/chats", icon: MessageSquare },
-    hasPermission("my_bookings") && { label: t("nav.security"), path: "/account/security", icon: Shield },
+    hasPermission("my_bookings") && { label: t("customer.securityTitle"), path: "/account/security", icon: Shield },
     hasPermission("customer_consent") && { label: t("customer.signConsent"), path: "/consent", icon: FileSignature },
   ].filter(Boolean) as Array<{ label: string; path: string; icon: typeof Calendar }>;
 
@@ -53,11 +56,13 @@ const CustomerLayout = ({
     backgroundPosition: portalBrand?.portal_bg_image_url ? "center" : undefined,
   } as CSSProperties;
 
+  const headerTitle = hasMultipleShops && selectedShop ? selectedShop.shopName : BRANDING.platformName.toUpperCase();
+
   return (
     <div className="min-h-screen bg-background flex flex-col" style={shellStyle}>
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="flex h-14 items-center justify-between px-4 max-w-lg mx-auto w-full">
-          <span className="font-display font-bold text-gold">{BRANDING.platformName.toUpperCase()}</span>
+          <span className="font-display font-bold text-gold truncate">{headerTitle}</span>
           <button type="button" className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label={t("customer.menu")}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -103,6 +108,17 @@ const CustomerLayout = ({
         )}
       </header>
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-24">
+        <CustomerShopSelector />
+        {selectedShop?.logoUrl && hasMultipleShops ? (
+          <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-card/90 p-3">
+            <img
+              src={selectedShop.logoUrl}
+              alt={selectedShop.shopName}
+              className="h-10 w-10 rounded object-cover border border-border"
+            />
+            <p className="font-medium">{selectedShop.shopName}</p>
+          </div>
+        ) : null}
         {portalBrand?.display_name || portalBrand?.portal_public_bio ? (
           <div className="mb-4 rounded-lg border border-border bg-card/90 p-3">
             <div className="flex items-start gap-3">
@@ -144,5 +160,13 @@ const CustomerLayout = ({
     </div>
   );
 };
+
+const CustomerLayout = ({
+  children,
+  portalBrand,
+}: {
+  children: React.ReactNode;
+  portalBrand?: PortalBrandProfile | null;
+}) => <CustomerLayoutInner portalBrand={portalBrand}>{children}</CustomerLayoutInner>;
 
 export default CustomerLayout;

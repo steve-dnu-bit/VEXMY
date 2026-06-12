@@ -20,11 +20,14 @@ import { CLIENT_CONDUCT_THRESHOLDS } from "@/lib/clientConduct";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { bookingEligibleForConsent } from "@/lib/bookingTypes";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
+import { bookingMatchesCustomerShop } from "@/lib/customerShops";
+import { useCustomerShop } from "@/hooks/useCustomerShop";
 import { useTranslation } from "react-i18next";
 
 type BookingRow = {
   id: string;
   artist_id: string;
+  organization_id: string | null;
   client_name: string;
   booking_type: string;
   service_category: string;
@@ -43,6 +46,8 @@ interface InvoiceRow {
   total: number;
   status: string;
   due_date: string | null;
+  booking_id: string | null;
+  booking: { organization_id: string | null } | null;
 }
 
 interface ClientConductRow {
@@ -60,6 +65,7 @@ const CustomerAccountPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { hasPermission, loading: permLoading } = usePermissions();
+  const { selectedOrgId, shops, hasMultipleShops, loading: shopLoading } = useCustomerShop();
   const [checking, setChecking] = useState(true);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -75,7 +81,7 @@ const CustomerAccountPage = () => {
     const loginEmail = (user?.email || "").trim().toLowerCase();
     const { data: rows } = await supabase
       .from("bookings")
-      .select("id, artist_id, client_name, starts_at, ends_at, status, booking_type, service_category, tattoo_style, notes, deposit_paid, vip_client")
+      .select("id, artist_id, organization_id, client_name, starts_at, ends_at, status, booking_type, service_category, tattoo_style, notes, deposit_paid, vip_client")
       .or(buildCustomerBookingsOrFilter(targetUserId, loginEmail))
       .order("starts_at", { ascending: true });
     const bookingRows = (rows as BookingRow[]) || [];
@@ -83,7 +89,7 @@ const CustomerAccountPage = () => {
 
     const { data: invoiceRows } = await supabase
       .from("invoices" as any)
-      .select("id, invoice_number, total, status, due_date")
+      .select("id, invoice_number, total, status, due_date, booking_id, booking:bookings(organization_id)")
       .eq("client_email", user?.email || "")
       .order("created_at", { ascending: false });
     setInvoices((invoiceRows as InvoiceRow[]) || []);
@@ -104,7 +110,9 @@ const CustomerAccountPage = () => {
     ]);
     setConduct((conductByUser as ClientConductRow | null) || (conductByEmail as ClientConductRow | null) || null);
 
-    const artistId = bookingRows[0]?.artist_id;
+    const artistId =
+      bookingRows.find((b) => bookingMatchesCustomerShop(b.organization_id, selectedOrgId, shops.length))?.artist_id ??
+      bookingRows[0]?.artist_id;
     if (artistId) {
       const { data: brand } = await supabase
         .from("profiles")
@@ -117,7 +125,7 @@ const CustomerAccountPage = () => {
     } else {
       setPortalBrand(null);
     }
-  }, [user?.email]);
+  }, [user?.email, selectedOrgId, shops.length]);
 
   useEffect(() => {
     if (!user) return;
@@ -219,7 +227,7 @@ const CustomerAccountPage = () => {
     }
   };
 
-  if (checking || !user || permLoading) {
+  if (checking || !user || permLoading || shopLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground text-sm">{t("customer.loadingPortal")}</p>
@@ -240,15 +248,24 @@ const CustomerAccountPage = () => {
     );
   }
 
+  const shopBookings = bookings.filter((b) =>
+    bookingMatchesCustomerShop(b.organization_id, selectedOrgId, shops.length),
+  );
+  const shopInvoices = invoices.filter((inv) => {
+    if (!hasMultipleShops || !selectedOrgId) return true;
+    const orgId = inv.booking?.organization_id ?? null;
+    return bookingMatchesCustomerShop(orgId, selectedOrgId, shops.length);
+  });
+
   const todayStart = startOfDay(new Date());
-  const upcoming = bookings.filter((b) => parseISO(b.starts_at) >= todayStart);
-  const past = bookings
+  const upcoming = shopBookings.filter((b) => parseISO(b.starts_at) >= todayStart);
+  const past = shopBookings
     .filter((b) => parseISO(b.starts_at) < todayStart)
     .sort((a, b) => parseISO(b.starts_at).getTime() - parseISO(a.starts_at).getTime());
 
   const unpaidDepositUpcoming = upcoming.filter((b) => !b.deposit_paid);
-  const isVipClient = bookings.some((b) => b.vip_client);
-  const unpaidInvoices = invoices.filter((inv) => inv.status !== "paid");
+  const isVipClient = shopBookings.some((b) => b.vip_client);
+  const unpaidInvoices = shopInvoices.filter((inv) => inv.status !== "paid");
 
   return (
     <CustomerLayout portalBrand={portalBrand}>
@@ -352,10 +369,10 @@ const CustomerAccountPage = () => {
             <CardDescription>{t("customer.invoicesDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {invoices.length === 0 ? (
+            {shopInvoices.length === 0 ? (
               <p className="text-sm text-muted-foreground py-2">{t("customer.noInvoicesYet")}</p>
             ) : (
-              invoices.slice(0, 8).map((inv) => (
+              shopInvoices.slice(0, 8).map((inv) => (
                 <div key={inv.id} className="rounded-lg border border-border p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium">{inv.invoice_number}</p>
@@ -390,7 +407,7 @@ const CustomerAccountPage = () => {
                 </div>
               ))
             )}
-            {unpaidInvoices.length === 0 && invoices.length > 0 ? (
+            {unpaidInvoices.length === 0 && shopInvoices.length > 0 ? (
               <p className="text-xs text-muted-foreground">{t("customer.allInvoicesPaid")}</p>
             ) : null}
           </CardContent>

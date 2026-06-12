@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
@@ -12,6 +12,13 @@ import { Loader2 } from "lucide-react";
 import StaffRoute from "./components/StaffRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import CookieConsentBanner from "./components/CookieConsentBanner";
+import { CustomerShopProvider } from "@/hooks/useCustomerShop";
+
+const CustomerPortalShell = () => (
+  <CustomerShopProvider>
+    <Outlet />
+  </CustomerShopProvider>
+);
 
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const LandingPage = lazy(() => import("./pages/marketing/LandingPage"));
@@ -109,14 +116,16 @@ const App = () => (
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiePolicyPage />} />
-                <Route path="/consent" element={<ConsentPage />} />
+                <Route element={<CustomerPortalShell />}>
+                  <Route path="/consent" element={<ConsentPage />} />
+                  <Route path="/account" element={<ProtectedRoute><CustomerAccountPage /></ProtectedRoute>} />
+                  <Route path="/account/security" element={<ProtectedRoute><CustomerSecurityPage /></ProtectedRoute>} />
+                  <Route path="/account/chats" element={<ProtectedRoute><CustomerChatsPage /></ProtectedRoute>} />
+                  <Route path="/deposit-payment" element={<ProtectedRoute><CustomerDepositsPage /></ProtectedRoute>} />
+                  <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
+                </Route>
                 <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
                 <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
-                <Route path="/account" element={<ProtectedRoute><CustomerAccountPage /></ProtectedRoute>} />
-                <Route path="/account/security" element={<ProtectedRoute><CustomerSecurityPage /></ProtectedRoute>} />
-                <Route path="/account/chats" element={<ProtectedRoute><CustomerChatsPage /></ProtectedRoute>} />
-                <Route path="/deposit-payment" element={<ProtectedRoute><CustomerDepositsPage /></ProtectedRoute>} />
-                <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
                 <Route path="/deposit-checkout" element={<ProtectedRoute><LegacyDepositCheckoutRedirect /></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><StaffRoute><SchedulePage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/inbox" element={<ProtectedRoute><StaffRoute><InboxPage /></StaffRoute></ProtectedRoute>} />

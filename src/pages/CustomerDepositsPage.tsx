@@ -9,13 +9,16 @@ import { format, parseISO, startOfDay } from "date-fns";
 import { toast } from "sonner";
 import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
+import { bookingMatchesCustomerShop } from "@/lib/customerShops";
+import { useCustomerShop } from "@/hooks/useCustomerShop";
 import { useTranslation } from "react-i18next";
-import { loadShopSettings } from "@/lib/shopSettings";
+import { loadShopSettingsForOrganization } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
 
 type BookingDepositRow = {
   id: string;
+  organization_id: string | null;
   starts_at: string;
   booking_type: string;
   status: string;
@@ -27,6 +30,7 @@ type BookingDepositRow = {
 const CustomerDepositsPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { selectedOrgId, shops, loading: shopLoading } = useCustomerShop();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -39,7 +43,7 @@ const CustomerDepositsPage = () => {
     if (!opts?.silent) setLoading(true);
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, starts_at, booking_type, status, deposit_paid, vip_client, deposit_amount")
+      .select("id, organization_id, starts_at, booking_type, status, deposit_paid, vip_client, deposit_amount")
       .or(buildCustomerBookingsOrFilter(user.id, user.email))
       .order("starts_at", { ascending: true });
     if (error) {
@@ -47,16 +51,23 @@ const CustomerDepositsPage = () => {
       setLoading(false);
       return;
     }
-    setRows((data as BookingDepositRow[]) || []);
+    const allRows = (data as BookingDepositRow[]) || [];
+    setRows(
+      allRows.filter((b) => bookingMatchesCustomerShop(b.organization_id, selectedOrgId, shops.length)),
+    );
     setLoading(false);
-  }, [user, t]);
+  }, [user, t, selectedOrgId, shops.length]);
 
   useEffect(() => {
-    void Promise.all([loadShopSettings(), loadShopDefaultDepositAmount()]).then(([shop, amount]) => {
+    if (!selectedOrgId) return;
+    void Promise.all([
+      loadShopSettingsForOrganization(selectedOrgId),
+      loadShopDefaultDepositAmount(selectedOrgId),
+    ]).then(([shop, amount]) => {
       setShopCurrency(currencyForShopCountry(shop?.country));
       setDefaultDeposit(amount);
     });
-  }, []);
+  }, [selectedOrgId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +86,7 @@ const CustomerDepositsPage = () => {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, loadDeposits, selectedOrgId, shops.length]);
 
   useEffect(() => {
     const status = searchParams.get("status");
@@ -173,7 +184,7 @@ const CustomerDepositsPage = () => {
             <CardDescription>{t("customer.upcomingDepositsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {loading ? (
+            {loading || shopLoading ? (
               <p className="text-sm text-muted-foreground">{t("customer.loadingPortal")}</p>
             ) : upcomingUnpaid.length === 0 ? (
               <p className="text-sm text-muted-foreground py-3">{t("customer.noUnpaidDeposits")}</p>

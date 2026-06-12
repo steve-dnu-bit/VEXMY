@@ -86,8 +86,11 @@ export async function ensureDefaultConsentTemplates(orgId: string): Promise<void
   );
 }
 
-export async function loadShopConsentTemplates(includeInactive = false): Promise<ConsentFormTemplateRow[]> {
-  const orgId = await getShopOrganizationId();
+export async function loadShopConsentTemplates(
+  includeInactive = false,
+  organizationId?: string | null,
+): Promise<ConsentFormTemplateRow[]> {
+  const orgId = organizationId ?? (await getShopOrganizationId());
   if (!orgId) return defaultConsentTemplates();
 
   await ensureDefaultConsentTemplates(orgId);

@@ -65,9 +65,11 @@ type TypingRow = {
 interface Props {
   mode: "staff" | "customer";
   initialCustomerId?: string;
+  /** When set, customer mode only shows artists and threads for this studio. */
+  customerOrganizationId?: string | null;
 }
 
-const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
+const UnifiedChatWorkspace = ({ mode, initialCustomerId, customerOrganizationId }: Props) => {
   const { user } = useAuth();
   const { roles } = useUserRoles();
   const { t } = useTranslation();
@@ -190,17 +192,26 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     const rows = ((data || []) as Thread[]).filter((r) =>
       mode === "staff" ? !r.archived_by_artist : !r.archived_by_customer,
     );
-    const names = await resolveProfileNamesForThreads(rows);
+    let visibleRows = rows;
+    if (mode === "customer" && customerOrganizationId) {
+      const orgMemberIds = await loadOrganizationMemberIds(customerOrganizationId);
+      if (orgMemberIds) {
+        visibleRows = rows.filter((r) => orgMemberIds.has(r.artist_id));
+      }
+    }
+    const names = await resolveProfileNamesForThreads(visibleRows);
     setProfileNames(names);
-    setThreads(rows);
-    if (!selectedThreadId && rows.length > 0) setSelectedThreadId(rows[0].id);
-    if (selectedThreadId && !rows.some((r) => r.id === selectedThreadId)) setSelectedThreadId(rows[0]?.id || null);
-    await refreshThreadMeta(rows);
+    setThreads(visibleRows);
+    if (!selectedThreadId && visibleRows.length > 0) setSelectedThreadId(visibleRows[0].id);
+    if (selectedThreadId && !visibleRows.some((r) => r.id === selectedThreadId)) {
+      setSelectedThreadId(visibleRows[0]?.id || null);
+    }
+    await refreshThreadMeta(visibleRows);
   };
 
   const fetchArtists = async () => {
     if (!user || mode !== "customer") return;
-    const orgMemberIds = await loadOrganizationMemberIds();
+    const orgMemberIds = await loadOrganizationMemberIds(customerOrganizationId ?? undefined);
     const [{ data: roleRows }, { data: profileRows }] = await Promise.all([
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("profiles").select("user_id, display_name, public_profile_completed, customer_profile_completed"),
@@ -352,7 +363,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId }: Props) => {
     void fetchThreads();
     void fetchArtists();
     void fetchCustomers();
-  }, [user, mode, roles]);
+  }, [user, mode, roles, customerOrganizationId]);
 
   useEffect(() => {
     latestThreadsRef.current = threads;

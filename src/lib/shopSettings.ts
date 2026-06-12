@@ -28,6 +28,19 @@ export async function getUserOrganizationId(userId?: string): Promise<string | n
   return data as string;
 }
 
+export async function loadShopSettingsForOrganization(orgId: string): Promise<ShopSettingsRow | null> {
+  const { data, error } = await supabase
+    .from("shop_settings" as any)
+    .select(
+      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, logo_url, setup_completed_at",
+    )
+    .eq("organization_id", orgId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as ShopSettingsRow;
+}
+
 export async function loadShopSettings(userId?: string): Promise<ShopSettingsRow | null> {
   const orgId = await getUserOrganizationId(userId);
   if (orgId) {

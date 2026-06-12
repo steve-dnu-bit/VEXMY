@@ -26,6 +26,9 @@ import {
 
 import { format, parseISO } from "date-fns";
 import { bookingEligibleForConsent } from "@/lib/bookingTypes";
+import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
+import { bookingMatchesCustomerShop } from "@/lib/customerShops";
+import { useCustomerShop } from "@/hooks/useCustomerShop";
 import {
   loadShopConsentTemplates,
   resolveTemplateForBooking,
@@ -184,6 +187,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
 type ConsentBooking = {
   id: string;
   artist_id: string;
+  organization_id: string | null;
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
@@ -202,6 +206,7 @@ type ConsentBooking = {
 const ConsentPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { hasPermission, loading: permLoading } = usePermissions();
+  const { selectedOrgId, shops, loading: shopLoading } = useCustomerShop();
   const [searchParams] = useSearchParams();
   const [onlyCustomer, setOnlyCustomer] = useState<boolean | null>(null);
 
@@ -244,8 +249,8 @@ const ConsentPage = () => {
 
   useEffect(() => {
     if (!onlyCustomer) return;
-    void loadShopConsentTemplates().then(setConsentTemplates);
-  }, [onlyCustomer]);
+    void loadShopConsentTemplates(false, selectedOrgId).then(setConsentTemplates);
+  }, [onlyCustomer, selectedOrgId]);
 
   useEffect(() => {
     if (!selectedBooking || consentTemplates.length === 0) {
@@ -354,9 +359,9 @@ const ConsentPage = () => {
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, artist_id, client_name, client_email, client_phone, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, reference_image_url"
+          "id, artist_id, organization_id, client_name, client_email, client_phone, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, reference_image_url"
         )
-        .or(`client_user_id.eq.${user.id},client_email.eq.${(user.email || "").trim().toLowerCase()}`)
+        .or(buildCustomerBookingsOrFilter(user.id, user.email))
         .order("starts_at", { ascending: true });
 
       if (error) {
@@ -364,7 +369,9 @@ const ConsentPage = () => {
         return;
       }
 
-      const list = ((data ?? []) as ConsentBooking[]).filter(bookingEligibleForConsent);
+      const list = ((data ?? []) as ConsentBooking[])
+        .filter(bookingEligibleForConsent)
+        .filter((b) => bookingMatchesCustomerShop(b.organization_id, selectedOrgId, shops.length));
       setBookings(list);
       const wanted = searchParams.get("bookingId")?.trim();
       if (wanted && list.some((row) => row.id === wanted)) {
@@ -373,7 +380,7 @@ const ConsentPage = () => {
         setSelectedBookingId((prev) => (prev && list.some((row) => row.id === prev) ? prev : list[0]?.id ?? ""));
       }
     })();
-  }, [user, searchParams]);
+  }, [user, searchParams, selectedOrgId, shops.length]);
 
   useEffect(() => {
     if (!selectedBooking) return;
@@ -492,6 +499,14 @@ const ConsentPage = () => {
   }
 
   if (onlyCustomer === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">Loading…</p>
+      </div>
+    );
+  }
+
+  if (onlyCustomer && shopLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground text-sm">Loading…</p>

@@ -6,7 +6,7 @@ import {
   maxDepositAmountForCurrency,
   minDepositAmountForCurrency,
 } from "@/lib/depositLimits";
-import { loadShopSettings } from "@/lib/shopSettings";
+import { loadShopSettings, loadShopSettingsForOrganization } from "@/lib/shopSettings";
 
 export const DEFAULT_DEPOSIT_AMOUNT = 50;
 
@@ -20,8 +20,10 @@ export function parseDepositInput(raw: string, currency: string): number | null 
   return clampDepositAmount(n, currency);
 }
 
-export async function loadShopDefaultDepositAmount(): Promise<number> {
-  const shop = await loadShopSettings();
+export async function loadShopDefaultDepositAmount(organizationId?: string | null): Promise<number> {
+  const shop = organizationId
+    ? await loadShopSettingsForOrganization(organizationId)
+    : await loadShopSettings();
   const currency = currencyForShopCountry(shop?.country);
   if (!shop?.id) return DEFAULT_DEPOSIT_AMOUNT;
 
