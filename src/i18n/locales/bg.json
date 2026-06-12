@@ -72,7 +72,7 @@
   },
   "pricing": {
     "starter": {
-      "name": "Starter",
+      "name": "Стартер",
       "tagline": "Малък екип",
       "description": "Пълната платформа Velbok за студиа с до 3 артиста.",
       "seats": "До 3 места за артисти",
@@ -87,7 +87,7 @@
       }
     },
     "studio": {
-      "name": "Studio",
+      "name": "Студио",
       "tagline": "Развиващо се студио",
       "description": "Пълната платформа Velbok за студиа с до 6 артиста.",
       "seats": "До 6 места за артисти",
@@ -103,7 +103,7 @@
       }
     },
     "enterprise": {
-      "name": "Enterprise",
+      "name": "Предприятие",
       "tagline": "Голямо студио",
       "description": "Пълната платформа Velbok за студиа с до 10 артиста.",
       "seats": "До 10 места за артисти",
@@ -1202,7 +1202,7 @@
     "styleDotworkName": "Berlin",
     "styleDotworkDesc": "Точкова техника",
     "styleBlackworkName": "Madrid",
-    "styleBlackworkDesc": "Blackwork",
+    "styleBlackworkDesc": "черна работа",
     "quotaCountdownTitle": "Оставащи AI генерирания",
     "quotaCountdownValue": "{{remaining}} от {{limit}} остават",
     "quotaRemaining": "{{remaining}} от {{limit}} AI трафарета остават.",
