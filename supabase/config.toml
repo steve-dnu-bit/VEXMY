@@ -74,3 +74,9 @@ verify_jwt = false
 
 [functions.send-inbox-reply]
 verify_jwt = false
+
+[functions.platform-admin-revoke-subscription]
+verify_jwt = false
+
+[functions.platform-admin-grant-gratuity]
+verify_jwt = false

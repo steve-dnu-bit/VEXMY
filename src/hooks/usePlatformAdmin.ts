@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 
 export type PlatformOverview = {
   totalStudios: number;
@@ -31,6 +32,7 @@ export type PlatformStudio = {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   stripeSubscriptionId: string | null;
+  isGratuity?: boolean;
   memberCount: number;
   artistSeats: number;
 };
@@ -150,14 +152,50 @@ export function useGrantPlatformSubscription() {
       planId: string;
       months: number;
       note?: string;
+      cancelStripe?: boolean;
     }) => {
-      const { data, error } = await supabase.rpc("platform_admin_grant_subscription", {
-        _org_id: args.organizationId,
-        _plan_id: args.planId,
-        _months: args.months,
-        _note: args.note ?? null,
+      const { data, error } = await invokeEdgeFunctionJson<{
+        ok?: boolean;
+        error?: string;
+        warning?: string;
+        stripeCanceled?: boolean;
+        isGratuity?: boolean;
+        currentPeriodEnd?: string;
+      }>("platform-admin-grant-gratuity", {
+        organizationId: args.organizationId,
+        planId: args.planId,
+        months: args.months,
+        note: args.note ?? null,
+        cancelStripe: args.cancelStripe !== false,
       });
       if (error) throw error;
+      if (!data.ok) throw new Error(data.error || "Gratuity grant failed");
+      return data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["platform-admin-overview"] });
+      void queryClient.invalidateQueries({ queryKey: ["platform-admin-studios"] });
+      void queryClient.invalidateQueries({ queryKey: ["platform-admin-users"] });
+      void queryClient.invalidateQueries({ queryKey: ["platform-admin-events"] });
+    },
+  });
+}
+
+export function useRevokePlatformSubscription() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { organizationId: string; note?: string }) => {
+      const { data, error } = await invokeEdgeFunctionJson<{
+        ok?: boolean;
+        error?: string;
+        warning?: string;
+        stripeCanceled?: boolean;
+      }>("platform-admin-revoke-subscription", {
+        organizationId: args.organizationId,
+        note: args.note ?? null,
+      });
+      if (error) throw error;
+      if (!data.ok) throw new Error(data.error || "Revoke failed");
       return data;
     },
     onSuccess: () => {

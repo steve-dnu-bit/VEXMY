@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -45,7 +46,7 @@ import {
   usePlatformOverview,
   usePlatformStudios,
   usePlatformUsers,
-  useSetPlatformSubscriptionStatus,
+  useRevokePlatformSubscription,
 } from "@/hooks/usePlatformAdmin";
 import { PLAN_ORDER } from "@/lib/pricingPlans";
 
@@ -66,7 +67,7 @@ const PlatformAdminPage = () => {
   const studios = usePlatformStudios(enabled);
   const events = usePlatformEvents(enabled);
   const grantSub = useGrantPlatformSubscription();
-  const setStatus = useSetPlatformSubscriptionStatus();
+  const revokeSub = useRevokePlatformSubscription();
 
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState<string>("all");
@@ -76,6 +77,7 @@ const PlatformAdminPage = () => {
   const [grantPlan, setGrantPlan] = useState("studio");
   const [grantMonths, setGrantMonths] = useState("12");
   const [grantNote, setGrantNote] = useState("");
+  const [cancelStripeOnGrant, setCancelStripeOnGrant] = useState(true);
 
   const refreshAll = () => {
     void overview.refetch();
@@ -87,25 +89,49 @@ const PlatformAdminPage = () => {
   const handleGrant = async () => {
     if (!grantTarget) return;
     try {
-      await grantSub.mutateAsync({
+      const result = await grantSub.mutateAsync({
         organizationId: grantTarget.id,
         planId: grantPlan,
-        months: Number(grantMonths) || 12,
+        months: grantMonths === "lifetime" ? 120 : Number(grantMonths) || 12,
         note: grantNote.trim() || undefined,
+        cancelStripe: cancelStripeOnGrant,
       });
-      toast.success(t("platformAdmin.grantSuccess", { name: grantTarget.name }));
+      if (result.warning) {
+        toast.warning(result.warning);
+      } else {
+        toast.success(
+          result.stripeCanceled
+            ? t("platformAdmin.grantSuccessStripe", { name: grantTarget.name })
+            : t("platformAdmin.grantSuccess", { name: grantTarget.name }),
+        );
+      }
       setGrantTarget(null);
       setGrantNote("");
+      setCancelStripeOnGrant(true);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("common.error"));
     }
   };
 
+  const openGrantDialog = (studio: PlatformStudio) => {
+    setGrantTarget(studio);
+    setGrantPlan(studio.planId && PLAN_ORDER.includes(studio.planId as (typeof PLAN_ORDER)[number]) ? studio.planId : "studio");
+    setCancelStripeOnGrant(!!studio.stripeSubscriptionId);
+  };
+
   const handleCancel = async (studio: PlatformStudio) => {
     if (!window.confirm(t("platformAdmin.cancelConfirm", { name: studio.name }))) return;
     try {
-      await setStatus.mutateAsync({ organizationId: studio.id, status: "canceled" });
-      toast.success(t("platformAdmin.cancelSuccess", { name: studio.name }));
+      const result = await revokeSub.mutateAsync({ organizationId: studio.id });
+      if (result.warning) {
+        toast.warning(result.warning);
+      } else {
+        toast.success(
+          result.stripeCanceled
+            ? t("platformAdmin.cancelSuccessStripe", { name: studio.name })
+            : t("platformAdmin.cancelSuccess", { name: studio.name }),
+        );
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("common.error"));
     }
@@ -221,9 +247,16 @@ const PlatformAdminPage = () => {
                           <TableCell className="text-sm">{studio.ownerEmail ?? "—"}</TableCell>
                           <TableCell className="capitalize">{studio.planName || studio.planId || "—"}</TableCell>
                           <TableCell>
-                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass(studio.subscriptionStatus)}`}>
-                              {studio.subscriptionStatus || t("platformAdmin.noSub")}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass(studio.subscriptionStatus)}`}>
+                                {studio.subscriptionStatus || t("platformAdmin.noSub")}
+                              </span>
+                              {studio.isGratuity ? (
+                                <span className="inline-flex rounded-full bg-gold/15 px-2 py-0.5 text-xs font-medium text-gold">
+                                  {t("platformAdmin.gratuity")}
+                                </span>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell className="text-sm">
                             {studio.currentPeriodEnd
@@ -238,8 +271,8 @@ const PlatformAdminPage = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
-                              <Button size="sm" variant="outline" onClick={() => setGrantTarget(studio)}>
-                                {t("platformAdmin.grantFree")}
+                              <Button size="sm" variant="gold" onClick={() => openGrantDialog(studio)}>
+                                {t("platformAdmin.grantGratuity")}
                               </Button>
                               {studio.subscriptionStatus && studio.subscriptionStatus !== "canceled" ? (
                                 <Button
@@ -247,7 +280,7 @@ const PlatformAdminPage = () => {
                                   variant="ghost"
                                   className="text-destructive"
                                   onClick={() => void handleCancel(studio)}
-                                  disabled={setStatus.isPending}
+                                  disabled={revokeSub.isPending}
                                 >
                                   {t("platformAdmin.revoke")}
                                 </Button>
@@ -387,6 +420,11 @@ const PlatformAdminPage = () => {
             <DialogTitle>{t("platformAdmin.grantDialogTitle")}</DialogTitle>
             <DialogDescription>
               {t("platformAdmin.grantDialogDesc", { name: grantTarget?.name ?? "" })}
+              {grantTarget?.stripeSubscriptionId ? (
+                <span className="mt-2 block text-amber-600 dark:text-amber-400">
+                  {t("platformAdmin.grantStripeHint")}
+                </span>
+              ) : null}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -417,9 +455,25 @@ const PlatformAdminPage = () => {
                   <SelectItem value="6">6</SelectItem>
                   <SelectItem value="12">12</SelectItem>
                   <SelectItem value="24">24</SelectItem>
+                  <SelectItem value="lifetime">{t("platformAdmin.grantLifetime")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            {grantTarget?.stripeSubscriptionId ? (
+              <div className="flex items-start gap-2 rounded-lg border border-border/70 bg-muted/40 p-3">
+                <Checkbox
+                  id="cancel-stripe-grant"
+                  checked={cancelStripeOnGrant}
+                  onCheckedChange={(checked) => setCancelStripeOnGrant(checked === true)}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="cancel-stripe-grant" className="text-sm font-medium leading-none">
+                    {t("platformAdmin.cancelStripeOnGrant")}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">{t("platformAdmin.cancelStripeOnGrantDesc")}</p>
+                </div>
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label>{t("platformAdmin.grantNote")}</Label>
               <Input
