@@ -37,6 +37,52 @@ async function roundedLogo(size, crop) {
     .toBuffer();
 }
 
+async function buildFaviconIcon(size, crop) {
+  const zoom = 0.58;
+  const innerSide = Math.round(crop.width * zoom);
+  const innerCrop = {
+    left: crop.left + Math.round((crop.width - innerSide) / 2),
+    top: crop.top + Math.round((crop.height - innerSide) / 2),
+    width: innerSide,
+    height: innerSide,
+  };
+
+  const logoSize = Math.round(size * 0.92);
+  const offset = Math.round((size - logoSize) / 2);
+  const radius = Math.round(logoSize * RADIUS_RATIO);
+
+  const cropped = await sharp(source)
+    .extract(innerCrop)
+    .resize(logoSize, logoSize, { fit: "cover", position: "centre" })
+    .png()
+    .toBuffer();
+
+  const rounded = await sharp(cropped)
+    .ensureAlpha()
+    .composite([
+      {
+        input: Buffer.from(
+          `<svg width="${logoSize}" height="${logoSize}"><rect width="${logoSize}" height="${logoSize}" rx="${radius}" fill="white"/></svg>`
+        ),
+        blend: "dest-in",
+      },
+    ])
+    .png()
+    .toBuffer();
+
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 11, g: 12, b: 18, alpha: 1 },
+    },
+  })
+    .composite([{ input: rounded, top: offset, left: offset }])
+    .png()
+    .toBuffer();
+}
+
 async function buildSquareIcon(size, crop) {
   return roundedLogo(size, crop);
 }
@@ -117,7 +163,8 @@ await sharp(source).extract(crop).resize(512, 512, { fit: "cover" }).toFile(test
 console.log("Wrote public/icons/_test-left-crop.png");
 
 const outputs = [
-  ["public/icons/favicon-32.png", 32, "plain"],
+  ["public/icons/favicon-16.png", 16, "favicon"],
+  ["public/icons/favicon-32.png", 32, "favicon"],
   ["public/icons/logo.png", 128, "plain"],
   ["public/icons/icon-512-plain.png", 512, "plain"],
   ["public/icons/icon-192.png", 192, "install"],
@@ -127,15 +174,23 @@ const outputs = [
 ];
 
 for (const [file, size, variant] of outputs) {
-  const buf = variant === "install" ? await buildInstallIcon(size, crop) : await buildSquareIcon(size, crop);
+  const buf =
+    variant === "install"
+      ? await buildInstallIcon(size, crop)
+      : variant === "favicon"
+        ? await buildFaviconIcon(size, crop)
+        : await buildSquareIcon(size, crop);
   await sharp(buf).toFile(join(root, file));
   console.log(`Wrote ${file}`);
 }
 
+const favicon32 = await buildFaviconIcon(32, crop);
+const favicon32Base64 = favicon32.toString("base64");
+
 writeFileSync(
   join(root, "public/icon.svg"),
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Velbok app icon">
-  <image href="/icons/icon-512-plain.png" width="512" height="512" />
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Velbok app icon">
+  <image href="data:image/png;base64,${favicon32Base64}" width="32" height="32" />
 </svg>\n`
 );
 console.log("Wrote public/icon.svg");
