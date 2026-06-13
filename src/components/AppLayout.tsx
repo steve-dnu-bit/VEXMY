@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type Feature } from "@/hooks/usePermissions";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
 import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
 import { STORAGE_PREFIX } from "@/lib/branding";
@@ -110,6 +111,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const { hasPermission, loading: permLoading } = usePermissions();
   const { hasFeature } = useSubscription();
+  const { data: isPlatformAdmin } = usePlatformAdminAccess();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const raw = localStorage.getItem(`${STORAGE_PREFIX}.sidebarCollapsed`);
@@ -257,6 +259,21 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               </Link>
             );
           })}
+          {isPlatformAdmin ? (
+            <Link
+              to="/platform"
+              onClick={() => setSidebarOpen(false)}
+              title={t("platformAdmin.title")}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                location.pathname === "/platform"
+                  ? "bg-gold/15 text-gold"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+              } ${sidebarCollapsed ? "justify-center px-3" : ""}`}
+            >
+              <Shield className="h-4 w-4 shrink-0" />
+              {!sidebarCollapsed && t("platformAdmin.title")}
+            </Link>
+          ) : null}
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-2">

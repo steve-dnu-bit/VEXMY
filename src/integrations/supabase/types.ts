@@ -847,6 +847,21 @@ export type Database = {
           },
         ]
       }
+      platform_admins: {
+        Row: {
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       platform_subscriptions: {
         Row: {
           id: string
@@ -1032,6 +1047,43 @@ export type Database = {
       }
       org_inbox_channel_allowed: {
         Args: { _org_id: string; _channel: string }
+        Returns: boolean
+      }
+      platform_admin_is_me: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      platform_admin_overview: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      platform_admin_list_studios: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      platform_admin_list_users: {
+        Args: { _search?: string | null; _role?: string | null }
+        Returns: Json
+      }
+      platform_admin_recent_events: {
+        Args: { _limit?: number }
+        Returns: Json
+      }
+      platform_admin_grant_subscription: {
+        Args: {
+          _org_id: string
+          _plan_id: string
+          _months?: number
+          _note?: string | null
+        }
+        Returns: Json
+      }
+      platform_admin_set_subscription_status: {
+        Args: { _org_id: string; _status: Database["public"]["Enums"]["subscription_status"] }
+        Returns: Json
+      }
+      is_platform_admin: {
+        Args: { _user_id?: string }
         Returns: boolean
       }
     }

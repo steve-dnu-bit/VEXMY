@@ -10,6 +10,7 @@ import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import StaffRoute from "./components/StaffRoute";
+import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -37,6 +38,7 @@ const DepositsPage = lazy(() => import("./pages/DepositsPage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 const StockPage = lazy(() => import("./pages/StockPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
+const PlatformAdminPage = lazy(() => import("./pages/PlatformAdminPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const ArtistProfileSettingsPage = lazy(() => import("./pages/ArtistProfileSettingsPage"));
 const ShopSetupWizardPage = lazy(() => import("./pages/ShopSetupWizardPage"));
@@ -137,6 +139,7 @@ const App = () => (
                 <Route path="/billing" element={<ProtectedRoute><StaffRoute><BillingPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><StaffRoute><StockPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><StaffRoute><AdminPage /></StaffRoute></ProtectedRoute>} />
+                <Route path="/platform" element={<ProtectedRoute><PlatformAdminRoute><PlatformAdminPage /></PlatformAdminRoute></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                 <Route path="/artist-profile-settings" element={<ProtectedRoute><ArtistProfileSettingsPage /></ProtectedRoute>} />
                 <Route path="/shop-setup" element={<ProtectedRoute><ShopSetupWizardPage /></ProtectedRoute>} />

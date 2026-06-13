@@ -6,7 +6,7 @@ import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertCircle, Shield, Check, X, Users, Mail, UserPlus, UserMinus } from "lucide-react";
+import { AlertCircle, Crown, Shield, Check, X, Users, Mail, UserPlus, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { buildScheduleCSV, buildScheduleJSON, parseScheduleCSV, parseScheduleJSO
 import { endOfMonth, startOfMonth } from "date-fns";
 import { Link, useSearchParams } from "react-router-dom";
 import { useArtistSeats } from "@/hooks/useSubscription";
+import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
 import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { getPlanById } from "@/lib/pricingPlans";
@@ -103,6 +104,7 @@ const AdminPage = () => {
   const tabParam = searchParams.get("tab");
   const activeTab: AdminTab = ADMIN_TABS.includes(tabParam as AdminTab) ? (tabParam as AdminTab) : "defaults";
   const { data: seatUsage, refetch: refetchSeats } = useArtistSeats();
+  const { data: isPlatformAdmin } = usePlatformAdminAccess();
   const [isAdmin, setIsAdmin] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -429,6 +431,23 @@ const AdminPage = () => {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("admin.subtitle")}</p>
         </div>
+
+        {isPlatformAdmin ? (
+          <Card className="border-gold/40 bg-gold/5">
+            <CardHeader className="pb-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-gold" />
+                  <CardTitle className="text-base">{t("platformAdmin.title")}</CardTitle>
+                </div>
+                <Button variant="gold" size="sm" asChild>
+                  <Link to="/platform">{t("platformAdmin.openDashboard")}</Link>
+                </Button>
+              </div>
+              <CardDescription>{t("platformAdmin.adminCardDesc")}</CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
 
         <Card className="border-teal-900/30 bg-card">
           <CardHeader>
