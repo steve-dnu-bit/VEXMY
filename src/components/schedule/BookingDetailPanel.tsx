@@ -334,7 +334,14 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
               )}
               <ExternalMessageActions
                 phone={booking.client_phone}
+                email={booking.client_email}
                 whatsAppMessage={t("schedule.whatsAppPrefill", {
+                  name: booking.client_name,
+                  date: format(parseISO(booking.starts_at), "EEE d MMM"),
+                  time: format(parseISO(booking.starts_at), "h:mm a"),
+                })}
+                emailSubject={t("unifiedInbox.templateBookingSubject", { name: booking.client_name })}
+                emailBody={t("schedule.whatsAppPrefill", {
                   name: booking.client_name,
                   date: format(parseISO(booking.starts_at), "EEE d MMM"),
                   time: format(parseISO(booking.starts_at), "h:mm a"),

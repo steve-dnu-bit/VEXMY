@@ -29,6 +29,24 @@ export function buildInstagramDmUrl(handle: string): string | null {
   return `https://ig.me/m/${encodeURIComponent(username)}`;
 }
 
+export function buildMailtoUrl(email: string, subject?: string, body?: string): string | null {
+  const address = email.trim();
+  if (!address) return null;
+  const params = new URLSearchParams();
+  if (subject?.trim()) params.set("subject", subject.trim());
+  if (body?.trim()) params.set("body", body.trim());
+  const query = params.toString();
+  return query ? `mailto:${address}?${query}` : `mailto:${address}`;
+}
+
+export function buildSmsUrl(phone: string, body?: string): string | null {
+  const normalized = normalizePhoneForWhatsApp(phone);
+  if (!normalized) return null;
+  const base = `sms:+${normalized}`;
+  if (body?.trim()) return `${base}?body=${encodeURIComponent(body.trim())}`;
+  return base;
+}
+
 export function extractClientUserIdFromListKey(listKey: string): string | null {
   if (!listKey.startsWith("profile:")) return null;
   const id = listKey.slice("profile:".length).trim();

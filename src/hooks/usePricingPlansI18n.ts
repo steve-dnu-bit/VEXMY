@@ -5,7 +5,7 @@ import { PLAN_ARTIST_SEATS, PLAN_INBOX_FEATURES, PLAN_PRICES_GBP, formatPlanPric
 
 const CORE_FEATURE_KEYS = [0, 1, 2, 3, 4, 5, 6] as const;
 const INBOX_FEATURE_KEYS: Record<string, readonly number[]> = {
-  starter: [0],
+  starter: [0, 1, 2],
   studio: [0, 1],
   enterprise: [0, 1, 2],
 };
@@ -61,6 +61,12 @@ export function useComparisonRowsI18n() {
         enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
       },
       { label: t("pricing.comparison.artistSeats"), starter: "3", studio: "6", enterprise: "10" },
+      {
+        label: t("pricing.comparison.contactCentre"),
+        starter: t("pricing.comparison.included"),
+        studio: t("pricing.comparison.included"),
+        enterprise: t("pricing.comparison.included"),
+      },
       {
         label: t("pricing.comparison.unifiedInbox"),
         starter: dash,

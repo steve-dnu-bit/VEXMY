@@ -85,7 +85,16 @@ const DashboardPage = () => {
       const { count: mCount } = await msgQuery;
       setMessageCount(mCount || 0);
     } else {
-      setMessageCount(0);
+      const { data: contactBookings } = await supabase
+        .from("bookings")
+        .select("client_name, client_email, client_phone")
+        .limit(500);
+      const seen = new Set<string>();
+      (contactBookings || []).forEach((b) => {
+        if (!b.client_email && !b.client_phone) return;
+        seen.add(`${b.client_name}|${b.client_email}|${b.client_phone}`);
+      });
+      setMessageCount(seen.size);
     }
 
     const { data: recent } = await supabase
@@ -164,7 +173,11 @@ const DashboardPage = () => {
 
   const stats = [
     { label: t("dashboard.todaysBookings"), value: String(bookingCount), icon: Calendar },
-    { label: t("dashboard.unreadMessages"), value: String(messageCount), icon: MessageSquare },
+    {
+      label: hasFeature("staff_inbox") ? t("dashboard.unreadMessages") : t("dashboard.contactableClients"),
+      value: String(messageCount),
+      icon: hasFeature("staff_inbox") ? MessageSquare : Users,
+    },
   ];
 
   return (

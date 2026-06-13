@@ -26,9 +26,9 @@ const InboxPage = () => {
           ) : hasStaffInbox ? (
             <UnifiedInbox highlightSenderId={customerId} />
           ) : hasContactLinksOnly ? (
-            <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
               <ContactHub />
-              <InboxUpgradePrompt />
+              <InboxUpgradePrompt compact />
             </div>
           ) : (
             <InboxUpgradePrompt />

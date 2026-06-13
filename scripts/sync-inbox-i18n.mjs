@@ -47,6 +47,10 @@ const patch = {
       description: en.pricing.enterprise.description,
     },
   },
+  messaging: en.messaging,
+  dashboard: {
+    contactableClients: en.dashboard.contactableClients,
+  },
   unifiedInbox: en.unifiedInbox,
   customer: {
     contactStudio: en.customer.contactStudio,

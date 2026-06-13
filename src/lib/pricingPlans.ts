@@ -43,7 +43,11 @@ export const CORE_PLAN_FEATURES = [
 ] as const;
 
 export const PLAN_INBOX_FEATURES: Record<(typeof PLAN_ORDER)[number], string[]> = {
-  starter: ["WhatsApp & social contact links from bookings"],
+  starter: [
+    "Client contact centre from every booking",
+    "WhatsApp, SMS & email with message templates",
+    "Automated booking reminders & aftercare emails",
+  ],
   studio: ["Unified inbox (email + 1 channel)", "300 API messages / month"],
   enterprise: ["Unified inbox (all channels)", "500 API messages / month", "£0.06/msg overage"],
 };
@@ -55,7 +59,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
     period: "/ month",
     tagline: "Small team",
-    description: "The full Velbok platform for shops with up to 3 artists.",
+    description: "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
     seats: "Up to 3 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.starter,
     features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.starter],
@@ -100,7 +104,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in every plan?",
-    a: "Every plan includes scheduling, CRM, deposits, consent, stock, and billing. Unified inbox (WhatsApp, Instagram, email) starts on Studio. Only artist seats and inbox channels differ by plan.",
+    a: "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
   },
   {
     q: "Are Stripe fees included?",
@@ -124,6 +128,7 @@ export const COMPARISON_ROWS: { label: string; starter: string; studio: string; 
     enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
   },
   { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
+  { label: "Client contact centre", starter: "✓", studio: "✓", enterprise: "✓" },
   { label: "Unified inbox", starter: "—", studio: "Email + 1 channel", enterprise: "All channels" },
   { label: "API messages / month", starter: "—", studio: "300", enterprise: "500" },
 ];

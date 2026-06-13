@@ -698,7 +698,10 @@ const ClientsPage = () => {
                         <div className="flex flex-wrap items-center gap-1.5">
                           <ExternalMessageActions
                             phone={c.client_phone}
+                            email={c.client_email}
                             whatsAppMessage={t("clients.whatsAppPrefill", { name: c.client_name })}
+                            emailSubject={t("unifiedInbox.templateGeneralSubject", { name: c.client_name })}
+                            emailBody={t("clients.whatsAppPrefill", { name: c.client_name })}
                           />
                           {clientUserId && hasStaffInbox ? (
                             <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" asChild>
@@ -741,7 +744,10 @@ const ClientsPage = () => {
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <ExternalMessageActions
                     phone={c.client_phone}
+                    email={c.client_email}
                     whatsAppMessage={t("clients.whatsAppPrefill", { name: c.client_name })}
+                    emailSubject={t("unifiedInbox.templateGeneralSubject", { name: c.client_name })}
+                    emailBody={t("clients.whatsAppPrefill", { name: c.client_name })}
                   />
                   {clientUserId && hasStaffInbox ? (
                     <Button variant="outline" size="sm" className="h-8 text-xs gap-1" asChild>

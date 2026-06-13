@@ -83,7 +83,9 @@
     },
     "inboxFeatures": {
       "starter": {
-        "0": "WhatsApp & social contact links from bookings"
+        "0": "Client contact centre from every booking",
+        "1": "WhatsApp, SMS & email with message templates",
+        "2": "Automated booking reminders & aftercare emails"
       },
       "studio": {
         "0": "Unified inbox (email + 1 channel)",
@@ -98,7 +100,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Small team",
-      "description": "Core platform for shops with up to 3 artists. Contact clients via links from bookings.",
+      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
       "seats": "Up to 3 artist seats",
       "cta": "Start with Starter"
     },
@@ -121,6 +123,7 @@
       "artistSeats": "Artist seats",
       "fullPlatform": "Full platform features",
       "unifiedInbox": "Unified inbox",
+      "contactCentre": "Client contact centre",
       "inboxStudio": "Email + 1 channel",
       "inboxEnterprise": "All channels",
       "apiMessages": "API messages / month",
@@ -131,7 +134,7 @@
       "trialQ": "Is there a free trial?",
       "trialA": "All plans include a 14-day free trial. Choose a plan on the subscribe page — you'll enter card details on Stripe but won't be charged until the trial ends.",
       "includedQ": "What's included in every plan?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, and billing. Unified inbox starts on Studio. Only artist seats and inbox channels differ by plan.",
+      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
       "stripeFeesQ": "Are Stripe fees included?",
       "stripeFeesA": "No. Card processing fees are charged by Stripe on top of your subscription. Velbok integrates with your Stripe account for deposits and invoices.",
       "switchQ": "Can I switch plans later?",
@@ -361,6 +364,7 @@
     "welcome": "Welcome back. Here's your overview.",
     "todaysBookings": "Today's bookings",
     "unreadMessages": "Unread messages",
+    "contactableClients": "Clients to contact",
     "noBookingsToday": "No bookings today",
     "stripeVerification": "Stripe verification",
     "last30Days": "Last 30 days",
@@ -1066,11 +1070,47 @@
   },
   "unifiedInbox": {
     "title": "Inbox",
-    "contactTitle": "Contact clients",
-    "contactSubtitle": "Reach clients via WhatsApp or email from bookings and the client list. Upgrade to Studio for a unified inbox.",
-    "upgradeTitle": "Unified inbox on Studio",
-    "upgradeBody": "Connect email, WhatsApp, or Instagram DMs in one feed. Studio includes 300 messages/month.",
+    "contactTitle": "Client contact centre",
+    "contactSubtitle": "Reach clients in one tap from bookings — WhatsApp, SMS, or email with ready-made templates. Reminders and aftercare emails run automatically in the background.",
+    "upgradeTitle": "Want one inbox for everything?",
+    "upgradeBody": "Studio connects your channels so replies land in Velbok instead of switching apps.",
     "upgradeCta": "View Studio plan",
+    "starterIncludes": {
+      "reminders": "Automated booking reminders",
+      "aftercare": "Aftercare emails",
+      "templates": "Message templates",
+      "channels": "WhatsApp, SMS & email links"
+    },
+    "studioAdds": {
+      "feed": "One inbox feed for all conversations",
+      "channels": "Connect email + WhatsApp or Instagram",
+      "quota": "300 API messages per month included",
+      "history": "Full thread history inside Velbok"
+    },
+    "statClients": "Clients with contact details",
+    "statWhatsApp": "Reachable on WhatsApp",
+    "statEmail": "Reachable by email",
+    "statUpcoming": "Bookings in the next 7 days",
+    "upcomingTitle": "Upcoming bookings",
+    "noUpcoming": "No upcoming bookings with contact details.",
+    "allClientsTitle": "All clients",
+    "oneBooking": "1 booking",
+    "bookingCount": "{{count}} bookings",
+    "depositPending": "Deposit pending",
+    "templateLabel": "Message template",
+    "templateHint": "Prefills WhatsApp, SMS, and email when you tap a contact button.",
+    "templateGeneral": "General follow-up",
+    "templateBooking": "Booking confirmation",
+    "templateDeposit": "Deposit reminder",
+    "templateAftercare": "Aftercare check-in",
+    "templateGeneralSubject": "Message from your tattoo studio",
+    "templateGeneralBody": "Hi {{name}}, just checking in from the studio. Let us know if you have any questions.",
+    "templateBookingSubject": "Your upcoming appointment — {{name}}",
+    "templateBookingBody": "Hi {{name}}, looking forward to your session on {{date}} at {{time}}. Reply if you need to change anything.",
+    "templateDepositSubject": "Deposit for your booking — {{name}}",
+    "templateDepositBody": "Hi {{name}}, a quick reminder about your deposit for the appointment on {{date}}. Let us know if you need the payment link again.",
+    "templateAftercareSubject": "Aftercare check-in — {{name}}",
+    "templateAftercareBody": "Hi {{name}}, hope your tattoo is healing well. Message us if you have any aftercare questions.",
     "allChannels": "All",
     "refresh": "Refresh",
     "connectChannels": "Connect channels",
@@ -1095,6 +1135,14 @@
     "overageRate": "Overage billed at £{{rate}}/message on Enterprise.",
     "inbound": "In",
     "outbound": "Out"
+  },
+  "messaging": {
+    "whatsapp": "WhatsApp",
+    "sms": "SMS",
+    "email": "Email",
+    "instagram": "Instagram",
+    "copy": "Copy",
+    "copied": "Copied to clipboard"
   },
   "chat": {
     "threadLabelFallback": "Chat",
