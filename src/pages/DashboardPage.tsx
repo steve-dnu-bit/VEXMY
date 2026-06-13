@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { loadShopSettings } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getUserOrganizationId } from "@/lib/shopSettings";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 const DashboardPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { hasFeature } = useSubscription();
   const [bookingCount, setBookingCount] = useState(0);
   const [messageCount, setMessageCount] = useState(0);
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
@@ -76,11 +78,15 @@ const DashboardPage = () => {
       .lt("starts_at", `${today}T23:59:59`);
     setBookingCount(bCount || 0);
 
-    const { count: mCount } = await supabase
-      .from("messages")
-      .select("*", { count: "exact", head: true })
-      .eq("is_read", false);
-    setMessageCount(mCount || 0);
+    if (hasFeature("staff_inbox")) {
+      const orgId = await getUserOrganizationId();
+      let msgQuery = supabase.from("messages").select("*", { count: "exact", head: true }).eq("is_read", false);
+      if (orgId) msgQuery = msgQuery.eq("organization_id", orgId);
+      const { count: mCount } = await msgQuery;
+      setMessageCount(mCount || 0);
+    } else {
+      setMessageCount(0);
+    }
 
     const { data: recent } = await supabase
       .from("bookings")

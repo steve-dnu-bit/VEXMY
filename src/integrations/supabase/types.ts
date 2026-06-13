@@ -113,6 +113,7 @@ export type Database = {
           credentials: Json
           id: string
           is_active: boolean
+          organization_id: string | null
           updated_at: string
           user_id: string
         }
@@ -122,6 +123,7 @@ export type Database = {
           credentials?: Json
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -131,10 +133,19 @@ export type Database = {
           credentials?: Json
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "channel_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       companies: {
         Row: {
@@ -313,6 +324,38 @@ export type Database = {
         }
         Relationships: []
       }
+      inbox_api_usage: {
+        Row: {
+          organization_id: string
+          period_month: string
+          inbound_count: number
+          outbound_count: number
+          updated_at: string
+        }
+        Insert: {
+          organization_id: string
+          period_month: string
+          inbound_count?: number
+          outbound_count?: number
+          updated_at?: string
+        }
+        Update: {
+          organization_id?: string
+          period_month?: string
+          inbound_count?: number
+          outbound_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbox_api_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           assigned_to: string | null
@@ -323,6 +366,7 @@ export type Database = {
           is_read: boolean | null
           message_text: string
           metadata: Json | null
+          organization_id: string | null
           sender_id: string | null
           sender_name: string
         }
@@ -335,6 +379,7 @@ export type Database = {
           is_read?: boolean | null
           message_text: string
           metadata?: Json | null
+          organization_id?: string | null
           sender_id?: string | null
           sender_name: string
         }
@@ -347,10 +392,19 @@ export type Database = {
           is_read?: boolean | null
           message_text?: string
           metadata?: Json | null
+          organization_id?: string | null
           sender_id?: string | null
           sender_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -963,6 +1017,22 @@ export type Database = {
       refund_stencil_quota: {
         Args: { _usage_id: string; _user_id?: string }
         Returns: undefined
+      }
+      get_org_inbox_limits: {
+        Args: { _org_id: string }
+        Returns: Json
+      }
+      claim_inbox_message_quota: {
+        Args: { _org_id: string; _direction?: string }
+        Returns: Json
+      }
+      org_plan_feature_number: {
+        Args: { _org_id: string; _feature: string }
+        Returns: number
+      }
+      org_inbox_channel_allowed: {
+        Args: { _org_id: string; _channel: string }
+        Returns: boolean
       }
     }
     Enums: {

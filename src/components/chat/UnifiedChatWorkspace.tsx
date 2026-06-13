@@ -1,3 +1,4 @@
+/** @deprecated Internal realtime chat replaced by unified external inbox (`UnifiedInbox`). Legacy read-only; new messages are blocked server-side. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";

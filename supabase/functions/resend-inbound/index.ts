@@ -8,6 +8,7 @@ import {
   type ResendInboundEvent,
   verifyResendWebhook,
 } from "../_shared/resend-inbound.ts";
+import { claimInboxMessageQuota, isInboxChannelAllowedForOrg } from "../_shared/inbox-limits.ts";
 
 function inboundDomain(): string {
   return (Deno.env.get("RESEND_INBOUND_DOMAIN") ?? "velbok.com").trim().toLowerCase();
@@ -54,11 +55,29 @@ async function forwardInboundEmail(email: Awaited<ReturnType<typeof fetchReceive
   });
 }
 
+async function resolveInboundOrganizationId(
+  admin: ReturnType<typeof createClient>,
+): Promise<string | null> {
+  const { count } = await admin.from("organizations").select("id", { count: "exact", head: true });
+  if (count === 1) {
+    const { data } = await admin.from("organizations").select("id").limit(1).maybeSingle();
+    return data?.id ?? null;
+  }
+  const { data: shop } = await admin
+    .from("shop_settings")
+    .select("organization_id")
+    .not("organization_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  return shop?.organization_id ?? null;
+}
+
 async function storeInboundMessage(
   admin: ReturnType<typeof createClient>,
+  organizationId: string,
   event: ResendInboundEvent,
   email: Awaited<ReturnType<typeof fetchReceivedEmail>>,
-): Promise<{ stored: boolean; messageId?: string }> {
+): Promise<{ stored: boolean; messageId?: string; skipped?: string }> {
   const emailId = event.data?.email_id ?? email.id;
   if (!emailId) throw new Error("Missing email_id");
 
@@ -80,6 +99,7 @@ async function storeInboundMessage(
   const { data: inserted, error } = await admin
     .from("messages")
     .insert({
+      organization_id: organizationId,
       channel: "email",
       direction: "inbound",
       sender_name: sender.name,
@@ -147,7 +167,29 @@ serve(async (req) => {
 
     const email = await fetchReceivedEmail(emailId);
     const admin = createClient(supabaseUrl, serviceKey);
-    const stored = await storeInboundMessage(admin, event, email);
+
+    const organizationId = await resolveInboundOrganizationId(admin);
+    if (!organizationId) {
+      return new Response(JSON.stringify({ received: true, ignored: "no_organization" }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const emailAllowed = await isInboxChannelAllowedForOrg(admin, organizationId, "email");
+    if (!emailAllowed) {
+      return new Response(JSON.stringify({ received: true, ignored: "plan_no_inbox_email" }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const quota = await claimInboxMessageQuota(admin, organizationId, "inbound");
+    if (!quota.allowed) {
+      return new Response(JSON.stringify({ received: true, ignored: "monthly_cap_reached", quota }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const stored = await storeInboundMessage(admin, organizationId, event, email);
 
     let forwarded = false;
     if (forwardTarget()) {

@@ -10,7 +10,7 @@ const corsHeaders: Record<string, string> = {
 const PLANS = [
   { id: "starter", name: "Velbok Starter", amount: 1495 },
   { id: "studio", name: "Velbok Studio", amount: 1995 },
-  { id: "enterprise", name: "Velbok Enterprise", amount: 2990 },
+  { id: "enterprise", name: "Velbok Enterprise", amount: 4995 },
 ] as const;
 
 function parseBearer(req: Request): string | null {
@@ -33,8 +33,8 @@ function isServiceRoleToken(token: string, serviceKey: string): boolean {
 
 async function ensurePlanPrice(
   stripe: Stripe,
-  plan: (typeof PLANS)[number],
-): Promise<{ planId: string; priceId: string; productId: string; created: boolean }> {
+  plan: (typeof PLANS)[number] | { id: string; name: string; amount: number },
+): Promise<{ planId: string; priceId: string; productId: string; amount: number; amountGbp: string; created: boolean }> {
   const search = await stripe.products.search({
     query: `metadata['velbok_plan_id']:'${plan.id}'`,
     limit: 1,
@@ -74,7 +74,21 @@ async function ensurePlanPrice(
     planId: plan.id,
     priceId: price.id,
     productId: product.id,
+    amount: price.unit_amount ?? plan.amount,
+    amountGbp: ((price.unit_amount ?? plan.amount) / 100).toFixed(2),
     created: createdProduct || createdPrice,
+  };
+}
+
+async function describePrice(stripe: Stripe, priceId: string) {
+  const price = await stripe.prices.retrieve(priceId);
+  return {
+    priceId: price.id,
+    productId: typeof price.product === "string" ? price.product : price.product?.id ?? null,
+    amount: price.unit_amount,
+    amountGbp: price.unit_amount != null ? (price.unit_amount / 100).toFixed(2) : null,
+    active: price.active,
+    metadata: price.metadata,
   };
 }
 
@@ -111,11 +125,18 @@ serve(async (req) => {
       STRIPE_PRICE_ENTERPRISE: results.find((r) => r.planId === "enterprise")!.priceId,
     };
 
+    const configured = {
+      starter: await describePrice(stripe, secrets.STRIPE_PRICE_STARTER),
+      studio: await describePrice(stripe, secrets.STRIPE_PRICE_STUDIO),
+      enterprise: await describePrice(stripe, secrets.STRIPE_PRICE_ENTERPRISE),
+    };
+
     return new Response(
       JSON.stringify({
         ok: true,
         stripeMode: stripeSecret.startsWith("sk_test_") ? "test" : "live",
         plans: results,
+        configured,
         secrets,
         nextStep: "Set Supabase secrets STRIPE_PRICE_STARTER, STRIPE_PRICE_STUDIO, STRIPE_PRICE_ENTERPRISE to the values in secrets.",
       }),

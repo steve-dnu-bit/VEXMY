@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { useTranslation } from "react-i18next";
+import { useSubscription } from "@/hooks/useSubscription";
 import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { Link } from "react-router-dom";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
@@ -133,6 +133,8 @@ function importedContactGroupKey(c: { name: string; email: string | null; phone:
 
 const ClientsPage = () => {
   const { t } = useTranslation();
+  const { hasFeature } = useSubscription();
+  const hasStaffInbox = hasFeature("staff_inbox");
   const [clients, setClients] = useState<BookingClient[]>([]);
   const [search, setSearch] = useState("");
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -698,7 +700,7 @@ const ClientsPage = () => {
                             phone={c.client_phone}
                             whatsAppMessage={t("clients.whatsAppPrefill", { name: c.client_name })}
                           />
-                          {clientUserId ? (
+                          {clientUserId && hasStaffInbox ? (
                             <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" asChild>
                               <Link to={`/inbox?customerId=${encodeURIComponent(clientUserId)}`}>
                                 <MessageSquare className="h-3.5 w-3.5" />
@@ -741,7 +743,7 @@ const ClientsPage = () => {
                     phone={c.client_phone}
                     whatsAppMessage={t("clients.whatsAppPrefill", { name: c.client_name })}
                   />
-                  {clientUserId ? (
+                  {clientUserId && hasStaffInbox ? (
                     <Button variant="outline" size="sm" className="h-8 text-xs gap-1" asChild>
                       <Link to={`/inbox?customerId=${encodeURIComponent(clientUserId)}`}>
                         <MessageSquare className="h-3.5 w-3.5" />

@@ -120,7 +120,8 @@ const App = () => (
                   <Route path="/consent" element={<ConsentPage />} />
                   <Route path="/account" element={<ProtectedRoute><CustomerAccountPage /></ProtectedRoute>} />
                   <Route path="/account/security" element={<ProtectedRoute><CustomerSecurityPage /></ProtectedRoute>} />
-                  <Route path="/account/chats" element={<ProtectedRoute><CustomerChatsPage /></ProtectedRoute>} />
+                  <Route path="/account/contact" element={<ProtectedRoute><CustomerChatsPage /></ProtectedRoute>} />
+                  <Route path="/account/chats" element={<Navigate to="/account/contact" replace />} />
                   <Route path="/deposit-payment" element={<ProtectedRoute><CustomerDepositsPage /></ProtectedRoute>} />
                   <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
                 </Route>

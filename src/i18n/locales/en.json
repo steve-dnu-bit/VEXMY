@@ -45,6 +45,7 @@
   "nav": {
     "schedule": "Schedule",
     "inbox": "Inbox",
+    "contact": "Contact",
     "services": "Services",
     "stencil": "Stencil",
     "clients": "Clients",
@@ -62,7 +63,7 @@
   "marketing": {
     "footerTagline": "The all-in-one platform for tattoo studios — scheduling, deposits, consent, billing, and client communication in one place.",
     "pricingTitle": "Plans that scale with your studio",
-    "pricingSubtitle": "Transparent monthly pricing. Every plan includes the full platform — only artist seat limits differ.",
+    "pricingSubtitle": "Transparent monthly pricing. Core studio tools on every plan — unified inbox from Studio.",
     "comparePlans": "Compare plans",
     "pricingFaq": "Pricing FAQ",
     "notSurePlan": "Not sure which plan fits?",
@@ -71,34 +72,47 @@
     "mostPopular": "Most popular"
   },
   "pricing": {
-    "sharedFeatures": {
+    "coreFeatures": {
       "0": "Full schedule & multi-artist calendar",
       "1": "Client CRM & CSV import",
       "2": "Digital consent forms & customer portal",
       "3": "Stripe deposits & invoice payments",
-      "4": "Staff inbox & role permissions",
-      "5": "Automated reminders & aftercare emails",
-      "6": "Stock management & billing records",
-      "7": "Documentation & email support"
+      "4": "Automated reminders & aftercare emails",
+      "5": "Stock management & billing records",
+      "6": "Documentation & email support"
+    },
+    "inboxFeatures": {
+      "starter": {
+        "0": "WhatsApp & social contact links from bookings"
+      },
+      "studio": {
+        "0": "Unified inbox (email + 1 channel)",
+        "1": "300 API messages / month"
+      },
+      "enterprise": {
+        "0": "Unified inbox (all channels)",
+        "1": "500 API messages / month",
+        "2": "£0.06/msg overage"
+      }
     },
     "starter": {
       "name": "Starter",
       "tagline": "Small team",
-      "description": "The full Velbok platform for shops with up to 3 artists.",
+      "description": "Core platform for shops with up to 3 artists. Contact clients via links from bookings.",
       "seats": "Up to 3 artist seats",
       "cta": "Start with Starter"
     },
     "studio": {
       "name": "Studio",
       "tagline": "Growing shop",
-      "description": "The full Velbok platform for shops with up to 6 artists.",
+      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
       "seats": "Up to 6 artist seats",
       "cta": "Start free trial"
     },
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Large studio",
-      "description": "The full Velbok platform for shops with up to 10 artists.",
+      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
       "seats": "Up to 10 artist seats",
       "cta": "Start with Enterprise"
     },
@@ -106,6 +120,10 @@
       "monthlyPrice": "Monthly price (GBP)",
       "artistSeats": "Artist seats",
       "fullPlatform": "Full platform features",
+      "unifiedInbox": "Unified inbox",
+      "inboxStudio": "Email + 1 channel",
+      "inboxEnterprise": "All channels",
+      "apiMessages": "API messages / month",
       "included": "✓",
       "notIncluded": "—"
     },
@@ -113,7 +131,7 @@
       "trialQ": "Is there a free trial?",
       "trialA": "All plans include a 14-day free trial. Choose a plan on the subscribe page — you'll enter card details on Stripe but won't be charged until the trial ends.",
       "includedQ": "What's included in every plan?",
-      "includedA": "Every plan includes the full Velbok platform — scheduling, CRM, deposits, consent, inbox, stock, billing, and more. The only difference is how many artists you can add.",
+      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, and billing. Unified inbox starts on Studio. Only artist seats and inbox channels differ by plan.",
       "stripeFeesQ": "Are Stripe fees included?",
       "stripeFeesA": "No. Card processing fees are charged by Stripe on top of your subscription. Velbok integrates with your Stripe account for deposits and invoices.",
       "switchQ": "Can I switch plans later?",
@@ -744,6 +762,11 @@
     "myAccount": "My account",
     "depositPayment": "Deposit payment",
     "messages": "Messages",
+    "contactStudio": "Contact studio",
+    "contactStudioDesc": "Message the studio on WhatsApp or email — replies go directly to their team.",
+    "emailStudio": "Email",
+    "contactCardTitle": "Contact studio",
+    "contactCardDesc": "Reach your artist via WhatsApp or email.",
     "signConsent": "Sign consent",
     "signOut": "Sign out",
     "out": "Out",
@@ -1041,6 +1064,38 @@
     "markedVip": "Marked VIP for this booking",
     "vipRemoved": "VIP removed"
   },
+  "unifiedInbox": {
+    "title": "Inbox",
+    "contactTitle": "Contact clients",
+    "contactSubtitle": "Reach clients via WhatsApp or email from bookings and the client list. Upgrade to Studio for a unified inbox.",
+    "upgradeTitle": "Unified inbox on Studio",
+    "upgradeBody": "Connect email, WhatsApp, or Instagram DMs in one feed. Studio includes 300 messages/month.",
+    "upgradeCta": "View Studio plan",
+    "allChannels": "All",
+    "refresh": "Refresh",
+    "connectChannels": "Connect channels",
+    "usage": "{{used}} / {{cap}} messages this month",
+    "usageUnlimited": "No API message cap on this plan",
+    "noMessages": "No messages yet",
+    "noMessagesHint": "Connect a channel or wait for inbound email to arrive.",
+    "selectThread": "Select a conversation",
+    "replyPlaceholder": "Write a reply…",
+    "sendReply": "Send",
+    "replySent": "Reply sent",
+    "replyFailed": "Could not send reply",
+    "markReadFailed": "Could not update read status",
+    "emailOnlyReply": "Connect this channel in inbox settings to reply from Velbok.",
+    "fromBooking": "Recent clients",
+    "searchClients": "Search clients…",
+    "noClients": "No clients with contact details yet",
+    "capReached": "Monthly message cap reached. Upgrade or wait until next month.",
+    "remaining": "{{count}} left",
+    "overageActive": "{{count}} over cap",
+    "warn80": "Approaching monthly message cap (80%).",
+    "overageRate": "Overage billed at £{{rate}}/message on Enterprise.",
+    "inbound": "In",
+    "outbound": "Out"
+  },
   "chat": {
     "threadLabelFallback": "Chat",
     "artistFallback": "Artist",
@@ -1323,6 +1378,7 @@
     "noContactOnFile": "No email / phone on file",
     "noClientMatches": "No matches — continue typing a new client name",
     "linkAccount": "Link customer account",
+    "openInbox": "Open in inbox",
     "linkAccountHint": "Type at least 2 letters — name or portal email",
     "linkAccountPlaceholder": "Optional — search portal accounts",
     "noPortalMatch": "No portal account match — use the email field above or keep typing",

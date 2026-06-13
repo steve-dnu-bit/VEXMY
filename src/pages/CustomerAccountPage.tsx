@@ -287,13 +287,13 @@ const CustomerAccountPage = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">{t("customer.messagesTitle")}</CardTitle>
+              <CardTitle className="text-base">{t("customer.contactCardTitle")}</CardTitle>
             </div>
-            <CardDescription>{t("customer.messagesDesc", { defaultValue: "Chat directly with your artist from your dashboard." })}</CardDescription>
+            <CardDescription>{t("customer.contactCardDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate("/account/chats")}>
-              {t("customer.openMessages")}
+            <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate("/account/contact")}>
+              {t("customer.contactStudio")}
             </Button>
           </CardContent>
         </Card>

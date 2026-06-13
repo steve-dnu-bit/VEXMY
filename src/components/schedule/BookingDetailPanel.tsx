@@ -20,6 +20,7 @@ import {
 import { consentPdfBasename, downloadConsentPdf, printConsentPdf } from "@/lib/consentPdfActions";
 import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
+import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
 import { Link } from "react-router-dom";
 
@@ -65,6 +66,7 @@ type ClientConductRow = {
 const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDetailPanelProps) => {
   const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
   const { user } = useAuth();
+  const { hasFeature } = useSubscription();
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
   const [conductLoading, setConductLoading] = useState(true);
   const [savingConduct, setSavingConduct] = useState(false);
@@ -340,11 +342,11 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                 layout="column"
                 className="pt-1"
               />
-              {booking.client_user_id ? (
+              {booking.client_user_id && hasFeature("staff_inbox") ? (
                 <Button variant="outline" size="sm" className="w-full h-8 text-xs gap-1" asChild>
                   <Link to={`/inbox?customerId=${encodeURIComponent(booking.client_user_id)}`}>
                     <MessageSquare className="h-3 w-3" />
-                    {t("schedule.openPortalChat")}
+                    {t("schedule.openInbox")}
                   </Link>
                 </Button>
               ) : null}

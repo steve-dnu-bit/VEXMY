@@ -20,6 +20,14 @@ export type PlanFeatures = {
   stripe_deposits?: boolean;
   invoicing?: boolean;
   staff_inbox?: boolean;
+  inbox_email?: boolean;
+  inbox_whatsapp?: boolean;
+  inbox_instagram?: boolean;
+  inbox_facebook?: boolean;
+  inbox_sms?: boolean;
+  inbox_max_channels?: number;
+  inbox_monthly_message_cap?: number;
+  inbox_overage_rate_gbp?: number;
   stock?: boolean;
   billing?: boolean;
   stencil?: boolean;
@@ -66,10 +74,21 @@ export function planHasFeature(
   feature: keyof PlanFeatures,
   subscriptionActive = false,
 ): boolean {
-  // All plans include the same platform features; seat count is the only difference.
-  if (subscriptionActive) return true;
-  if (!plan?.features) return false;
-  return plan.features[feature] === true;
+  if (!subscriptionActive || !plan?.features) return false;
+  const value = plan.features[feature];
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value > 0;
+  return false;
+}
+
+export function planFeatureNumber(
+  plan: SubscriptionPlan | null,
+  feature: keyof PlanFeatures,
+  subscriptionActive = false,
+): number {
+  if (!subscriptionActive || !plan?.features) return 0;
+  const value = plan.features[feature];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 type SubscriptionRpcPayload = {

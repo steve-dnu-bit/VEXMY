@@ -57,7 +57,8 @@
     "consentForm": "Modulo di consenso",
     "account": "Il tuo account",
     "chats": "Chat",
-    "security": "Sicurezza"
+    "security": "Sicurezza",
+    "contact": "Contact"
   },
   "marketing": {
     "footerTagline": "La piattaforma all-in-one per studi di tatuaggio — agenda, acconti, consenso, fatturazione e comunicazione con i clienti in un unico posto.",
@@ -74,7 +75,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Team piccolo",
-      "description": "La piattaforma Velbok completa per studi con fino a 3 artisti.",
+      "description": "Core platform for shops with up to 3 artists. Contact clients via links from bookings.",
       "seats": "Fino a 3 posti artista",
       "cta": "Inizia con Starter",
       "features": {
@@ -89,7 +90,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Studio in crescita",
-      "description": "La piattaforma Velbok completa per studi con fino a 6 artisti.",
+      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
       "seats": "Fino a 6 posti artista",
       "cta": "Prova gratuita",
       "features": {
@@ -105,7 +106,7 @@
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Studio grande",
-      "description": "La piattaforma Velbok completa per studi con fino a 10 artisti.",
+      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
       "seats": "Fino a 10 posti artista",
       "cta": "Inizia con Enterprise",
       "features": {
@@ -118,8 +119,8 @@
       }
     },
     "comparison": {
-      "monthlyPrice": "Prezzo mensile (GBP)",
-      "artistSeats": "Posti artista",
+      "monthlyPrice": "Monthly price (GBP)",
+      "artistSeats": "Artist seats",
       "scheduleCrm": "Agenda & CRM",
       "consentForms": "Moduli di consenso",
       "customerPortal": "Portale clienti",
@@ -131,13 +132,17 @@
       "sla": "SLA",
       "included": "✓",
       "notIncluded": "—",
-      "fullPlatform": "Funzionalità complete della piattaforma"
+      "fullPlatform": "Full platform features",
+      "unifiedInbox": "Unified inbox",
+      "inboxStudio": "Email + 1 channel",
+      "inboxEnterprise": "All channels",
+      "apiMessages": "API messages / month"
     },
     "faq": {
       "trialQ": "C'è una prova gratuita?",
       "trialA": "Tutti i piani includono una prova gratuita di 14 giorni. Scegli un piano nella pagina di abbonamento — inserirai i dati della carta su Stripe ma non verrai addebitato fino alla fine della prova.",
       "includedQ": "Cosa è incluso in ogni piano?",
-      "includedA": "Ogni piano include la piattaforma Velbok completa — agenda, CRM, acconti, consenso, posta in arrivo, magazzino, fatturazione e altro. L'unica differenza è quanti artisti potete aggiungere.",
+      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, and billing. Unified inbox starts on Studio. Only artist seats and inbox channels differ by plan.",
       "stripeFeesQ": "Le commissioni Stripe sono incluse?",
       "stripeFeesA": "No. Le commissioni di elaborazione carta sono addebitate da Stripe oltre al tuo abbonamento. Velbok si integra con il tuo account Stripe per acconti e fatture.",
       "switchQ": "Posso cambiare piano in seguito?",
@@ -154,6 +159,29 @@
       "5": "Promemoria automatici e e-mail di post-cura",
       "6": "Gestione magazzino e registri di fatturazione",
       "7": "Documentazione e supporto via e-mail"
+    },
+    "coreFeatures": {
+      "0": "Full schedule & multi-artist calendar",
+      "1": "Client CRM & CSV import",
+      "2": "Digital consent forms & customer portal",
+      "3": "Stripe deposits & invoice payments",
+      "4": "Automated reminders & aftercare emails",
+      "5": "Stock management & billing records",
+      "6": "Documentation & email support"
+    },
+    "inboxFeatures": {
+      "starter": {
+        "0": "WhatsApp & social contact links from bookings"
+      },
+      "studio": {
+        "0": "Unified inbox (email + 1 channel)",
+        "1": "300 API messages / month"
+      },
+      "enterprise": {
+        "0": "Unified inbox (all channels)",
+        "1": "500 API messages / month",
+        "2": "£0.06/msg overage"
+      }
     }
   },
   "auth": {
@@ -594,7 +622,12 @@
     "accessLimitedDesc": "Il tuo account non include il portale prenotazioni. Contatta lo studio se si tratta di un errore.",
     "profileUpdated": "Profilo aggiornato",
     "invoicePaymentReceived": "Pagamento fattura ricevuto. Grazie.",
-    "invoicePaymentCancelled": "Pagamento fattura annullato."
+    "invoicePaymentCancelled": "Pagamento fattura annullato.",
+    "contactStudio": "Contact studio",
+    "contactStudioDesc": "Message the studio on WhatsApp or email — replies go directly to their team.",
+    "emailStudio": "Email",
+    "contactCardTitle": "Contact studio",
+    "contactCardDesc": "Reach your artist via WhatsApp or email."
   },
   "landing": {
     "heroBadge": "Creato per studi di tatuaggio moderni",
@@ -1393,7 +1426,8 @@
     "depositStatus": "Stato acconto",
     "depositAmount": "Importo acconto",
     "depositAmountHint": "Massimo {{max}} (equivalente a £200). Applicato quando invii link di pagamento.",
-    "depositAmountInvalid": "Inserisci un acconto valido fino a {{max}} (equivalente a £200)."
+    "depositAmountInvalid": "Inserisci un acconto valido fino a {{max}} (equivalente a £200).",
+    "openInbox": "Open in inbox"
   },
   "staff": {
     "loading": "Caricamento…"
@@ -1468,5 +1502,37 @@
     "loadFailed": "Impossibile caricare lo stato accrediti",
     "onboardFailed": "Impossibile avviare la configurazione accrediti",
     "dashboardFailed": "Impossibile aprire la dashboard accrediti"
+  },
+  "unifiedInbox": {
+    "title": "Inbox",
+    "contactTitle": "Contact clients",
+    "contactSubtitle": "Reach clients via WhatsApp or email from bookings and the client list. Upgrade to Studio for a unified inbox.",
+    "upgradeTitle": "Unified inbox on Studio",
+    "upgradeBody": "Connect email, WhatsApp, or Instagram DMs in one feed. Studio includes 300 messages/month.",
+    "upgradeCta": "View Studio plan",
+    "allChannels": "All",
+    "refresh": "Refresh",
+    "connectChannels": "Connect channels",
+    "usage": "{{used}} / {{cap}} messages this month",
+    "usageUnlimited": "No API message cap on this plan",
+    "noMessages": "No messages yet",
+    "noMessagesHint": "Connect a channel or wait for inbound email to arrive.",
+    "selectThread": "Select a conversation",
+    "replyPlaceholder": "Write a reply…",
+    "sendReply": "Send",
+    "replySent": "Reply sent",
+    "replyFailed": "Could not send reply",
+    "markReadFailed": "Could not update read status",
+    "emailOnlyReply": "Connect this channel in inbox settings to reply from Velbok.",
+    "fromBooking": "Recent clients",
+    "searchClients": "Search clients…",
+    "noClients": "No clients with contact details yet",
+    "capReached": "Monthly message cap reached. Upgrade or wait until next month.",
+    "remaining": "{{count}} left",
+    "overageActive": "{{count}} over cap",
+    "warn80": "Approaching monthly message cap (80%).",
+    "overageRate": "Overage billed at £{{rate}}/message on Enterprise.",
+    "inbound": "In",
+    "outbound": "Out"
   }
 }

@@ -16,7 +16,7 @@ export type PricingPlan = {
 export const PLAN_PRICES_GBP = {
   starter: 14.95,
   studio: 19.95,
-  enterprise: 29.9,
+  enterprise: 49.95,
 } as const;
 
 export const PLAN_ARTIST_SEATS = {
@@ -31,17 +31,22 @@ export function formatPlanPriceGbp(amount: number): string {
   return `£${amount.toFixed(2)}`;
 }
 
-/** Same feature set on every plan — only artist seat count differs. */
-export const SHARED_PLAN_FEATURES = [
+/** Core platform features included on every plan. */
+export const CORE_PLAN_FEATURES = [
   "Full schedule & multi-artist calendar",
   "Client CRM & CSV import",
   "Digital consent forms & customer portal",
   "Stripe deposits & invoice payments",
-  "Staff inbox & role permissions",
   "Automated reminders & aftercare emails",
   "Stock management & billing records",
   "Documentation & email support",
 ] as const;
+
+export const PLAN_INBOX_FEATURES: Record<(typeof PLAN_ORDER)[number], string[]> = {
+  starter: ["WhatsApp & social contact links from bookings"],
+  studio: ["Unified inbox (email + 1 channel)", "300 API messages / month"],
+  enterprise: ["Unified inbox (all channels)", "500 API messages / month", "£0.06/msg overage"],
+};
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
@@ -53,7 +58,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     description: "The full Velbok platform for shops with up to 3 artists.",
     seats: "Up to 3 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.starter,
-    features: [...SHARED_PLAN_FEATURES],
+    features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.starter],
     cta: "Start with Starter",
     ctaHref: "/subscribe?plan=starter",
     highlighted: false,
@@ -64,10 +69,10 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
     period: "/ month",
     tagline: "Growing shop",
-    description: "The full Velbok platform for shops with up to 6 artists.",
+    description: "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
     seats: "Up to 6 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.studio,
-    features: [...SHARED_PLAN_FEATURES],
+    features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.studio],
     cta: "Start free trial",
     ctaHref: "/subscribe?plan=studio",
     highlighted: true,
@@ -78,10 +83,10 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
     period: "/ month",
     tagline: "Large studio",
-    description: "The full Velbok platform for shops with up to 10 artists.",
+    description: "Full platform for shops with up to 10 artists. All inbox channels included.",
     seats: "Up to 10 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.enterprise,
-    features: [...SHARED_PLAN_FEATURES],
+    features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.enterprise],
     cta: "Start with Enterprise",
     ctaHref: "/subscribe?plan=enterprise",
     highlighted: false,
@@ -95,7 +100,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in every plan?",
-    a: "Every plan includes the full Velbok platform — scheduling, CRM, deposits, consent, inbox, stock, billing, and more. The only difference is how many artists you can add.",
+    a: "Every plan includes scheduling, CRM, deposits, consent, stock, and billing. Unified inbox (WhatsApp, Instagram, email) starts on Studio. Only artist seats and inbox channels differ by plan.",
   },
   {
     q: "Are Stripe fees included?",
@@ -119,7 +124,8 @@ export const COMPARISON_ROWS: { label: string; starter: string; studio: string; 
     enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
   },
   { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
-  { label: "Full platform features", starter: "✓", studio: "✓", enterprise: "✓" },
+  { label: "Unified inbox", starter: "—", studio: "Email + 1 channel", enterprise: "All channels" },
+  { label: "API messages / month", starter: "—", studio: "300", enterprise: "500" },
 ];
 
 export function getPlanById(id: string | null): PricingPlan | undefined {

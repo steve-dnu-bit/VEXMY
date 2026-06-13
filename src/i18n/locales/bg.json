@@ -57,7 +57,8 @@
     "consentForm": "Формуляр за съгласие",
     "account": "Акаунт",
     "chats": "Чатове",
-    "security": "Сигурност"
+    "security": "Сигурност",
+    "contact": "Contact"
   },
   "marketing": {
     "footerTagline": "Платформата „всичко в едно“ за тату студиа — график, депозити, съгласие, фактуриране и комуникация с клиенти на едно място.",
@@ -74,7 +75,7 @@
     "starter": {
       "name": "Стартер",
       "tagline": "Малък екип",
-      "description": "Пълната платформа Velbok за студиа с до 3 артиста.",
+      "description": "Core platform for shops with up to 3 artists. Contact clients via links from bookings.",
       "seats": "До 3 места за артисти",
       "cta": "Започни със Starter",
       "features": {
@@ -89,7 +90,7 @@
     "studio": {
       "name": "Студио",
       "tagline": "Развиващо се студио",
-      "description": "Пълната платформа Velbok за студиа с до 6 артиста.",
+      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
       "seats": "До 6 места за артисти",
       "cta": "Започни безплатен пробен период",
       "features": {
@@ -105,7 +106,7 @@
     "enterprise": {
       "name": "Предприятие",
       "tagline": "Голямо студио",
-      "description": "Пълната платформа Velbok за студиа с до 10 артиста.",
+      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
       "seats": "До 10 места за артисти",
       "cta": "Започни с Enterprise",
       "features": {
@@ -118,8 +119,8 @@
       }
     },
     "comparison": {
-      "monthlyPrice": "Месечна цена (GBP)",
-      "artistSeats": "Места за артисти",
+      "monthlyPrice": "Monthly price (GBP)",
+      "artistSeats": "Artist seats",
       "scheduleCrm": "График и CRM",
       "consentForms": "Формуляри за съгласие",
       "customerPortal": "Клиентски портал",
@@ -131,13 +132,17 @@
       "sla": "SLA",
       "included": "✓",
       "notIncluded": "—",
-      "fullPlatform": "Пълни функции на платформата"
+      "fullPlatform": "Full platform features",
+      "unifiedInbox": "Unified inbox",
+      "inboxStudio": "Email + 1 channel",
+      "inboxEnterprise": "All channels",
+      "apiMessages": "API messages / month"
     },
     "faq": {
       "trialQ": "Има ли безплатен пробен период?",
       "trialA": "Всички планове включват 14-дневен безплатен пробен период. Изберете план на страницата за абонамент — ще въведете данни за карта в Stripe, но няма да бъдете таксувани до края на пробния период.",
       "includedQ": "Какво е включено във всеки план?",
-      "includedA": "Всеки план включва пълната платформа Velbok — график, CRM, депозити, съгласие, входяща кутия, склад, фактуриране и още. Единствената разлика е колко артисти можете да добавите.",
+      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, and billing. Unified inbox starts on Studio. Only artist seats and inbox channels differ by plan.",
       "stripeFeesQ": "Включени ли са таксите на Stripe?",
       "stripeFeesA": "Не. Такси за обработка на карти се начисляват от Stripe освен абонамента ви. Velbok се интегрира с вашия Stripe акаунт за депозити и фактури.",
       "switchQ": "Мога ли да сменя плана по-късно?",
@@ -154,6 +159,29 @@
       "5": "Автоматични напомняния и имейли за грижа след татуировка",
       "6": "Управление на склад и записи за фактуриране",
       "7": "Документация и имейл поддръжка"
+    },
+    "coreFeatures": {
+      "0": "Full schedule & multi-artist calendar",
+      "1": "Client CRM & CSV import",
+      "2": "Digital consent forms & customer portal",
+      "3": "Stripe deposits & invoice payments",
+      "4": "Automated reminders & aftercare emails",
+      "5": "Stock management & billing records",
+      "6": "Documentation & email support"
+    },
+    "inboxFeatures": {
+      "starter": {
+        "0": "WhatsApp & social contact links from bookings"
+      },
+      "studio": {
+        "0": "Unified inbox (email + 1 channel)",
+        "1": "300 API messages / month"
+      },
+      "enterprise": {
+        "0": "Unified inbox (all channels)",
+        "1": "500 API messages / month",
+        "2": "£0.06/msg overage"
+      }
     }
   },
   "auth": {
@@ -594,7 +622,12 @@
     "accessLimitedDesc": "Акаунтът ви не включва портала за резервации. Свържете се със студиото, ако това е грешка.",
     "profileUpdated": "Профилът е обновен",
     "invoicePaymentReceived": "Плащането на фактура е получено. Благодарим ви.",
-    "invoicePaymentCancelled": "Плащането на фактура е отменено."
+    "invoicePaymentCancelled": "Плащането на фактура е отменено.",
+    "contactStudio": "Contact studio",
+    "contactStudioDesc": "Message the studio on WhatsApp or email — replies go directly to their team.",
+    "emailStudio": "Email",
+    "contactCardTitle": "Contact studio",
+    "contactCardDesc": "Reach your artist via WhatsApp or email."
   },
   "landing": {
     "heroBadge": "Създадено за модерни тату студиа",
@@ -1393,7 +1426,8 @@
     "depositStatus": "Статус на депозита",
     "depositAmount": "Сума на депозита",
     "depositAmountHint": "Максимум {{max}} (еквивалент на £200). Прилага се при изпращане на линкове за плащане.",
-    "depositAmountInvalid": "Въведете валиден депозит до {{max}} (еквивалент на £200)."
+    "depositAmountInvalid": "Въведете валиден депозит до {{max}} (еквивалент на £200).",
+    "openInbox": "Open in inbox"
   },
   "staff": {
     "loading": "Зареждане…"
@@ -1468,5 +1502,37 @@
     "loadFailed": "Неуспешно зареждане на статуса на изплащания",
     "onboardFailed": "Неуспешно стартиране на настройката на изплащания",
     "dashboardFailed": "Неуспешно отваряне на таблото за изплащания"
+  },
+  "unifiedInbox": {
+    "title": "Inbox",
+    "contactTitle": "Contact clients",
+    "contactSubtitle": "Reach clients via WhatsApp or email from bookings and the client list. Upgrade to Studio for a unified inbox.",
+    "upgradeTitle": "Unified inbox on Studio",
+    "upgradeBody": "Connect email, WhatsApp, or Instagram DMs in one feed. Studio includes 300 messages/month.",
+    "upgradeCta": "View Studio plan",
+    "allChannels": "All",
+    "refresh": "Refresh",
+    "connectChannels": "Connect channels",
+    "usage": "{{used}} / {{cap}} messages this month",
+    "usageUnlimited": "No API message cap on this plan",
+    "noMessages": "No messages yet",
+    "noMessagesHint": "Connect a channel or wait for inbound email to arrive.",
+    "selectThread": "Select a conversation",
+    "replyPlaceholder": "Write a reply…",
+    "sendReply": "Send",
+    "replySent": "Reply sent",
+    "replyFailed": "Could not send reply",
+    "markReadFailed": "Could not update read status",
+    "emailOnlyReply": "Connect this channel in inbox settings to reply from Velbok.",
+    "fromBooking": "Recent clients",
+    "searchClients": "Search clients…",
+    "noClients": "No clients with contact details yet",
+    "capReached": "Monthly message cap reached. Upgrade or wait until next month.",
+    "remaining": "{{count}} left",
+    "overageActive": "{{count}} over cap",
+    "warn80": "Approaching monthly message cap (80%).",
+    "overageRate": "Overage billed at £{{rate}}/message on Enterprise.",
+    "inbound": "In",
+    "outbound": "Out"
   }
 }

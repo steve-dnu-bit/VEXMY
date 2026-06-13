@@ -3,6 +3,8 @@ import { MessageSquare, Instagram, Facebook, Mail, Phone, X, Settings, ExternalL
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { getUserOrganizationId } from "@/lib/shopSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -99,10 +101,10 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
   const fetchConnections = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("channel_connections")
-      .select("*")
-      .eq("user_id", user.id);
+    const orgId = await getUserOrganizationId(user.id);
+    let query = supabase.from("channel_connections").select("*").eq("user_id", user.id);
+    if (orgId) query = supabase.from("channel_connections").select("*").eq("organization_id", orgId);
+    const { data } = await query;
 
     if (data) {
       const connected: Record<string, boolean> = {};
@@ -138,10 +140,11 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
     }
 
     setSaving(true);
-    const { error } = await supabase.from("channel_connections").upsert(
-      { user_id: user.id, channel: channelId, credentials: creds, is_active: true },
-      { onConflict: "user_id,channel" }
-    );
+    const { error } = await invokeEdgeFunctionJson("connect-inbox-channel", {
+      action: "connect",
+      channel: channelId,
+      credentials: creds,
+    });
     setSaving(false);
 
     if (error) {
@@ -157,8 +160,15 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
   const handleDisconnect = async (channelId: string) => {
     if (!user) return;
     setSaving(true);
-    await supabase.from("channel_connections").delete().eq("user_id", user.id).eq("channel", channelId);
+    const { error } = await invokeEdgeFunctionJson("connect-inbox-channel", {
+      action: "disconnect",
+      channel: channelId,
+    });
     setSaving(false);
+    if (error) {
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+      return;
+    }
     setConnectedChannels((prev) => ({ ...prev, [channelId]: false }));
     setFormValues((prev) => { const n = { ...prev }; delete n[channelId]; return n; });
     toast({ title: t("channel.disconnected", { defaultValue: "Disconnected" }), description: t("channel.channelRemoved", { defaultValue: "Channel removed." }) });

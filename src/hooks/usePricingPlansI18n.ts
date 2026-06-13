@@ -1,9 +1,14 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { PricingPlan } from "@/lib/pricingPlans";
-import { PLAN_ARTIST_SEATS, PLAN_PRICES_GBP, formatPlanPriceGbp } from "@/lib/pricingPlans";
+import { PLAN_ARTIST_SEATS, PLAN_INBOX_FEATURES, PLAN_PRICES_GBP, formatPlanPriceGbp } from "@/lib/pricingPlans";
 
-const SHARED_FEATURE_KEYS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+const CORE_FEATURE_KEYS = [0, 1, 2, 3, 4, 5, 6] as const;
+const INBOX_FEATURE_KEYS: Record<string, readonly number[]> = {
+  starter: [0],
+  studio: [0, 1],
+  enterprise: [0, 1, 2],
+};
 
 export function usePricingPlansI18n(): PricingPlan[] {
   const { t } = useTranslation();
@@ -19,7 +24,10 @@ export function usePricingPlansI18n(): PricingPlan[] {
       description: t(`pricing.${id}.description`),
       seats: t(`pricing.${id}.seats`),
       maxArtistSeats: PLAN_ARTIST_SEATS[id],
-      features: SHARED_FEATURE_KEYS.map((i) => t(`pricing.sharedFeatures.${i}`)),
+      features: [
+        ...CORE_FEATURE_KEYS.map((i) => t(`pricing.coreFeatures.${i}`)),
+        ...INBOX_FEATURE_KEYS[id].map((i) => t(`pricing.inboxFeatures.${id}.${i}`)),
+      ],
       cta: t(`pricing.${id}.cta`),
       ctaHref: `/subscribe?plan=${id}`,
       highlighted: id === "studio",
@@ -43,7 +51,7 @@ export function usePricingFaqI18n() {
 
 export function useComparisonRowsI18n() {
   const { t } = useTranslation();
-  const yes = t("pricing.comparison.included");
+  const dash = t("pricing.comparison.notIncluded");
   return useMemo(
     () => [
       {
@@ -53,8 +61,19 @@ export function useComparisonRowsI18n() {
         enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
       },
       { label: t("pricing.comparison.artistSeats"), starter: "3", studio: "6", enterprise: "10" },
-      { label: t("pricing.comparison.fullPlatform"), starter: yes, studio: yes, enterprise: yes },
+      {
+        label: t("pricing.comparison.unifiedInbox"),
+        starter: dash,
+        studio: t("pricing.comparison.inboxStudio"),
+        enterprise: t("pricing.comparison.inboxEnterprise"),
+      },
+      {
+        label: t("pricing.comparison.apiMessages"),
+        starter: dash,
+        studio: "300",
+        enterprise: "500",
+      },
     ],
-    [t, yes],
+    [t, dash],
   );
 }

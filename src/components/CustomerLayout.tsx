@@ -39,7 +39,7 @@ const CustomerLayoutInner = ({
   const items = [
     hasPermission("my_bookings") && { label: t("customer.myBookings"), path: "/account", icon: Calendar },
     hasPermission("my_bookings") && { label: t("customer.depositPayment"), path: "/deposit-payment", icon: CreditCard },
-    hasPermission("my_bookings") && { label: t("customer.messages"), path: "/account/chats", icon: MessageSquare },
+    hasPermission("my_bookings") && { label: t("customer.contactStudio"), path: "/account/contact", icon: MessageSquare },
     hasPermission("my_bookings") && { label: t("customer.securityTitle"), path: "/account/security", icon: Shield },
     hasPermission("customer_consent") && { label: t("customer.signConsent"), path: "/consent", icon: FileSignature },
   ].filter(Boolean) as Array<{ label: string; path: string; icon: typeof Calendar }>;

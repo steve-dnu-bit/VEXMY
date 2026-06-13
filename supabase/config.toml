@@ -59,3 +59,18 @@ verify_jwt = false
 
 [functions.submit-contact]
 verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.meta-webhook]
+verify_jwt = false
+
+[functions.report-inbox-overage]
+verify_jwt = false
+
+[functions.connect-inbox-channel]
+verify_jwt = false
+
+[functions.send-inbox-reply]
+verify_jwt = false
