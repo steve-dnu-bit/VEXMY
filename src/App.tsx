@@ -47,7 +47,7 @@ const CustomerSecurityPage = lazy(() => import("./pages/CustomerSecurityPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const CustomerAccountPage = lazy(() => import("./pages/CustomerAccountPage"));
-const CustomerChatsPage = lazy(() => import("./pages/CustomerChatsPage"));
+const CustomerTicketsPage = lazy(() => import("./pages/CustomerTicketsPage"));
 const DepositCheckoutPage = lazy(() => import("./pages/DepositCheckoutPage"));
 const CustomerDepositsPage = lazy(() => import("./pages/CustomerDepositsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
@@ -122,8 +122,9 @@ const App = () => (
                   <Route path="/consent" element={<ConsentPage />} />
                   <Route path="/account" element={<ProtectedRoute><CustomerAccountPage /></ProtectedRoute>} />
                   <Route path="/account/security" element={<ProtectedRoute><CustomerSecurityPage /></ProtectedRoute>} />
-                  <Route path="/account/contact" element={<ProtectedRoute><CustomerChatsPage /></ProtectedRoute>} />
-                  <Route path="/account/chats" element={<Navigate to="/account/contact" replace />} />
+                  <Route path="/account/tickets" element={<ProtectedRoute><CustomerTicketsPage /></ProtectedRoute>} />
+                  <Route path="/account/contact" element={<Navigate to="/account/tickets" replace />} />
+                  <Route path="/account/chats" element={<Navigate to="/account/tickets" replace />} />
                   <Route path="/deposit-payment" element={<ProtectedRoute><CustomerDepositsPage /></ProtectedRoute>} />
                   <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
                 </Route>

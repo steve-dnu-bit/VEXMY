@@ -44,12 +44,20 @@ export const CORE_PLAN_FEATURES = [
 
 export const PLAN_INBOX_FEATURES: Record<(typeof PLAN_ORDER)[number], string[]> = {
   starter: [
-    "Client contact centre from every booking",
-    "WhatsApp, SMS & email with message templates",
+    "Support tickets in the customer portal",
+    "WhatsApp, SMS & email links from every booking",
     "Automated booking reminders & aftercare emails",
   ],
-  studio: ["Unified inbox (email + 1 channel)", "300 API messages / month"],
-  enterprise: ["Unified inbox (all channels)", "500 API messages / month", "£0.06/msg overage"],
+  studio: [
+    "Support tickets in the customer portal",
+    "WhatsApp, SMS & email links from every booking",
+    "Automated booking reminders & aftercare emails",
+  ],
+  enterprise: [
+    "Support tickets in the customer portal",
+    "WhatsApp, SMS & email links from every booking",
+    "Automated booking reminders & aftercare emails",
+  ],
 };
 
 export const PRICING_PLANS: PricingPlan[] = [
@@ -59,7 +67,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
     period: "/ month",
     tagline: "Small team",
-    description: "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+    description: "The full Velbok platform for shops with up to 3 artists. Support tickets and WhatsApp links included.",
     seats: "Up to 3 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.starter,
     features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.starter],
@@ -73,7 +81,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
     period: "/ month",
     tagline: "Growing shop",
-    description: "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+    description: "Full platform for shops with up to 6 artists. Support tickets and WhatsApp links included.",
     seats: "Up to 6 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.studio,
     features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.studio],
@@ -87,7 +95,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     price: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
     period: "/ month",
     tagline: "Large studio",
-    description: "Full platform for shops with up to 10 artists. All inbox channels included.",
+    description: "Full platform for shops with up to 10 artists. Support tickets and WhatsApp links included.",
     seats: "Up to 10 artist seats",
     maxArtistSeats: PLAN_ARTIST_SEATS.enterprise,
     features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.enterprise],
@@ -104,7 +112,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in every plan?",
-    a: "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+    a: "Every plan includes scheduling, CRM, deposits, consent, stock, billing, portal support tickets, and WhatsApp/SMS/email contact links from bookings.",
   },
   {
     q: "Are Stripe fees included?",

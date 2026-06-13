@@ -353,7 +353,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                 <Button variant="outline" size="sm" className="w-full h-8 text-xs gap-1" asChild>
                   <Link to={`/inbox?customerId=${encodeURIComponent(booking.client_user_id)}`}>
                     <MessageSquare className="h-3 w-3" />
-                    {t("schedule.openInbox")}
+                    {t("tickets.viewTickets")}
                   </Link>
                 </Button>
               ) : null}

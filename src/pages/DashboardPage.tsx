@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { loadShopSettings } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import AppLayout from "@/components/AppLayout";
@@ -80,9 +81,12 @@ const DashboardPage = () => {
 
     if (hasFeature("staff_inbox")) {
       const orgId = await getUserOrganizationId();
-      let msgQuery = supabase.from("messages").select("*", { count: "exact", head: true }).eq("is_read", false);
-      if (orgId) msgQuery = msgQuery.eq("organization_id", orgId);
-      const { count: mCount } = await msgQuery;
+      let ticketQuery = supabase
+        .from("support_tickets" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("status", "open");
+      if (orgId) ticketQuery = ticketQuery.eq("organization_id", orgId);
+      const { count: mCount } = await ticketQuery;
       setMessageCount(mCount || 0);
     } else {
       const { data: contactBookings } = await supabase
@@ -174,7 +178,7 @@ const DashboardPage = () => {
   const stats = [
     { label: t("dashboard.todaysBookings"), value: String(bookingCount), icon: Calendar },
     {
-      label: hasFeature("staff_inbox") ? t("dashboard.unreadMessages") : t("dashboard.contactableClients"),
+      label: hasFeature("staff_inbox") ? t("dashboard.openTickets") : t("dashboard.contactableClients"),
       value: String(messageCount),
       icon: hasFeature("staff_inbox") ? MessageSquare : Users,
     },

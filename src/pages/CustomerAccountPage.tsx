@@ -292,8 +292,8 @@ const CustomerAccountPage = () => {
             <CardDescription>{t("customer.contactCardDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate("/account/contact")}>
-              {t("customer.contactStudio")}
+            <Button variant="gold" className="w-full sm:w-auto" onClick={() => navigate("/account/tickets")}>
+              {t("tickets.raiseTicket")}
             </Button>
           </CardContent>
         </Card>

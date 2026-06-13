@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type Feature } from "@/hooks/usePermissions";
-import { useSubscription } from "@/hooks/useSubscription";
 import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
 import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
@@ -110,7 +109,6 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { hasPermission, loading: permLoading } = usePermissions();
-  const { hasFeature } = useSubscription();
   const { data: isPlatformAdmin } = usePlatformAdminAccess();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -120,13 +118,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [portalBgColor, setPortalBgColor] = useState<string | null>(null);
   const [portalBgImageUrl, setPortalBgImageUrl] = useState<string | null>(null);
 
-  const navItems = allNavItems
-    .filter((item) => hasPermission(item.feature))
-    .map((item) =>
-      item.path === "/inbox" && !hasFeature("staff_inbox")
-        ? { ...item, labelKey: "nav.contact" }
-        : item,
-    );
+  const navItems = allNavItems.filter((item) => hasPermission(item.feature));
 
   useLayoutEffect(() => {
     if (!user?.id) return;

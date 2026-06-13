@@ -44,7 +44,7 @@
   },
   "nav": {
     "schedule": "Schedule",
-    "inbox": "Inbox",
+    "inbox": "Support",
     "contact": "Contact",
     "services": "Services",
     "stencil": "Stencil",
@@ -83,38 +83,39 @@
     },
     "inboxFeatures": {
       "starter": {
-        "0": "Client contact centre from every booking",
-        "1": "WhatsApp, SMS & email with message templates",
+        "0": "Support tickets in the customer portal",
+        "1": "WhatsApp, SMS & email links from every booking",
         "2": "Automated booking reminders & aftercare emails"
       },
       "studio": {
-        "0": "Unified inbox (email + 1 channel)",
-        "1": "300 API messages / month"
+        "0": "Support tickets in the customer portal",
+        "1": "WhatsApp, SMS & email links from every booking",
+        "2": "Automated booking reminders & aftercare emails"
       },
       "enterprise": {
-        "0": "Unified inbox (all channels)",
-        "1": "500 API messages / month",
-        "2": "£0.06/msg overage"
+        "0": "Support tickets in the customer portal",
+        "1": "WhatsApp, SMS & email links from every booking",
+        "2": "Automated booking reminders & aftercare emails"
       }
     },
     "starter": {
       "name": "Starter",
       "tagline": "Small team",
-      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+      "description": "The full Velbok platform for shops with up to 3 artists. Support tickets and WhatsApp links included.",
       "seats": "Up to 3 artist seats",
       "cta": "Start with Starter"
     },
     "studio": {
       "name": "Studio",
       "tagline": "Growing shop",
-      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+      "description": "Full platform for shops with up to 6 artists. Support tickets and WhatsApp links included.",
       "seats": "Up to 6 artist seats",
       "cta": "Start free trial"
     },
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Large studio",
-      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
+      "description": "Full platform for shops with up to 10 artists. Support tickets and WhatsApp links included.",
       "seats": "Up to 10 artist seats",
       "cta": "Start with Enterprise"
     },
@@ -122,8 +123,8 @@
       "monthlyPrice": "Monthly price (GBP)",
       "artistSeats": "Artist seats",
       "fullPlatform": "Full platform features",
-      "unifiedInbox": "Unified inbox",
-      "contactCentre": "Client contact centre",
+      "unifiedInbox": "Support tickets",
+      "contactCentre": "WhatsApp & contact links",
       "inboxStudio": "Email + 1 channel",
       "inboxEnterprise": "All channels",
       "apiMessages": "API messages / month",
@@ -134,7 +135,7 @@
       "trialQ": "Is there a free trial?",
       "trialA": "All plans include a 14-day free trial. Choose a plan on the subscribe page — you'll enter card details on Stripe but won't be charged until the trial ends.",
       "includedQ": "What's included in every plan?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, portal support tickets, and WhatsApp/SMS/email contact links from bookings.",
       "stripeFeesQ": "Are Stripe fees included?",
       "stripeFeesA": "No. Card processing fees are charged by Stripe on top of your subscription. Velbok integrates with your Stripe account for deposits and invoices.",
       "switchQ": "Can I switch plans later?",
@@ -364,6 +365,7 @@
     "welcome": "Welcome back. Here's your overview.",
     "todaysBookings": "Today's bookings",
     "unreadMessages": "Unread messages",
+    "openTickets": "Open support tickets",
     "contactableClients": "Clients to contact",
     "noBookingsToday": "No bookings today",
     "stripeVerification": "Stripe verification",
@@ -1137,6 +1139,60 @@
     "failedVipUpdate": "Could not update VIP",
     "markedVip": "Marked VIP for this booking",
     "vipRemoved": "VIP removed"
+  },
+  "tickets": {
+    "pageTitle": "Support",
+    "pageSubtitle": "Reply to customer tickets in the portal. Use WhatsApp links below for quick outbound messages.",
+    "staffTitle": "Support tickets",
+    "customerTitle": "Support",
+    "customerNav": "Support",
+    "customerDesc": "Raise a ticket for the studio team, or message them directly on WhatsApp.",
+    "quickContact": "Message the studio directly",
+    "quickContactHint": "WhatsApp opens in your app — replies go straight to the studio, not through Velbok.",
+    "yourTickets": "Your tickets",
+    "raiseTicket": "Raise a ticket",
+    "newTicket": "New ticket",
+    "subjectPlaceholder": "What do you need help with?",
+    "messagePlaceholder": "Describe your question or issue…",
+    "relatedBooking": "Related booking (optional)",
+    "noBooking": "No specific booking",
+    "submitTicket": "Submit ticket",
+    "created": "Ticket submitted",
+    "createFailed": "Could not create ticket",
+    "noTicketsYet": "No tickets yet. Raise one if you need help from the studio.",
+    "backToList": "Back to list",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search tickets…",
+    "filterOpen": "Open",
+    "filterClosed": "Closed",
+    "filterAll": "All",
+    "noTickets": "No tickets match this filter.",
+    "selectTicket": "Select a ticket to view the conversation.",
+    "open": "Open",
+    "closedLabel": "Closed",
+    "closeTicket": "Close ticket",
+    "reopenTicket": "Reopen",
+    "closed": "Ticket closed",
+    "closedHint": "This ticket is closed. Reopen it from the staff side if you need to continue.",
+    "reopened": "Ticket reopened",
+    "closeFailed": "Could not close ticket",
+    "reopenFailed": "Could not reopen ticket",
+    "replyPlaceholder": "Write a reply…",
+    "sendReply": "Send reply",
+    "replySent": "Reply sent",
+    "replyFailed": "Could not send reply",
+    "loadFailed": "Could not load tickets",
+    "customer": "Customer",
+    "staff": "Studio",
+    "participant": "Participant",
+    "viewTickets": "View tickets",
+    "category": {
+      "general": "General",
+      "booking": "Booking",
+      "deposit": "Deposit",
+      "design": "Design",
+      "aftercare": "Aftercare"
+    }
   },
   "unifiedInbox": {
     "title": "Inbox",

@@ -707,7 +707,7 @@ const ClientsPage = () => {
                             <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" asChild>
                               <Link to={`/inbox?customerId=${encodeURIComponent(clientUserId)}`}>
                                 <MessageSquare className="h-3.5 w-3.5" />
-                                {t("clients.portalChat")}
+                                {t("tickets.viewTickets")}
                               </Link>
                             </Button>
                           ) : null}
@@ -753,7 +753,7 @@ const ClientsPage = () => {
                     <Button variant="outline" size="sm" className="h-8 text-xs gap-1" asChild>
                       <Link to={`/inbox?customerId=${encodeURIComponent(clientUserId)}`}>
                         <MessageSquare className="h-3.5 w-3.5" />
-                        {t("clients.portalChat")}
+                        {t("tickets.viewTickets")}
                       </Link>
                     </Button>
                   ) : null}

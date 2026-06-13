@@ -1,38 +1,26 @@
 import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
-import UnifiedInbox from "@/components/inbox/UnifiedInbox";
 import ContactHub from "@/components/inbox/ContactHub";
-import InboxUpgradePrompt from "@/components/inbox/InboxUpgradePrompt";
+import StaffTicketsPanel from "@/components/tickets/StaffTicketsPanel";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useInboxPlan } from "@/hooks/useInboxPlan";
-import { Loader2 } from "lucide-react";
 
 const InboxPage = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const customerId = searchParams.get("customerId") || undefined;
-  const { isLoading, hasStaffInbox, hasContactLinksOnly } = useInboxPlan();
+  const ticketId = searchParams.get("ticketId") || undefined;
 
   return (
     <AppLayout>
       <SubscriptionGate>
-        <div className="p-4 md:p-6">
-          <h1 className="sr-only">{t("nav.inbox")}</h1>
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : hasStaffInbox ? (
-            <UnifiedInbox highlightSenderId={customerId} />
-          ) : hasContactLinksOnly ? (
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-              <ContactHub />
-              <InboxUpgradePrompt compact />
-            </div>
-          ) : (
-            <InboxUpgradePrompt />
-          )}
+        <div className="p-4 md:p-6 space-y-6">
+          <div>
+            <h1 className="font-display text-2xl font-semibold">{t("tickets.pageTitle")}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("tickets.pageSubtitle")}</p>
+          </div>
+          <StaffTicketsPanel highlightCustomerId={customerId} highlightTicketId={ticketId} />
+          <ContactHub />
         </div>
       </SubscriptionGate>
     </AppLayout>

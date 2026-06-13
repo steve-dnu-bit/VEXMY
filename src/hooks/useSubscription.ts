@@ -20,6 +20,7 @@ export type PlanFeatures = {
   stripe_deposits?: boolean;
   invoicing?: boolean;
   staff_inbox?: boolean;
+  support_tickets?: boolean;
   inbox_email?: boolean;
   inbox_whatsapp?: boolean;
   inbox_instagram?: boolean;
