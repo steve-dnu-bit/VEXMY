@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { BRANDING } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
+import VelbokLogo from "@/components/brand/VelbokLogo";
 
 const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
@@ -24,12 +25,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
 
       <header className="sticky top-0 z-50 border-b border-gold/30 bg-[#090a0f]/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="group flex flex-col leading-none">
-            <span className="font-display text-xl font-bold tracking-[0.12em] text-gold">
-              {BRANDING.platformName.toUpperCase()}
-            </span>
-            <span className="mt-0.5 text-[9px] tracking-[0.35em] text-gold/70">{t("common.studioPlatform")}</span>
-          </Link>
+          <VelbokLogo size="md" href="/" />
 
           <nav className="hidden items-center gap-8 md:flex">
             {navLinks.map((link) => (
@@ -90,6 +86,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
       <footer className="relative z-10 border-t border-gold/30 bg-[#07080d]">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
+            <VelbokLogo size="sm" href={null} className="mb-2" />
             <p className="font-display text-lg font-semibold text-gold">{BRANDING.platformName}</p>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">{t("marketing.footerTagline")}</p>
           </div>

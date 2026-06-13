@@ -9,8 +9,9 @@ import { usePermissions, type Feature } from "@/hooks/usePermissions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
-import { BRANDING, STORAGE_PREFIX } from "@/lib/branding";
+import { STORAGE_PREFIX } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
+import VelbokLogo from "@/components/brand/VelbokLogo";
 import { PORTAL_THEME_UPDATED_EVENT, resolveStaffPortalTheme } from "@/lib/shopDashboardTheme";
 
 const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar; feature: Feature }> = [
@@ -197,7 +198,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        <span className="font-display text-lg font-bold text-gold">{BRANDING.platformName.toUpperCase()}</span>
+        <VelbokLogo size="sm" href={null} />
         <div className="w-5" />
       </div>
 
@@ -211,11 +212,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       >
         <div className="px-3 py-3 border-b border-sidebar-border">
           <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "justify-between"} gap-2`}>
-            {!sidebarCollapsed ? (
-              <span className="font-display text-lg font-bold text-gold">{BRANDING.platformName.toUpperCase()}</span>
-            ) : (
-              <span className="font-display text-lg font-bold text-gold">I</span>
-            )}
+            <VelbokLogo size="sm" href={null} />
             <Button
               variant="ghost"
               size="sm"
