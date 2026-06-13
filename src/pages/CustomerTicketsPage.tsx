@@ -26,8 +26,16 @@ import {
   type SupportTicketMessageRow,
   type SupportTicketRow,
 } from "@/lib/supportTickets";
+import { loadStudioArtists, type StudioArtistOption } from "@/lib/ticketArtists";
+import TicketMessageList from "@/components/tickets/TicketMessageList";
+import {
+  countTicketMediaForUser,
+  loadTicketMediaByMessageIds,
+  signTicketMediaUrls,
+  uploadTicketImage,
+} from "@/lib/ticketMedia";
 
-type BookingOption = { id: string; label: string };
+type BookingOption = { id: string; label: string; artistId: string | null };
 
 const CustomerTicketsPage = () => {
   const { t } = useTranslation();
@@ -44,6 +52,8 @@ const CustomerTicketsPage = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessageRow[]>([]);
   const [bookings, setBookings] = useState<BookingOption[]>([]);
+  const [artists, setArtists] = useState<StudioArtistOption[]>([]);
+  const [artistId, setArtistId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [sending, setSending] = useState(false);
@@ -53,6 +63,10 @@ const CustomerTicketsPage = () => {
   const [bookingId, setBookingId] = useState<string>("none");
   const [body, setBody] = useState("");
   const [replyText, setReplyText] = useState("");
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [imagesUsed, setImagesUsed] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [closing, setClosing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -93,11 +107,17 @@ const CustomerTicketsPage = () => {
     setLoading(false);
   }, [selectedOrgId, t]);
 
+  const loadArtists = useCallback(async () => {
+    const list = await loadStudioArtists(selectedOrgId);
+    setArtists(list);
+    if (list.length === 1) setArtistId(list[0].id);
+  }, [selectedOrgId]);
+
   const loadBookings = useCallback(async () => {
     if (!selectedOrgId || !user) return;
     const { data } = await supabase
       .from("bookings")
-      .select("id, client_name, starts_at")
+      .select("id, client_name, starts_at, artist_id")
       .eq("organization_id", selectedOrgId)
       .or(`client_user_id.eq.${user.id},client_email.eq.${user.email}`)
       .order("starts_at", { ascending: false })
@@ -107,6 +127,7 @@ const CustomerTicketsPage = () => {
       (data || []).map((b) => ({
         id: b.id,
         label: `${b.client_name} · ${format(parseISO(b.starts_at), "d MMM yyyy")}`,
+        artistId: b.artist_id ?? null,
       })),
     );
   }, [selectedOrgId, user]);
@@ -114,7 +135,14 @@ const CustomerTicketsPage = () => {
   useEffect(() => {
     void loadTickets();
     void loadBookings();
-  }, [loadTickets, loadBookings]);
+    void loadArtists();
+  }, [loadTickets, loadBookings, loadArtists]);
+
+  useEffect(() => {
+    if (bookingId === "none") return;
+    const booking = bookings.find((b) => b.id === bookingId);
+    if (booking?.artistId) setArtistId(booking.artistId);
+  }, [bookingId, bookings]);
 
   useEffect(() => {
     if (highlightTicketId && tickets.some((tk) => tk.id === highlightTicketId)) {
@@ -135,8 +163,13 @@ const CustomerTicketsPage = () => {
         return;
       }
       setMessages((data || []) as SupportTicketMessageRow[]);
+      const mediaMap = await loadTicketMediaByMessageIds(ticketId);
+      setMediaUrls(await signTicketMediaUrls(mediaMap));
+      if (user) {
+        setImagesUsed(await countTicketMediaForUser(ticketId, user.id));
+      }
     },
-    [t],
+    [t, user],
   );
 
   useEffect(() => {
@@ -168,7 +201,7 @@ const CustomerTicketsPage = () => {
   const activeTicket = useMemo(() => tickets.find((tk) => tk.id === selectedId) || null, [tickets, selectedId]);
 
   const createTicket = async () => {
-    if (!selectedOrgId || !subject.trim() || !body.trim()) return;
+    if (!selectedOrgId || !subject.trim() || !body.trim() || !artistId) return;
     setCreating(true);
     const { data, error } = await supabase.rpc("create_support_ticket" as any, {
       p_organization_id: selectedOrgId,
@@ -176,6 +209,7 @@ const CustomerTicketsPage = () => {
       p_category: category,
       p_body: body.trim(),
       p_booking_id: bookingId === "none" ? null : bookingId,
+      p_assigned_artist_id: artistId,
     });
     setCreating(false);
     if (error) {
@@ -188,6 +222,8 @@ const CustomerTicketsPage = () => {
     setBody("");
     setBookingId("none");
     setCategory("general");
+    if (artists.length === 1) setArtistId(artists[0].id);
+    else setArtistId("");
     const ticket = data as SupportTicketRow;
     setSelectedId(ticket.id);
     setSearchParams({ ticketId: ticket.id });
@@ -208,6 +244,39 @@ const CustomerTicketsPage = () => {
       return;
     }
     setReplyText("");
+  };
+
+  const closeTicket = async () => {
+    if (!selectedId) return;
+    setClosing(true);
+    const { error } = await supabase
+      .from("support_tickets" as any)
+      .update({ status: "closed" })
+      .eq("id", selectedId);
+    setClosing(false);
+    if (error) {
+      toast.error(t("tickets.closeFailed"));
+      return;
+    }
+    toast.success(t("tickets.closed"));
+    void loadTickets();
+  };
+
+  const handleUpload = async (file: File) => {
+    if (!selectedId || !user) return;
+    setUploading(true);
+    try {
+      await uploadTicketImage(selectedId, user.id, file);
+      await loadMessages(selectedId);
+      await loadTickets();
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      if (code === "limit") toast.error(t("tickets.imageLimitReached"));
+      else if (code === "type") toast.error(t("tickets.invalidImageType"));
+      else toast.error(t("tickets.uploadFailed"));
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -268,6 +337,22 @@ const CustomerTicketsPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {artists.length > 0 ? (
+              <Select value={artistId} onValueChange={setArtistId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("tickets.chooseArtist")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {artists.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("tickets.noArtists")}</p>
+            )}
             {bookings.length > 0 ? (
               <Select value={bookingId} onValueChange={setBookingId}>
                 <SelectTrigger>
@@ -291,7 +376,12 @@ const CustomerTicketsPage = () => {
               className="resize-none"
             />
             <div className="flex flex-wrap gap-2">
-              <Button variant="gold" size="sm" disabled={creating || !subject.trim() || !body.trim()} onClick={() => void createTicket()}>
+              <Button
+                variant="gold"
+                size="sm"
+                disabled={creating || !subject.trim() || !body.trim() || !artistId}
+                onClick={() => void createTicket()}
+              >
                 {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : t("tickets.submitTicket")}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
@@ -351,36 +441,26 @@ const CustomerTicketsPage = () => {
                         {t("tickets.backToList")}
                       </Button>
                     </div>
-                    <div className="max-h-80 space-y-2 overflow-y-auto p-3">
-                      {messages.map((m) => (
-                        <div
-                          key={m.id}
-                          className={`rounded-md px-3 py-2 text-sm ${
-                            m.sender_id === user?.id ? "bg-primary/15 ml-6" : "bg-secondary mr-6"
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap">{m.body}</p>
-                          <p className="mt-1 text-[10px] text-muted-foreground">{format(parseISO(m.created_at), "d MMM · HH:mm")}</p>
-                        </div>
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-                    {activeTicket.status === "open" ? (
-                      <div className="border-t border-border/60 p-3 space-y-2">
-                        <Textarea
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder={t("tickets.replyPlaceholder")}
-                          rows={3}
-                          className="resize-none"
-                        />
-                        <Button variant="gold" size="sm" disabled={sending || !replyText.trim()} onClick={() => void sendReply()}>
-                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("tickets.sendReply")}
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="border-t border-border/60 p-3 text-xs text-muted-foreground">{t("tickets.closedHint")}</p>
-                    )}
+                    <TicketMessageList
+                      messages={messages}
+                      mediaUrls={mediaUrls}
+                      userId={user?.id}
+                      customerId={activeTicket.customer_id}
+                      profileNames={{}}
+                      replyText={replyText}
+                      onReplyChange={setReplyText}
+                      onSendReply={() => void sendReply()}
+                      onUpload={(file) => void handleUpload(file)}
+                      onClose={() => void closeTicket()}
+                      sending={sending}
+                      uploading={uploading}
+                      closing={closing}
+                      isOpen={activeTicket.status === "open"}
+                      imagesUsed={imagesUsed}
+                      showClose
+                      compact
+                      messagesEndRef={messagesEndRef}
+                    />
                   </div>
                 )}
           </div>

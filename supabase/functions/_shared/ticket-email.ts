@@ -81,7 +81,7 @@ export async function sendTicketUpdateEmail(
 
   await sendTransactionalEmail({
     to: recipientEmail,
-    subject: `Support ticket update — ${brand.shopName}`,
+    subject: `New inbox message — ${brand.shopName}`,
     html,
   });
 

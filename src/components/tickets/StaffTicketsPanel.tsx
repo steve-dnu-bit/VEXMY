@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { CheckCircle2, Loader2, MessageSquare, Search, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, MessageSquare, Plus, Search, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,9 +19,18 @@ import {
 import { toast } from "sonner";
 import type { SupportTicketRow, SupportTicketMessageRow } from "@/lib/supportTickets";
 import { ticketCategoryLabelKey } from "@/lib/supportTickets";
+import { loadMessageableCustomers, type MessageableCustomerOption } from "@/lib/ticketArtists";
+import TicketMessageList from "@/components/tickets/TicketMessageList";
+import {
+  countTicketMediaForUser,
+  loadTicketMediaByMessageIds,
+  signTicketMediaUrls,
+  uploadTicketImage,
+} from "@/lib/ticketMedia";
 
 type TicketWithCustomer = SupportTicketRow & {
   customer_name?: string | null;
+  artist_name?: string | null;
 };
 
 type Props = {
@@ -31,13 +41,24 @@ type Props = {
 export default function StaffTicketsPanel({ highlightCustomerId, highlightTicketId }: Props) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { roles } = useUserRoles();
+  const isAdmin = roles.includes("admin");
   const [tickets, setTickets] = useState<TicketWithCustomer[]>([]);
+  const [customers, setCustomers] = useState<MessageableCustomerOption[]>([]);
+  const [newCustomerId, setNewCustomerId] = useState("");
+  const [newSubject, setNewSubject] = useState("");
+  const [newBody, setNewBody] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [showNewMessage, setShowNewMessage] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessageRow[]>([]);
   const [profileNames, setProfileNames] = useState<Record<string, string>>({});
   const [statusFilter, setStatusFilter] = useState<"open" | "closed" | "all">("open");
   const [search, setSearch] = useState("");
   const [replyText, setReplyText] = useState("");
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [imagesUsed, setImagesUsed] = useState(0);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -62,19 +83,25 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
     }
 
     const rows = (data || []) as SupportTicketRow[];
-    const customerIds = [...new Set(rows.map((r) => r.customer_id))];
+    const userIds = [...new Set(rows.flatMap((r) => [r.customer_id, r.assigned_artist_id].filter(Boolean)))] as string[];
     const names: Record<string, string> = {};
-    if (customerIds.length > 0) {
+    if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, display_name")
-        .in("user_id", customerIds);
+        .in("user_id", userIds);
       (profiles || []).forEach((p) => {
-        if (p.user_id) names[p.user_id] = p.display_name || t("tickets.customer");
+        if (p.user_id) names[p.user_id] = p.display_name || t("tickets.participant");
       });
     }
 
-    setTickets(rows.map((row) => ({ ...row, customer_name: names[row.customer_id] || null })));
+    setTickets(
+      rows.map((row) => ({
+        ...row,
+        customer_name: names[row.customer_id] || null,
+        artist_name: row.assigned_artist_id ? names[row.assigned_artist_id] || null : null,
+      })),
+    );
     setLoading(false);
   }, [highlightCustomerId, statusFilter, t]);
 
@@ -94,6 +121,12 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
       const rows = (data || []) as SupportTicketMessageRow[];
       setMessages(rows);
 
+      const mediaMap = await loadTicketMediaByMessageIds(ticketId);
+      setMediaUrls(await signTicketMediaUrls(mediaMap));
+      if (user) {
+        setImagesUsed(await countTicketMediaForUser(ticketId, user.id));
+      }
+
       const senderIds = [...new Set(rows.map((m) => m.sender_id))];
       const missing = senderIds.filter((id) => !profileNames[id]);
       if (missing.length > 0) {
@@ -108,8 +141,13 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
         setProfileNames(next);
       }
     },
-    [profileNames, t],
+    [profileNames, t, user],
   );
+
+  useEffect(() => {
+    if (!user) return;
+    void loadMessageableCustomers(user.id, isAdmin).then(setCustomers);
+  }, [user, isAdmin]);
 
   useEffect(() => {
     void loadTickets();
@@ -190,6 +228,23 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
     toast.success(t("tickets.replySent"));
   };
 
+  const handleUpload = async (file: File) => {
+    if (!selectedId || !user) return;
+    setUploading(true);
+    try {
+      await uploadTicketImage(selectedId, user.id, file);
+      await loadMessages(selectedId);
+      await loadTickets();
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      if (code === "limit") toast.error(t("tickets.imageLimitReached"));
+      else if (code === "type") toast.error(t("tickets.invalidImageType"));
+      else toast.error(t("tickets.uploadFailed"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const closeTicket = async () => {
     if (!selectedId) return;
     setClosing(true);
@@ -222,15 +277,92 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
     void loadTickets();
   };
 
+  const startCustomerMessage = async () => {
+    if (!newCustomerId || !newBody.trim()) return;
+    setCreating(true);
+    const subject = newSubject.trim() || t("tickets.staffDefaultSubject");
+    const { data, error } = await supabase.rpc("create_staff_ticket" as any, {
+      p_customer_id: newCustomerId,
+      p_subject: subject,
+      p_body: newBody.trim(),
+      p_category: "general",
+      p_booking_id: null,
+    });
+    setCreating(false);
+    if (error) {
+      toast.error(t("tickets.createFailed"));
+      return;
+    }
+    toast.success(t("tickets.messageStarted"));
+    setShowNewMessage(false);
+    setNewCustomerId("");
+    setNewSubject("");
+    setNewBody("");
+    const ticket = data as SupportTicketRow;
+    setSelectedId(ticket.id);
+    void loadTickets();
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:items-start">
       <div className="space-y-3 rounded-lg border border-border/70 bg-card/55 p-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-display text-lg font-semibold">{t("tickets.staffTitle")}</h2>
-          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => void loadTickets()}>
-            {t("tickets.refresh")}
-          </Button>
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setShowNewMessage((v) => !v)}>
+              <Plus className="h-3.5 w-3.5" />
+              {t("tickets.messageCustomer")}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => void loadTickets()}>
+              {t("tickets.refresh")}
+            </Button>
+          </div>
         </div>
+
+        {showNewMessage ? (
+          <div className="rounded-md border border-border/60 bg-background/40 p-3 space-y-2">
+            <p className="text-xs font-medium">{t("tickets.messageCustomerHint")}</p>
+            <Select value={newCustomerId} onValueChange={setNewCustomerId}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder={t("tickets.chooseCustomer")} />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.length === 0 ? (
+                  <SelectItem value="__none" disabled>
+                    {t("tickets.noCustomers")}
+                  </SelectItem>
+                ) : (
+                  customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <Input
+              value={newSubject}
+              onChange={(e) => setNewSubject(e.target.value)}
+              placeholder={t("tickets.subjectPlaceholder")}
+              className="h-9"
+            />
+            <Textarea
+              value={newBody}
+              onChange={(e) => setNewBody(e.target.value)}
+              placeholder={t("tickets.messagePlaceholder")}
+              rows={3}
+              className="resize-none"
+            />
+            <div className="flex gap-2">
+              <Button variant="gold" size="sm" disabled={creating || !newCustomerId || !newBody.trim()} onClick={() => void startCustomerMessage()}>
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : t("tickets.sendMessage")}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowNewMessage(false)}>
+                {t("common.cancel")}
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
           <SelectTrigger className="h-9">
@@ -279,6 +411,11 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
                     </Badge>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{tk.customer_name || t("tickets.customer")}</p>
+                  {tk.artist_name ? (
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      {t("tickets.withArtist", { name: tk.artist_name })}
+                    </p>
+                  ) : null}
                   <p className="mt-1 text-[10px] text-muted-foreground">
                     {format(parseISO(tk.last_message_at || tk.created_at), "d MMM · HH:mm")} ·{" "}
                     {t(ticketCategoryLabelKey(tk.category))}
@@ -302,7 +439,10 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
               <div className="min-w-0 space-y-1">
                 <h3 className="font-display text-lg font-semibold">{activeTicket.subject}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {activeTicket.customer_name || t("tickets.customer")} · {t(ticketCategoryLabelKey(activeTicket.category))}
+                  {activeTicket.customer_name || t("tickets.customer")}
+                  {activeTicket.artist_name ? ` · ${t("tickets.withArtist", { name: activeTicket.artist_name })}` : ""}
+                  {" · "}
+                  {t(ticketCategoryLabelKey(activeTicket.category))}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -320,40 +460,22 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
               </div>
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto p-4 min-h-0">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`rounded-md px-3 py-2 text-sm ${
-                    m.sender_id === user?.id ? "ml-8 bg-primary/15" : "mr-8 bg-secondary"
-                  }`}
-                >
-                  <p className="text-[10px] font-medium text-muted-foreground mb-1">
-                    {profileNames[m.sender_id] || (m.sender_id === activeTicket.customer_id ? t("tickets.customer") : t("tickets.staff"))}
-                  </p>
-                  <p className="whitespace-pre-wrap">{m.body}</p>
-                  <p className="mt-1 text-[10px] text-muted-foreground">{format(parseISO(m.created_at), "d MMM · HH:mm")}</p>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {activeTicket.status === "open" ? (
-              <div className="border-t border-border/60 p-3 space-y-2">
-                <Textarea
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder={t("tickets.replyPlaceholder")}
-                  rows={3}
-                  className="resize-none"
-                />
-                <Button variant="gold" size="sm" disabled={sending || !replyText.trim()} onClick={() => void sendReply()}>
-                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("tickets.sendReply")}
-                </Button>
-              </div>
-            ) : (
-              <p className="border-t border-border/60 p-3 text-xs text-muted-foreground">{t("tickets.closedHint")}</p>
-            )}
+            <TicketMessageList
+              messages={messages}
+              mediaUrls={mediaUrls}
+              userId={user?.id}
+              customerId={activeTicket.customer_id}
+              profileNames={profileNames}
+              replyText={replyText}
+              onReplyChange={setReplyText}
+              onSendReply={() => void sendReply()}
+              onUpload={(file) => void handleUpload(file)}
+              sending={sending}
+              uploading={uploading}
+              isOpen={activeTicket.status === "open"}
+              imagesUsed={imagesUsed}
+              messagesEndRef={messagesEndRef}
+            />
           </>
         )}
       </div>

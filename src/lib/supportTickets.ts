@@ -5,6 +5,7 @@ export type SupportTicketRow = {
   id: string;
   organization_id: string;
   customer_id: string;
+  assigned_artist_id: string | null;
   booking_id: string | null;
   subject: string;
   category: SupportTicketCategory;
@@ -19,6 +20,7 @@ export type SupportTicketMessageRow = {
   ticket_id: string;
   sender_id: string;
   body: string;
+  message_type?: "text" | "media";
   created_at: string;
 };
 
