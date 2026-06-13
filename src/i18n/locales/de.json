@@ -57,8 +57,7 @@
     "consentForm": "Einwilligungsformular",
     "account": "Konto",
     "chats": "Chats",
-    "security": "Sicherheit",
-    "contact": "Contact"
+    "security": "Sicherheit"
   },
   "marketing": {
     "footerTagline": "Die All-in-One-Plattform für Tattoo-Studios — Terminplanung, Anzahlungen, Einwilligung, Abrechnung und Kundenkommunikation an einem Ort.",
@@ -75,7 +74,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Kleines Team",
-      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 3 Künstlern.",
       "seats": "Bis zu 3 Künstlerplätze",
       "cta": "Mit Starter starten",
       "features": {
@@ -90,7 +89,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Wachsendes Studio",
-      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 6 Künstlern.",
       "seats": "Bis zu 6 Künstlerplätze",
       "cta": "Kostenlos testen",
       "features": {
@@ -106,7 +105,7 @@
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Großes Studio",
-      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
+      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 10 Künstlern.",
       "seats": "Bis zu 10 Künstlerplätze",
       "cta": "Mit Enterprise starten",
       "features": {
@@ -119,8 +118,8 @@
       }
     },
     "comparison": {
-      "monthlyPrice": "Monthly price (GBP)",
-      "artistSeats": "Artist seats",
+      "monthlyPrice": "Monatspreis (GBP)",
+      "artistSeats": "Künstlerplätze",
       "scheduleCrm": "Terminplan & CRM",
       "consentForms": "Einwilligungsformulare",
       "customerPortal": "Kundenportal",
@@ -132,18 +131,13 @@
       "sla": "SLA",
       "included": "✓",
       "notIncluded": "—",
-      "fullPlatform": "Full platform features",
-      "unifiedInbox": "Unified inbox",
-      "inboxStudio": "Email + 1 channel",
-      "inboxEnterprise": "All channels",
-      "apiMessages": "API messages / month",
-      "contactCentre": "Client contact centre"
+      "fullPlatform": "Vollständige Plattformfunktionen"
     },
     "faq": {
       "trialQ": "Gibt es eine kostenlose Testphase?",
       "trialA": "Alle Tarife beinhalten eine 14-tägige kostenlose Testphase. Wählen Sie einen Tarif auf der Abonnementseite — Sie geben Kartendaten bei Stripe ein, werden aber erst nach Ende der Testphase belastet.",
       "includedQ": "Was ist in jedem Tarif enthalten?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+      "includedA": "Jeder Plan beinhaltet die vollständige Velbok-Plattform – Terminplanung, CRM, Einzahlungen, Einwilligung, Posteingang, Lagerbestand, Abrechnung und mehr. Der einzige Unterschied besteht darin, wie viele Künstler Sie hinzufügen können.",
       "stripeFeesQ": "Sind Stripe-Gebühren enthalten?",
       "stripeFeesA": "Nein. Kartenzahlungsgebühren werden von Stripe zusätzlich zu Ihrem Abonnement berechnet. Velbok ist mit Ihrem Stripe-Konto für Anzahlungen und Rechnungen verbunden.",
       "switchQ": "Kann ich später den Tarif wechseln?",
@@ -160,31 +154,6 @@
       "5": "Automatisierte Erinnerungen und Nachsorge-E-Mails",
       "6": "Lagerverwaltung und Abrechnungsunterlagen",
       "7": "Dokumentation und E-Mail-Support"
-    },
-    "coreFeatures": {
-      "0": "Full schedule & multi-artist calendar",
-      "1": "Client CRM & CSV import",
-      "2": "Digital consent forms & customer portal",
-      "3": "Stripe deposits & invoice payments",
-      "4": "Automated reminders & aftercare emails",
-      "5": "Stock management & billing records",
-      "6": "Documentation & email support"
-    },
-    "inboxFeatures": {
-      "starter": {
-        "0": "Client contact centre from every booking",
-        "1": "WhatsApp, SMS & email with message templates",
-        "2": "Automated booking reminders & aftercare emails"
-      },
-      "studio": {
-        "0": "Unified inbox (email + 1 channel)",
-        "1": "300 API messages / month"
-      },
-      "enterprise": {
-        "0": "Unified inbox (all channels)",
-        "1": "500 API messages / month",
-        "2": "£0.06/msg overage"
-      }
     }
   },
   "auth": {
@@ -319,6 +288,7 @@
     "appThemeDesc": "Wählen Sie Ihr bevorzugtes App-Erscheinungsbild. Ihre Künstlerprofil-Anpassung bleibt unverändert.",
     "consentFormTitle": "Kunden-Einwilligungsformular",
     "consentFormDesc": "Kunden öffnen diese Seite, um Ihre Einverständniserklärung zu lesen und zu unterschreiben (keine Anmeldung erforderlich).",
+    "consentHandSignNotice": "Lassen Sie Kunden die vorausgefüllte Einverständniserklärung im Studio von Hand mit dem Stift unterschreiben. Bewahren Sie das Original sicher in Ihren Räumlichkeiten auf.",
     "copy": "Kopieren",
     "open": "Öffnen",
     "consentMigrationHint": "Führen Sie die neueste Supabase-Migration aus, wenn Einreichungen fehlschlagen. Aktuelle Unterschriften erscheinen unten.",
@@ -482,6 +452,8 @@
     "tabConsentForms": "Einverständniserklärungen",
     "consentFormsTitle": "Vorlagen für Einwilligungsformulare",
     "consentFormsIntro": "Tätowierungs- und Piercingverzichtserklärungen bearbeiten oder neue Formulare hinzufügen (z. B. Laser, PMU). Kunden verwenden den öffentlichen Link oder das Formular, das ihrer Buchungsart entspricht.",
+    "consentHandSignNotice": "Kunden müssen die vorausgefüllte Einverständniserklärung im Studio von Hand mit dem Stift unterschreiben. Bewahren Sie das Original sicher in Ihren Räumlichkeiten auf. Verwenden Sie {{shopName}} und {{artistName}} im Text, damit Organisation und Ausführender genannt werden (z. B. Tätowierer Alex von Riverside Tattoo).",
+    "consentIntroHint": "Verwenden Sie {{shopName}} und {{artistName}}, wo Ihre Organisation und der Ausführende erscheinen sollen (z. B. Tätowierer Alex von Riverside Tattoo).",
     "consentAddForm": "Formular hinzufügen",
     "consentEdit": "Bearbeiten",
     "consentCopyLink": "Link kopieren",
@@ -625,12 +597,7 @@
     "accessLimitedDesc": "Ihr Konto beinhaltet nicht das Buchungsportal.Wenden Sie sich an das Studio, wenn es sich hierbei um einen Fehler handelt.",
     "profileUpdated": "Profil aktualisiert",
     "invoicePaymentReceived": "Rechnungszahlung erhalten.Danke schön.",
-    "invoicePaymentCancelled": "Rechnungszahlung storniert.",
-    "contactStudio": "Contact studio",
-    "contactStudioDesc": "Message the studio on WhatsApp or email — replies go directly to their team.",
-    "emailStudio": "Email",
-    "contactCardTitle": "Contact studio",
-    "contactCardDesc": "Reach your artist via WhatsApp or email."
+    "invoicePaymentCancelled": "Rechnungszahlung storniert."
   },
   "landing": {
     "heroBadge": "Für moderne Tattoo-Studios entwickelt",
@@ -722,18 +689,18 @@
     "tourPlay": "Play tour",
     "tourPause": "Pause tour",
     "tourScheduleTitle": "Multi-artist schedule",
-    "tourScheduleBody": "Book sessions, consultations, and touch-ups across your team with live status on every slot.",
-    "tourDepositsTitle": "Deposits with Stripe",
-    "tourDepositsBody": "Set deposit amounts, email payment links, and see paid vs pending at a glance.",
-    "tourStencilTitle": "AI stencil workspace",
-    "tourStencilBody": "Turn reference art into clean line stencils and export ready-to-print files.",
-    "tourConsentTitle": "Digital consent",
-    "tourConsentBody": "Clients sign tattoo and piercing forms online — PDFs stored with a full audit trail.",
-    "screensTitle": "Inside the studio app",
-    "screensSubtitle": "Purpose-built screens for the work you do every day — not a generic calendar with a logo slapped on.",
-    "screenScheduleTitle": "Schedule that fits tattooing",
-    "screenScheduleBody": "Artist columns, booking types, deposit status, and quick edits from the same view your front desk uses.",
-    "screenDepositsTitle": "Deposits & payment links",
+    "tourScheduleBody": "Buchen Sie Sitzungen, Beratungen und Nachbesserungen für Ihr gesamtes Team mit Live-Status zu jedem Termin.",
+    "tourDepositsTitle": "Einzahlungen mit Stripe",
+    "tourDepositsBody": "Legen Sie Einzahlungsbeträge fest, senden Sie Zahlungslinks per E-Mail und sehen Sie auf einen Blick, ob bezahlt oder ausstehend ist.",
+    "tourStencilTitle": "KI-Schablonenarbeitsbereich",
+    "tourStencilBody": "Verwandeln Sie Referenzgrafiken in klare Linienschablonen und exportieren Sie druckfertige Dateien.",
+    "tourConsentTitle": "Digitale Einwilligung",
+    "tourConsentBody": "Kunden unterschreiben Formulare für Tätowierungen und Piercings online – gespeicherte PDFs mit vollständigem Prüfprotokoll.",
+    "screensTitle": "In der Studio-App",
+    "screensSubtitle": "Speziell angefertigte Bildschirme für Ihre tägliche Arbeit – kein allgemeiner Kalender mit aufgeklebtem Logo.",
+    "screenScheduleTitle": "Zeitplan, der zum Tätowieren passt",
+    "screenScheduleBody": "Künstlerspalten, Buchungsarten, Anzahlungsstatus und schnelle Bearbeitungen in derselben Ansicht, die Ihre Rezeption verwendet.",
+    "screenDepositsTitle": "Einzahlungen und Zahlungslinks",
     "screenDepositsBody": "Track who paid, who needs a reminder, and send Stripe checkout links in one click.",
     "screenStencilTitle": "Stencil generation",
     "screenStencilBody": "Upload reference, refine contrast and line weight, and export stencils without leaving Velbok.",
@@ -824,8 +791,7 @@
     "artist": "Künstler",
     "submitted": "Eingereicht",
     "viewPdf": "PDF ansehen",
-    "pdfPending": "PDF ausstehend",
-    "contactableClients": "Clients to contact"
+    "pdfPending": "PDF ausstehend"
   },
   "clients": {
     "title": "Kunden",
@@ -1430,8 +1396,7 @@
     "depositStatus": "Deposit status",
     "depositAmount": "Deposit amount",
     "depositAmountHint": "Maximum {{max}} (equivalent of £200). Applied when sending payment links.",
-    "depositAmountInvalid": "Enter a valid deposit up to {{max}} (equivalent of £200).",
-    "openInbox": "Open in inbox"
+    "depositAmountInvalid": "Enter a valid deposit up to {{max}} (equivalent of £200)."
   },
   "staff": {
     "loading": "Laden…"
@@ -1506,81 +1471,5 @@
     "loadFailed": "Could not load payout status",
     "onboardFailed": "Could not start payout setup",
     "dashboardFailed": "Could not open payout dashboard"
-  },
-  "unifiedInbox": {
-    "title": "Inbox",
-    "contactTitle": "Client contact centre",
-    "contactSubtitle": "Reach clients in one tap from bookings — WhatsApp, SMS, or email with ready-made templates. Reminders and aftercare emails run automatically in the background.",
-    "upgradeTitle": "Want one inbox for everything?",
-    "upgradeBody": "Studio connects your channels so replies land in Velbok instead of switching apps.",
-    "upgradeCta": "View Studio plan",
-    "allChannels": "All",
-    "refresh": "Refresh",
-    "connectChannels": "Connect channels",
-    "usage": "{{used}} / {{cap}} messages this month",
-    "usageUnlimited": "No API message cap on this plan",
-    "noMessages": "No messages yet",
-    "noMessagesHint": "Connect a channel or wait for inbound email to arrive.",
-    "selectThread": "Select a conversation",
-    "replyPlaceholder": "Write a reply…",
-    "sendReply": "Send",
-    "replySent": "Reply sent",
-    "replyFailed": "Could not send reply",
-    "markReadFailed": "Could not update read status",
-    "emailOnlyReply": "Connect this channel in inbox settings to reply from Velbok.",
-    "fromBooking": "Recent clients",
-    "searchClients": "Search clients…",
-    "noClients": "No clients with contact details yet",
-    "capReached": "Monthly message cap reached. Upgrade or wait until next month.",
-    "remaining": "{{count}} left",
-    "overageActive": "{{count}} over cap",
-    "warn80": "Approaching monthly message cap (80%).",
-    "overageRate": "Overage billed at £{{rate}}/message on Enterprise.",
-    "inbound": "In",
-    "outbound": "Out",
-    "starterIncludes": {
-      "reminders": "Automated booking reminders",
-      "aftercare": "Aftercare emails",
-      "templates": "Message templates",
-      "channels": "WhatsApp, SMS & email links"
-    },
-    "studioAdds": {
-      "feed": "One inbox feed for all conversations",
-      "channels": "Connect email + WhatsApp or Instagram",
-      "quota": "300 API messages per month included",
-      "history": "Full thread history inside Velbok"
-    },
-    "statClients": "Clients with contact details",
-    "statWhatsApp": "Reachable on WhatsApp",
-    "statEmail": "Reachable by email",
-    "statUpcoming": "Bookings in the next 7 days",
-    "upcomingTitle": "Upcoming bookings",
-    "noUpcoming": "No upcoming bookings with contact details.",
-    "allClientsTitle": "All clients",
-    "oneBooking": "1 booking",
-    "bookingCount": "{{count}} bookings",
-    "depositPending": "Deposit pending",
-    "templateLabel": "Message template",
-    "templateHint": "Prefills WhatsApp, SMS, and email when you tap a contact button.",
-    "templateGeneral": "General follow-up",
-    "templateBooking": "Booking confirmation",
-    "templateDeposit": "Deposit reminder",
-    "templateAftercare": "Aftercare check-in",
-    "templateGeneralSubject": "Message from your tattoo studio",
-    "templateGeneralBody": "Hi {{name}}, just checking in from the studio. Let us know if you have any questions.",
-    "templateBookingSubject": "Your upcoming appointment — {{name}}",
-    "templateBookingBody": "Hi {{name}}, looking forward to your session on {{date}} at {{time}}. Reply if you need to change anything.",
-    "templateDepositSubject": "Deposit for your booking — {{name}}",
-    "templateDepositBody": "Hi {{name}}, a quick reminder about your deposit for the appointment on {{date}}. Let us know if you need the payment link again.",
-    "templateAftercareSubject": "Aftercare check-in — {{name}}",
-    "templateAftercareBody": "Hi {{name}}, hope your tattoo is healing well. Message us if you have any aftercare questions."
-  },
-  "messaging": {
-    "whatsapp": "WhatsApp",
-    "sms": "SMS",
-    "email": "Email",
-    "instagram": "Instagram",
-    "copy": "Copy",
-    "copied": "Copied to clipboard"
   }
 }

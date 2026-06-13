@@ -226,6 +226,9 @@ const SettingsPage = () => {
               <CardDescription>{t("settings.consentFormDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
+                {t("settings.consentHandSignNotice")}
+              </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input readOnly value={consentUrl} className="font-mono text-xs bg-secondary border-border" />
                 <div className="flex gap-2 shrink-0">

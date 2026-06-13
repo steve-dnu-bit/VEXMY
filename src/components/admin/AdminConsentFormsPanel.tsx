@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { Copy, FileSignature, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Copy, FileSignature, Info, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   consentFormPublicUrl,
@@ -26,6 +26,16 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
+}
+
+function ConsentHandSignNotice() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 text-sm text-muted-foreground">
+      <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+      <p>{t("admin.consentHandSignNotice")}</p>
+    </div>
+  );
 }
 
 function ConsentFormEditor({
@@ -55,6 +65,8 @@ function ConsentFormEditor({
       <Button type="button" variant="ghost" size="sm" onClick={onBack}>
         ← {t("admin.consentBackToList")}
       </Button>
+
+      <ConsentHandSignNotice />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -115,6 +127,7 @@ function ConsentFormEditor({
       <div>
         <Label>{t("admin.consentIntro")}</Label>
         <Textarea value={c.introText} onChange={(e) => updateContent({ introText: e.target.value })} rows={3} className="mt-1 bg-secondary text-sm" />
+        <p className="mt-1 text-xs text-muted-foreground">{t("admin.consentIntroHint")}</p>
       </div>
       <div>
         <Label>{t("admin.consentPlacementLabel")}</Label>
@@ -354,6 +367,9 @@ const AdminConsentFormsPanel = () => {
           </div>
           <CardDescription>{t("admin.consentFormsIntro")}</CardDescription>
         </CardHeader>
+        <CardContent>
+          <ConsentHandSignNotice />
+        </CardContent>
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-2">

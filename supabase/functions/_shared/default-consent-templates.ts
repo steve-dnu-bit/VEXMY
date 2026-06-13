@@ -29,16 +29,16 @@ export type ConsentFormTemplateRow = {
 };
 
 const TATTOO_DATA_STORAGE =
-  "I give my permission for the studio to store my personal data for legal, medical, and insurance reasons.";
+  "I give my permission for {{shopName}} to store my personal data for legal, medical, and insurance reasons.";
 
 const PIERCING_DATA_STORAGE =
-  "I give my permission for the studio and any piercer in the shop to store my personal data for legal, medical, and insurance reasons.";
+  "I give my permission for {{shopName}} and any piercer in the shop to store my personal data for legal, medical, and insurance reasons.";
 
 export const DEFAULT_TATTOO_CONSENT_CONTENT: ConsentFormContent = {
   formTitle: "Tattoo consent form",
   pdfTitle: "TATTOO CONSENT FORM",
   introText:
-    "I hereby declare that I give my full consent to TATTOO me and that the information given below is true to the best of my knowledge.",
+    "I hereby declare that I give my full consent to be tattooed by {{artistName}} of {{shopName}} and that the information given below is true to the best of my knowledge.",
   healthQuestions: [
     "Any heart condition?",
     "Seizures e.g. epilepsy?",
@@ -81,7 +81,7 @@ export const DEFAULT_PIERCING_CONSENT_CONTENT: ConsentFormContent = {
   formTitle: "Piercing consent form",
   pdfTitle: "PIERCING CONSENT FORM",
   introText:
-    "I hereby declare that I give my full consent to PIERCE me and that the information given below is true to the best of my knowledge.",
+    "I hereby declare that I give my full consent to be pierced by {{artistName}} of {{shopName}} and that the information given below is true to the best of my knowledge.",
   healthQuestions: [...DEFAULT_TATTOO_CONSENT_CONTENT.healthQuestions],
   statements: [
     "I understand that a Piercing could leave a permanent scar or mark.",

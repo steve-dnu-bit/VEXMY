@@ -9,6 +9,10 @@ import {
 } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
 import { loadConsentFormTemplateBySlug, type ConsentFormContent } from "../_shared/consent-form-templates.ts";
+import {
+  applyConsentTemplateVars,
+  formatConsentArtistLine,
+} from "../_shared/consent-template-text.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -174,12 +178,13 @@ async function buildConsentPdf(params: {
   clientEmail: string;
   phone: string;
   artistName?: string;
+  shopName?: string;
   bookingStartsAt?: string;
   bookingEndsAt?: string;
   consentFields: Record<string, unknown>;
   signatureImage: string;
 }) {
-  const { template, templateSlug, fullName, clientEmail, phone, artistName, bookingStartsAt, bookingEndsAt, consentFields, signatureImage } = params;
+  const { template, templateSlug, fullName, clientEmail, phone, artistName, shopName, bookingStartsAt, bookingEndsAt, consentFields, signatureImage } = params;
   /** Portrait A4 (width < height). Explicit rotation 0° so viewers/printers never treat it as landscape. */
   const PAGE_W = 595.28;
   const PAGE_H = 841.89;
@@ -204,7 +209,6 @@ async function buildConsentPdf(params: {
   const signatureZoneTop = (sectionTitleLead: number) =>
     margin + sigBoxH + sigLabelGap + sectionTitleLead + gapBeforeSig;
 
-  const statements = template.statements;
   const fields = consentFields as Record<string, unknown>;
   const treatmentLocation =
     (typeof fields.treatmentLocation === "string" && fields.treatmentLocation.trim()) ||
@@ -228,9 +232,10 @@ async function buildConsentPdf(params: {
 
   const markColW = 52;
   const qTextW = contentW - markColW - 8;
-  const intro = template.introText;
-
-  const sectionLead = (L: ConsentLayout) => L.sectionTitleSize * 1.15;
+  const resolvedTemplate = applyConsentTemplateVars(template, { shopName, artistName });
+  const intro = resolvedTemplate.introText;
+  const statements = resolvedTemplate.statements;
+  const artistLine = formatConsentArtistLine(artistName, shopName);
 
   const measureHeader = (scale: number): number => {
     const L = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
@@ -240,9 +245,11 @@ async function buildConsentPdf(params: {
     y = dropAfterLine(y, subSize, 4);
     y = dropAfterLine(y, subSize, 8);
     y = dropAfterLine(y, L.titleSize, 6);
-    if (artistName?.trim()) y = dropAfterLine(y, L.artistSize, 6);
+    if (artistLine) y = dropAfterLine(y, L.artistSize, 6);
     return y;
   };
+
+  const sectionLead = (L: ConsentLayout) => L.sectionTitleSize * 1.15;
 
   const declColumns = template.declColumns;
 
@@ -338,8 +345,8 @@ async function buildConsentPdf(params: {
   const title = template.pdfTitle;
   page.drawText(title, { x: margin, y, size: L.titleSize, font: fontBold, color: rgb(0.08, 0.08, 0.08) });
   y = dropAfterLine(y, L.titleSize, 6);
-  if (artistName?.trim()) {
-    page.drawText(`Artist / practitioner: ${artistName.trim()}`, { x: margin, y, size: L.artistSize, font: fontRegular });
+  if (artistLine) {
+    page.drawText(`Artist / practitioner: ${artistLine}`, { x: margin, y, size: L.artistSize, font: fontRegular });
     y = dropAfterLine(y, L.artistSize, 6);
   }
 
@@ -556,7 +563,7 @@ serve(async (req) => {
     const { data: booking, error: bookingErr } = await adminClient
       .from("bookings")
       .select(
-        "id, artist_id, client_user_id, client_email, client_name, client_phone, reference_image_url, starts_at, ends_at",
+        "id, artist_id, organization_id, client_user_id, client_email, client_name, client_phone, reference_image_url, starts_at, ends_at",
       )
       .eq("id", bookingId)
       .single();
@@ -596,6 +603,27 @@ serve(async (req) => {
         .maybeSingle();
       artistName = (artistProfile?.display_name as string | undefined)?.trim() ?? "";
     }
+
+    let shopName = typeof fieldsIn.shopName === "string" ? fieldsIn.shopName.trim() : "";
+    if (!shopName) {
+      const orgId = (booking as { organization_id?: string | null }).organization_id;
+      if (orgId) {
+        const { data: shopRow } = await adminClient
+          .from("shop_settings")
+          .select("shop_name, trading_name")
+          .eq("organization_id", orgId)
+          .maybeSingle();
+        shopName =
+          ((shopRow?.trading_name as string | undefined)?.trim() ||
+            (shopRow?.shop_name as string | undefined)?.trim()) ??
+          "";
+        if (!shopName) {
+          const { data: orgRow } = await adminClient.from("organizations").select("name").eq("id", orgId).maybeSingle();
+          shopName = ((orgRow?.name as string | undefined)?.trim()) ?? "";
+        }
+      }
+    }
+    if (!shopName) shopName = getShopBranding().shopName;
 
     const { data: consentData, error: consentErr } = await adminClient
       .from("consent_signatures")
@@ -645,6 +673,7 @@ serve(async (req) => {
         clientEmail,
         phone,
         artistName,
+        shopName,
         bookingStartsAt: (booking as any).starts_at,
         bookingEndsAt: (booking as any).ends_at,
         consentFields: (consentFields || {}) as Record<string, unknown>,

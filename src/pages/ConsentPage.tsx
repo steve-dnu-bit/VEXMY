@@ -34,6 +34,10 @@ import {
   resolveTemplateForBooking,
   type ConsentFormTemplateRow,
 } from "@/lib/shopConsentTemplates";
+import {
+  applyConsentTemplateVars,
+  formatConsentArtistLine,
+} from "@/lib/consentTemplateText";
 
 const UNDER_18_QUESTION = "Are you under 18?";
 
@@ -206,7 +210,7 @@ type ConsentBooking = {
 const ConsentPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { hasPermission, loading: permLoading } = usePermissions();
-  const { selectedOrgId, shops, loading: shopLoading } = useCustomerShop();
+  const { selectedOrgId, shops, selectedShop, loading: shopLoading } = useCustomerShop();
   const [searchParams] = useSearchParams();
   const [onlyCustomer, setOnlyCustomer] = useState<boolean | null>(null);
 
@@ -231,6 +235,28 @@ const ConsentPage = () => {
   const [activeTemplate, setActiveTemplate] = useState<ConsentFormTemplateRow | null>(null);
 
   const artistDisplayName = portalBrand?.display_name?.trim() || "";
+
+  const shopDisplayName = useMemo(() => {
+    if (!selectedBooking?.organization_id) return selectedShop?.shopName?.trim() || "";
+    return (
+      shops.find((s) => s.organizationId === selectedBooking.organization_id)?.shopName?.trim() ||
+      selectedShop?.shopName?.trim() ||
+      ""
+    );
+  }, [selectedBooking?.organization_id, shops, selectedShop?.shopName]);
+
+  const artistPractitionerLine = useMemo(
+    () => formatConsentArtistLine(artistDisplayName, shopDisplayName),
+    [artistDisplayName, shopDisplayName],
+  );
+
+  const resolvedTemplateContent = useMemo(() => {
+    if (!activeTemplate) return null;
+    return applyConsentTemplateVars(activeTemplate.content, {
+      shopName: shopDisplayName,
+      artistName: artistDisplayName,
+    });
+  }, [activeTemplate, shopDisplayName, artistDisplayName]);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -455,6 +481,7 @@ const ConsentPage = () => {
           consentType: activeTemplate.slug,
           consentFields: {
             artistName: artistDisplayName || null,
+            shopName: shopDisplayName || null,
             address: address.trim() || null,
             dob: dob || null,
             treatmentLocation: treatmentLocation.trim() || null,
@@ -618,9 +645,9 @@ const ConsentPage = () => {
                 {selectedBooking ? (
                   <div className="rounded-lg border border-border bg-secondary/20 p-3">
                     <p className="text-sm font-semibold">{selectedBooking.client_name}</p>
-                    {artistDisplayName ? (
+                    {artistPractitionerLine ? (
                       <p className="text-sm text-foreground mt-1">
-                        Artist: <span className="font-medium">{artistDisplayName}</span>
+                        Artist: <span className="font-medium">{artistPractitionerLine}</span>
                       </p>
                     ) : null}
                     <p className="text-xs text-muted-foreground">
@@ -680,10 +707,10 @@ const ConsentPage = () => {
             <CardDescription>Fields are saved with your submission.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {artistDisplayName ? (
+            {artistPractitionerLine ? (
               <div>
                 <Label>Artist / practitioner</Label>
-                <Input value={artistDisplayName} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
+                <Input value={artistPractitionerLine} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
               </div>
             ) : null}
             <div>
@@ -771,7 +798,7 @@ const ConsentPage = () => {
           </CardHeader>
           <CardContent>
             <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
-              {(activeTemplate?.content.statements ?? []).map((line) => (
+              {(resolvedTemplateContent?.statements ?? activeTemplate?.content.statements ?? []).map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
@@ -782,31 +809,31 @@ const ConsentPage = () => {
           <div className="flex items-start gap-3">
             <Checkbox id="agree" checked={agreed} onCheckedChange={(c) => setAgreed(c === true)} className="mt-0.5" />
             <Label htmlFor="agree" className="text-sm font-normal leading-snug cursor-pointer">
-              {activeTemplate?.content.declarations.agree}
+              {resolvedTemplateContent?.declarations.agree ?? activeTemplate?.content.declarations.agree}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="age-consent" checked={ageConsent} onCheckedChange={(c) => setAgeConsent(c === true)} className="mt-0.5" />
             <Label htmlFor="age-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {activeTemplate?.content.declarations.age}
+              {resolvedTemplateContent?.declarations.age ?? activeTemplate?.content.declarations.age}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="sober-consent" checked={soberConsent} onCheckedChange={(c) => setSoberConsent(c === true)} className="mt-0.5" />
             <Label htmlFor="sober-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {activeTemplate?.content.declarations.sober}
+              {resolvedTemplateContent?.declarations.sober ?? activeTemplate?.content.declarations.sober}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="risk-consent" checked={riskAcknowledged} onCheckedChange={(c) => setRiskAcknowledged(c === true)} className="mt-0.5" />
             <Label htmlFor="risk-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {activeTemplate?.content.declarations.risk}
+              {resolvedTemplateContent?.declarations.risk ?? activeTemplate?.content.declarations.risk}
             </Label>
           </div>
           <div className="flex items-start gap-3">
             <Checkbox id="photo-consent" checked={photoConsent} onCheckedChange={(c) => setPhotoConsent(c === true)} className="mt-0.5" />
             <Label htmlFor="photo-consent" className="text-sm font-normal leading-snug cursor-pointer">
-              {activeTemplate?.content.declarations.photo}
+              {resolvedTemplateContent?.declarations.photo ?? activeTemplate?.content.declarations.photo}
             </Label>
           </div>
         </div>
