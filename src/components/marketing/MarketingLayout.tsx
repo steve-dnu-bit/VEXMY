@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { BRANDING } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
+import VelbokBrand from "@/components/brand/VelbokBrand";
 import VelbokLogo from "@/components/brand/VelbokLogo";
 
 const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
@@ -25,7 +26,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
 
       <header className="sticky top-0 z-50 border-b border-gold/30 bg-[#090a0f]/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <VelbokLogo size="md" href="/" />
+          <VelbokBrand variant="marketing" href="/" showTagline />
 
           <nav className="hidden items-center gap-8 md:flex">
             {navLinks.map((link) => (

@@ -12,7 +12,7 @@ import { Mail } from "lucide-react";
 import PasswordField from "@/components/auth/PasswordField";
 import { BRANDING } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
-import VelbokLogo from "@/components/brand/VelbokLogo";
+import VelbokBrand from "@/components/brand/VelbokBrand";
 
 /** Password-reset links must match Supabase Auth → URL Configuration allow list. */
 function getAuthSiteOrigin(): string {
@@ -199,8 +199,8 @@ const AuthPage = () => {
       <div className="pointer-events-none absolute inset-y-0 right-0 w-[32vw] opacity-55 [background-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20320%20900%27%3E%3Cpath%20d%3D%27M300%2040%20C190%2080%20170%20190%20235%20280%20C285%20350%20278%20430%20192%20500%20C115%20562%20100%20665%20170%20735%20C208%20772%20250%20815%20278%20860%27%20fill%3D%27none%27%20stroke%3D%27%23d4af37%27%20stroke-opacity%3D%270.32%27%20stroke-width%3D%272%27%2F%3E%3Cpath%20d%3D%27M258%2070%20C152%20112%20140%20214%20200%20285%20C252%20346%20250%20420%20170%20486%20C88%20556%2076%20664%20144%20739%20C177%20776%20216%20814%20243%20850%27%20fill%3D%27none%27%20stroke%3D%27%23d4af37%27%20stroke-opacity%3D%270.18%27%20stroke-width%3D%271.4%27%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-right-top bg-contain" />
 
       <div className="relative z-10 w-full max-w-[345px]">
-        <div className="mb-4 text-center">
-          <VelbokLogo size="xl" href={null} className="mx-auto" />
+        <div className="mb-4 flex flex-col items-center">
+          <VelbokBrand variant="auth" href={null} />
           <div className="mx-auto mt-3 h-px w-36 bg-gradient-to-r from-transparent via-gold/80 to-transparent" />
           <p className="mt-1.5 text-[10px] tracking-[0.3em] text-gold/90">{BRANDING.platformTagline.toUpperCase()}</p>
         </div>

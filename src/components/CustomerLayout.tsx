@@ -9,7 +9,7 @@ import { BRANDING } from "@/lib/branding";
 import { useTranslation } from "react-i18next";
 import { useCustomerShop } from "@/hooks/useCustomerShop";
 import CustomerShopSelector from "@/components/customer/CustomerShopSelector";
-import VelbokLogo from "@/components/brand/VelbokLogo";
+import VelbokBrand from "@/components/brand/VelbokBrand";
 
 export interface PortalBrandProfile {
   display_name?: string | null;
@@ -66,7 +66,7 @@ const CustomerLayoutInner = ({
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="flex h-14 items-center justify-between px-4 max-w-lg mx-auto w-full">
           {showPlatformLogo ? (
-            <VelbokLogo size="sm" href={null} />
+            <VelbokBrand variant="dashboard" href={null} />
           ) : (
             <span className="font-display font-bold text-gold truncate">{headerTitle}</span>
           )}

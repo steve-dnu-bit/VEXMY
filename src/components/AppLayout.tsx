@@ -11,7 +11,7 @@ import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
 import { STORAGE_PREFIX } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
-import VelbokLogo from "@/components/brand/VelbokLogo";
+import VelbokBrand from "@/components/brand/VelbokBrand";
 import { PORTAL_THEME_UPDATED_EVENT, resolveStaffPortalTheme } from "@/lib/shopDashboardTheme";
 
 const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar; feature: Feature }> = [
@@ -198,7 +198,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        <VelbokLogo size="sm" href={null} />
+        <VelbokBrand variant="dashboard" href={null} />
         <div className="w-5" />
       </div>
 
@@ -212,7 +212,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       >
         <div className="px-3 py-3 border-b border-sidebar-border">
           <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "justify-between"} gap-2`}>
-            <VelbokLogo size="sm" href={null} />
+            <VelbokBrand variant="dashboard" href={null} hideText={sidebarCollapsed} />
             <Button
               variant="ghost"
               size="sm"
