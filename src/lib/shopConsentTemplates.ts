@@ -5,6 +5,10 @@ import {
   type ConsentFormContent,
   type ConsentFormTemplateRow,
 } from "@/lib/defaultConsentTemplates";
+import {
+  consentContentNeedsLegacyUpgrade,
+  upgradeLegacyConsentContent,
+} from "@/lib/consentTemplateText";
 
 export type { ConsentFormContent, ConsentFormTemplateRow };
 
@@ -86,6 +90,26 @@ export async function ensureDefaultConsentTemplates(orgId: string): Promise<void
   );
 }
 
+async function syncLegacyConsentTemplates(orgId: string): Promise<void> {
+  const { data } = await supabase
+    .from("consent_form_templates" as any)
+    .select("id, slug, content")
+    .eq("organization_id", orgId);
+
+  if (!data?.length) return;
+
+  for (const row of data) {
+    const slug = String(row.slug || "tattoo");
+    const content = parseContent(row.content, slug);
+    if (!consentContentNeedsLegacyUpgrade(content, slug)) continue;
+    const upgraded = upgradeLegacyConsentContent(content, slug);
+    await supabase
+      .from("consent_form_templates" as any)
+      .update({ content: upgraded, updated_at: new Date().toISOString() })
+      .eq("id", row.id);
+  }
+}
+
 export async function loadShopConsentTemplates(
   includeInactive = false,
   organizationId?: string | null,
@@ -94,6 +118,7 @@ export async function loadShopConsentTemplates(
   if (!orgId) return defaultConsentTemplates();
 
   await ensureDefaultConsentTemplates(orgId);
+  await syncLegacyConsentTemplates(orgId);
 
   let query = supabase
     .from("consent_form_templates" as any)

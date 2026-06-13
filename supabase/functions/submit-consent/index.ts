@@ -11,7 +11,6 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { loadConsentFormTemplateBySlug, type ConsentFormContent } from "../_shared/consent-form-templates.ts";
 import {
   applyConsentTemplateVars,
-  formatConsentArtistLine,
 } from "../_shared/consent-template-text.ts";
 
 const corsHeaders = {
@@ -220,6 +219,8 @@ async function buildConsentPdf(params: {
   const startWindow = formatAppointmentShort(bookingStartsAt, bookingEndsAt);
   const locLabel = template.placementLabel;
   const detailLines = [
+    ...(shopName?.trim() ? [`Studio / organization: ${shopName.trim()}`] : []),
+    ...(artistName?.trim() ? [`Artist / practitioner: ${artistName.trim()}`] : []),
     `Full name (print): ${fullName}`,
     `Address: ${address}`,
     `Date of birth: ${dob}`,
@@ -232,10 +233,11 @@ async function buildConsentPdf(params: {
 
   const markColW = 52;
   const qTextW = contentW - markColW - 8;
-  const resolvedTemplate = applyConsentTemplateVars(template, { shopName, artistName });
+  const resolvedTemplate = applyConsentTemplateVars(template, { shopName, artistName }, templateSlug);
   const intro = resolvedTemplate.introText;
   const statements = resolvedTemplate.statements;
-  const artistLine = formatConsentArtistLine(artistName, shopName);
+  const orgLine = shopName?.trim() || "";
+  const practitionerLine = artistName?.trim() || "";
 
   const measureHeader = (scale: number): number => {
     const L = layoutForScale(scale, templateSlug === "piercing" ? "piercing" : "tattoo");
@@ -245,7 +247,8 @@ async function buildConsentPdf(params: {
     y = dropAfterLine(y, subSize, 4);
     y = dropAfterLine(y, subSize, 8);
     y = dropAfterLine(y, L.titleSize, 6);
-    if (artistLine) y = dropAfterLine(y, L.artistSize, 6);
+    if (orgLine) y = dropAfterLine(y, L.artistSize, 6);
+    if (practitionerLine) y = dropAfterLine(y, L.artistSize, 6);
     return y;
   };
 
@@ -345,8 +348,12 @@ async function buildConsentPdf(params: {
   const title = template.pdfTitle;
   page.drawText(title, { x: margin, y, size: L.titleSize, font: fontBold, color: rgb(0.08, 0.08, 0.08) });
   y = dropAfterLine(y, L.titleSize, 6);
-  if (artistLine) {
-    page.drawText(`Artist / practitioner: ${artistLine}`, { x: margin, y, size: L.artistSize, font: fontRegular });
+  if (orgLine) {
+    page.drawText(`Studio / organization: ${orgLine}`, { x: margin, y, size: L.artistSize, font: fontRegular });
+    y = dropAfterLine(y, L.artistSize, 6);
+  }
+  if (practitionerLine) {
+    page.drawText(`Artist / practitioner: ${practitionerLine}`, { x: margin, y, size: L.artistSize, font: fontRegular });
     y = dropAfterLine(y, L.artistSize, 6);
   }
 

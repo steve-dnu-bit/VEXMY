@@ -28,16 +28,14 @@ import { format, parseISO } from "date-fns";
 import { bookingEligibleForConsent } from "@/lib/bookingTypes";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { bookingMatchesCustomerShop } from "@/lib/customerShops";
-import { useCustomerShop } from "@/hooks/useCustomerShop";
+import { loadShopSettingsForOrganization } from "@/lib/shopSettings";
 import {
   loadShopConsentTemplates,
   resolveTemplateForBooking,
   type ConsentFormTemplateRow,
 } from "@/lib/shopConsentTemplates";
-import {
-  applyConsentTemplateVars,
-  formatConsentArtistLine,
-} from "@/lib/consentTemplateText";
+import { applyConsentTemplateVars } from "@/lib/consentTemplateText";
+import { useCustomerShop } from "@/hooks/useCustomerShop";
 
 const UNDER_18_QUESTION = "Are you under 18?";
 
@@ -233,29 +231,30 @@ const ConsentPage = () => {
   const [portalBrand, setPortalBrand] = useState<PortalBrandProfile | null>(null);
   const [consentTemplates, setConsentTemplates] = useState<ConsentFormTemplateRow[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<ConsentFormTemplateRow | null>(null);
+  const [bookingOrgShopName, setBookingOrgShopName] = useState("");
 
   const artistDisplayName = portalBrand?.display_name?.trim() || "";
 
   const shopDisplayName = useMemo(() => {
+    if (bookingOrgShopName) return bookingOrgShopName;
     if (!selectedBooking?.organization_id) return selectedShop?.shopName?.trim() || "";
     return (
       shops.find((s) => s.organizationId === selectedBooking.organization_id)?.shopName?.trim() ||
       selectedShop?.shopName?.trim() ||
       ""
     );
-  }, [selectedBooking?.organization_id, shops, selectedShop?.shopName]);
-
-  const artistPractitionerLine = useMemo(
-    () => formatConsentArtistLine(artistDisplayName, shopDisplayName),
-    [artistDisplayName, shopDisplayName],
-  );
+  }, [bookingOrgShopName, selectedBooking?.organization_id, shops, selectedShop?.shopName]);
 
   const resolvedTemplateContent = useMemo(() => {
     if (!activeTemplate) return null;
-    return applyConsentTemplateVars(activeTemplate.content, {
-      shopName: shopDisplayName,
-      artistName: artistDisplayName,
-    });
+    return applyConsentTemplateVars(
+      activeTemplate.content,
+      {
+        shopName: shopDisplayName,
+        artistName: artistDisplayName,
+      },
+      activeTemplate.slug,
+    );
   }, [activeTemplate, shopDisplayName, artistDisplayName]);
 
   const [fullName, setFullName] = useState("");
@@ -415,6 +414,16 @@ const ConsentPage = () => {
     setPhone(selectedBooking.client_phone ?? "");
     setTreatmentLocation(selectedBooking.tattoo_placement ?? "");
   }, [selectedBooking, user]);
+
+  useEffect(() => {
+    if (!selectedBooking?.organization_id) {
+      setBookingOrgShopName("");
+      return;
+    }
+    void loadShopSettingsForOrganization(selectedBooking.organization_id).then((shop) => {
+      setBookingOrgShopName(shop?.shop_name?.trim() || shop?.trading_name?.trim() || "");
+    });
+  }, [selectedBooking?.organization_id]);
 
   useEffect(() => {
     if (!selectedBooking?.artist_id) return;
@@ -645,9 +654,14 @@ const ConsentPage = () => {
                 {selectedBooking ? (
                   <div className="rounded-lg border border-border bg-secondary/20 p-3">
                     <p className="text-sm font-semibold">{selectedBooking.client_name}</p>
-                    {artistPractitionerLine ? (
+                    {shopDisplayName ? (
                       <p className="text-sm text-foreground mt-1">
-                        Artist: <span className="font-medium">{artistPractitionerLine}</span>
+                        Organization: <span className="font-medium">{shopDisplayName}</span>
+                      </p>
+                    ) : null}
+                    {artistDisplayName ? (
+                      <p className="text-sm text-foreground mt-1">
+                        Artist: <span className="font-medium">{artistDisplayName}</span>
                       </p>
                     ) : null}
                     <p className="text-xs text-muted-foreground">
@@ -707,10 +721,16 @@ const ConsentPage = () => {
             <CardDescription>Fields are saved with your submission.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {artistPractitionerLine ? (
+            {shopDisplayName ? (
+              <div>
+                <Label>Organization / studio</Label>
+                <Input value={shopDisplayName} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
+              </div>
+            ) : null}
+            {artistDisplayName ? (
               <div>
                 <Label>Artist / practitioner</Label>
-                <Input value={artistPractitionerLine} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
+                <Input value={artistDisplayName} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
               </div>
             ) : null}
             <div>
@@ -796,7 +816,12 @@ const ConsentPage = () => {
             <CardTitle className="text-base">5) Consent declarations</CardTitle>
             <CardDescription>Please read these statements carefully before signing.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            {resolvedTemplateContent?.introText ? (
+              <p className="text-sm leading-snug text-foreground border border-border rounded-md p-3 bg-secondary/20">
+                {resolvedTemplateContent.introText}
+              </p>
+            ) : null}
             <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
               {(resolvedTemplateContent?.statements ?? activeTemplate?.content.statements ?? []).map((line) => (
                 <li key={line}>{line}</li>

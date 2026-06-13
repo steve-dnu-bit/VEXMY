@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Copy, FileSignature, Info, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { loadShopSettings } from "@/lib/shopSettings";
 import {
   consentFormPublicUrl,
   deleteConsentFormTemplate,
@@ -46,6 +47,7 @@ function ConsentFormEditor({
   onBack,
   saving,
   isNew,
+  shopName,
 }: {
   template: ConsentFormTemplateRow;
   onChange: (t: ConsentFormTemplateRow) => void;
@@ -54,6 +56,7 @@ function ConsentFormEditor({
   onBack: () => void;
   saving: boolean;
   isNew: boolean;
+  shopName: string;
 }) {
   const { t } = useTranslation();
   const c = template.content;
@@ -67,6 +70,12 @@ function ConsentFormEditor({
       </Button>
 
       <ConsentHandSignNotice />
+
+      {shopName ? (
+        <p className="text-xs text-muted-foreground rounded-lg border border-border bg-secondary/30 px-3 py-2">
+          {t("admin.consentAutoFillNote", { shopName })}
+        </p>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -254,10 +263,12 @@ const AdminConsentFormsPanel = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<ConsentFormTemplateRow | null>(null);
   const [saving, setSaving] = useState(false);
+  const [shopName, setShopName] = useState("");
 
   const refresh = useCallback(async () => {
-    const rows = await loadShopConsentTemplates(true);
+    const [rows, shop] = await Promise.all([loadShopConsentTemplates(true), loadShopSettings()]);
     setTemplates(rows);
+    setShopName(shop?.shop_name?.trim() || shop?.trading_name?.trim() || "");
     setLoading(false);
   }, []);
 
@@ -347,6 +358,7 @@ const AdminConsentFormsPanel = () => {
         onBack={() => setEditing(null)}
         saving={saving}
         isNew={!editing.id}
+        shopName={shopName}
       />
     );
   }
