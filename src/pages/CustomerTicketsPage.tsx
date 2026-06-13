@@ -66,7 +66,6 @@ const CustomerTicketsPage = () => {
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [imagesUsed, setImagesUsed] = useState(0);
   const [uploading, setUploading] = useState(false);
-  const [closing, setClosing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -244,22 +243,6 @@ const CustomerTicketsPage = () => {
       return;
     }
     setReplyText("");
-  };
-
-  const closeTicket = async () => {
-    if (!selectedId) return;
-    setClosing(true);
-    const { error } = await supabase
-      .from("support_tickets" as any)
-      .update({ status: "closed" })
-      .eq("id", selectedId);
-    setClosing(false);
-    if (error) {
-      toast.error(t("tickets.closeFailed"));
-      return;
-    }
-    toast.success(t("tickets.closed"));
-    void loadTickets();
   };
 
   const handleUpload = async (file: File) => {
@@ -451,13 +434,10 @@ const CustomerTicketsPage = () => {
                       onReplyChange={setReplyText}
                       onSendReply={() => void sendReply()}
                       onUpload={(file) => void handleUpload(file)}
-                      onClose={() => void closeTicket()}
                       sending={sending}
                       uploading={uploading}
-                      closing={closing}
                       isOpen={activeTicket.status === "open"}
                       imagesUsed={imagesUsed}
-                      showClose
                       compact
                       messagesEndRef={messagesEndRef}
                     />

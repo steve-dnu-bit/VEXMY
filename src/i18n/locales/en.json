@@ -1175,7 +1175,7 @@
     "closeTicket": "Close conversation",
     "reopenTicket": "Reopen",
     "closed": "Conversation closed",
-    "closedHint": "This conversation is closed. Ask the studio to reopen it if you need to continue.",
+    "closedHint": "This conversation is closed. Message the studio on WhatsApp or start a new message if you need more help.",
     "reopened": "Conversation reopened",
     "closeFailed": "Could not close conversation",
     "reopenFailed": "Could not reopen conversation",
