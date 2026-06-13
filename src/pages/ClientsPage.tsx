@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Download, Upload, Trash2, FileJson, FileSpreadsheet, ChevronDown, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -136,6 +137,8 @@ const ClientsPage = () => {
   const { hasFeature } = useSubscription();
   const hasStaffInbox = hasFeature("staff_inbox");
   const [clients, setClients] = useState<BookingClient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const csvInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
@@ -176,6 +179,8 @@ const ClientsPage = () => {
   }, []);
 
   const fetchClients = async () => {
+    setLoading(true);
+    setLoadError(null);
     const pageSize = 1000;
     let from = 0;
     const bookingRows: Array<{
@@ -194,7 +199,12 @@ const ClientsPage = () => {
         .select("id, booking_type, client_name, client_email, client_phone, tattoo_style, starts_at")
         .order("starts_at", { ascending: false })
         .range(from, from + pageSize - 1);
-      if (error) break;
+      if (error) {
+        setLoadError(error.message);
+        setClients([]);
+        setLoading(false);
+        return;
+      }
       if (!data?.length) break;
       bookingRows.push(...(data as typeof bookingRows));
       if (data.length < pageSize) break;
@@ -248,14 +258,23 @@ const ClientsPage = () => {
     }
 
     if (customerIds.length > 0) {
-      const { data: customerProfiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, phone")
-        .in("user_id", customerIds);
+      const customerProfiles: Array<{ user_id: string; display_name: string | null; phone: string | null }> = [];
+      const profileChunkSize = 100;
+      for (let i = 0; i < customerIds.length; i += profileChunkSize) {
+        const chunk = customerIds.slice(i, i + profileChunkSize);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("user_id, display_name, phone")
+          .in("user_id", chunk);
+        if (error) {
+          console.warn("Could not load customer profiles:", error.message);
+          break;
+        }
+        customerProfiles.push(...(data ?? []));
+      }
 
-      for (const p of customerProfiles ?? []) {
-        const name = (p.display_name || "").trim();
-        if (!name) continue;
+      for (const p of customerProfiles) {
+        const name = (p.display_name || "").trim() || t("clients.customerFallback");
         const key = `profile:${p.user_id}`;
         if (!grouped[key]) {
           grouped[key] = {
@@ -313,7 +332,10 @@ const ClientsPage = () => {
       }
     }
 
-    setClients(Object.values(grouped));
+    setClients(
+      Object.values(grouped).sort((a, b) => a.client_name.localeCompare(b.client_name, undefined, { sensitivity: "base" })),
+    );
+    setLoading(false);
   };
 
   const deleteAllClients = async () => {
@@ -563,14 +585,17 @@ const ClientsPage = () => {
   };
 
   const q = search.trim().toLowerCase();
-  const filtered = clients.filter((c) => {
-    if (!q) return true;
-    return (
-      c.client_name.toLowerCase().includes(q) ||
-      (c.client_email && c.client_email.toLowerCase().includes(q)) ||
-      (c.client_phone && c.client_phone.replace(/\s/g, "").includes(q.replace(/\s/g, "")))
-    );
-  });
+  const filtered = useMemo(() => {
+    const list = q
+      ? clients.filter(
+          (c) =>
+            c.client_name.toLowerCase().includes(q) ||
+            (c.client_email && c.client_email.toLowerCase().includes(q)) ||
+            (c.client_phone && c.client_phone.replace(/\s/g, "").includes(q.replace(/\s/g, ""))),
+        )
+      : clients;
+    return list;
+  }, [clients, q]);
 
   return (
     <AppLayout>
@@ -581,6 +606,13 @@ const ClientsPage = () => {
               <span className="text-gold">{t("clients.title")}</span>
             </h1>
             <p className="text-sm text-muted-foreground">{t("clients.subtitle")}</p>
+            {!loading && !loadError && clients.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-1" aria-live="polite">
+                {q
+                  ? t("clients.searchResults", { count: filtered.length, total: clients.length })
+                  : t("clients.totalClients", { count: clients.length })}
+              </p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="relative flex-1">
@@ -662,6 +694,14 @@ const ClientsPage = () => {
           </div>
         </div>
 
+        {loadError ? (
+          <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-6 text-sm text-destructive text-center">
+            {loadError}
+          </p>
+        ) : loading ? (
+          <p className="text-sm text-muted-foreground py-12 text-center">{t("common.loading")}</p>
+        ) : (
+        <>
         <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -763,6 +803,8 @@ const ClientsPage = () => {
             })
           )}
         </div>
+        </>
+        )}
 
         {/* Mobile sticky action bar */}
         <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border md:hidden">
