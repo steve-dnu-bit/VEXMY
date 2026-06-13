@@ -19,7 +19,7 @@ export const BRANDING = {
   address: import.meta.env.VITE_SHOP_ADDRESS || "",
   accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "hsl(43, 34%, 54%)",
   logoSrc: "/icons/logo.png",
-  iconSrc: "/icons/icon-512.png",
+  iconSrc: "/icons/icon-512-plain.png",
 } as const;
 
 export const STORAGE_PREFIX = "velbok";

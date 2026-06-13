@@ -7,9 +7,66 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(root, "public/velbok-logo-source.png");
 
 const BEIGE = "#b8a06e";
-const BORDER = 6;
 const RADIUS_RATIO = 0.18;
 const PAD_RATIO = 0.04;
+
+function borderWidth(size) {
+  return Math.max(1, Math.round((size * 2) / 512));
+}
+
+async function roundedLogo(size, crop) {
+  const radius = Math.round(size * RADIUS_RATIO);
+
+  const cropped = await sharp(source)
+    .extract(crop)
+    .resize(size, size, { fit: "cover", position: "centre" })
+    .png()
+    .toBuffer();
+
+  return sharp(cropped)
+    .ensureAlpha()
+    .composite([
+      {
+        input: Buffer.from(
+          `<svg width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${radius}" fill="white"/></svg>`
+        ),
+        blend: "dest-in",
+      },
+    ])
+    .png()
+    .toBuffer();
+}
+
+async function buildSquareIcon(size, crop) {
+  return roundedLogo(size, crop);
+}
+
+async function buildInstallIcon(size, crop) {
+  const border = borderWidth(size);
+  const inner = size - border * 2;
+  const radius = Math.round(size * RADIUS_RATIO);
+
+  const rounded = await roundedLogo(inner, crop);
+
+  const frame = Buffer.from(`<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="${border / 2}" y="${border / 2}" width="${size - border}" height="${size - border}" rx="${radius}" fill="none" stroke="${BEIGE}" stroke-width="${border}"/>
+  </svg>`);
+
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      { input: rounded, top: border, left: border },
+      { input: frame, top: 0, left: 0 },
+    ])
+    .png()
+    .toBuffer();
+}
 
 async function detectLeftLogoBox() {
   const { data, info } = await sharp(source).raw().toBuffer({ resolveWithObject: true });
@@ -52,50 +109,6 @@ async function detectLeftLogoBox() {
   return { left, top, width: cropSide, height: cropSide };
 }
 
-async function buildSquareIcon(size, crop) {
-  const inner = size - BORDER * 2;
-  const radius = Math.round(size * RADIUS_RATIO);
-  const innerRadius = Math.max(4, radius - BORDER);
-
-  const cropped = await sharp(source)
-    .extract(crop)
-    .resize(inner, inner, { fit: "cover", position: "centre" })
-    .png()
-    .toBuffer();
-
-  const rounded = await sharp(cropped)
-    .ensureAlpha()
-    .composite([
-      {
-        input: Buffer.from(
-          `<svg width="${inner}" height="${inner}"><rect width="${inner}" height="${inner}" rx="${innerRadius}" fill="white"/></svg>`
-        ),
-        blend: "dest-in",
-      },
-    ])
-    .png()
-    .toBuffer();
-
-  const frame = Buffer.from(`<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="${BORDER / 2}" y="${BORDER / 2}" width="${size - BORDER}" height="${size - BORDER}" rx="${radius}" fill="none" stroke="${BEIGE}" stroke-width="${BORDER}"/>
-  </svg>`);
-
-  return sharp({
-    create: {
-      width: size,
-      height: size,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite([
-      { input: rounded, top: BORDER, left: BORDER },
-      { input: frame, top: 0, left: 0 },
-    ])
-    .png()
-    .toBuffer();
-}
-
 const crop = await detectLeftLogoBox();
 console.log("Left logo crop:", crop);
 
@@ -104,16 +117,17 @@ await sharp(source).extract(crop).resize(512, 512, { fit: "cover" }).toFile(test
 console.log("Wrote public/icons/_test-left-crop.png");
 
 const outputs = [
-  ["public/icons/favicon-32.png", 32],
-  ["public/icons/logo.png", 128],
-  ["public/icons/icon-192.png", 192],
-  ["public/icons/icon-512.png", 512],
-  ["public/icons/icon-1024.png", 1024],
-  ["public/icons/apple-touch-icon.png", 180],
+  ["public/icons/favicon-32.png", 32, "plain"],
+  ["public/icons/logo.png", 128, "plain"],
+  ["public/icons/icon-512-plain.png", 512, "plain"],
+  ["public/icons/icon-192.png", 192, "install"],
+  ["public/icons/icon-512.png", 512, "install"],
+  ["public/icons/icon-1024.png", 1024, "install"],
+  ["public/icons/apple-touch-icon.png", 180, "install"],
 ];
 
-for (const [file, size] of outputs) {
-  const buf = await buildSquareIcon(size, crop);
+for (const [file, size, variant] of outputs) {
+  const buf = variant === "install" ? await buildInstallIcon(size, crop) : await buildSquareIcon(size, crop);
   await sharp(buf).toFile(join(root, file));
   console.log(`Wrote ${file}`);
 }
@@ -121,7 +135,7 @@ for (const [file, size] of outputs) {
 writeFileSync(
   join(root, "public/icon.svg"),
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Velbok app icon">
-  <image href="/icons/icon-512.png" width="512" height="512" />
+  <image href="/icons/icon-512-plain.png" width="512" height="512" />
 </svg>\n`
 );
 console.log("Wrote public/icon.svg");
