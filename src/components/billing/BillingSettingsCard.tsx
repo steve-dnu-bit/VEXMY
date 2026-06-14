@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import {
+  formatInvoiceNumberExample,
   loadOrganizationBillingProfile,
   loadOrgBillingContext,
   saveOrganizationBillingProfile,
@@ -22,6 +23,7 @@ const BillingSettingsCard = () => {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [currency, setCurrency] = useState("gbp");
   const [countryCode, setCountryCode] = useState("UK");
+  const [orgSlug, setOrgSlug] = useState<string | null>(null);
   const [profile, setProfile] = useState<OrganizationBillingProfileRow | null>(null);
 
   useEffect(() => {
@@ -31,6 +33,7 @@ const BillingSettingsCard = () => {
       const ctx = await loadOrgBillingContext(id);
       setCurrency(ctx.currency);
       setCountryCode(ctx.countryCode);
+      setOrgSlug(ctx.organizationSlug);
       const row = await loadOrganizationBillingProfile(id);
       setProfile(row);
       setLoading(false);
@@ -59,7 +62,6 @@ const BillingSettingsCard = () => {
       invoice_city: profile.invoice_city,
       invoice_postcode: profile.invoice_postcode,
       invoice_support_email: profile.invoice_support_email,
-      invoice_number_prefix: profile.invoice_number_prefix,
       default_payment_method: profile.default_payment_method,
       default_payment_term_days: profile.default_payment_term_days,
     });
@@ -185,10 +187,18 @@ const BillingSettingsCard = () => {
           <div>
             <Label className="text-xs">{t("billing.invoicePrefix")}</Label>
             <Input
-              className="mt-1"
+              className="mt-1 uppercase font-mono"
+              readOnly
               value={profile.invoice_number_prefix}
-              onChange={(e) => patch({ invoice_number_prefix: e.target.value || "INV" })}
             />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("billing.invoicePrefixHint", { slug: orgSlug ?? "—" })}
+            </p>
+            <p className="text-xs font-mono text-muted-foreground">
+              {t("billing.invoicePrefixExample", {
+                example: formatInvoiceNumberExample(profile.invoice_number_prefix),
+              })}
+            </p>
           </div>
           <div>
             <Label className="text-xs">{t("billing.defaultPaymentTermDays")}</Label>

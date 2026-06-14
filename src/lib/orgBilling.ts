@@ -21,8 +21,20 @@ export interface OrgBillingContext {
   invoicePostcode: string | null;
   invoiceSupportEmail: string | null;
   invoiceNumberPrefix: string;
+  organizationSlug: string | null;
   defaultPaymentMethod: "card" | "bank_transfer" | "cash";
   defaultPaymentTermDays: number;
+}
+
+export function sanitizeInvoiceNumberPrefix(prefix: string): string {
+  const cleaned = prefix.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+  return cleaned.length >= 2 ? cleaned : "INV";
+}
+
+export function formatInvoiceNumberExample(prefix: string): string {
+  const code = sanitizeInvoiceNumberPrefix(prefix);
+  const date = new Date().toISOString().slice(2, 10).replace(/-/g, "");
+  return `${code}-${date}-0001`;
 }
 
 export interface OrganizationBillingProfileRow {
@@ -67,6 +79,7 @@ export function parseOrgBillingContext(raw: Record<string, unknown> | null): Org
     invoicePostcode: (raw?.invoice_postcode as string | null) ?? null,
     invoiceSupportEmail: (raw?.invoice_support_email as string | null) ?? null,
     invoiceNumberPrefix: (raw?.invoice_number_prefix as string) ?? "INV",
+    organizationSlug: (raw?.organization_slug as string | null) ?? null,
     defaultPaymentMethod: (raw?.default_payment_method as OrgBillingContext["defaultPaymentMethod"]) ?? "card",
     defaultPaymentTermDays: Number(raw?.default_payment_term_days ?? 7),
   };
@@ -136,9 +149,11 @@ export async function allocateInvoiceNumber(orgId?: string | null): Promise<stri
     _org_id: resolvedOrgId,
   });
   if (error || !data) {
+    const ctx = await loadOrgBillingContext(resolvedOrgId);
+    const prefix = sanitizeInvoiceNumberPrefix(ctx.invoiceNumberPrefix);
     const date = new Date().toISOString().slice(2, 10).replace(/-/g, "");
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `INV-${date}-${rand}`;
+    return `${prefix}-${date}-${rand}`;
   }
   return String(data);
 }
