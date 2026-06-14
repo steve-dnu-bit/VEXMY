@@ -147,6 +147,8 @@ export interface PosBookingPrefill {
   service_category: string | null;
   starts_at: string;
   ends_at: string;
+  deposit_paid: boolean | null;
+  deposit_amount: number | null;
 }
 
 export interface PosServiceMatch {
@@ -161,12 +163,37 @@ export interface PosServiceMatch {
 export async function loadBookingForPosPrefill(bookingId: string): Promise<PosBookingPrefill | null> {
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, booking_type, service_category, starts_at, ends_at")
+    .select("id, booking_type, service_category, starts_at, ends_at, deposit_paid, deposit_amount")
     .eq("id", bookingId)
     .maybeSingle();
 
   if (error || !data) return null;
   return data as PosBookingPrefill;
+}
+
+export function computeDepositCredit(
+  sessionTotal: number,
+  booking: Pick<PosBookingPrefill, "deposit_paid" | "deposit_amount"> | null,
+  linkedBookingId: string | null,
+): number {
+  if (!linkedBookingId || !booking?.deposit_paid) return 0;
+  const deposit = Number(booking.deposit_amount) || 0;
+  if (deposit <= 0) return 0;
+  return Math.min(Math.round(deposit * 100) / 100, sessionTotal);
+}
+
+export function computeAmountDue(sessionTotal: number, depositCredit: number): number {
+  return Math.max(0, Math.round((sessionTotal - depositCredit) * 100) / 100);
+}
+
+export function splitPosAmount(
+  amount: number,
+  shopPercent: number,
+  _artistPercent: number,
+): { shopAmount: number; artistAmount: number } {
+  const shopAmount = Math.round(amount * (shopPercent / 100) * 100) / 100;
+  const artistAmount = Math.round((amount - shopAmount) * 100) / 100;
+  return { shopAmount, artistAmount };
 }
 
 export function pickServiceForBooking(
@@ -227,6 +254,8 @@ export interface PosSaleRow {
   client_name: string | null;
   booking_id: string | null;
   total: number;
+  session_total: number | null;
+  deposit_credit_amount: number;
   currency: string;
   status: string;
   created_at: string;
@@ -238,7 +267,7 @@ export interface PosSaleRow {
 export async function loadPosSaleForBooking(bookingId: string): Promise<PosSaleRow | null> {
   const { data, error } = await supabase
     .from("pos_sales" as any)
-    .select("id, artist_id, client_name, booking_id, total, currency, status, created_at, shop_amount, artist_amount, items")
+    .select("id, artist_id, client_name, booking_id, total, session_total, deposit_credit_amount, currency, status, created_at, shop_amount, artist_amount, items")
     .eq("booking_id", bookingId)
     .eq("status", "succeeded")
     .order("created_at", { ascending: false })
@@ -252,7 +281,7 @@ export async function loadPosSaleForBooking(bookingId: string): Promise<PosSaleR
 export async function loadRecentPosSales(limit = 12): Promise<PosSaleRow[]> {
   const { data, error } = await supabase
     .from("pos_sales" as any)
-    .select("id, artist_id, client_name, booking_id, total, currency, status, created_at, shop_amount, artist_amount, items")
+    .select("id, artist_id, client_name, booking_id, total, session_total, deposit_credit_amount, currency, status, created_at, shop_amount, artist_amount, items")
     .order("created_at", { ascending: false })
     .limit(limit);
 

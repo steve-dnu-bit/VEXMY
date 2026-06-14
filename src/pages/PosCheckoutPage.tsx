@@ -20,6 +20,8 @@ import { formatShopMoney } from "@/lib/shopCurrency";
 import { loadOrgBillingContext } from "@/lib/orgBilling";
 import { format, parseISO } from "date-fns";
 import {
+  computeAmountDue,
+  computeDepositCredit,
   computePosTotals,
   loadArtistPosSplits,
   loadBookingForPosPrefill,
@@ -27,6 +29,8 @@ import {
   loadShopPosSettings,
   pickServiceForBooking,
   resolveSplitPercents,
+  splitPosAmount,
+  type PosBookingPrefill,
   type PosLineItem,
   type PosSaleRow,
 } from "@/lib/posCheckout";
@@ -88,6 +92,7 @@ const PosCheckoutPage = () => {
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
   const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1" });
+  const [linkedBooking, setLinkedBooking] = useState<PosBookingPrefill | null>(null);
   const bookingPrefillDone = useRef(false);
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
@@ -151,6 +156,13 @@ const PosCheckoutPage = () => {
   }, [user, prefilledArtistId, prefilledClientName]);
 
   useEffect(() => {
+    if (!prefilledBookingId || loading) return;
+    void loadBookingForPosPrefill(prefilledBookingId).then((booking) => {
+      if (booking) setLinkedBooking(booking);
+    });
+  }, [prefilledBookingId, loading]);
+
+  useEffect(() => {
     if (!prefilledBookingId || loading || bookingPrefillDone.current) return;
     bookingPrefillDone.current = true;
     void (async () => {
@@ -202,6 +214,21 @@ const PosCheckoutPage = () => {
         artistPercent: activeSplit.artistPercent,
       }),
     [lineItems, taxRate, pricesIncludeTax, taxExempt, gratuityPercent, gratuityEnabled, activeSplit],
+  );
+
+  const depositCredit = useMemo(
+    () => computeDepositCredit(totals.total, linkedBooking, prefilledBookingId),
+    [totals.total, linkedBooking, prefilledBookingId],
+  );
+
+  const amountDue = useMemo(
+    () => computeAmountDue(totals.total, depositCredit),
+    [totals.total, depositCredit],
+  );
+
+  const dueSplit = useMemo(
+    () => splitPosAmount(amountDue, activeSplit.shopPercent, activeSplit.artistPercent),
+    [amountDue, activeSplit],
   );
 
   const selectedArtist = artists.find((a) => a.user_id === artistId);
@@ -259,11 +286,11 @@ const PosCheckoutPage = () => {
       toast.error(t("pos.addItemsFirst"));
       return;
     }
-    if (!connectReady) {
+    if (!connectReady && amountDue > 0) {
       toast.error(t("pos.connectRequired"));
       return;
     }
-    if (!simulatedReader && !locationId) {
+    if (!simulatedReader && !locationId && amountDue > 0) {
       toast.error(t("pos.locationRequired"));
       return;
     }
@@ -275,6 +302,7 @@ const PosCheckoutPage = () => {
         clientSecret?: string;
         saleId?: string;
         paymentIntentId?: string;
+        zeroBalance?: boolean;
       }>("stripe-terminal-pos", {
         action: "create_payment_intent",
         artistId,
@@ -284,19 +312,36 @@ const PosCheckoutPage = () => {
         subtotal: totals.subtotal,
         taxAmount: totals.taxAmount,
         gratuityAmount: totals.gratuityAmount,
-        total: totals.total,
-        shopAmount: totals.shopAmount,
-        artistAmount: totals.artistAmount,
+        sessionTotal: totals.total,
+        depositCreditAmount: depositCredit,
+        total: amountDue,
+        shopAmount: dueSplit.shopAmount,
+        artistAmount: dueSplit.artistAmount,
         shopSplitPercent: activeSplit.shopPercent,
         artistSplitPercent: activeSplit.artistPercent,
         bookingId: prefilledBookingId || undefined,
       });
 
-      if (piErr || !piData.clientSecret || !piData.saleId) {
+      if (piErr || !piData.saleId) {
         throw new Error(piErr?.message || t("pos.paymentFailed"));
       }
 
       saleId = piData.saleId;
+
+      if (piData.zeroBalance) {
+        setLastSaleId(piData.saleId);
+        toast.success(t("pos.depositCoversBalance"));
+        setCart([]);
+        setClientName("");
+        setLinkedBooking(null);
+        await refreshRecentSales();
+        return;
+      }
+
+      if (!piData.clientSecret) {
+        throw new Error(t("pos.paymentFailed"));
+      }
+
       const result = await terminal.collectAndProcess(piData.clientSecret);
 
       await invokeEdgeFunctionJson("stripe-terminal-pos", {
@@ -311,6 +356,7 @@ const PosCheckoutPage = () => {
       toast.success(t("pos.paymentSuccess"));
       setCart([]);
       setClientName("");
+      setLinkedBooking(null);
       await refreshRecentSales();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
@@ -564,18 +610,33 @@ const PosCheckoutPage = () => {
                       <dt className="font-semibold">{t("pos.total")}</dt>
                       <dd className="font-bold tabular-nums text-lg">{formatShopMoney(totals.total, currency)}</dd>
                     </div>
+                    {depositCredit > 0 ? (
+                      <>
+                        <div className="flex justify-between text-emerald-600">
+                          <dt>{t("pos.depositCredit")}</dt>
+                          <dd className="tabular-nums font-medium">−{formatShopMoney(depositCredit, currency)}</dd>
+                        </div>
+                        <div className="flex justify-between text-base border-t border-border pt-2">
+                          <dt className="font-semibold">{t("pos.amountDue")}</dt>
+                          <dd className="font-bold tabular-nums text-lg">{formatShopMoney(amountDue, currency)}</dd>
+                        </div>
+                      </>
+                    ) : null}
                   </dl>
 
                   <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
                     <p className="font-medium text-sm">{t("pos.paymentSplit")}</p>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t("pos.shopShare", { percent: activeSplit.shopPercent })}</span>
-                      <span className="tabular-nums font-medium">{formatShopMoney(totals.shopAmount, currency)}</span>
+                      <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.shopAmount, currency)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t("pos.artistShare", { percent: activeSplit.artistPercent })}</span>
-                      <span className="tabular-nums font-medium">{formatShopMoney(totals.artistAmount, currency)}</span>
+                      <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.artistAmount, currency)}</span>
                     </div>
+                    {depositCredit > 0 ? (
+                      <p className="text-[11px] text-muted-foreground pt-1">{t("pos.depositSplitHint")}</p>
+                    ) : null}
                   </div>
 
                   <div className="space-y-2 pt-2">
@@ -604,15 +665,17 @@ const PosCheckoutPage = () => {
                       type="button"
                       variant="gold"
                       className="w-full h-12 text-base"
-                      disabled={paying || cart.length === 0 || !artistId || terminal.status === "processing"}
+                      disabled={paying || cart.length === 0 || !artistId || (amountDue > 0 && terminal.status === "processing")}
                       onClick={() => void handlePay()}
                     >
-                      {paying || terminal.status === "processing" ? (
+                      {paying || (amountDue > 0 && terminal.status === "processing") ? (
                         <Loader2 className="h-5 w-5 animate-spin mr-2" />
                       ) : (
                         <CreditCard className="h-5 w-5 mr-2" />
                       )}
-                      {t("pos.chargeCard", { amount: formatShopMoney(totals.total, currency) })}
+                      {amountDue <= 0 && depositCredit > 0
+                        ? t("pos.completeNoCharge")
+                        : t("pos.chargeCard", { amount: formatShopMoney(amountDue, currency) })}
                     </Button>
 
                     {cart.length > 0 && (

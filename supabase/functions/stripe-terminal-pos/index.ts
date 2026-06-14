@@ -160,7 +160,9 @@ serve(async (req) => {
     }
 
     if (action === "create_payment_intent") {
-      const amountMajor = Number(body.total);
+      const sessionTotal = Number(body.sessionTotal ?? body.total);
+      const depositCreditAmount = Math.max(0, Number(body.depositCreditAmount) || 0);
+      const amountMajor = Math.max(0, Number(body.total));
       const currency = typeof body.currency === "string" ? body.currency.toLowerCase() : "gbp";
       const artistId = typeof body.artistId === "string" ? body.artistId : null;
       const items = Array.isArray(body.items) ? (body.items as PosLineItem[]) : [];
@@ -183,17 +185,11 @@ serve(async (req) => {
 
       const paymentSettings = await getShopPaymentSettings(admin, orgId);
       const minCharge = stripeMinimumChargeMajor(currency);
-      if (amountMajor < minCharge) {
-        return new Response(JSON.stringify({ error: `Minimum charge is ${minCharge} ${currency.toUpperCase()}` }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
 
       if (bookingId) {
         const { data: bookingRow } = await admin
           .from("bookings")
-          .select("id, artist_id, organization_id")
+          .select("id, artist_id, organization_id, deposit_paid, deposit_amount")
           .eq("id", bookingId)
           .maybeSingle();
 
@@ -203,6 +199,81 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
+
+        if (depositCreditAmount > 0) {
+          if (!bookingRow.deposit_paid) {
+            return new Response(JSON.stringify({ error: "Deposit has not been paid for this booking" }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          const maxCredit = Math.min(Number(bookingRow.deposit_amount) || 0, sessionTotal);
+          if (depositCreditAmount > maxCredit + 0.01) {
+            return new Response(JSON.stringify({ error: "Deposit credit exceeds paid deposit or session total" }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      } else if (depositCreditAmount > 0) {
+        return new Response(JSON.stringify({ error: "Deposit credit requires a linked booking" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const expectedDue = Math.max(0, Math.round((sessionTotal - depositCreditAmount) * 100) / 100);
+      if (Math.abs(amountMajor - expectedDue) > 0.02) {
+        return new Response(JSON.stringify({ error: "Charge amount does not match session total minus deposit" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (amountMajor > 0 && amountMajor < minCharge) {
+        return new Response(JSON.stringify({ error: `Minimum charge is ${minCharge} ${currency.toUpperCase()}` }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (amountMajor === 0) {
+        const { data: saleRow, error: saleErr } = await admin
+          .from("pos_sales")
+          .insert({
+            organization_id: orgId,
+            artist_id: artistId,
+            created_by: user.id,
+            client_name: clientName || null,
+            booking_id: bookingId || null,
+            items,
+            currency,
+            subtotal,
+            tax_amount: taxAmount,
+            gratuity_amount: gratuityAmount,
+            session_total: sessionTotal,
+            deposit_credit_amount: depositCreditAmount,
+            total: 0,
+            shop_amount: shopAmount,
+            artist_amount: artistAmount,
+            shop_split_percent: shopSplitPercent,
+            artist_split_percent: artistSplitPercent,
+            status: "succeeded",
+          })
+          .select("id")
+          .single();
+
+        if (saleErr || !saleRow) {
+          return new Response(JSON.stringify({ error: saleErr?.message || "Could not create sale record" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(
+          JSON.stringify({ saleId: saleRow.id, zeroBalance: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
 
       const zeroDecimal = ZERO_DECIMAL_CURRENCIES;
@@ -221,6 +292,8 @@ serve(async (req) => {
           subtotal,
           tax_amount: taxAmount,
           gratuity_amount: gratuityAmount,
+          session_total: sessionTotal,
+          deposit_credit_amount: depositCreditAmount,
           total: amountMajor,
           shop_amount: shopAmount,
           artist_amount: artistAmount,
@@ -249,6 +322,8 @@ serve(async (req) => {
           artist_id: artistId,
           pos_sale_id: saleRow.id,
           booking_id: bookingId || "",
+          deposit_credit: String(depositCreditAmount),
+          session_total: String(sessionTotal),
           shop_amount: String(shopAmount),
           artist_amount: String(artistAmount),
         },
