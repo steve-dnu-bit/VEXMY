@@ -25,6 +25,32 @@ export const PLAN_ARTIST_SEATS = {
   enterprise: 10,
 } as const;
 
+/** Max inbox/ticket image uploads per person per conversation, by plan. */
+export const PLAN_TICKET_MEDIA_MAX = {
+  starter: 2,
+  studio: 6,
+  enterprise: 10,
+} as const;
+
+export function getTicketMediaMaxForPlan(planId: string | null | undefined): number {
+  if (!planId) return PLAN_TICKET_MEDIA_MAX.starter;
+  const key = planId.toLowerCase() as keyof typeof PLAN_TICKET_MEDIA_MAX;
+  return PLAN_TICKET_MEDIA_MAX[key] ?? PLAN_TICKET_MEDIA_MAX.starter;
+}
+
+/** Max AI stencil generations per user per rolling 24h window, by plan. */
+export const PLAN_STENCIL_MAX_PER_24H = {
+  starter: 3,
+  studio: 6,
+  enterprise: 10,
+} as const;
+
+export function getStencilMaxForPlan(planId: string | null | undefined): number {
+  if (!planId) return PLAN_STENCIL_MAX_PER_24H.starter;
+  const key = planId.toLowerCase() as keyof typeof PLAN_STENCIL_MAX_PER_24H;
+  return PLAN_STENCIL_MAX_PER_24H[key] ?? PLAN_STENCIL_MAX_PER_24H.starter;
+}
+
 export const PLAN_ORDER = ["starter", "studio", "enterprise"] as const;
 
 export function formatPlanPriceGbp(amount: number): string {

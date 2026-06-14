@@ -8,10 +8,8 @@
 //
 // Two protections sit in front of the credit-spending call:
 //   1. The caller must be a signed-in studio user (Supabase session check).
-//   2. A per-account daily quota — up to 10 generations per account over a
-//      rolling 24-hour window — is claimed atomically before generation and
-//      refunded if the render fails. This caps how many credits an account can
-//      spend each day.
+//   2. A per-account rolling 24-hour quota (Starter 3, Studio 6, Enterprise 10)
+//      is claimed atomically before generation and refunded if the render fails.
 
 // Image model used for generation. Any Gemini image model supported by AI
 // Gateway can be swapped in here. "gemini-2.5-flash-image" is a cheaper, faster
@@ -231,7 +229,7 @@ export default async (req: Request): Promise<Response> => {
   if (claim && claim.allowed === false) {
     return json(
       {
-        error: `Daily stencil limit reached (${claim.limit ?? 10} per 24 hours for your account). Please try again later.`,
+        error: `Daily stencil limit reached (${claim.limit ?? 3} per 24 hours for your account). Please try again later.`,
         quota: claim,
       },
       429,

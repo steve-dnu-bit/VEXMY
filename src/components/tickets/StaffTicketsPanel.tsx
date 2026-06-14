@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getTicketMediaMaxForPlan } from "@/lib/pricingPlans";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,6 +44,14 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
   const { t } = useTranslation();
   const { user } = useAuth();
   const { roles } = useUserRoles();
+  const { featureNumber, data: subscriptionData } = useSubscription();
+  const imageMax = useMemo(() => {
+    const fromFeatures = featureNumber("ticket_media_max_per_user");
+    if (fromFeatures > 0) return fromFeatures;
+    return getTicketMediaMaxForPlan(
+      subscriptionData?.subscription?.planId ?? subscriptionData?.plan?.id ?? null,
+    );
+  }, [featureNumber, subscriptionData?.subscription?.planId, subscriptionData?.plan?.id]);
   const isAdmin = roles.includes("admin");
   const [tickets, setTickets] = useState<TicketWithCustomer[]>([]);
   const [customers, setCustomers] = useState<MessageableCustomerOption[]>([]);
@@ -232,12 +242,12 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
     if (!selectedId || !user) return;
     setUploading(true);
     try {
-      await uploadTicketImage(selectedId, user.id, file);
+      await uploadTicketImage(selectedId, user.id, file, imageMax);
       await loadMessages(selectedId);
       await loadTickets();
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
-      if (code === "limit") toast.error(t("tickets.imageLimitReached"));
+      if (code === "limit") toast.error(t("tickets.imageLimitReached", { max: imageMax }));
       else if (code === "type") toast.error(t("tickets.invalidImageType"));
       else toast.error(t("tickets.uploadFailed"));
     } finally {
@@ -474,6 +484,7 @@ export default function StaffTicketsPanel({ highlightCustomerId, highlightTicket
               uploading={uploading}
               isOpen={activeTicket.status === "open"}
               imagesUsed={imagesUsed}
+              imageMax={imageMax}
               messagesEndRef={messagesEndRef}
             />
           </>

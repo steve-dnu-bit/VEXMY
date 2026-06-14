@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Upload, Loader2, Download, ChevronDown, Maximize2, FolderClock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getStencilMaxForPlan } from "@/lib/pricingPlans";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
@@ -27,6 +29,12 @@ import { useTranslation } from "react-i18next";
 
 const StencilPage = () => {
   const { user } = useAuth();
+  const { featureNumber, data: subscriptionData } = useSubscription();
+  const planStencilLimit = useMemo(() => {
+    const fromFeatures = featureNumber("stencil_max_per_24h");
+    if (fromFeatures > 0) return fromFeatures;
+    return getStencilMaxForPlan(subscriptionData?.subscription?.planId ?? subscriptionData?.plan?.id ?? null);
+  }, [featureNumber, subscriptionData?.subscription?.planId, subscriptionData?.plan?.id]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
@@ -275,7 +283,9 @@ const StencilPage = () => {
                     </Button>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    {mode === "ai" ? t("stencil.engineAiHint") : t("stencil.engineLocalHint")}
+                    {mode === "ai"
+                      ? t("stencil.engineAiHint", { limit: quota?.limit && quota.limit > 0 ? quota.limit : planStencilLimit })
+                      : t("stencil.engineLocalHint")}
                   </p>
                 </div>
 

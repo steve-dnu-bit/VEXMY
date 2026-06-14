@@ -30,8 +30,10 @@ import { loadStudioArtists, type StudioArtistOption } from "@/lib/ticketArtists"
 import TicketMessageList from "@/components/tickets/TicketMessageList";
 import {
   countTicketMediaForUser,
+  fetchOrgTicketMediaMax,
   loadTicketMediaByMessageIds,
   signTicketMediaUrls,
+  TICKET_MEDIA_MAX_PER_USER,
   uploadTicketImage,
 } from "@/lib/ticketMedia";
 
@@ -65,21 +67,30 @@ const CustomerTicketsPage = () => {
   const [replyText, setReplyText] = useState("");
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [imagesUsed, setImagesUsed] = useState(0);
+  const [imageMax, setImageMax] = useState(TICKET_MEDIA_MAX_PER_USER);
   const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     void (async () => {
-      if (!selectedOrgId) return;
-      const { data: shop } = await supabase
-        .from("shop_settings" as any)
-        .select("support_email, phone")
-        .eq("organization_id", selectedOrgId)
-        .maybeSingle();
+      if (!selectedOrgId) {
+        setImageMax(TICKET_MEDIA_MAX_PER_USER);
+        return;
+      }
+      const [shopResult, max] = await Promise.all([
+        supabase
+          .from("shop_settings" as any)
+          .select("support_email, phone")
+          .eq("organization_id", selectedOrgId)
+          .maybeSingle(),
+        fetchOrgTicketMediaMax(selectedOrgId),
+      ]);
+      const shop = shopResult.data;
       setContact({
         phone: (shop as any)?.phone ?? selectedShop?.phone ?? null,
         email: (shop as any)?.support_email ?? null,
       });
+      setImageMax(max);
     })();
   }, [selectedOrgId, selectedShop?.phone]);
 
@@ -249,12 +260,12 @@ const CustomerTicketsPage = () => {
     if (!selectedId || !user) return;
     setUploading(true);
     try {
-      await uploadTicketImage(selectedId, user.id, file);
+      await uploadTicketImage(selectedId, user.id, file, imageMax);
       await loadMessages(selectedId);
       await loadTickets();
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
-      if (code === "limit") toast.error(t("tickets.imageLimitReached"));
+      if (code === "limit") toast.error(t("tickets.imageLimitReached", { max: imageMax }));
       else if (code === "type") toast.error(t("tickets.invalidImageType"));
       else toast.error(t("tickets.uploadFailed"));
     } finally {
@@ -438,6 +449,7 @@ const CustomerTicketsPage = () => {
                       uploading={uploading}
                       isOpen={activeTicket.status === "open"}
                       imagesUsed={imagesUsed}
+                      imageMax={imageMax}
                       compact
                       messagesEndRef={messagesEndRef}
                     />

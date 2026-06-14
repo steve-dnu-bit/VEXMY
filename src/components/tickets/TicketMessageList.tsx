@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { SupportTicketMessageRow } from "@/lib/supportTickets";
-import { TICKET_MEDIA_MAX_PER_USER } from "@/lib/ticketMedia";
 
 type Props = {
   messages: SupportTicketMessageRow[];
@@ -23,6 +22,7 @@ type Props = {
   closing?: boolean;
   isOpen: boolean;
   imagesUsed: number;
+  imageMax: number;
   showClose?: boolean;
   compact?: boolean;
   messagesEndRef?: RefObject<HTMLDivElement | null>;
@@ -44,12 +44,13 @@ export default function TicketMessageList({
   closing,
   isOpen,
   imagesUsed,
+  imageMax,
   showClose,
   compact,
   messagesEndRef,
 }: Props) {
   const { t } = useTranslation();
-  const imagesRemaining = Math.max(0, TICKET_MEDIA_MAX_PER_USER - imagesUsed);
+  const imagesRemaining = Math.max(0, imageMax - imagesUsed);
   const canUpload = isOpen && imagesRemaining > 0 && !uploading;
 
   return (
@@ -92,7 +93,7 @@ export default function TicketMessageList({
       {isOpen ? (
         <div className="border-t border-border/60 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-            <span>{t("tickets.imagesRemaining", { count: imagesRemaining, max: TICKET_MEDIA_MAX_PER_USER })}</span>
+            <span>{t("tickets.imagesRemaining", { count: imagesRemaining, max: imageMax })}</span>
             {showClose && onClose ? (
               <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" disabled={closing} onClick={onClose}>
                 {closing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}

@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getTicketMediaMaxForPlan, PLAN_TICKET_MEDIA_MAX } from "@/lib/pricingPlans";
 
-export const TICKET_MEDIA_MAX_PER_USER = 2;
+/** Default when plan is unknown (Starter). */
+export const TICKET_MEDIA_MAX_PER_USER = PLAN_TICKET_MEDIA_MAX.starter;
 export const TICKET_MEDIA_BUCKET = "ticket-media";
 
 export type SupportTicketMediaRow = {
@@ -14,6 +16,16 @@ export type SupportTicketMediaRow = {
   size_bytes: number | null;
   created_at: string;
 };
+
+export async function fetchOrgTicketMediaMax(orgId: string): Promise<number> {
+  const { data, error } = await supabase.rpc("org_plan_feature_number", {
+    _org_id: orgId,
+    _feature: "ticket_media_max_per_user",
+  });
+  if (error) return TICKET_MEDIA_MAX_PER_USER;
+  const max = typeof data === "number" ? data : Number(data);
+  return Number.isFinite(max) && max > 0 ? max : TICKET_MEDIA_MAX_PER_USER;
+}
 
 export async function countTicketMediaForUser(ticketId: string, userId: string): Promise<number> {
   const { count, error } = await supabase
@@ -60,9 +72,11 @@ export async function uploadTicketImage(
   ticketId: string,
   userId: string,
   file: File,
+  maxPerUser: number = TICKET_MEDIA_MAX_PER_USER,
 ): Promise<{ messageId: string }> {
+  const limit = maxPerUser > 0 ? maxPerUser : TICKET_MEDIA_MAX_PER_USER;
   const used = await countTicketMediaForUser(ticketId, userId);
-  if (used >= TICKET_MEDIA_MAX_PER_USER) {
+  if (used >= limit) {
     throw new Error("limit");
   }
 
@@ -110,3 +124,5 @@ export async function uploadTicketImage(
 
   return { messageId: message.id as string };
 }
+
+export { getTicketMediaMaxForPlan };

@@ -8,8 +8,8 @@ export type StencilQuota = {
 };
 
 /**
- * Read the account's AI-stencil allowance (up to 10 generations per account over
- * a rolling 24-hour window). Returns null if the quota can't be determined.
+ * Read the signed-in user's AI stencil allowance for a rolling 24-hour window.
+ * Limit depends on the studio plan (Starter 3, Studio 6, Enterprise 10).
  */
 export async function fetchStencilQuota(): Promise<StencilQuota | null> {
   const { data, error } = await supabase.rpc("stencil_quota_status");

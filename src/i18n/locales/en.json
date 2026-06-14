@@ -1207,7 +1207,7 @@
     "imageAlt": "Attached photo",
     "imageUnavailable": "Photo unavailable",
     "uploadFailed": "Could not upload photo",
-    "imageLimitReached": "You can attach up to 2 photos per conversation",
+    "imageLimitReached": "You can attach up to {{max}} photos per conversation",
     "invalidImageType": "Please choose an image file",
     "category": {
       "general": "General",
@@ -1445,7 +1445,7 @@
     "engine": "Engine",
     "engineAi": "AI stencil",
     "engineLocal": "Basic stencil",
-    "engineAiHint": "Renders a professional, transfer-ready stencil with AI. Up to 10 per account every 24 hours.",
+    "engineAiHint": "Renders a professional, transfer-ready stencil with AI. Up to {{limit}} per account every 24 hours on your plan.",
     "engineLocalHint": "Free, instant edge-detection stencil processed entirely in your browser — no AI credits used.",
     "styleLabel": "Stencil style",
     "stylePreviewHint": "Tap an example to see it larger before you generate.",

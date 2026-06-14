@@ -29,6 +29,8 @@ export type PlanFeatures = {
   inbox_max_channels?: number;
   inbox_monthly_message_cap?: number;
   inbox_overage_rate_gbp?: number;
+  ticket_media_max_per_user?: number;
+  stencil_max_per_24h?: number;
   stock?: boolean;
   billing?: boolean;
   stencil?: boolean;
@@ -182,12 +184,15 @@ export function useSubscription() {
     isSubscriptionActive(query.data?.subscription?.status) || !!seatQuery.data?.planId;
   const hasFeature = (feature: keyof PlanFeatures) =>
     planHasFeature(query.data?.plan ?? null, feature, isActive);
+  const featureNumber = (feature: keyof PlanFeatures) =>
+    planFeatureNumber(query.data?.plan ?? null, feature, isActive);
   const canManageBilling = query.data?.memberRole === "owner" || query.data?.memberRole === "admin";
 
   return {
     ...query,
     isActive,
     hasFeature,
+    featureNumber,
     canManageBilling,
   };
 }
