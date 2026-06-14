@@ -932,7 +932,7 @@
   },
   "clients": {
     "title": "Clients",
-    "subtitle": "From bookings + signed-up customers - import/export for backups or mail merge",
+    "subtitle": "From bookings + signed-up customers — import/export for backups or mail merge (up to 5,000 clients per CSV/JSON file)",
     "searchPlaceholder": "Search clients...",
     "import": "Import",
     "export": "Export",
@@ -978,6 +978,7 @@
     "csvMissingName": "CSV is missing a Name column",
     "mustBeLoggedInImport": "You must be logged in to import",
     "noValidRows": "No valid client rows found in CSV",
+    "importLimitExceeded": "Too many clients — maximum {{max}} per import (your file has {{count}} valid rows). Split into smaller files.",
     "importedPartial": "Imported {{imported}} of {{total}} rows",
     "importedFromCsv": "Imported {{count}} clients from CSV",
     "noClientsArray": "No clients array in JSON",

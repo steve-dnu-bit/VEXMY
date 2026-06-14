@@ -60,6 +60,24 @@ type BookingNotificationResult = {
   failed?: Array<{ email?: string; message?: string }>;
 };
 
+/** Maximum client rows per CSV/JSON import. */
+const MAX_CLIENT_IMPORT_ROWS = 5000;
+const CLIENT_IMPORT_CHUNK_SIZE = 150;
+
+type ClientImportInsert = {
+  client_name: string;
+  client_email: string | null;
+  client_phone: string | null;
+  tattoo_style: string | null;
+  notes: string | null;
+  artist_id: string;
+  starts_at: string;
+  ends_at: string;
+  booking_type: string;
+  status: string;
+  deposit_paid: boolean;
+};
+
 /** Parse CSV including quoted commas and newlines; strips UTF-8 BOM. */
 function parseCsvRecords(raw: string): string[][] {
   const text = raw.replace(/^\uFEFF/, "");
@@ -414,6 +432,47 @@ const ClientsPage = () => {
     toast({ title: t("clients.exportedJson", { count: clients.length }) });
   };
 
+  const insertImportedClients = async (toInsert: ClientImportInsert[], source: "csv" | "json") => {
+    if (toInsert.length > MAX_CLIENT_IMPORT_ROWS) {
+      toast({
+        title: t("clients.importLimitExceeded", { max: MAX_CLIENT_IMPORT_ROWS, count: toInsert.length }),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let imported = 0;
+    const errors: string[] = [];
+    for (let i = 0; i < toInsert.length; i += CLIENT_IMPORT_CHUNK_SIZE) {
+      const chunk = toInsert.slice(i, i + CLIENT_IMPORT_CHUNK_SIZE);
+      const { data: inserted, error } = await supabase
+        .from("bookings")
+        .insert(chunk)
+        .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes");
+      if (error) {
+        errors.push(`rows ${i + 1}-${i + chunk.length}: ${error.message}`);
+      } else {
+        imported += chunk.length;
+        if (inserted?.length) {
+          await Promise.allSettled(inserted.map((b) => sendBookingNotification("created", b as BookingNotificationPayload)));
+        }
+      }
+    }
+
+    if (errors.length) {
+      toast({
+        title: t("clients.importedPartial", { imported, total: toInsert.length }),
+        description: errors.slice(0, 2).join(" · "),
+        variant: imported ? "default" : "destructive",
+      });
+    } else {
+      toast({
+        title: source === "csv" ? t("clients.importedFromCsv", { count: imported }) : t("clients.importedFromJson", { count: imported }),
+      });
+    }
+    fetchClients();
+  };
+
   const importCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -449,19 +508,7 @@ const ClientsPage = () => {
       }
 
       const baseMs = Date.now();
-      const toInsert: Array<{
-        client_name: string;
-        client_email: string | null;
-        client_phone: string | null;
-        tattoo_style: string | null;
-        notes: string | null;
-        artist_id: string;
-        starts_at: string;
-        ends_at: string;
-        booking_type: string;
-        status: string;
-        deposit_paid: boolean;
-      }> = [];
+      const toInsert: ClientImportInsert[] = [];
 
       for (let r = 0; r < dataRows.length; r++) {
         const cols = dataRows[r];
@@ -494,35 +541,7 @@ const ClientsPage = () => {
         return;
       }
 
-      let imported = 0;
-      const errors: string[] = [];
-      const chunkSize = 150;
-      for (let i = 0; i < toInsert.length; i += chunkSize) {
-        const chunk = toInsert.slice(i, i + chunkSize);
-        const { data: inserted, error } = await supabase
-          .from("bookings")
-          .insert(chunk)
-          .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes");
-        if (error) {
-          errors.push(`rows ${i + 1}-${i + chunk.length}: ${error.message}`);
-        } else {
-          imported += chunk.length;
-          if (inserted?.length) {
-            await Promise.allSettled(inserted.map((b) => sendBookingNotification("created", b as BookingNotificationPayload)));
-          }
-        }
-      }
-
-      if (errors.length) {
-        toast({
-          title: t("clients.importedPartial", { imported, total: toInsert.length }),
-          description: errors.slice(0, 2).join(" · "),
-          variant: imported ? "default" : "destructive",
-        });
-      } else {
-        toast({ title: t("clients.importedFromCsv", { count: imported }) });
-      }
-      fetchClients();
+      await insertImportedClients(toInsert, "csv");
     };
     reader.readAsText(file);
     if (csvInputRef.current) csvInputRef.current.value = "";
@@ -547,35 +566,36 @@ const ClientsPage = () => {
           toast({ title: t("clients.mustBeLoggedInImport"), variant: "destructive" });
           return;
         }
-        let imported = 0;
-        const now = new Date().toISOString();
-        for (const row of list) {
-          const r = row as Record<string, unknown>;
-          const name = String(r.name || r.client_name || "").trim();
+
+        const baseMs = Date.now();
+        const toInsert: ClientImportInsert[] = [];
+        for (let r = 0; r < list.length; r++) {
+          const row = list[r] as Record<string, unknown>;
+          const name = String(row.name || row.client_name || "").trim();
           if (!name) continue;
-          const { data: inserted, error } = await supabase
-            .from("bookings")
-            .insert({
+          const start = new Date(baseMs + r * 1000).toISOString();
+          const end = new Date(baseMs + r * 1000 + 3600000).toISOString();
+          toInsert.push({
             client_name: name,
-            client_email: (r.email as string) || (r.client_email as string) || null,
-            client_phone: (r.phone as string) || (r.client_phone as string) || null,
-            tattoo_style: (r.last_style as string) || (r.tattoo_style as string) || null,
+            client_email: (row.email as string) || (row.client_email as string) || null,
+            client_phone: (row.phone as string) || (row.client_phone as string) || null,
+            tattoo_style: (row.last_style as string) || (row.tattoo_style as string) || null,
+            notes: "Imported from JSON (contacts export)",
             artist_id: user.id,
-            starts_at: now,
-            ends_at: new Date(Date.now() + 3600000).toISOString(),
+            starts_at: start,
+            ends_at: end,
             booking_type: "consultation",
             status: "confirmed",
             deposit_paid: true,
-            })
-            .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes")
-            .single();
-          if (!error && inserted) {
-            imported++;
-            await sendBookingNotification("created", inserted as BookingNotificationPayload);
-          }
+          });
         }
-        toast({ title: t("clients.importedFromJson", { count: imported }) });
-        fetchClients();
+
+        if (toInsert.length === 0) {
+          toast({ title: t("clients.noValidRows"), variant: "destructive" });
+          return;
+        }
+
+        await insertImportedClients(toInsert, "json");
       } catch {
         toast({ title: t("clients.invalidJsonFile"), variant: "destructive" });
       }
