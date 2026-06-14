@@ -1,14 +1,17 @@
 import { Search, CalendarDays } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { type Service, getServiceDotClass } from "./ServicePresets";
+import { type Service } from "./ServicePresets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
+import { type ArtistColorMap, resolveScheduleArtistColor } from "@/lib/artistThemeCache";
+import { getThemePresetByBgColor } from "@/lib/themePresets";
 
 interface Profile {
   user_id: string;
   display_name: string;
   avatar_url?: string | null;
+  portal_bg_color?: string | null;
 }
 
 interface ScheduleSidebarProps {
@@ -18,8 +21,16 @@ interface ScheduleSidebarProps {
   teamSearch: string;
   setTeamSearch: (s: string) => void;
   services: Service[];
+  artistColorCache: ArtistColorMap;
   currentDate: Date;
   setCurrentDate: (d: Date) => void;
+}
+
+function ArtistColorDot({ color }: { color: string | null }) {
+  if (!color) return <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-muted" />;
+  const preset = getThemePresetByBgColor(color);
+  const dotColor = preset?.accentColor ?? color;
+  return <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-border/40" style={{ backgroundColor: dotColor }} />;
 }
 
 const ScheduleSidebar = ({
@@ -29,6 +40,7 @@ const ScheduleSidebar = ({
   teamSearch,
   setTeamSearch,
   services,
+  artistColorCache,
   currentDate,
   setCurrentDate,
 }: ScheduleSidebarProps) => {
@@ -81,7 +93,6 @@ const ScheduleSidebar = ({
               key={s.id}
               className="flex min-w-0 items-center gap-2 py-1.5 px-2 rounded-lg text-xs bg-secondary/40 border border-border/60 hover:bg-secondary/60 transition-colors"
             >
-              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${getServiceDotClass(s.color)}`} />
               <span className="min-w-0 truncate text-foreground font-medium">{s.name}</span>
               <span className="ml-auto text-muted-foreground text-[10px] tabular-nums">{s.duration} min</span>
             </div>
@@ -92,6 +103,23 @@ const ScheduleSidebar = ({
 
       <div className="min-w-0 p-3 flex-1 pb-6 md:pb-3">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t("schedule.team")}</p>
+        <div className="space-y-1 min-w-0 mb-3">
+          {profiles
+            .slice()
+            .sort((a, b) => a.display_name.localeCompare(b.display_name))
+            .map((p) => {
+              const color = resolveScheduleArtistColor(p.user_id, p.portal_bg_color, artistColorCache);
+              return (
+                <div
+                  key={p.user_id}
+                  className="flex min-w-0 items-center gap-2 py-1.5 px-2 rounded-lg text-xs bg-secondary/40 border border-border/60"
+                >
+                  <ArtistColorDot color={color} />
+                  <span className="min-w-0 truncate text-foreground font-medium">{p.display_name}</span>
+                </div>
+              );
+            })}
+        </div>
         <div className="relative mb-2">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input

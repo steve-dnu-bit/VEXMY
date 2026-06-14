@@ -5,6 +5,11 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 # Allow studios to embed customer login on their own websites
 [[headers]]
   for = "/embed/*"

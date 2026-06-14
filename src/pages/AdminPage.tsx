@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { STAFF_FEATURES, CUSTOMER_FEATURES } from "@/hooks/usePermissions";
@@ -16,33 +16,26 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { Link, useSearchParams } from "react-router-dom";
 import { useArtistSeats } from "@/hooks/useSubscription";
 import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
-import SubscriptionSettingsCard from "@/components/subscription/SubscriptionSettingsCard";
-import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
-import AdminConsentsPanel from "@/components/admin/AdminConsentsPanel";
-import AdminEmailSettingsPanel from "@/components/admin/AdminEmailSettingsPanel";
-import AdminAftercareSettingsPanel from "@/components/admin/AdminAftercareSettingsPanel";
-import AdminConsentFormsPanel from "@/components/admin/AdminConsentFormsPanel";
-import AdminScheduleHoursPanel from "@/components/admin/AdminScheduleHoursPanel";
-import AdminDashboardThemePanel from "@/components/admin/AdminDashboardThemePanel";
-import AdminPosCheckoutPanel from "@/components/admin/AdminPosCheckoutPanel";
+import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
+import {
+  loadAdminTeamData,
+  type AdminDefaultRow,
+  type AdminPermission,
+  type AdminProfile,
+} from "@/lib/adminTeamData";
 
-interface Profile {
-  user_id: string;
-  display_name: string;
-}
-
-interface Permission {
-  user_id: string;
-  feature: string;
-  granted: boolean;
-}
-
-interface RoleRow {
-  user_id: string;
-  role: string;
-}
+const SubscriptionSettingsCard = lazy(() => import("@/components/subscription/SubscriptionSettingsCard"));
+const StripeConnectCard = lazy(() => import("@/components/subscription/StripeConnectCard"));
+const AdminConsentsPanel = lazy(() => import("@/components/admin/AdminConsentsPanel"));
+const AdminEmailSettingsPanel = lazy(() => import("@/components/admin/AdminEmailSettingsPanel"));
+const AdminAftercareSettingsPanel = lazy(() => import("@/components/admin/AdminAftercareSettingsPanel"));
+const AdminConsentFormsPanel = lazy(() => import("@/components/admin/AdminConsentFormsPanel"));
+const AdminScheduleHoursPanel = lazy(() => import("@/components/admin/AdminScheduleHoursPanel"));
+const AdminDashboardThemePanel = lazy(() => import("@/components/admin/AdminDashboardThemePanel"));
+const AdminWebsiteEmbedPanel = lazy(() => import("@/components/admin/AdminWebsiteEmbedPanel"));
+const AdminPosCheckoutPanel = lazy(() => import("@/components/admin/AdminPosCheckoutPanel"));
 
 type BookingNotificationPayload = {
   id: string;
@@ -99,6 +92,92 @@ const ADMIN_TABS = [
 
 type AdminTab = (typeof ADMIN_TABS)[number];
 
+const TabPanelFallback = () => {
+  const { t } = useTranslation();
+  return <p className="text-sm text-muted-foreground py-8 text-center">{t("common.loading")}</p>;
+};
+
+function LazyAdminTab({
+  tab,
+  activeTab,
+  title,
+  children,
+}: {
+  tab: AdminTab;
+  activeTab: AdminTab;
+  title: string;
+  children: React.ReactNode;
+}) {
+  if (activeTab !== tab) return null;
+  return (
+    <TabsContent value={tab} className="mt-4">
+      <AdminSectionErrorBoundary title={title}>
+        <Suspense fallback={<TabPanelFallback />}>{children}</Suspense>
+      </AdminSectionErrorBoundary>
+    </TabsContent>
+  );
+}
+
+class AdminSectionErrorBoundary extends React.Component<
+  { title: string; children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { title: string; children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{this.props.title}</CardTitle>
+            <CardDescription>This section could not load. Try refreshing the page.</CardDescription>
+          </CardHeader>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+class AdminPageErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; message: string }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, message: error.message || "Unknown error" };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <AppLayout>
+          <div className="flex flex-col items-center justify-center h-[60vh] gap-3 p-6 text-center">
+            <AlertCircle className="h-10 w-10 text-destructive" />
+            <p className="font-medium">Admin page failed to load</p>
+            <p className="text-sm text-muted-foreground max-w-md">{this.state.message}</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Refresh page
+            </Button>
+          </div>
+        </AppLayout>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const AdminPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -108,11 +187,14 @@ const AdminPage = () => {
   const { data: seatUsage, refetch: refetchSeats } = useArtistSeats();
   const { data: isPlatformAdmin } = usePlatformAdminAccess();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [profiles, setProfiles] = useState<AdminProfile[]>([]);
+  const [permissions, setPermissions] = useState<AdminPermission[]>([]);
   const [rolesByUser, setRolesByUser] = useState<Record<string, string[]>>({});
-  const [defaults, setDefaults] = useState<{ role_template: string; feature: string; granted: boolean }[]>([]);
+  const [defaults, setDefaults] = useState<AdminDefaultRow[]>([]);
+  const [hasOrganization, setHasOrganization] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [teamLoading, setTeamLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
@@ -150,59 +232,73 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    if (!user) return;
+    const userId = user?.id;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
+
+    const loadTeam = async () => {
+      setTeamLoading(true);
+      try {
+        const teamData = await loadAdminTeamData();
+        if (cancelled) return;
+        setProfiles(teamData.profiles);
+        setPermissions(teamData.permissions);
+        setRolesByUser(teamData.rolesByUser);
+        setDefaults(teamData.defaults);
+        setHasOrganization(teamData.hasOrganization);
+      } catch (e) {
+        if (!cancelled) {
+          console.warn("Admin team load failed:", e);
+        }
+      } finally {
+        if (!cancelled) setTeamLoading(false);
+      }
+    };
 
     const load = async () => {
       setLoading(true);
-      const [adminRes, profilesRes, permsRes, rolesRes, defRes] = await Promise.all([
-        supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
-        supabase.from("profiles").select("user_id, display_name"),
-        supabase.from("user_permissions").select("user_id, feature, granted"),
-        supabase.from("user_roles").select("user_id, role"),
-        supabase.from("permission_role_defaults").select("role_template, feature, granted"),
-      ]);
-      if (cancelled) return;
+      setLoadError(null);
+      try {
+        const [adminRes, adminPermRes, platformAdminFlag] = await Promise.all([
+          supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+          supabase.rpc("has_permission", { _user_id: userId, _feature: "admin" }),
+          fetchIsPlatformAdmin(userId),
+        ]);
+        if (cancelled) return;
 
-      setIsAdmin(!!adminRes.data);
-      if (profilesRes.data) setProfiles(profilesRes.data);
-      if (permsRes.data) setPermissions(permsRes.data);
-      if (rolesRes.data) {
-        const map: Record<string, string[]> = {};
-        (rolesRes.data as RoleRow[]).forEach((r) => {
-          if (!map[r.user_id]) map[r.user_id] = [];
-          map[r.user_id].push(r.role);
-        });
-        setRolesByUser(map);
+        setIsAdmin(!!adminRes.data || !!adminPermRes.data || platformAdminFlag);
+      } catch (e) {
+        if (!cancelled) {
+          setLoadError(e instanceof Error ? e.message : "Failed to load admin data");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      if (defRes.data) setDefaults(defRes.data);
-      setLoading(false);
+
+      void loadTeam();
     };
 
     void load();
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
 
   const fetchData = async () => {
-    const [profilesRes, permsRes, rolesRes, defRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, display_name"),
-      supabase.from("user_permissions").select("user_id, feature, granted"),
-      supabase.from("user_roles").select("user_id, role"),
-      supabase.from("permission_role_defaults").select("role_template, feature, granted"),
-    ]);
-    if (profilesRes.data) setProfiles(profilesRes.data);
-    if (permsRes.data) setPermissions(permsRes.data);
-    if (rolesRes.data) {
-      const map: Record<string, string[]> = {};
-      (rolesRes.data as RoleRow[]).forEach((r) => {
-        if (!map[r.user_id]) map[r.user_id] = [];
-        map[r.user_id].push(r.role);
-      });
-      setRolesByUser(map);
+    setTeamLoading(true);
+    try {
+      const teamData = await loadAdminTeamData();
+      setProfiles(teamData.profiles);
+      setPermissions(teamData.permissions);
+      setRolesByUser(teamData.rolesByUser);
+      setDefaults(teamData.defaults);
+      setHasOrganization(teamData.hasOrganization);
+    } finally {
+      setTeamLoading(false);
     }
-    if (defRes.data) setDefaults(defRes.data);
   };
 
   const isPureCustomer = (userId: string) => {
@@ -266,7 +362,7 @@ const AdminPage = () => {
   const defaultGranted = (roleTemplate: string, feature: string) =>
     defaults.some((d) => d.role_template === roleTemplate && d.feature === feature && d.granted);
 
-  const removeArtistFromShop = async (profile: Profile) => {
+  const removeArtistFromShop = async (profile: AdminProfile) => {
     const name = profile.display_name || t("admin.user");
     const adminNote = hasAdminRole(profile.user_id)
       ? ` ${t("admin.removeArtistKeepsAdminNote")}`
@@ -413,6 +509,21 @@ const AdminPage = () => {
     );
   }
 
+  if (loadError) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-3 p-6 text-center">
+          <AlertCircle className="h-10 w-10 text-destructive" />
+          <p className="font-medium">Could not load admin data</p>
+          <p className="text-sm text-muted-foreground max-w-md">{loadError}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Refresh page
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <AppLayout>
@@ -433,6 +544,18 @@ const AdminPage = () => {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("admin.subtitle")}</p>
         </div>
+
+        {!hasOrganization ? (
+          <Card className="border-amber-500/40 bg-amber-500/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">No studio linked to this account</CardTitle>
+              <CardDescription>
+                Team and permission lists are scoped to your studio. Finish shop setup in Settings, or run the
+                platform admin grant script in Supabase if this is the Velbok operator account.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
 
         {isPlatformAdmin ? (
           <Card className="border-gold/40 bg-gold/5">
@@ -612,6 +735,9 @@ const AdminPage = () => {
                 <CardDescription>{t("admin.staffFeatureAccessDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
+                {teamLoading ? (
+                  <p className="p-6 text-sm text-muted-foreground text-center">{t("common.loading")}</p>
+                ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -683,6 +809,7 @@ const AdminPage = () => {
                     })}
                   </TableBody>
                 </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -694,7 +821,9 @@ const AdminPage = () => {
                 <CardDescription>{t("admin.customerAccountsDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
-                {customerProfiles.length === 0 ? (
+                {teamLoading ? (
+                  <p className="p-6 text-sm text-muted-foreground text-center">{t("common.loading")}</p>
+                ) : customerProfiles.length === 0 ? (
                   <p className="p-6 text-sm text-muted-foreground text-center">{t("admin.noCustomerAccounts")}</p>
                 ) : (
                   <Table>
@@ -734,43 +863,51 @@ const AdminPage = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="consents" className="mt-4">
+          <LazyAdminTab tab="consents" activeTab={activeTab} title="Consents">
             <AdminConsentsPanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="consent-forms" className="mt-4">
+          <LazyAdminTab tab="consent-forms" activeTab={activeTab} title="Consent forms">
             <AdminConsentFormsPanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="emails" className="mt-4">
+          <LazyAdminTab tab="emails" activeTab={activeTab} title="Emails">
             <AdminEmailSettingsPanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="aftercare" className="mt-4">
+          <LazyAdminTab tab="aftercare" activeTab={activeTab} title="Aftercare">
             <AdminAftercareSettingsPanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="schedule-hours" className="mt-4">
+          <LazyAdminTab tab="schedule-hours" activeTab={activeTab} title="Schedule hours">
             <AdminScheduleHoursPanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="dashboard-theme" className="mt-4">
+          <LazyAdminTab tab="dashboard-theme" activeTab={activeTab} title="Dashboard theme">
             <AdminDashboardThemePanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="website-embed" className="mt-4">
+          <LazyAdminTab tab="website-embed" activeTab={activeTab} title="Website embed">
             <AdminWebsiteEmbedPanel />
-          </TabsContent>
+          </LazyAdminTab>
 
-          <TabsContent value="pos-checkout" className="mt-4">
+          <LazyAdminTab tab="pos-checkout" activeTab={activeTab} title="POS checkout">
             <AdminPosCheckoutPanel />
-          </TabsContent>
+          </LazyAdminTab>
         </Tabs>
 
         <div id="subscription" className="scroll-mt-6 space-y-6">
-          <SubscriptionSettingsCard />
+          <AdminSectionErrorBoundary title="Subscription">
+            <Suspense fallback={<TabPanelFallback />}>
+              <SubscriptionSettingsCard />
+            </Suspense>
+          </AdminSectionErrorBoundary>
           <div id="payouts" className="scroll-mt-6">
-            <StripeConnectCard returnPath="/admin" refreshPath="/admin" />
+            <AdminSectionErrorBoundary title="Payouts">
+              <Suspense fallback={<TabPanelFallback />}>
+                <StripeConnectCard returnPath="/admin" refreshPath="/admin" />
+              </Suspense>
+            </AdminSectionErrorBoundary>
           </div>
         </div>
       </div>
@@ -778,4 +915,10 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+const AdminPageWithBoundary = () => (
+  <AdminPageErrorBoundary>
+    <AdminPage />
+  </AdminPageErrorBoundary>
+);
+
+export default AdminPageWithBoundary;

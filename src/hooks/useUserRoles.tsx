@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 import { needsShopSetup } from "@/lib/shopSettings";
+import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
 
 export type AppRole = "admin" | "artist" | "customer";
 
@@ -31,7 +32,7 @@ export function useUserRoles() {
         setRoles((data?.map((r) => r.role as AppRole) ?? []) as AppRole[]);
         setLoading(false);
       });
-  }, [user]);
+  }, [user?.id]);
 
   const hasStaffRole = roles.some((r) => r === "admin" || r === "artist");
   const isOnlyCustomer = roles.includes("customer") && !hasStaffRole;
@@ -85,11 +86,12 @@ export async function fetchHasNoAppRoles(userId: string): Promise<boolean> {
   }
 }
 
-/** Matches edge-function staff checks: admin/artist role or schedule/deposits/billing permission. */
+/** Matches edge-function staff checks: platform admin, admin/artist role, or staff permissions. */
 export async function fetchHasStaffAccess(userId: string): Promise<boolean> {
+  if (await fetchIsPlatformAdmin(userId)) return true;
   if (await fetchHasStaffRole(userId)) return true;
   try {
-    for (const feature of ["schedule", "deposits", "billing", "checkout"] as const) {
+    for (const feature of ["schedule", "deposits", "billing", "checkout", "admin"] as const) {
       const { data } = await supabase.rpc("has_permission", { _user_id: userId, _feature: feature });
       if (data) return true;
     }

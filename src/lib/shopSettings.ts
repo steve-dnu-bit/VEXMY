@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { currencyForShopCountry, normalizeShopCountryCode } from "@/lib/shopCurrency";
+import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
 
 export interface ShopSettingsRow {
   id: string;
@@ -81,6 +82,8 @@ export async function saveShopSettings(
 }
 
 export async function needsShopSetup(userId: string): Promise<boolean> {
+  if (await fetchIsPlatformAdmin(userId)) return false;
+
   const [{ data: isAdmin }, orgSubActive] = await Promise.all([
     supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     hasActiveOrganizationSubscription(userId),

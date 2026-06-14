@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { format, parseISO } from "date-fns";
+import { safeFormatDate } from "@/lib/safeDateFormat";
 import { Download, Eye, FileSignature, Loader2, Printer, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { consentPdfBasename, downloadConsentPdf, printConsentPdf } from "@/lib/consentPdfActions";
@@ -82,10 +82,10 @@ function ConsentTableRow({ row: r }: { row: ConsentRow }) {
       </TableCell>
       <TableCell className="text-sm">{r.artistName || "—"}</TableCell>
       <TableCell className="text-sm whitespace-nowrap">
-        {r.bookingStartsAt ? format(parseISO(r.bookingStartsAt), "EEE d MMM yyyy, HH:mm") : "—"}
+        {safeFormatDate(r.bookingStartsAt, "EEE d MMM yyyy, HH:mm") ?? "—"}
       </TableCell>
       <TableCell className="text-sm whitespace-nowrap">
-        {format(parseISO(r.created_at), "EEE d MMM yyyy, HH:mm")}
+        {safeFormatDate(r.created_at, "EEE d MMM yyyy, HH:mm") ?? "—"}
       </TableCell>
       <TableCell className="text-right">
         {r.consent_pdf_url ? (

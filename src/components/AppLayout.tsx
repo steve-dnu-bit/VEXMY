@@ -127,7 +127,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [portalBgImageUrl, setPortalBgImageUrl] = useState<string | null>(null);
 
   const navItems = allNavItems.filter(
-    (item) => hasPermission(item.feature) || (item.alsoAllow?.some((f) => hasPermission(f)) ?? false),
+    (item) =>
+      (item.feature === "admin" && isPlatformAdmin) ||
+      hasPermission(item.feature) ||
+      (item.alsoAllow?.some((f) => hasPermission(f)) ?? false),
   );
 
   useLayoutEffect(() => {

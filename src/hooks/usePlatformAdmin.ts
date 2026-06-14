@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 
+import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
+
 export type PlatformOverview = {
   totalStudios: number;
   activeSubscriptions: number;
@@ -57,17 +59,6 @@ export type PlatformEvent = {
   payload: Record<string, unknown>;
 };
 
-async function fetchIsPlatformAdmin(userId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc("platform_admin_is_me");
-  if (!error) return !!data;
-
-  const { data: fallback, error: fallbackError } = await supabase.rpc("is_platform_admin", {
-    _user_id: userId,
-  });
-  if (fallbackError) throw fallbackError;
-  return !!fallback;
-}
-
 async function fetchOverview(): Promise<PlatformOverview> {
   const { data, error } = await supabase.rpc("platform_admin_overview");
   if (error) throw error;
@@ -101,10 +92,9 @@ export function usePlatformAdminAccess() {
     queryKey: ["platform-admin-access", user?.id],
     queryFn: () => fetchIsPlatformAdmin(user!.id),
     enabled: !!user,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-    retry: 2,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 }
 

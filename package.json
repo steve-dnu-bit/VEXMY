@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "deploy:preview": "npm run build && npx netlify-cli deploy --dir=dist",
     "deploy:preview:only": "npx netlify-cli deploy --dir=dist",
-    "deploy:prod": "npm run build && npx netlify-cli deploy --prod --dir=dist",
+    "deploy:prod": "npm run build && npx netlify-cli deploy --prod --dir=dist --site dc785d32-2796-486d-8a45-93f1ea0a41e3",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -73,7 +73,7 @@ const SchedulePage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [profilesReady, setProfilesReady] = useState(false);
-  const [artistColorCache] = useState(readScheduleArtistColors);
+  const [artistColorCache, setArtistColorCache] = useState(readScheduleArtistColors);
   const [selectedArtists, setSelectedArtists] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     const raw = window.localStorage.getItem(SCHEDULE_ARTISTS_STORAGE_KEY);
@@ -183,11 +183,17 @@ const SchedulePage = () => {
       return;
     }
 
+    const { data: bookingArtistRows } = await supabase.from("bookings").select("artist_id");
+    const bookingArtistIds = new Set<string>();
+    for (const row of bookingArtistRows || []) {
+      if (row?.artist_id) bookingArtistIds.add(row.artist_id);
+    }
+
     // Can't tell customer vs staff — show every profile so the schedule stays usable.
     if (roleErr) {
       const list = filterByOrganizationMembers((allProfiles || []) as Profile[], orgMemberIds);
       setProfiles(list);
-      writeScheduleArtistColors(list);
+      setArtistColorCache(writeScheduleArtistColors(list, [...bookingArtistIds]));
       setProfilesReady(true);
       return;
     }
@@ -197,12 +203,6 @@ const SchedulePage = () => {
       const list = rolesByUser.get(row.user_id) || [];
       list.push(row.role);
       rolesByUser.set(row.user_id, list);
-    }
-
-    const { data: bookingArtistRows } = await supabase.from("bookings").select("artist_id");
-    const bookingArtistIds = new Set<string>();
-    for (const row of bookingArtistRows || []) {
-      if (row?.artist_id) bookingArtistIds.add(row.artist_id);
     }
 
     const isPureCustomerOnly = (uid: string) => {
@@ -230,7 +230,7 @@ const SchedulePage = () => {
 
     const teamList = team;
     setProfiles(teamList);
-    writeScheduleArtistColors(teamList);
+    setArtistColorCache(writeScheduleArtistColors(teamList, [...bookingArtistIds]));
     setProfilesReady(true);
   };
 
@@ -309,6 +309,7 @@ const SchedulePage = () => {
               teamSearch={teamSearch}
               setTeamSearch={setTeamSearch}
               services={services}
+              artistColorCache={artistColorCache}
               currentDate={currentDate}
               setCurrentDate={setCurrentDate}
             />

@@ -13,6 +13,7 @@ import StaffRoute from "./components/StaffRoute";
 import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import CookieConsentBanner from "./components/CookieConsentBanner";
+import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
 
 const CustomerPortalShell = () => (
@@ -107,8 +108,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
+            <RouteErrorBoundary label="App">
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/subscribe" element={<SubscribePage />} />
@@ -150,7 +152,8 @@ const App = () => (
                 <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </Suspense>
+              </Suspense>
+            </RouteErrorBoundary>
             <CookieConsentBanner />
           </BrowserRouter>
         </TooltipProvider>

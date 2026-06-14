@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { CreditCard, ExternalLink, Loader2, ArrowDown, ArrowUp, Check } from "lucide-react";
-import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 import { comparePlanOrder } from "@/lib/pricingPlans";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDate } from "@/lib/safeDateFormat";
 
 const SubscriptionSettingsCard = () => {
   const { t } = useTranslation();
@@ -116,6 +116,8 @@ const SubscriptionSettingsCard = () => {
   const statusKey = sub?.status as keyof typeof statusLabels | undefined;
 
   const canDowngradeTo = (targetMax: number) => (seatUsage?.used ?? 0) <= targetMax;
+  const trialEndLabel = safeFormatDate(sub?.trialEnd, "d MMM yyyy");
+  const renewsLabel = safeFormatDate(sub?.currentPeriodEnd, "d MMM yyyy");
 
   return (
     <Card className="bg-card border-border">
@@ -148,14 +150,14 @@ const SubscriptionSettingsCard = () => {
                 {marketingPlan.period}
               </p>
             ) : null}
-            {sub.trialEnd && sub.status === "trialing" ? (
+            {sub.trialEnd && sub.status === "trialing" && trialEndLabel ? (
               <p className="text-sm text-muted-foreground">
-                {t("subscription.trialEnds", { date: format(new Date(sub.trialEnd), "d MMM yyyy") })}
+                {t("subscription.trialEnds", { date: trialEndLabel })}
               </p>
             ) : null}
-            {sub.currentPeriodEnd && sub.status === "active" ? (
+            {sub.currentPeriodEnd && sub.status === "active" && renewsLabel ? (
               <p className="text-sm text-muted-foreground">
-                {t("subscription.renews", { date: format(new Date(sub.currentPeriodEnd), "d MMM yyyy") })}
+                {t("subscription.renews", { date: renewsLabel })}
               </p>
             ) : null}
             {plan.max_artist_seats ? (

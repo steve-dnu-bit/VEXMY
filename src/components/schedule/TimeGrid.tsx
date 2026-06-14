@@ -6,7 +6,7 @@ import { getBookingServiceName } from "@/lib/bookingService";
 import { layoutStackedBookingBlocks } from "@/lib/scheduleBookingLayout";
 import { BOOKING_TYPE_STYLES } from "@/lib/bookingTypes";
 import { getArtistBookingBlockStyle } from "@/lib/themePresets";
-import type { ArtistColorMap } from "@/lib/artistThemeCache";
+import { type ArtistColorMap, resolveScheduleArtistColor } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import {
   SCHEDULE_SLOT_MINUTES,
@@ -225,7 +225,7 @@ const TimeGrid = ({
   const safeName = (name?: string | null) => (name && name.trim().length > 0 ? name : t("schedule.unknown"));
   const profileById = new Map(profiles.map((p) => [p.user_id, p]));
   const artistPortalColor = (artistId: string) =>
-    profileById.get(artistId)?.portal_bg_color ?? artistColorCache[artistId] ?? null;
+    resolveScheduleArtistColor(artistId, profileById.get(artistId)?.portal_bg_color, artistColorCache);
   const bookingArtistIds = [...new Set(bookings.map((b) => b.artist_id))];
   const allKnownArtistIds = [...new Set([...profiles.map((p) => p.user_id), ...bookingArtistIds])];
   const filteredBookings =
