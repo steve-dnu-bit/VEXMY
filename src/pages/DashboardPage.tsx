@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import AppLayout from "@/components/AppLayout";
+import SalesReportsPanel from "@/components/dashboard/SalesReportsPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -371,6 +372,8 @@ const DashboardPage = () => {
             </div>
           )}
         </div>
+
+        <SalesReportsPanel currency={shopCurrency} />
       </div>
     </AppLayout>
   );
