@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { computeInvoiceTotals } from "@/lib/orgBilling";
+import { formatShopMoney } from "@/lib/shopCurrency";
 
 type PaymentMethod = "card" | "bank_transfer" | "cash";
 type PaymentTerm = "paid_in_full" | "due";
@@ -27,6 +29,10 @@ interface InvoiceRow {
   payment_term: string | null;
   notes: string | null;
   items: unknown;
+  tax_rate?: number | null;
+  tax_label?: string | null;
+  currency?: string | null;
+  prices_include_tax?: boolean | null;
 }
 
 interface Props {
@@ -45,12 +51,18 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>((invoice.payment_method as PaymentMethod) || "card");
   const [paymentTerm, setPaymentTerm] = useState<PaymentTerm>((invoice.payment_term as PaymentTerm) || "due");
   const [notes, setNotes] = useState(invoice.notes || "");
+  const [taxRate, setTaxRate] = useState(Number(invoice.tax_rate ?? 0));
   const [items, setItems] = useState<InvoiceItem[]>([]);
+
+  const currency = invoice.currency || "gbp";
+  const taxLabel = invoice.tax_label || "VAT";
+  const pricesIncludeTax = !!invoice.prices_include_tax;
 
   useEffect(() => {
     const parsed = Array.isArray(invoice.items) ? (invoice.items as InvoiceItem[]) : [];
     setItems(parsed.length > 0 ? parsed : [{ description: "", quantity: 1, unit_price: 0 }]);
-  }, [invoice.items]);
+    setTaxRate(Number(invoice.tax_rate ?? 0));
+  }, [invoice.items, invoice.tax_rate]);
 
   const updateItem = (i: number, field: keyof InvoiceItem, value: string | number) => {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, [field]: value } : it)));
@@ -58,10 +70,8 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
   const addItem = () => setItems((prev) => [...prev, { description: "", quantity: 1, unit_price: 0 }]);
   const removeItem = (i: number) => setItems((prev) => prev.filter((_, idx) => idx !== i));
 
-  const subtotal = items.reduce((s, i) => s + Number(i.quantity || 0) * Number(i.unit_price || 0), 0);
-  const taxRate = 0;
-  const taxAmount = 0;
-  const total = subtotal;
+  const lineGross = items.reduce((s, i) => s + Number(i.quantity || 0) * Number(i.unit_price || 0), 0);
+  const { subtotal, taxAmount, total } = computeInvoiceTotals(lineGross, taxRate, pricesIncludeTax);
 
   const save = async () => {
     if (!clientName.trim()) return toast.error(t("billing.clientNameRequired"));
@@ -150,6 +160,33 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
             </div>
             <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addItem}>{t("billing.addLine")}</Button>
           </div>
+
+          <div className="flex items-center gap-3">
+            <Label className="text-xs whitespace-nowrap">{t("billing.taxRatePercent", { label: taxLabel })}</Label>
+            <Input
+              className="w-20"
+              type="number"
+              min={0}
+              value={taxRate}
+              onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+            />
+          </div>
+
+          <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("billing.subtotal")}</span>
+              <span>{formatShopMoney(subtotal, currency)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("billing.taxWithRate", { label: taxLabel, rate: taxRate })}</span>
+              <span>{formatShopMoney(taxAmount, currency)}</span>
+            </div>
+            <div className="flex justify-between font-bold border-t border-border pt-1">
+              <span>{t("billing.total")}</span>
+              <span>{formatShopMoney(total, currency)}</span>
+            </div>
+          </div>
+
           <div>
             <Label className="text-xs">{t("billing.notes")}</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
@@ -162,4 +199,3 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
 };
 
 export default EditInvoiceDialog;
-

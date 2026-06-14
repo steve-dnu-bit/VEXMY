@@ -13,12 +13,35 @@ export function getPlatformPriceSecret(planId: PlatformPlanId): string | null {
   return Deno.env.get(SECRET_BY_PLAN[planId]) ?? null;
 }
 
-export function formatPriceSecretError(priceId: string, planId: PlatformPlanId): string | null {
+/** Env secret name for a plan in a given currency, e.g. STRIPE_PRICE_STARTER_EUR */
+export function platformPriceSecretName(planId: PlatformPlanId, currency?: string): string {
+  const base = SECRET_BY_PLAN[planId];
+  const cur = (currency || "gbp").toLowerCase();
+  if (cur === "gbp") return base;
+  return `${base}_${cur.toUpperCase()}`;
+}
+
+/** Resolve Stripe price ID: GBP uses STRIPE_PRICE_* ; other currencies use STRIPE_PRICE_*_EUR etc. */
+export function getPlatformPriceSecretForCurrency(
+  planId: PlatformPlanId,
+  currency: string,
+): string | null {
+  const cur = (currency || "gbp").toLowerCase();
+  if (cur === "gbp") return getPlatformPriceSecret(planId);
+  return Deno.env.get(platformPriceSecretName(planId, cur));
+}
+
+export function formatPriceSecretError(
+  priceId: string,
+  planId: PlatformPlanId,
+  currency?: string,
+): string | null {
+  const secretName = platformPriceSecretName(planId, currency);
   if (priceId.startsWith("prod_")) {
-    return `${SECRET_BY_PLAN[planId]} is a product ID (${priceId}). Open Stripe → Products → ${planId} plan → Pricing and copy the Price ID (price_...).`;
+    return `${secretName} is a product ID (${priceId}). Open Stripe → Products → ${planId} plan → Pricing and copy the Price ID (price_...).`;
   }
   if (!priceId.startsWith("price_")) {
-    return `${SECRET_BY_PLAN[planId]} must be price_..., got "${priceId.slice(0, 16)}...".`;
+    return `${secretName} must be price_..., got "${priceId.slice(0, 16)}...".`;
   }
   return null;
 }

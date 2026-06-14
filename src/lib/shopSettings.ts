@@ -16,6 +16,7 @@ export interface ShopSettingsRow {
   city: string | null;
   postcode: string | null;
   country: string;
+  country_code?: string;
   logo_url: string | null;
   setup_completed_at: string | null;
 }
@@ -32,7 +33,7 @@ export async function loadShopSettingsForOrganization(orgId: string): Promise<Sh
   const { data, error } = await supabase
     .from("shop_settings" as any)
     .select(
-      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, logo_url, setup_completed_at",
+      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at",
     )
     .eq("organization_id", orgId)
     .maybeSingle();
@@ -47,7 +48,7 @@ export async function loadShopSettings(userId?: string): Promise<ShopSettingsRow
     const { data, error } = await supabase
       .from("shop_settings" as any)
       .select(
-        "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, logo_url, setup_completed_at",
+        "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at",
       )
       .eq("organization_id", orgId)
       .maybeSingle();
@@ -57,7 +58,7 @@ export async function loadShopSettings(userId?: string): Promise<ShopSettingsRow
   const { data, error } = await supabase
     .from("shop_settings" as any)
     .select(
-      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, logo_url, setup_completed_at",
+      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at",
     )
     .order("created_at", { ascending: true })
     .limit(1)

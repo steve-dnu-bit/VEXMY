@@ -184,6 +184,7 @@ const ShopSetupWizardPage = () => {
       city: form.city.trim() || null,
       postcode: form.postcode.trim() || null,
       country: normalizeShopCountryCode(form.country),
+      country_code: normalizeShopCountryCode(form.country),
     });
     if (error) {
       toast.error(error);

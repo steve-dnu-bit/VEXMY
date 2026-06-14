@@ -13,11 +13,14 @@ import { format, parseISO, isBefore } from "date-fns";
 import { Building2, AlertCircle, PoundSterling, TrendingUp, CheckCircle2, XCircle, FileText } from "lucide-react";
 import CreateInvoiceDialog from "@/components/billing/CreateInvoiceDialog";
 import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
+import BillingSettingsCard from "@/components/billing/BillingSettingsCard";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { useTranslation } from "react-i18next";
+import { loadOrgBillingContext } from "@/lib/orgBilling";
+import { formatShopMoney } from "@/lib/shopCurrency";
 
 interface Company {
   id: string;
@@ -39,6 +42,10 @@ interface Invoice {
   notes: string | null;
   items: unknown;
   total: number;
+  currency?: string | null;
+  tax_label?: string | null;
+  tax_rate?: number | null;
+  prices_include_tax?: boolean | null;
   status: string;
   due_date: string | null;
   created_at: string;
@@ -56,16 +63,19 @@ const BillingPage = () => {
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<"all" | "draft" | "sent" | "paid">("all");
   const [invoiceFromDate, setInvoiceFromDate] = useState("");
   const [invoiceToDate, setInvoiceToDate] = useState("");
+  const [shopCurrency, setShopCurrency] = useState("gbp");
 
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      const [adminRes, companiesRes, invoicesRes] = await Promise.all([
+      const [adminRes, companiesRes, invoicesRes, billingCtx] = await Promise.all([
         supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
         supabase.from("companies").select("*"),
-        supabase.from("invoices" as any).select("id, invoice_number, client_name, client_email, company_id, subtotal, tax_amount, payment_method, payment_term, notes, items, total, status, due_date, created_at, stripe_checkout_url").order("created_at", { ascending: false }),
+        supabase.from("invoices" as any).select("id, invoice_number, client_name, client_email, company_id, subtotal, tax_amount, tax_rate, tax_label, currency, prices_include_tax, payment_method, payment_term, notes, items, total, status, due_date, created_at, stripe_checkout_url").order("created_at", { ascending: false }),
+        loadOrgBillingContext(),
       ]);
       setIsAdmin(!!adminRes.data);
+      setShopCurrency(billingCtx.currency);
       if (companiesRes.data) setCompanies(companiesRes.data);
       if (invoicesRes.data) setInvoices(invoicesRes.data as any);
       setLoading(false);
@@ -74,7 +84,7 @@ const BillingPage = () => {
   }, [user]);
 
   const fetchInvoices = async () => {
-    const { data } = await supabase.from("invoices" as any).select("id, invoice_number, client_name, client_email, company_id, subtotal, tax_amount, payment_method, payment_term, notes, items, total, status, due_date, created_at, stripe_checkout_url").order("created_at", { ascending: false });
+    const { data } = await supabase.from("invoices" as any).select("id, invoice_number, client_name, client_email, company_id, subtotal, tax_amount, tax_rate, tax_label, currency, prices_include_tax, payment_method, payment_term, notes, items, total, status, due_date, created_at, stripe_checkout_url").order("created_at", { ascending: false });
     if (data) setInvoices(data as any);
   };
 
@@ -190,6 +200,7 @@ const BillingPage = () => {
   }
 
   const allStats = getStats(invoices);
+  const fmt = (amount: number, currency?: string | null) => formatShopMoney(amount, currency || shopCurrency);
 
   return (
     <AppLayout>
@@ -211,7 +222,7 @@ const BillingPage = () => {
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-xs">{t("billing.totalRevenue")}</span>
               </div>
-              <p className="text-2xl font-bold text-emerald-400">£{allStats.totalRevenue}</p>
+              <p className="text-2xl font-bold text-emerald-400">{fmt(allStats.totalRevenue)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -220,7 +231,7 @@ const BillingPage = () => {
                 <PoundSterling className="h-4 w-4" />
                 <span className="text-xs">{t("billing.outstanding")}</span>
               </div>
-              <p className="text-2xl font-bold text-amber-400">£{allStats.outstanding}</p>
+              <p className="text-2xl font-bold text-amber-400">{fmt(allStats.outstanding)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -257,11 +268,11 @@ const BillingPage = () => {
                   <p className="text-xs text-muted-foreground mb-3">{company.legal_name}</p>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-emerald-500/10 rounded-md p-2">
-                      <p className="text-lg font-bold text-emerald-400">£{stats.totalRevenue}</p>
+                      <p className="text-lg font-bold text-emerald-400">{fmt(stats.totalRevenue)}</p>
                       <p className="text-[10px] text-muted-foreground">{t("billing.collected")}</p>
                     </div>
                     <div className="bg-amber-500/10 rounded-md p-2">
-                      <p className="text-lg font-bold text-amber-400">£{stats.outstanding}</p>
+                      <p className="text-lg font-bold text-amber-400">{fmt(stats.outstanding)}</p>
                       <p className="text-[10px] text-muted-foreground">{t("billing.outstanding")}</p>
                     </div>
                     <div className="bg-destructive/10 rounded-md p-2">
@@ -332,7 +343,7 @@ const BillingPage = () => {
                         <TableCell className="text-xs text-muted-foreground">
                           {companies.find(c => c.id === inv.company_id)?.name || "—"}
                         </TableCell>
-                        <TableCell className="font-medium">£{Number(inv.total).toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">{fmt(Number(inv.total), inv.currency)}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {inv.due_date ? format(parseISO(inv.due_date), "d MMM yyyy") : "—"}
                         </TableCell>
@@ -383,6 +394,8 @@ const BillingPage = () => {
             </Card>
           )}
         </div>
+
+        <BillingSettingsCard />
 
         <StripeConnectCard compact returnPath="/billing" refreshPath="/billing" />
       </div>

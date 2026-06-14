@@ -10,8 +10,11 @@ import {
   checkPlatformPrice,
   formatPriceSecretError,
   getPlatformPriceSecret,
+  getPlatformPriceSecretForCurrency,
+  platformPriceSecretName,
   type PlatformPlanId,
 } from "../_shared/stripe-platform-billing.ts";
+import { getOrgBillingContext } from "../_shared/org-billing.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -79,30 +82,6 @@ serve(async (req) => {
     }
 
     const platformPlanId = planId as PlatformPlanId;
-    const stripePriceId = getPlatformPriceSecret(platformPlanId);
-    if (!stripePriceId) {
-      return new Response(JSON.stringify({ error: "Stripe price not configured for this plan" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const formatError = formatPriceSecretError(stripePriceId, platformPlanId);
-    if (formatError) {
-      return new Response(JSON.stringify({ error: formatError }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const stripe = new Stripe(stripeSecret);
-    const priceCheck = await checkPlatformPrice(stripe, platformPlanId);
-    if (!priceCheck.ok && priceCheck.error) {
-      return new Response(JSON.stringify({ error: priceCheck.error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const { data: planRow } = await admin
       .from("subscription_plans")
@@ -200,6 +179,89 @@ serve(async (req) => {
       orgRecord = newOrg;
     }
 
+    const billingCtx = await getOrgBillingContext(admin, orgId);
+
+    const { data: planPriceRow } = await admin
+      .from("subscription_plan_prices")
+      .select("stripe_price_id")
+      .eq("plan_id", planId)
+      .eq("currency", billingCtx.currency)
+      .maybeSingle();
+
+    let stripePriceId = planPriceRow?.stripe_price_id
+      ?? getPlatformPriceSecretForCurrency(platformPlanId, billingCtx.currency);
+
+    // Stripe deprecated BGN — platform checkout uses EUR prices for Bulgarian studios
+    if (!stripePriceId && billingCtx.currency === "bgn") {
+      const { data: eurRow } = await admin
+        .from("subscription_plan_prices")
+        .select("stripe_price_id")
+        .eq("plan_id", planId)
+        .eq("currency", "eur")
+        .maybeSingle();
+      stripePriceId = eurRow?.stripe_price_id
+        ?? getPlatformPriceSecretForCurrency(platformPlanId, "eur");
+    }
+
+    if (!stripePriceId) {
+      const hint = billingCtx.currency === "gbp"
+        ? `Set STRIPE_PRICE_${planId.toUpperCase()} in Supabase secrets.`
+        : `Set ${platformPriceSecretName(platformPlanId, billingCtx.currency)} or subscription_plan_prices.stripe_price_id for ${billingCtx.currency}.`;
+      return new Response(JSON.stringify({ error: `Stripe price not configured for ${planId} (${billingCtx.currency}). ${hint}` }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const formatError = formatPriceSecretError(stripePriceId, platformPlanId, billingCtx.currency);
+    if (formatError) {
+      return new Response(JSON.stringify({ error: formatError }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const stripe = new Stripe(stripeSecret);
+
+    if (billingCtx.currency === "gbp") {
+      const priceCheck = await checkPlatformPrice(stripe, platformPlanId);
+      if (!priceCheck.ok && priceCheck.error) {
+        return new Response(JSON.stringify({ error: priceCheck.error }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      try {
+        const price = await stripe.prices.retrieve(stripePriceId);
+        if (!price.recurring) {
+          return new Response(JSON.stringify({
+            error: `${platformPriceSecretName(platformPlanId, billingCtx.currency)} must be a recurring subscription price.`,
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const allowedCurrencies = billingCtx.currency === "bgn"
+          ? ["bgn", "eur"]
+          : [billingCtx.currency];
+        if (price.currency && !allowedCurrencies.includes(price.currency)) {
+          return new Response(JSON.stringify({
+            error: `Stripe price currency (${price.currency}) does not match org billing currency (${billingCtx.currency}).`,
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Unknown Stripe error";
+        return new Response(JSON.stringify({ error: msg }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     let customerId = orgRecord?.stripe_customer_id ?? null;
     if (!customerId) {
       const customer = await stripe.customers.create({
@@ -215,6 +277,15 @@ serve(async (req) => {
     }
 
     const trialDays = planRow?.trial_days ?? 14;
+
+    const { data: orgBillingRow } = await admin
+      .from("organizations")
+      .select("billing_country_code, billing_address_line1, billing_city, billing_postcode, tax_id")
+      .eq("id", orgId)
+      .maybeSingle();
+
+    const stripeTaxEnabled = (Deno.env.get("STRIPE_TAX_ENABLED") ?? "").toLowerCase() === "true";
+    const billingCountry = orgBillingRow?.billing_country_code ?? billingCtx.countryCode;
 
     let session: Stripe.Checkout.Session;
     try {
@@ -237,6 +308,18 @@ serve(async (req) => {
           plan_id: planId,
         },
         allow_promotion_codes: true,
+        ...(stripeTaxEnabled && billingCountry
+          ? {
+            automatic_tax: { enabled: true },
+            customer_update: { address: "auto" },
+            tax_id_collection: { enabled: true },
+          }
+          : {}),
+        ...(billingCountry
+          ? {
+            billing_address_collection: "required",
+          }
+          : {}),
       });
     } catch (checkoutError) {
       const msg = checkoutError instanceof Error ? checkoutError.message : "Could not create Stripe checkout";

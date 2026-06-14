@@ -19,6 +19,26 @@ export const PLAN_PRICES_GBP = {
   enterprise: 49.95,
 } as const;
 
+export type PlanPriceKey = keyof typeof PLAN_PRICES_GBP;
+
+/** Monthly list prices by billing currency (aligned with subscription_plan_prices). */
+export const PLAN_PRICES_BY_CURRENCY: Record<string, Record<PlanPriceKey, number>> = {
+  gbp: { ...PLAN_PRICES_GBP },
+  eur: { starter: 17.95, studio: 23.95, enterprise: 59.95 },
+  usd: { starter: 18.95, studio: 24.95, enterprise: 62.95 },
+  aud: { starter: 22.95, studio: 29.95, enterprise: 74.95 },
+  cad: { starter: 20.95, studio: 27.95, enterprise: 69.95 },
+  sek: { starter: 199, studio: 265, enterprise: 649 },
+  nok: { starter: 199, studio: 265, enterprise: 649 },
+  ron: { starter: 84.95, studio: 112.95, enterprise: 279.95 },
+  bgn: { starter: 34.95, studio: 46.95, enterprise: 116.95 },
+};
+
+export function getPlanPricesForCurrency(currency: string | null | undefined): Record<PlanPriceKey, number> {
+  const code = (currency || "gbp").toLowerCase();
+  return PLAN_PRICES_BY_CURRENCY[code] ?? PLAN_PRICES_GBP;
+}
+
 export const PLAN_ARTIST_SEATS = {
   starter: 3,
   studio: 6,
@@ -55,6 +75,15 @@ export const PLAN_ORDER = ["starter", "studio", "enterprise"] as const;
 
 export function formatPlanPriceGbp(amount: number): string {
   return `£${amount.toFixed(2)}`;
+}
+
+export function formatPlanPrice(amount: number, currency: string): string {
+  const code = (currency || "gbp").toUpperCase();
+  try {
+    return new Intl.NumberFormat("en-GB", { style: "currency", currency: code }).format(amount);
+  } catch {
+    return `${Number(amount).toFixed(2)} ${code}`;
+  }
 }
 
 /** Core platform features included on every plan. */

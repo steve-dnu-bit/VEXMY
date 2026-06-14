@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { clampDepositAmount, DEFAULT_DEPOSIT_AMOUNT } from "./deposit-limits.ts";
+import { getOrgBillingContext } from "./org-billing.ts";
 
 export const SHOP_COUNTRIES = [
   { code: "UK", stripeCountry: "GB", currency: "gbp", label: "United Kingdom" },
@@ -97,37 +98,31 @@ export function stripeMinimumChargeMajor(currency: string): number {
 export async function getShopPaymentSettings(
   admin: SupabaseClient,
   organizationId: string | null | undefined,
-): Promise<{ country: string; currency: string; defaultDepositAmount: number }> {
-  if (!organizationId) {
+): Promise<{ country: string; countryCode: string; currency: string; defaultDepositAmount: number }> {
+  const billing = await getOrgBillingContext(admin, organizationId);
+
+  let defaultDepositAmount = DEFAULT_DEPOSIT_AMOUNT;
+  if (organizationId) {
     const { data: shop } = await admin
       .from("shop_settings")
-      .select("country, default_deposit_amount")
+      .select("default_deposit_amount")
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    defaultDepositAmount = Number(shop?.default_deposit_amount ?? DEFAULT_DEPOSIT_AMOUNT);
+  } else {
+    const { data: shop } = await admin
+      .from("shop_settings")
+      .select("default_deposit_amount")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
-    const country = shop?.country ?? "UK";
-    const currency = currencyForShopCountry(country);
-    return {
-      country,
-      currency,
-      defaultDepositAmount: clampDepositAmount(
-        Number(shop?.default_deposit_amount ?? DEFAULT_DEPOSIT_AMOUNT),
-        currencyForShopCountry(country),
-      ),
-    };
+    defaultDepositAmount = Number(shop?.default_deposit_amount ?? DEFAULT_DEPOSIT_AMOUNT);
   }
 
-  const { data: shop } = await admin
-    .from("shop_settings")
-    .select("country, default_deposit_amount")
-    .eq("organization_id", organizationId)
-    .maybeSingle();
-
-  const country = shop?.country ?? "UK";
-  const currency = currencyForShopCountry(country);
   return {
-    country,
-    currency,
-    defaultDepositAmount: clampDepositAmount(Number(shop?.default_deposit_amount ?? DEFAULT_DEPOSIT_AMOUNT), currency),
+    country: billing.countryCode,
+    countryCode: billing.countryCode,
+    currency: billing.currency,
+    defaultDepositAmount: clampDepositAmount(defaultDepositAmount, billing.currency),
   };
 }

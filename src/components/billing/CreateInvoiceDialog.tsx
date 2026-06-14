@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
 import { FilePlus, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +11,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
+import {
+  allocateInvoiceNumber,
+  computeInvoiceTotals,
+  loadOrgBillingContext,
+  type OrgBillingContext,
+} from "@/lib/orgBilling";
+import { formatShopMoney } from "@/lib/shopCurrency";
+import { getUserOrganizationId } from "@/lib/shopSettings";
 
 interface LineItem {
   description: string;
@@ -47,8 +55,8 @@ interface LineTemplate {
 
 const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
   const { t } = useTranslation();
-  const defaultDueDate = useMemo(() => format(addDays(new Date(), 7), "yyyy-MM-dd"), []);
   const defaultCompany = useMemo(() => companies[0] ?? null, [companies]);
+  const [billing, setBilling] = useState<OrgBillingContext | null>(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clientName, setClientName] = useState("");
@@ -57,28 +65,24 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
   const [suggestions, setSuggestions] = useState<ClientSuggestion[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  const [dueDate, setDueDate] = useState(defaultDueDate);
+  const [dueDate, setDueDate] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [notes, setNotes] = useState("");
   const [taxRate, setTaxRate] = useState(0);
   const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unit_price: 0 }]);
   const [lineTemplates, setLineTemplates] = useState<LineTemplate[]>([]);
 
+  const currency = billing?.currency ?? "gbp";
+  const taxLabel = billing?.taxLabel ?? "VAT";
+  const pricesIncludeTax = billing?.pricesIncludeTax ?? false;
+
+  const lineGross = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+  const { subtotal, taxAmount, total } = computeInvoiceTotals(lineGross, taxRate, pricesIncludeTax);
+
   const addItem = () => setItems([...items, { description: "", quantity: 1, unit_price: 0 }]);
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
   const updateItem = (i: number, field: keyof LineItem, value: string | number) => {
     setItems(items.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)));
-  };
-
-  const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
-  const taxAmount = (subtotal * taxRate) / 100;
-  const total = subtotal + taxAmount;
-
-  const generateInvoiceNumber = () => {
-    const prefix = "INV";
-    const date = new Date().toISOString().slice(2, 10).replace(/-/g, "");
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}-${date}-${rand}`;
   };
 
   const fetchClientSuggestions = async (query: string) => {
@@ -113,10 +117,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
           .select("name, email, phone")
           .ilike("email", pattern)
           .limit(25),
-        supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "customer"),
+        supabase.from("user_roles").select("user_id").eq("role", "customer"),
       ]);
       const map = new Map<string, ClientSuggestion>();
       for (const row of [...(byName.data || []), ...(byEmail.data || [])]) {
@@ -136,11 +137,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
         const phone = row.phone || null;
         const key = `${name}|${email || ""}|${phone || ""}`.toLowerCase();
         if (!map.has(key)) {
-          map.set(key, {
-            client_name: name,
-            client_email: email,
-            client_phone: phone,
-          });
+          map.set(key, { client_name: name, client_email: email, client_phone: phone });
         }
       }
       const customerIds = (customerRoles.data || []).map((r) => r.user_id).filter(Boolean);
@@ -157,11 +154,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
           const phone = profile.phone || null;
           const key = `${name}||${phone || ""}`.toLowerCase();
           if (!map.has(key)) {
-            map.set(key, {
-              client_name: name,
-              client_email: null,
-              client_phone: phone,
-            });
+            map.set(key, { client_name: name, client_email: null, client_phone: phone });
           }
         }
       }
@@ -182,16 +175,16 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
   };
 
   const applyTemplate = (index: number, templateId: string) => {
-    const t = lineTemplates.find((x) => x.id === templateId);
-    if (!t) return;
+    const tmpl = lineTemplates.find((x) => x.id === templateId);
+    if (!tmpl) return;
     setItems((prev) =>
       prev.map((item, i) =>
         i === index
           ? {
               ...item,
-              description: t.description,
-              unit_price: Number(t.unit_price || 0),
-              quantity: Number(t.default_quantity || 1),
+              description: tmpl.description,
+              unit_price: Number(tmpl.unit_price || 0),
+              quantity: Number(tmpl.default_quantity || 1),
             }
           : item,
       ),
@@ -228,19 +221,26 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
     setSuggestionsOpen(false);
   };
 
-  const resetForm = () => {
+  const resetForm = async () => {
+    const ctx = await loadOrgBillingContext();
+    setBilling(ctx);
+    const defaultDue = format(addDays(new Date(), ctx.defaultPaymentTermDays || 7), "yyyy-MM-dd");
     setClientName("");
     setClientEmail("");
     setClientSearch("");
     setSuggestions([]);
     setSuggestionsOpen(false);
-    setDueDate(defaultDueDate);
-    setPaymentMethod("card");
+    setDueDate(defaultDue);
+    setPaymentMethod(ctx.defaultPaymentMethod);
     setNotes("");
-    setTaxRate(0);
+    setTaxRate(ctx.taxExempt ? 0 : ctx.defaultTaxRate);
     setItems([{ description: "", quantity: 1, unit_price: 0 }]);
     fetchLineTemplates();
   };
+
+  useEffect(() => {
+    if (open) void resetForm();
+  }, [open]);
 
   const handleSave = async () => {
     if (!clientName.trim()) {
@@ -257,10 +257,14 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
     }
 
     setSaving(true);
+    const orgId = await getUserOrganizationId();
+    const invoiceNumber = await allocateInvoiceNumber(orgId);
+
     const { data: createdRows, error } = await supabase
       .from("invoices" as any)
       .insert({
-        invoice_number: generateInvoiceNumber(),
+        invoice_number: invoiceNumber,
+        organization_id: orgId,
         client_name: clientName,
         client_email: clientEmail || null,
         company_id: defaultCompany?.id || null,
@@ -269,6 +273,9 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
         tax_rate: taxRate,
         tax_amount: taxAmount,
         total,
+        currency,
+        tax_label: taxLabel,
+        prices_include_tax: pricesIncludeTax,
         notes: notes || null,
         due_date: dueDate || null,
         payment_method: paymentMethod,
@@ -316,18 +323,11 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
     setSaving(false);
     toast.success(t("billing.invoiceSavedSent"));
     setOpen(false);
-    resetForm();
     onCreated();
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        setOpen(v);
-        if (v) resetForm();
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
           <FilePlus className="h-4 w-4" /> {t("billing.createInvoice")}
@@ -380,7 +380,6 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
             )}
           </div>
 
-          {/* Client info */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label className="text-xs">{t("billing.clientName")}</Label>
@@ -395,7 +394,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label className="text-xs">{t("billing.companyLabel")}</Label>
-              <Input value={defaultCompany?.legal_name || t("billing.yourStudio")} readOnly />
+              <Input value={billing?.invoiceLegalName || defaultCompany?.legal_name || t("billing.yourStudio")} readOnly />
             </div>
             <div>
               <Label className="text-xs">{t("billing.dueDateLabel")}</Label>
@@ -418,7 +417,7 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
               </Select>
             </div>
           </div>
-          {/* Line items */}
+
           <div>
             <Label className="text-xs mb-2 block">{t("billing.lineItems")}</Label>
             <div className="space-y-2">
@@ -432,9 +431,9 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                           <SelectValue placeholder={lineTemplates.length ? t("billing.chooseSavedItem") : t("billing.noSavedItems")} />
                         </SelectTrigger>
                         <SelectContent>
-                          {lineTemplates.map((t) => (
-                            <SelectItem key={t.id} value={t.id}>
-                              {t.description} · £{Number(t.unit_price).toFixed(2)}
+                          {lineTemplates.map((tmpl) => (
+                            <SelectItem key={tmpl.id} value={tmpl.id}>
+                              {tmpl.description} · {formatShopMoney(Number(tmpl.unit_price), currency)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -448,35 +447,35 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                   </div>
 
                   <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-                  <Input
-                    className="flex-1"
-                    placeholder={t("billing.description")}
-                    value={item.description}
-                    onChange={(e) => updateItem(i, "description", e.target.value)}
-                  />
-                  <Input
-                    className="w-16"
-                    type="number"
-                    min={1}
-                    placeholder={t("billing.qty")}
-                    value={item.quantity || ""}
-                    onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value, 10) || 1)}
-                  />
-                  <Input
-                    className="w-24"
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    placeholder={t("billing.price")}
-                    value={item.unit_price || ""}
-                    onChange={(e) => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
-                  />
-                  {items.length > 1 && (
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => removeItem(i)}>
-                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Button>
-                  )}
-                </div>
+                    <Input
+                      className="flex-1"
+                      placeholder={t("billing.description")}
+                      value={item.description}
+                      onChange={(e) => updateItem(i, "description", e.target.value)}
+                    />
+                    <Input
+                      className="w-16"
+                      type="number"
+                      min={1}
+                      placeholder={t("billing.qty")}
+                      value={item.quantity || ""}
+                      onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value, 10) || 1)}
+                    />
+                    <Input
+                      className="w-24"
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      placeholder={t("billing.price")}
+                      value={item.unit_price || ""}
+                      onChange={(e) => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
+                    />
+                    {items.length > 1 && (
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => removeItem(i)}>
+                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -485,9 +484,8 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
             </Button>
           </div>
 
-          {/* Tax */}
           <div className="flex items-center gap-3">
-            <Label className="text-xs whitespace-nowrap">{t("billing.vatPercent")}</Label>
+            <Label className="text-xs whitespace-nowrap">{t("billing.taxRatePercent", { label: taxLabel })}</Label>
             <Input
               className="w-20"
               type="number"
@@ -497,23 +495,21 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
             />
           </div>
 
-          {/* Totals */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("billing.subtotal")}</span>
-              <span>£{subtotal.toFixed(2)}</span>
+              <span>{formatShopMoney(subtotal, currency)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("billing.vatWithRate", { rate: taxRate })}</span>
-              <span>£{taxAmount.toFixed(2)}</span>
+              <span className="text-muted-foreground">{t("billing.taxWithRate", { label: taxLabel, rate: taxRate })}</span>
+              <span>{formatShopMoney(taxAmount, currency)}</span>
             </div>
             <div className="mt-1 flex justify-between border-t border-border pt-1 font-bold">
               <span>{t("billing.total")}</span>
-              <span>£{total.toFixed(2)}</span>
+              <span>{formatShopMoney(total, currency)}</span>
             </div>
           </div>
 
-          {/* Notes */}
           <div>
             <Label className="text-xs">{t("billing.notes")}</Label>
             <Textarea

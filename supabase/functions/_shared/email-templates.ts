@@ -287,16 +287,18 @@ export function buildInvoiceEmail(params: {
   notes?: string | null;
   payUrl?: string | null;
   currency?: string;
+  taxLabel?: string;
 }): string {
   const brand = getShopBranding();
   const currency = params.currency ?? "gbp";
+  const taxLabel = params.taxLabel ?? "VAT";
   const fmt = (n: number) => formatShopMoney(Number(n), currency);
   const details = emailDetailTable([
     { label: "Invoice number", value: params.invoiceNumber },
     { label: "Issue date", value: params.issueText },
     { label: "Due date", value: params.dueText },
     { label: "Subtotal", value: fmt(params.subtotal) },
-    { label: "VAT", value: fmt(params.taxAmount) },
+    { label: taxLabel, value: fmt(params.taxAmount) },
     { label: "Total due", value: fmt(params.total) },
     { label: "Payment method", value: params.paymentMethodLabel },
     { label: "Payment option", value: params.paymentTermLabel },

@@ -84,6 +84,16 @@ Required for `/subscribe` checkout. **All three** price secrets must be set.
 
 **Validate (admin):** After deploy, signed-in admin can POST to edge function `validate-platform-billing` (empty body) to see which secrets fail.
 
+**Multi-currency (optional):** When a studio’s billing currency is not GBP, checkout uses `subscription_plan_prices.stripe_price_id` for that currency, or Edge secrets:
+
+| Secret pattern | Example |
+|----------------|---------|
+| `STRIPE_PRICE_{PLAN}_{CURRENCY}` | `STRIPE_PRICE_STARTER_EUR`, `STRIPE_PRICE_STUDIO_USD` |
+
+Create matching **recurring monthly** Stripe prices in each currency (Products → Pricing → copy `price_...`).
+
+**Stripe Tax (optional):** Set `STRIPE_TAX_ENABLED=true` after enabling [Stripe Tax](https://dashboard.stripe.com/tax) in your Stripe account. Checkout will collect billing address, tax IDs, and apply automatic tax for platform subscriptions.
+
 ---
 
 ## Auth SMTP (password reset — separate page)

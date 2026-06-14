@@ -376,7 +376,6 @@ serve(async (req) => {
       userId: user.id,
     });
     const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
-    const { currency: invoiceCurrency } = await getShopPaymentSettings(admin, connectCtx?.organizationId ?? invoiceOrgId);
 
     if (!connectCtx) {
       return new Response(
@@ -390,7 +389,7 @@ serve(async (req) => {
 
     const { data: invoice, error } = await admin
       .from("invoices")
-      .select("id, client_email, client_name, invoice_number, total, status")
+      .select("id, client_email, client_name, invoice_number, total, status, currency")
       .eq("id", invoiceId)
       .single();
     if (error || !invoice) {
@@ -399,6 +398,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const invoiceCurrency = String(
+      invoice.currency || (await getShopPaymentSettings(admin, connectCtx.organizationId)).currency,
+    );
 
     const emailMatches = !!invoice.client_email && !!user.email && invoice.client_email.toLowerCase() === user.email.toLowerCase();
     if (!isStaff && !emailMatches) {

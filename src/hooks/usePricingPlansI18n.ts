@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { PricingPlan } from "@/lib/pricingPlans";
-import { PLAN_ARTIST_SEATS, PLAN_INBOX_FEATURES, PLAN_PRICES_GBP, formatPlanPriceGbp } from "@/lib/pricingPlans";
+import {
+  PLAN_ARTIST_SEATS,
+  PLAN_INBOX_FEATURES,
+  formatPlanPrice,
+  getPlanPricesForCurrency,
+} from "@/lib/pricingPlans";
+import { usePricingCurrency } from "@/hooks/usePricingCurrency";
 
 const CORE_FEATURE_KEYS = [0, 1, 2, 3, 4, 5, 6] as const;
 const INBOX_FEATURE_KEYS: Record<string, readonly number[]> = {
@@ -12,13 +18,15 @@ const INBOX_FEATURE_KEYS: Record<string, readonly number[]> = {
 
 export function usePricingPlansI18n(): PricingPlan[] {
   const { t } = useTranslation();
+  const currency = usePricingCurrency();
+  const prices = getPlanPricesForCurrency(currency);
 
   return useMemo(() => {
     const planIds = ["starter", "studio", "enterprise"] as const;
     return planIds.map((id) => ({
       id,
       name: t(`pricing.${id}.name`),
-      price: formatPlanPriceGbp(PLAN_PRICES_GBP[id]),
+      price: formatPlanPrice(prices[id], currency),
       period: t("common.month"),
       tagline: t(`pricing.${id}.tagline`),
       description: t(`pricing.${id}.description`),
@@ -32,7 +40,7 @@ export function usePricingPlansI18n(): PricingPlan[] {
       ctaHref: `/subscribe?plan=${id}`,
       highlighted: id === "studio",
     }));
-  }, [t]);
+  }, [t, currency, prices]);
 }
 
 export function usePricingFaqI18n() {
@@ -51,14 +59,16 @@ export function usePricingFaqI18n() {
 
 export function useComparisonRowsI18n() {
   const { t } = useTranslation();
+  const currency = usePricingCurrency();
+  const prices = getPlanPricesForCurrency(currency);
   const dash = t("pricing.comparison.notIncluded");
   return useMemo(
     () => [
       {
         label: t("pricing.comparison.monthlyPrice"),
-        starter: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
-        studio: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
-        enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
+        starter: formatPlanPrice(prices.starter, currency),
+        studio: formatPlanPrice(prices.studio, currency),
+        enterprise: formatPlanPrice(prices.enterprise, currency),
       },
       { label: t("pricing.comparison.artistSeats"), starter: "3", studio: "6", enterprise: "10" },
       {
@@ -80,6 +90,6 @@ export function useComparisonRowsI18n() {
         enterprise: "500",
       },
     ],
-    [t, dash],
+    [t, dash, currency, prices],
   );
 }

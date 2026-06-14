@@ -6,7 +6,7 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildInvoiceEmail } from "../_shared/email-templates.ts";
 import { getActiveConnectAccount } from "../_shared/stripe-connect.ts";
-import { formatShopMoney, getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
+import { formatShopMoney, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -83,10 +83,19 @@ async function buildInvoicePdf(params: {
   paymentTermLabel: string;
   notes: string | null;
   currency: string;
+  taxLabel: string;
+  issuerLegalName?: string | null;
+  issuerTradingName?: string | null;
+  issuerTaxNumber?: string | null;
+  issuerAddress?: Record<string, unknown> | null;
   items: Array<{ description: string; quantity: number; unit_price: number }>;
 }): Promise<string> {
   const brand = getShopBranding();
   const fmt = (n: number) => formatShopMoney(Number(n), params.currency);
+  const legalName = params.issuerLegalName || brand.legalName;
+  const tradingName = params.issuerTradingName || brand.tradingName;
+  const addr = params.issuerAddress || {};
+  const addrLine = [addr.line1, addr.city, addr.postcode, addr.country_code].filter(Boolean).join(", ");
   const pdf = await PDFDocument.create();
   let page = pdf.addPage([595, 842]); // A4
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -113,8 +122,10 @@ async function buildInvoicePdf(params: {
   draw(`Invoice #: ${params.invoiceNumber}`, 12, true);
   draw(`Issue date: ${params.issueText}`, 10, false, rgb(0.35, 0.35, 0.35));
   draw(`Due date: ${params.dueText}`, 10, false, rgb(0.35, 0.35, 0.35));
-  draw(`Legal name: ${brand.legalName}`, 10, false, rgb(0.35, 0.35, 0.35));
-  draw(`Trading name: ${brand.tradingName}`, 10, false, rgb(0.35, 0.35, 0.35));
+  draw(`Legal name: ${legalName}`, 10, false, rgb(0.35, 0.35, 0.35));
+  draw(`Trading name: ${tradingName}`, 10, false, rgb(0.35, 0.35, 0.35));
+  if (params.issuerTaxNumber) draw(`Tax ID: ${params.issuerTaxNumber}`, 10, false, rgb(0.35, 0.35, 0.35));
+  if (addrLine) draw(addrLine, 10, false, rgb(0.35, 0.35, 0.35));
   y -= 6;
 
   page.drawRectangle({
@@ -169,7 +180,7 @@ async function buildInvoicePdf(params: {
     borderWidth: 1,
   });
   draw(`Subtotal: ${fmt(params.subtotal)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
-  draw(`VAT: ${fmt(params.taxAmount)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
+  draw(`${params.taxLabel}: ${fmt(params.taxAmount)}`, 10, false, rgb(0.25, 0.25, 0.25), 342);
   draw(`Total due: ${fmt(params.total)}`, 12, true, rgb(0.06, 0.06, 0.06), 342);
   if (params.notes) {
     y -= 6;
@@ -251,7 +262,7 @@ serve(async (req) => {
 
     const { data: invoice, error: invoiceErr } = await adminClient
       .from("invoices")
-      .select("id, invoice_number, client_name, client_email, due_date, subtotal, tax_amount, total, notes, payment_method, payment_term, items")
+      .select("id, invoice_number, client_name, client_email, due_date, subtotal, tax_amount, tax_rate, tax_label, total, notes, payment_method, payment_term, items, currency, issuer_legal_name, issuer_tax_number, issuer_address, organization_id")
       .eq("id", invoiceId)
       .single();
 
@@ -289,20 +300,21 @@ serve(async (req) => {
     }));
 
     const connectCtx = await getActiveConnectAccount(adminClient, { userId: authData.user.id });
-    const { currency: shopCurrency } = await getShopPaymentSettings(
-      adminClient,
-      connectCtx?.organizationId ?? null,
-    );
+    const invoiceCurrency = String(invoice.currency || "gbp");
+    const taxLabel = String(invoice.tax_label || "VAT");
+    const issuerAddress = (invoice.issuer_address && typeof invoice.issuer_address === "object")
+      ? invoice.issuer_address as Record<string, unknown>
+      : null;
 
     // Stripe pay-link is optional: never block invoice email/PDF if checkout fails (bad key, low total, DB column drift, etc.)
     let payUrl: string | null = null;
     if (stripeSecret && action !== "pdf" && invoice.payment_method === "card" && invoice.payment_term === "due") {
       const invoiceTotal = Number(invoice.total || 0);
-      if (invoiceTotal >= stripeMinimumChargeMajor(shopCurrency)) {
+      if (invoiceTotal >= stripeMinimumChargeMajor(invoiceCurrency)) {
         try {
           const checkout = await createInvoiceCheckoutUrl({
             stripeSecret,
-            currency: shopCurrency,
+            currency: invoiceCurrency,
             invoice: {
               id: invoice.id,
               invoice_number: invoice.invoice_number,
@@ -340,7 +352,8 @@ serve(async (req) => {
       paymentTermLabel,
       notes: invoice.notes,
       payUrl,
-      currency: shopCurrency,
+      currency: invoiceCurrency,
+      taxLabel,
     });
 
     const pdfBase64 = await buildInvoicePdf({
@@ -355,7 +368,12 @@ serve(async (req) => {
       paymentMethodLabel,
       paymentTermLabel,
       notes: invoice.notes,
-      currency: shopCurrency,
+      currency: invoiceCurrency,
+      taxLabel,
+      issuerLegalName: invoice.issuer_legal_name,
+      issuerTradingName: (issuerAddress?.trading_name as string | null) ?? null,
+      issuerTaxNumber: invoice.issuer_tax_number,
+      issuerAddress,
       items: parsedItems,
     });
 
