@@ -317,6 +317,7 @@
     "depositRemindersNote": "Automatische Anzahlungserinnerungen werden für Piercing-Buchungen nicht gesendet. Sie können eine manuell von einer Buchung oder der Anzahlungsseite senden.",
     "enableDepositReminders": "Anzahlungserinnerungen aktivieren",
     "sendReminder": "Erinnerung senden",
+    "payAtDesk": "An der Kasse bezahlen",
     "appointmentReminders": "Terminerinnerungen",
     "appointmentRemindersDesc": "Erinnerungen an Kunden vor ihren geplanten Terminen senden",
     "enableAppointmentReminders": "Terminerinnerungen aktivieren",
@@ -1351,6 +1352,7 @@
     "depositPaidBadge": "50 £ bezahlt",
     "depositPendingBadge": "50 £ ausstehend",
     "sendReminder": "Erinnerung senden",
+    "payAtDesk": "An der Kasse bezahlen",
     "sending": "Senden…",
     "consent": "Zustimmung",
     "checkingConsent": "Einwilligung prüfen…",
@@ -1564,6 +1566,13 @@
     "saleStatusSucceeded": "Bezahlt",
     "saleStatusPending": "Ausstehend",
     "saleStatusFailed": "Fehlgeschlagen",
-    "saleTime": "Zeit"
+    "saleTime": "Zeit",
+    "addCustomItem": "Eigene Position",
+    "customItemName": "Beschreibung",
+    "customItemNamePlaceholder": "z. B. Touch-up, Merch",
+    "customItemPrice": "Einzelpreis",
+    "units": "Menge",
+    "addToOrder": "Zur Bestellung",
+    "customItemInvalid": "Beschreibung und gültigen Preis eingeben."
   }
 }

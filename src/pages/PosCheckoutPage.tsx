@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,7 +29,7 @@ import {
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 interface ServiceRow {
   id: string;
@@ -55,6 +56,9 @@ interface CartEntry {
 const PosCheckoutPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const prefilledArtistId = searchParams.get("artistId");
+  const prefilledClientName = searchParams.get("clientName");
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [artists, setArtists] = useState<ArtistOption[]>([]);
@@ -77,6 +81,8 @@ const PosCheckoutPage = () => {
   const [paying, setPaying] = useState(false);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1" });
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
 
@@ -114,11 +120,13 @@ const PosCheckoutPage = () => {
       setConnectReady(!!connectRes.data?.connect?.ready);
 
       setArtistId((current) => {
+        if (prefilledArtistId) return prefilledArtistId;
         if (current) return current;
         if (user.id && artistIds.has(user.id)) return user.id;
         if (artistList.length > 0) return artistList[0].user_id;
         return current;
       });
+      if (prefilledClientName) setClientName(prefilledClientName);
 
       if (posSettings) {
         setPosEnabled(posSettings.enabled);
@@ -134,7 +142,7 @@ const PosCheckoutPage = () => {
       setRecentSales(recentSalesRes);
       setLoading(false);
     })();
-  }, [user]);
+  }, [user, prefilledArtistId, prefilledClientName]);
 
   const lineItems: PosLineItem[] = useMemo(
     () =>
@@ -198,6 +206,20 @@ const PosCheckoutPage = () => {
         .map((c) => (c.key === key ? { ...c, quantity: Math.max(0, c.quantity + delta) } : c))
         .filter((c) => c.quantity > 0),
     );
+  };
+
+  const addCustomItem = () => {
+    const name = customForm.name.trim();
+    const unitPrice = Number(customForm.price);
+    const quantity = Math.max(1, parseInt(customForm.quantity, 10) || 1);
+    if (!name || Number.isNaN(unitPrice) || unitPrice < 0) {
+      toast.error(t("pos.customItemInvalid"));
+      return;
+    }
+    const key = `custom-${Date.now()}`;
+    setCart((prev) => [...prev, { key, serviceId: null, name, unitPrice, quantity }]);
+    setCustomForm({ name: "", price: "", quantity: "1" });
+    setCustomOpen(false);
   };
 
   const clearCart = () => {
@@ -343,8 +365,15 @@ const PosCheckoutPage = () => {
             <div className="lg:col-span-3 space-y-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{t("pos.services")}</CardTitle>
-                  <CardDescription>{t("pos.servicesHint")}</CardDescription>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-lg">{t("pos.services")}</CardTitle>
+                      <CardDescription>{t("pos.servicesHint")}</CardDescription>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setCustomOpen(true)}>
+                      {t("pos.addCustomItem")}
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid sm:grid-cols-2 gap-3">
@@ -625,6 +654,54 @@ const PosCheckoutPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        <Dialog open={customOpen} onOpenChange={setCustomOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t("pos.addCustomItem")}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div>
+                <Label htmlFor="custom-name">{t("pos.customItemName")}</Label>
+                <Input
+                  id="custom-name"
+                  value={customForm.name}
+                  onChange={(e) => setCustomForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder={t("pos.customItemNamePlaceholder")}
+                  className="mt-1 bg-secondary"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="custom-price">{t("pos.customItemPrice")}</Label>
+                  <Input
+                    id="custom-price"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={customForm.price}
+                    onChange={(e) => setCustomForm((f) => ({ ...f, price: e.target.value }))}
+                    className="mt-1 bg-secondary"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="custom-qty">{t("pos.units")}</Label>
+                  <Input
+                    id="custom-qty"
+                    type="number"
+                    min={1}
+                    value={customForm.quantity}
+                    onChange={(e) => setCustomForm((f) => ({ ...f, quantity: e.target.value }))}
+                    className="mt-1 bg-secondary"
+                  />
+                </div>
+              </div>
+              <Button type="button" className="w-full" onClick={addCustomItem}>
+                {t("pos.addToOrder")}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </SubscriptionGate>
     </AppLayout>
   );

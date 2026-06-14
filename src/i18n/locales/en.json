@@ -637,6 +637,7 @@
     "depositRemindersNote": "Automatic deposit reminders are not sent for piercing bookings. You can still send one manually from a booking or the Deposits page.",
     "enableDepositReminders": "Enable deposit reminders",
     "sendReminder": "Send reminder",
+    "payAtDesk": "Pay at desk",
     "appointmentReminders": "Appointment reminders",
     "appointmentRemindersDesc": "Send reminders to clients before their scheduled appointments",
     "enableAppointmentReminders": "Enable appointment reminders",
@@ -1649,6 +1650,7 @@
     "depositPaidBadge": "£50 Paid",
     "depositPendingBadge": "£50 Pending",
     "sendReminder": "Send reminder",
+    "payAtDesk": "Pay at desk",
     "sending": "Sending…",
     "consent": "Consent",
     "checkingConsent": "Checking consent…",
@@ -1784,7 +1786,14 @@
     "saleStatusSucceeded": "Paid",
     "saleStatusPending": "Pending",
     "saleStatusFailed": "Failed",
-    "saleTime": "Time"
+    "saleTime": "Time",
+    "addCustomItem": "Custom item",
+    "customItemName": "Description",
+    "customItemNamePlaceholder": "e.g. Touch-up, merchandise",
+    "customItemPrice": "Unit price",
+    "units": "Qty",
+    "addToOrder": "Add to order",
+    "customItemInvalid": "Enter a description and valid price."
   },
   "staff": {
     "loading": "Loading…"

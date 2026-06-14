@@ -14,6 +14,7 @@ import { Building2, AlertCircle, PoundSterling, TrendingUp, CheckCircle2, XCircl
 import CreateInvoiceDialog from "@/components/billing/CreateInvoiceDialog";
 import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
 import BillingSettingsCard from "@/components/billing/BillingSettingsCard";
+import PosSalesCard from "@/components/billing/PosSalesCard";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
@@ -394,6 +395,8 @@ const BillingPage = () => {
             </Card>
           )}
         </div>
+
+        <PosSalesCard />
 
         <BillingSettingsCard />
 

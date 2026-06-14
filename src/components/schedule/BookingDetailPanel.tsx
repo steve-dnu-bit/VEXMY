@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare } from "lucide-react";
+import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -399,6 +399,14 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
             >
               <Send className="h-3 w-3" />
               {sendingDepositReminder ? t("schedule.sending") : t("schedule.sendReminder")}
+            </Button>
+            <Button size="sm" variant="secondary" className="w-full h-8 mt-2 text-xs gap-1" asChild>
+              <Link
+                to={`/checkout?artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
+              >
+                <CreditCard className="h-3 w-3" />
+                {t("schedule.payAtDesk")}
+              </Link>
             </Button>
           </div>
 
