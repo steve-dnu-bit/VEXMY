@@ -53,6 +53,7 @@ const CustomerDepositsPage = lazy(() => import("./pages/CustomerDepositsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
+const CustomerEmbedLoginPage = lazy(() => import("./pages/CustomerEmbedLoginPage"));
 const PosCheckoutPage = lazy(() => import("./pages/PosCheckoutPage"));
 
 const queryClient = new QueryClient({
