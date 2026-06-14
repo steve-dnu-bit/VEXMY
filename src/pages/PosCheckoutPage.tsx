@@ -1,0 +1,544 @@
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2 } from "lucide-react";
+import AppLayout from "@/components/AppLayout";
+import SubscriptionGate from "@/components/subscription/SubscriptionGate";
+import StripeConnectCard from "@/components/subscription/StripeConnectCard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { formatShopMoney } from "@/lib/shopCurrency";
+import { loadOrgBillingContext } from "@/lib/orgBilling";
+import {
+  computePosTotals,
+  loadArtistPosSplits,
+  loadShopPosSettings,
+  resolveSplitPercents,
+  type PosLineItem,
+} from "@/lib/posCheckout";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { useStripeTerminal } from "@/hooks/useStripeTerminal";
+import { Link } from "react-router-dom";
+
+interface ServiceRow {
+  id: string;
+  name: string;
+  price: number | null;
+  service_category: string;
+  duration: number;
+  color: string;
+}
+
+interface ArtistOption {
+  user_id: string;
+  display_name: string;
+}
+
+interface CartEntry {
+  key: string;
+  serviceId: string | null;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+const PosCheckoutPage = () => {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<ServiceRow[]>([]);
+  const [artists, setArtists] = useState<ArtistOption[]>([]);
+  const [cart, setCart] = useState<CartEntry[]>([]);
+  const [artistId, setArtistId] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [gratuityPercent, setGratuityPercent] = useState(0);
+  const [currency, setCurrency] = useState("gbp");
+  const [taxRate, setTaxRate] = useState(0);
+  const [taxLabel, setTaxLabel] = useState("VAT");
+  const [pricesIncludeTax, setPricesIncludeTax] = useState(false);
+  const [taxExempt, setTaxExempt] = useState(false);
+  const [posEnabled, setPosEnabled] = useState(false);
+  const [shopSplit, setShopSplit] = useState({ shopPercent: 30, artistPercent: 70 });
+  const [artistSplits, setArtistSplits] = useState<Awaited<ReturnType<typeof loadArtistPosSplits>>>([]);
+  const [simulatedReader, setSimulatedReader] = useState(false);
+  const [locationId, setLocationId] = useState<string | null>(null);
+  const [connectReady, setConnectReady] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [lastSaleId, setLastSaleId] = useState<string | null>(null);
+
+  const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
+
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      setLoading(true);
+      const [servicesRes, profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes] = await Promise.all([
+        supabase.from("services").select("id, name, price, service_category, duration, color").eq("is_active", true).order("sort_order"),
+        supabase.from("profiles").select("user_id, display_name"),
+        supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+        loadOrgBillingContext(),
+        loadShopPosSettings(),
+        loadArtistPosSplits(),
+        invokeEdgeFunctionJson<{ connect?: { ready?: boolean } }>("stripe-terminal-pos", { action: "connect_status" }),
+      ]);
+
+      const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
+      const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as ArtistOption[];
+
+      setArtists(artistList);
+      setServices((servicesRes.data || []) as ServiceRow[]);
+      setCurrency(billingCtx.currency);
+      setTaxRate(billingCtx.defaultTaxRate);
+      setTaxLabel(billingCtx.taxLabel);
+      setPricesIncludeTax(billingCtx.pricesIncludeTax);
+      setTaxExempt(billingCtx.taxExempt);
+      setArtistSplits(splits);
+      setConnectReady(!!connectRes.data?.connect?.ready);
+
+      setArtistId((current) => {
+        if (current) return current;
+        if (user.id && artistIds.has(user.id)) return user.id;
+        if (artistList.length > 0) return artistList[0].user_id;
+        return current;
+      });
+
+      if (posSettings) {
+        setPosEnabled(posSettings.enabled);
+        setSimulatedReader(posSettings.simulated_reader);
+        setLocationId(posSettings.stripe_terminal_location_id);
+        setGratuityPercent(posSettings.default_gratuity_percent);
+        setShopSplit({
+          shopPercent: posSettings.shop_split_percent,
+          artistPercent: posSettings.artist_split_percent,
+        });
+      }
+      setLoading(false);
+    })();
+  }, [user]);
+
+  const lineItems: PosLineItem[] = useMemo(
+    () =>
+      cart.map((entry) => ({
+        serviceId: entry.serviceId,
+        name: entry.name,
+        quantity: entry.quantity,
+        unitPrice: entry.unitPrice,
+        lineTotal: Math.round(entry.unitPrice * entry.quantity * 100) / 100,
+      })),
+    [cart],
+  );
+
+  const activeSplit = useMemo(() => {
+    const override = artistSplits.find((s) => s.artist_id === artistId);
+    return resolveSplitPercents(
+      { shop_split_percent: shopSplit.shopPercent, artist_split_percent: shopSplit.artistPercent },
+      override,
+    );
+  }, [artistId, artistSplits, shopSplit]);
+
+  const totals = useMemo(
+    () =>
+      computePosTotals({
+        lineItems,
+        taxRate,
+        pricesIncludeTax,
+        taxExempt,
+        gratuityPercent: posEnabled ? gratuityPercent : 0,
+        shopPercent: activeSplit.shopPercent,
+        artistPercent: activeSplit.artistPercent,
+      }),
+    [lineItems, taxRate, pricesIncludeTax, taxExempt, gratuityPercent, posEnabled, activeSplit],
+  );
+
+  const selectedArtist = artists.find((a) => a.user_id === artistId);
+
+  const addService = (service: ServiceRow) => {
+    const price = service.price ?? 0;
+    setCart((prev) => {
+      const existing = prev.find((c) => c.serviceId === service.id);
+      if (existing) {
+        return prev.map((c) => (c.serviceId === service.id ? { ...c, quantity: c.quantity + 1 } : c));
+      }
+      return [
+        ...prev,
+        {
+          key: service.id,
+          serviceId: service.id,
+          name: service.name,
+          unitPrice: price,
+          quantity: 1,
+        },
+      ];
+    });
+  };
+
+  const updateQty = (key: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((c) => (c.key === key ? { ...c, quantity: Math.max(0, c.quantity + delta) } : c))
+        .filter((c) => c.quantity > 0),
+    );
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    setClientName("");
+    setLastSaleId(null);
+  };
+
+  const handlePay = async () => {
+    if (!artistId || cart.length === 0) {
+      toast.error(t("pos.addItemsFirst"));
+      return;
+    }
+    if (!connectReady) {
+      toast.error(t("pos.connectRequired"));
+      return;
+    }
+    if (!simulatedReader && !locationId) {
+      toast.error(t("pos.locationRequired"));
+      return;
+    }
+
+    setPaying(true);
+    let saleId: string | null = null;
+    try {
+      const { data: piData, error: piErr } = await invokeEdgeFunctionJson<{
+        clientSecret?: string;
+        saleId?: string;
+        paymentIntentId?: string;
+      }>("stripe-terminal-pos", {
+        action: "create_payment_intent",
+        artistId,
+        clientName,
+        currency,
+        items: lineItems,
+        subtotal: totals.subtotal,
+        taxAmount: totals.taxAmount,
+        gratuityAmount: totals.gratuityAmount,
+        total: totals.total,
+        shopAmount: totals.shopAmount,
+        artistAmount: totals.artistAmount,
+        shopSplitPercent: activeSplit.shopPercent,
+        artistSplitPercent: activeSplit.artistPercent,
+      });
+
+      if (piErr || !piData.clientSecret || !piData.saleId) {
+        throw new Error(piErr?.message || t("pos.paymentFailed"));
+      }
+
+      saleId = piData.saleId;
+      const result = await terminal.collectAndProcess(piData.clientSecret);
+
+      await invokeEdgeFunctionJson("stripe-terminal-pos", {
+        action: "complete_sale",
+        saleId: piData.saleId,
+        paymentIntentId: result.paymentIntentId,
+        readerId: result.readerId,
+        status: "succeeded",
+      });
+
+      setLastSaleId(piData.saleId);
+      toast.success(t("pos.paymentSuccess"));
+      setCart([]);
+      setClientName("");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
+      toast.error(msg);
+      if (saleId) {
+        await invokeEdgeFunctionJson("stripe-terminal-pos", {
+          action: "complete_sale",
+          saleId,
+          status: "failed",
+        });
+      }
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!posEnabled) {
+    return (
+      <AppLayout>
+        <SubscriptionGate>
+          <div className="mx-auto max-w-lg py-12 px-4 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("pos.checkoutTitle")}</CardTitle>
+                <CardDescription>{t("pos.notEnabledDesc")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline">
+                  <Link to="/admin?tab=pos-checkout">{t("pos.openAdminSettings")}</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </SubscriptionGate>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout>
+      <SubscriptionGate>
+        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">{t("pos.checkoutTitle")}</h1>
+              <p className="text-sm text-muted-foreground mt-1">{t("pos.checkoutSubtitle")}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {terminal.status === "connected" ? (
+                <Badge variant="outline" className="gap-1 border-emerald-500/40 text-emerald-600">
+                  <Wifi className="h-3 w-3" />
+                  {settingsReaderLabel(simulatedReader, terminal.reader?.label)}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                  <WifiOff className="h-3 w-3" />
+                  {t("pos.readerDisconnected")}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {!connectReady && (
+            <StripeConnectCard compact returnPath="/checkout" refreshPath="/checkout" />
+          )}
+
+          <div className="grid lg:grid-cols-5 gap-6">
+            {/* Services */}
+            <div className="lg:col-span-3 space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{t("pos.services")}</CardTitle>
+                  <CardDescription>{t("pos.servicesHint")}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {services.map((service) => (
+                      <button
+                        key={service.id}
+                        type="button"
+                        onClick={() => addService(service)}
+                        className="text-left rounded-xl border border-border bg-card hover:bg-accent/40 transition-colors p-4 space-y-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-medium leading-snug">{service.name}</span>
+                          <span className="text-sm font-semibold tabular-nums shrink-0">
+                            {formatShopMoney(service.price ?? 0, currency)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {service.service_category} · {service.duration} min
+                        </p>
+                      </button>
+                    ))}
+                    {services.length === 0 && (
+                      <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noServices")}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {t("pos.sessionDetails")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t("pos.artist")}</Label>
+                    <Select value={artistId} onValueChange={setArtistId}>
+                      <SelectTrigger className="mt-1 bg-secondary">
+                        <SelectValue placeholder={t("pos.selectArtist")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {artists.map((a) => (
+                          <SelectItem key={a.user_id} value={a.user_id}>
+                            {a.display_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="pos-client">{t("pos.clientName")}</Label>
+                    <Input
+                      id="pos-client"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      placeholder={t("pos.clientNamePlaceholder")}
+                      className="mt-1 bg-secondary"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Order summary */}
+            <div className="lg:col-span-2">
+              <Card className="sticky top-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{t("pos.orderSummary")}</CardTitle>
+                  {selectedArtist && (
+                    <CardDescription>
+                      {t("pos.withArtist", { name: selectedArtist.display_name })}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {cart.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">{t("pos.emptyCart")}</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {cart.map((item) => (
+                        <div key={item.key} className="flex items-start gap-3 text-sm">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{item.name}</p>
+                            <p className="text-muted-foreground text-xs tabular-nums">
+                              {formatShopMoney(item.unitPrice, currency)} × {item.quantity}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button type="button" size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.key, -1)}>
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-6 text-center tabular-nums">{item.quantity}</span>
+                            <Button type="button" size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.key, 1)}>
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="font-medium tabular-nums w-20 text-right">
+                            {formatShopMoney(item.unitPrice * item.quantity, currency)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">{t("pos.subtotal")}</dt>
+                      <dd className="tabular-nums font-medium">{formatShopMoney(totals.subtotal, currency)}</dd>
+                    </div>
+                    {!taxExempt && taxRate > 0 && (
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">{taxLabel} ({taxRate}%)</dt>
+                        <dd className="tabular-nums">{formatShopMoney(totals.taxAmount, currency)}</dd>
+                      </div>
+                    )}
+                    {gratuityPercent > 0 && (
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">{t("pos.gratuity")} ({gratuityPercent}%)</dt>
+                        <dd className="tabular-nums">{formatShopMoney(totals.gratuityAmount, currency)}</dd>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-base pt-1">
+                      <dt className="font-semibold">{t("pos.total")}</dt>
+                      <dd className="font-bold tabular-nums text-lg">{formatShopMoney(totals.total, currency)}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
+                    <p className="font-medium text-sm">{t("pos.paymentSplit")}</p>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t("pos.shopShare", { percent: activeSplit.shopPercent })}</span>
+                      <span className="tabular-nums font-medium">{formatShopMoney(totals.shopAmount, currency)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t("pos.artistShare", { percent: activeSplit.artistPercent })}</span>
+                      <span className="tabular-nums font-medium">{formatShopMoney(totals.artistAmount, currency)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    {terminal.status !== "connected" ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        disabled={terminal.status === "discovering" || terminal.status === "connecting"}
+                        onClick={() => void terminal.discoverAndConnect().catch(() => undefined)}
+                      >
+                        {terminal.status === "discovering" || terminal.status === "connecting" ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Wifi className="h-4 w-4 mr-2" />
+                        )}
+                        {t("pos.connectReader")}
+                      </Button>
+                    ) : (
+                      <Button type="button" variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => void terminal.disconnect()}>
+                        {t("pos.disconnectReader")}
+                      </Button>
+                    )}
+
+                    <Button
+                      type="button"
+                      variant="gold"
+                      className="w-full h-12 text-base"
+                      disabled={paying || cart.length === 0 || !artistId || terminal.status === "processing"}
+                      onClick={() => void handlePay()}
+                    >
+                      {paying || terminal.status === "processing" ? (
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      ) : (
+                        <CreditCard className="h-5 w-5 mr-2" />
+                      )}
+                      {t("pos.chargeCard", { amount: formatShopMoney(totals.total, currency) })}
+                    </Button>
+
+                    {cart.length > 0 && (
+                      <Button type="button" variant="ghost" size="sm" className="w-full" onClick={clearCart}>
+                        {t("pos.clearOrder")}
+                      </Button>
+                    )}
+                  </div>
+
+                  {terminal.error && <p className="text-xs text-destructive">{terminal.error}</p>}
+
+                  {lastSaleId && (
+                    <div className="flex items-center gap-2 text-sm text-emerald-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {t("pos.lastPaymentRecorded")}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </SubscriptionGate>
+    </AppLayout>
+  );
+};
+
+function settingsReaderLabel(simulated: boolean, label?: string) {
+  if (label) return label;
+  return simulated ? "Simulated reader" : "WisePad";
+}
+
+export default PosCheckoutPage;

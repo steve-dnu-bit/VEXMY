@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Users, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature } from "lucide-react";
+import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Users, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +25,7 @@ const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar
   { labelKey: "nav.settings", path: "/settings", icon: Settings, feature: "settings" },
   { labelKey: "nav.deposits", path: "/deposits", icon: PoundSterling, feature: "deposits" },
   { labelKey: "nav.billing", path: "/billing", icon: Building2, feature: "billing" },
+  { labelKey: "nav.checkout", path: "/checkout", icon: CreditCard, feature: "billing" },
   { labelKey: "nav.admin", path: "/admin", icon: Shield, feature: "admin" },
   { labelKey: "nav.consentForm", path: "/consent", icon: FileSignature, feature: "customer_consent" },
 ];

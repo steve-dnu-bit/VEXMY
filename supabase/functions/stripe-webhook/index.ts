@@ -247,6 +247,17 @@ serve(async (req) => {
       }
     }
 
+    if (event.type === "payment_intent.succeeded") {
+      const pi = event.data.object as Stripe.PaymentIntent;
+      if (pi.metadata?.kind === "pos" && pi.metadata?.pos_sale_id) {
+        await admin
+          .from("pos_sales")
+          .update({ status: "succeeded", stripe_payment_intent_id: pi.id })
+          .eq("id", pi.metadata.pos_sale_id)
+          .eq("status", "pending");
+      }
+    }
+
     return new Response(JSON.stringify({ received: true }), {
       headers: { "Content-Type": "application/json" },
     });

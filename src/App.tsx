@@ -53,7 +53,7 @@ const CustomerDepositsPage = lazy(() => import("./pages/CustomerDepositsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
-const CustomerEmbedLoginPage = lazy(() => import("./pages/CustomerEmbedLoginPage"));
+const PosCheckoutPage = lazy(() => import("./pages/PosCheckoutPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -138,6 +138,7 @@ const App = () => (
                 <Route path="/services" element={<ProtectedRoute><StaffRoute><ServicesPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/deposits" element={<ProtectedRoute><StaffRoute><DepositsPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/billing" element={<ProtectedRoute><StaffRoute><BillingPage /></StaffRoute></ProtectedRoute>} />
+                <Route path="/checkout" element={<ProtectedRoute><StaffRoute><PosCheckoutPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><StaffRoute><StockPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><StaffRoute><AdminPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="/platform" element={<ProtectedRoute><PlatformAdminRoute><PlatformAdminPage /></PlatformAdminRoute></ProtectedRoute>} />

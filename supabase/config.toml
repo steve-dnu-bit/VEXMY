@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.platform-admin-grant-gratuity]
 verify_jwt = false
+
+[functions.stripe-terminal-pos]
+verify_jwt = false
