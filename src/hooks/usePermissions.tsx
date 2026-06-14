@@ -4,14 +4,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 export const FEATURES = [
   "schedule", "inbox", "services", "stencil", "clients",
-  "stock", "dashboard", "settings", "deposits", "billing", "admin",
+  "stock", "dashboard", "settings", "deposits", "billing", "checkout", "admin",
   "my_bookings", "customer_consent",
 ] as const;
 
 /** Staff app areas (permission matrix for artists) */
 export const STAFF_FEATURES: Feature[] = [
   "schedule", "inbox", "services", "stencil", "clients",
-  "stock", "dashboard", "settings", "deposits", "billing", "admin",
+  "stock", "dashboard", "settings", "deposits", "billing", "checkout", "admin",
 ];
 
 /** Customer portal areas */

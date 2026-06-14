@@ -1762,7 +1762,7 @@
     "adminTitle": "POS checkout",
     "adminIntro": "Configure in-person card payments with a Stripe WisePad reader. Set default shop/artist split percentages and optional per-artist overrides.",
     "enableCheckout": "Enable checkout page",
-    "enableCheckoutHint": "Shows Checkout in the staff menu for artists with billing access.",
+    "enableCheckoutHint": "Shows Checkout in the staff menu for users with checkout or billing access.",
     "shopSplitPercent": "Shop share",
     "artistGets": "Artist receives {{percent}}%",
     "defaultGratuity": "Default gratuity %",

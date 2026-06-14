@@ -14,7 +14,14 @@ import LanguageSelector from "@/components/i18n/LanguageSelector";
 import VelbokBrand from "@/components/brand/VelbokBrand";
 import { PORTAL_THEME_UPDATED_EVENT, resolveStaffPortalTheme } from "@/lib/shopDashboardTheme";
 
-const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar; feature: Feature }> = [
+const allNavItems: Array<{
+  labelKey: string;
+  path: string;
+  icon: typeof Calendar;
+  feature: Feature;
+  /** Show nav item when any of these permissions are granted (in addition to `feature`). */
+  alsoAllow?: Feature[];
+}> = [
   { labelKey: "nav.schedule", path: "/schedule", icon: Calendar, feature: "schedule" },
   { labelKey: "nav.inbox", path: "/inbox", icon: MessageSquare, feature: "inbox" },
   { labelKey: "nav.services", path: "/services", icon: Briefcase, feature: "services" },
@@ -25,7 +32,7 @@ const allNavItems: Array<{ labelKey: string; path: string; icon: typeof Calendar
   { labelKey: "nav.settings", path: "/settings", icon: Settings, feature: "settings" },
   { labelKey: "nav.deposits", path: "/deposits", icon: PoundSterling, feature: "deposits" },
   { labelKey: "nav.billing", path: "/billing", icon: Building2, feature: "billing" },
-  { labelKey: "nav.checkout", path: "/checkout", icon: CreditCard, feature: "billing" },
+  { labelKey: "nav.checkout", path: "/checkout", icon: CreditCard, feature: "checkout", alsoAllow: ["billing"] },
   { labelKey: "nav.admin", path: "/admin", icon: Shield, feature: "admin" },
   { labelKey: "nav.consentForm", path: "/consent", icon: FileSignature, feature: "customer_consent" },
 ];
@@ -119,7 +126,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [portalBgColor, setPortalBgColor] = useState<string | null>(null);
   const [portalBgImageUrl, setPortalBgImageUrl] = useState<string | null>(null);
 
-  const navItems = allNavItems.filter((item) => hasPermission(item.feature));
+  const navItems = allNavItems.filter(
+    (item) => hasPermission(item.feature) || (item.alsoAllow?.some((f) => hasPermission(f)) ?? false),
+  );
 
   useLayoutEffect(() => {
     if (!user?.id) return;

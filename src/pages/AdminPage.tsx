@@ -74,6 +74,7 @@ const staffFeatureLabels: Record<string, string> = {
   settings: "Settings",
   deposits: "Deposits",
   billing: "Billing",
+  checkout: "Checkout",
   admin: "Admin",
 };
 

@@ -89,7 +89,7 @@ export async function fetchHasNoAppRoles(userId: string): Promise<boolean> {
 export async function fetchHasStaffAccess(userId: string): Promise<boolean> {
   if (await fetchHasStaffRole(userId)) return true;
   try {
-    for (const feature of ["schedule", "deposits", "billing"] as const) {
+    for (const feature of ["schedule", "deposits", "billing", "checkout"] as const) {
       const { data } = await supabase.rpc("has_permission", { _user_id: userId, _feature: feature });
       if (data) return true;
     }

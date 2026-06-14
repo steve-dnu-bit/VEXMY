@@ -1542,7 +1542,7 @@
     "adminTitle": "POS-Kasse",
     "adminIntro": "Kartenzahlungen vor Ort mit Stripe WisePad. Standard-Aufteilung Studio/Künstler und optionale Künstler-Overrides.",
     "enableCheckout": "Kassenseite aktivieren",
-    "enableCheckoutHint": "Zeigt Kasse im Menü für Mitarbeiter mit Abrechnungszugriff.",
+    "enableCheckoutHint": "Zeigt Kasse im Menü für Mitarbeiter mit Kassen- oder Abrechnungszugriff.",
     "shopSplitPercent": "Studio-Anteil",
     "artistGets": "Künstler erhält {{percent}}%",
     "defaultGratuity": "Standard-Trinkgeld %",

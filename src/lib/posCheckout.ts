@@ -141,6 +141,58 @@ export function resolveSplitPercents(
   };
 }
 
+export interface PosBookingPrefill {
+  id: string;
+  booking_type: string;
+  service_category: string | null;
+  starts_at: string;
+  ends_at: string;
+}
+
+export interface PosServiceMatch {
+  id: string;
+  name: string;
+  price: number | null;
+  booking_type: string;
+  service_category: string;
+  duration: number;
+}
+
+export async function loadBookingForPosPrefill(bookingId: string): Promise<PosBookingPrefill | null> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, booking_type, service_category, starts_at, ends_at")
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as PosBookingPrefill;
+}
+
+export function pickServiceForBooking(
+  services: PosServiceMatch[],
+  booking: PosBookingPrefill,
+): PosServiceMatch | null {
+  if (services.length === 0) return null;
+
+  const category = booking.service_category?.trim();
+  const byCategory = category ? services.filter((s) => s.service_category === category) : [];
+  const byType = services.filter((s) => s.booking_type === booking.booking_type);
+  const candidates = byCategory.length > 0 ? byCategory : byType;
+  if (candidates.length === 0) return null;
+
+  const durationMins = Math.max(
+    0,
+    Math.round((new Date(booking.ends_at).getTime() - new Date(booking.starts_at).getTime()) / 60_000),
+  );
+  if (durationMins > 0) {
+    const byDuration = candidates.find((s) => s.duration === durationMins);
+    if (byDuration) return byDuration;
+  }
+
+  return candidates[0];
+}
+
 export function computePosTotals(input: {
   lineItems: PosLineItem[];
   taxRate: number;

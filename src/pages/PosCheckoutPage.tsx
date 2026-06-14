@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
@@ -22,8 +22,10 @@ import { format, parseISO } from "date-fns";
 import {
   computePosTotals,
   loadArtistPosSplits,
+  loadBookingForPosPrefill,
   loadRecentPosSales,
   loadShopPosSettings,
+  pickServiceForBooking,
   resolveSplitPercents,
   type PosLineItem,
   type PosSaleRow,
@@ -37,6 +39,7 @@ interface ServiceRow {
   name: string;
   price: number | null;
   service_category: string;
+  booking_type: string;
   duration: number;
   color: string;
 }
@@ -85,6 +88,7 @@ const PosCheckoutPage = () => {
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
   const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1" });
+  const bookingPrefillDone = useRef(false);
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
 
@@ -98,7 +102,7 @@ const PosCheckoutPage = () => {
     void (async () => {
       setLoading(true);
       const [servicesRes, profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
-        supabase.from("services").select("id, name, price, service_category, duration, color").eq("is_active", true).order("sort_order"),
+        supabase.from("services").select("id, name, price, service_category, booking_type, duration, color").eq("is_active", true).order("sort_order"),
         supabase.from("profiles").select("user_id, display_name"),
         supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
         loadOrgBillingContext(),
@@ -145,6 +149,26 @@ const PosCheckoutPage = () => {
       setLoading(false);
     })();
   }, [user, prefilledArtistId, prefilledClientName]);
+
+  useEffect(() => {
+    if (!prefilledBookingId || loading || bookingPrefillDone.current) return;
+    bookingPrefillDone.current = true;
+    void (async () => {
+      const booking = await loadBookingForPosPrefill(prefilledBookingId);
+      if (!booking) return;
+      const service = pickServiceForBooking(services, booking);
+      if (!service) return;
+      setCart([
+        {
+          key: service.id,
+          serviceId: service.id,
+          name: service.name,
+          unitPrice: service.price ?? 0,
+          quantity: 1,
+        },
+      ]);
+    })();
+  }, [prefilledBookingId, loading, services]);
 
   const lineItems: PosLineItem[] = useMemo(
     () =>
