@@ -4,7 +4,6 @@ import { Plus } from "lucide-react";
 import type { Service } from "@/components/schedule/ServicePresets";
 import { getBookingServiceName } from "@/lib/bookingService";
 import { layoutStackedBookingBlocks } from "@/lib/scheduleBookingLayout";
-import { BOOKING_TYPE_STYLES } from "@/lib/bookingTypes";
 import { getArtistBookingBlockStyle } from "@/lib/themePresets";
 import { type ArtistColorMap, resolveScheduleArtistColor } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
@@ -60,16 +59,14 @@ interface TimeGridProps {
 const ROW_H = 20;
 const HEADER_H = 56;
 
-const bookingTypeStyles = BOOKING_TYPE_STYLES;
-
 type ColumnDef = { user_id: string; display_name: string; day: Date };
 
 function bookingBlockAppearance(
   booking: Booking,
-  portalBgColor: string | null | undefined,
+  artistColor: string,
   profilesReady: boolean,
 ): { className: string; style: CSSProperties } {
-  const artistTheme = getArtistBookingBlockStyle(portalBgColor, {
+  const artistTheme = getArtistBookingBlockStyle(artistColor, {
     cancelled: booking.status === "cancelled",
   });
   if (artistTheme) {
@@ -81,8 +78,7 @@ function bookingBlockAppearance(
   if (!profilesReady) {
     return { className: "border border-border/50 bg-muted/25", style: {} };
   }
-  const colorClass = bookingTypeStyles[booking.booking_type] || bookingTypeStyles.session;
-  return { className: colorClass, style: {} };
+  return { className: "border border-border/50 bg-muted/30", style: {} };
 }
 
 function BookingBlock({
@@ -100,7 +96,7 @@ function BookingBlock({
   serviceName: string;
   artistName: string;
   showArtistOnBlock: boolean;
-  portalBgColor?: string | null;
+  portalBgColor: string;
   profilesReady: boolean;
   onBookingClick: (booking: Booking) => void;
 }) {
@@ -146,7 +142,7 @@ function ArtistColumnHeader({
   onQuickAdd: () => void;
   newBookingTooltip: string;
 }) {
-  const avatarTheme = getArtistBookingBlockStyle(portalBgColor);
+  const avatarTheme = portalBgColor ? getArtistBookingBlockStyle(portalBgColor) : null;
   return (
     <div className="relative group/col">
       <div
@@ -312,26 +308,15 @@ const TimeGrid = ({
     const theme = getArtistBookingBlockStyle(artistPortalColor(booking.artist_id), {
       cancelled: booking.status === "cancelled",
     });
-    if (theme) {
-      return {
-        backgroundColor: theme.backgroundColor,
-        borderLeftColor: theme.borderColor,
-        borderLeftWidth: "4px",
-      };
-    }
-    return {};
+    if (!theme) return {};
+    return {
+      backgroundColor: theme.backgroundColor,
+      borderLeftColor: theme.borderColor,
+      borderLeftWidth: "4px",
+    };
   };
 
-  const mobileCardClass = (booking: Booking) => {
-    if (artistPortalColor(booking.artist_id)) return "border-l-4";
-    if (!profilesReady) return "border-l-4 border-l-border/50 bg-muted/25";
-    if (booking.booking_type === "consultation") return "border-l-blue-400 bg-blue-500/10";
-    if (booking.booking_type === "touch-up") return "border-l-emerald-400 bg-emerald-500/10";
-    if (booking.booking_type === "piercing-session") return "border-l-pink-400 bg-pink-500/10";
-    if (booking.booking_type === "laser-session") return "border-l-violet-400 bg-violet-500/10";
-    if (booking.status === "cancelled") return "border-l-rose-400 bg-rose-500/10";
-    return "border-l-primary bg-primary/10";
-  };
+  const mobileCardClass = () => "border-l-4";
 
   const defaultMobileStart = () => {
     const snapped = snapToScheduleSlot(defaultQuickAddMinutes);
@@ -384,9 +369,7 @@ const TimeGrid = ({
                         key={b.id}
                         type="button"
                         onClick={() => onBookingClick(b)}
-                        className={`w-full text-left rounded-lg border border-border px-3 py-2.5 transition-colors hover:bg-secondary/40 ${mobileCardClass(
-                          b,
-                        )}`}
+                        className={`w-full text-left rounded-lg border border-border px-3 py-2.5 transition-colors hover:bg-secondary/40 ${mobileCardClass()}`}
                         style={mobileCardStyle(b)}
                       >
                         <p className="font-semibold text-sm truncate">{b.client_name}</p>

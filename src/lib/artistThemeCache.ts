@@ -1,27 +1,68 @@
-import { THEME_PRESETS } from "@/lib/themePresets";
+import { SCHEDULE_ARTIST_DEFAULT_PALETTE } from "@/lib/themePresets";
 
-const SCHEDULE_ARTIST_COLORS_KEY = "velbok.scheduleArtistColors";
+const SCHEDULE_ARTIST_COLORS_KEY = "velbok.scheduleArtistColors.v2";
 const PORTAL_THEME_KEY_PREFIX = "velbok.portalTheme.";
 
 export type ArtistColorMap = Record<string, string>;
 
-const SCHEDULE_COLOR_PALETTE = THEME_PRESETS.map((p) => p.bgColor);
+function normalizeHex(hex: string): string {
+  const clean = hex.trim().replace("#", "").toLowerCase();
+  if (clean.length === 3) {
+    return `#${clean[0]}${clean[0]}${clean[1]}${clean[1]}${clean[2]}${clean[2]}`;
+  }
+  return `#${clean}`;
+}
 
-/** Stable pseudo-random color per artist id (same artist always gets the same color). */
+/** Stable fallback when cache has not been written yet (e.g. first paint). */
 export function pickStableScheduleArtistColor(userId: string): string {
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
   }
-  return SCHEDULE_COLOR_PALETTE[hash % SCHEDULE_COLOR_PALETTE.length];
+  return SCHEDULE_ARTIST_DEFAULT_PALETTE[hash % SCHEDULE_ARTIST_DEFAULT_PALETTE.length].bgColor;
+}
+
+function assignDistinctDefaultColors(
+  artistIds: string[],
+  profiles: Array<{ user_id: string; portal_bg_color?: string | null }>,
+  map: ArtistColorMap,
+): void {
+  const portalById = new Map(profiles.map((p) => [p.user_id, p.portal_bg_color]));
+  const usedColors = new Set<string>();
+
+  for (const p of profiles) {
+    if (p.portal_bg_color) usedColors.add(normalizeHex(p.portal_bg_color));
+    if (map[p.user_id]) usedColors.add(normalizeHex(map[p.user_id]));
+  }
+
+  const needsColor = [...new Set(artistIds)]
+    .filter((id) => !portalById.get(id) && !map[id])
+    .sort();
+
+  let paletteIndex = 0;
+  for (const id of needsColor) {
+    let picked = SCHEDULE_ARTIST_DEFAULT_PALETTE[paletteIndex % SCHEDULE_ARTIST_DEFAULT_PALETTE.length].bgColor;
+    for (let attempt = 0; attempt < SCHEDULE_ARTIST_DEFAULT_PALETTE.length; attempt++) {
+      const candidate =
+        SCHEDULE_ARTIST_DEFAULT_PALETTE[(paletteIndex + attempt) % SCHEDULE_ARTIST_DEFAULT_PALETTE.length].bgColor;
+      if (!usedColors.has(normalizeHex(candidate))) {
+        picked = candidate;
+        paletteIndex += attempt + 1;
+        break;
+      }
+    }
+    map[id] = picked;
+    usedColors.add(normalizeHex(picked));
+    paletteIndex++;
+  }
 }
 
 export function resolveScheduleArtistColor(
   artistId: string,
   portalBgColor: string | null | undefined,
   cache: ArtistColorMap,
-): string | null {
-  return portalBgColor ?? cache[artistId] ?? null;
+): string {
+  return portalBgColor ?? cache[artistId] ?? pickStableScheduleArtistColor(artistId);
 }
 
 export function readScheduleArtistColors(): ArtistColorMap {
@@ -49,16 +90,16 @@ export function writeScheduleArtistColors(
 ): ArtistColorMap {
   const existing = readScheduleArtistColors();
   const map: ArtistColorMap = { ...existing };
+
   for (const p of profiles) {
     if (p.portal_bg_color) {
       map[p.user_id] = p.portal_bg_color;
-    } else if (!map[p.user_id]) {
-      map[p.user_id] = pickStableScheduleArtistColor(p.user_id);
     }
   }
-  for (const id of extraArtistIds) {
-    if (!map[id]) map[id] = pickStableScheduleArtistColor(id);
-  }
+
+  const allArtistIds = [...profiles.map((p) => p.user_id), ...extraArtistIds];
+  assignDistinctDefaultColors(allArtistIds, profiles, map);
+
   if (typeof window !== "undefined") {
     sessionStorage.setItem(SCHEDULE_ARTIST_COLORS_KEY, JSON.stringify(map));
   }

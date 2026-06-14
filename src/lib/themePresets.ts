@@ -16,6 +16,18 @@ export const THEME_PRESETS: ThemePreset[] = [
   { key: "ink-red", label: "Ink Red", bgColor: "#8a2430", accentColor: "#ff5d6f" },
 ];
 
+/** High-contrast defaults for schedule blocks until an artist picks a portal theme color. */
+export const SCHEDULE_ARTIST_DEFAULT_PALETTE: ThemePreset[] = [
+  { key: "schedule-blue", label: "Blue", bgColor: "#1d4ed8", accentColor: "#60a5fa" },
+  { key: "schedule-red", label: "Red", bgColor: "#b91c1c", accentColor: "#f87171" },
+  { key: "schedule-green", label: "Green", bgColor: "#15803d", accentColor: "#4ade80" },
+  { key: "schedule-amber", label: "Amber", bgColor: "#b45309", accentColor: "#fbbf24" },
+  { key: "schedule-violet", label: "Violet", bgColor: "#7e22ce", accentColor: "#c084fc" },
+  { key: "schedule-pink", label: "Pink", bgColor: "#be185d", accentColor: "#f472b6" },
+  { key: "schedule-cyan", label: "Cyan", bgColor: "#0e7490", accentColor: "#22d3ee" },
+  { key: "schedule-orange", label: "Orange", bgColor: "#c2410c", accentColor: "#fb923c" },
+];
+
 function normalizeHex(hex: string): string {
   const clean = hex.trim().replace("#", "").toLowerCase();
   if (clean.length === 3) {
@@ -27,7 +39,11 @@ function normalizeHex(hex: string): string {
 export function getThemePresetByBgColor(color: string | null | undefined): ThemePreset | null {
   if (!color) return null;
   const normalized = normalizeHex(color);
-  return THEME_PRESETS.find((p) => normalizeHex(p.bgColor) === normalized) ?? null;
+  return (
+    THEME_PRESETS.find((p) => normalizeHex(p.bgColor) === normalized) ??
+    SCHEDULE_ARTIST_DEFAULT_PALETTE.find((p) => normalizeHex(p.bgColor) === normalized) ??
+    null
+  );
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -61,8 +77,8 @@ export function getArtistBookingBlockStyle(
   const bg = preset?.bgColor ?? portalBgColor;
   const accent = preset?.accentColor ?? portalBgColor;
   return {
-    backgroundColor: hexToRgba(bg, 0.38),
-    borderColor: hexToRgba(accent, 0.55),
+    backgroundColor: hexToRgba(bg, 0.55),
+    borderColor: hexToRgba(accent, 0.9),
     color: accent,
   };
 }

@@ -26,8 +26,7 @@ interface ScheduleSidebarProps {
   setCurrentDate: (d: Date) => void;
 }
 
-function ArtistColorDot({ color }: { color: string | null }) {
-  if (!color) return <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-muted" />;
+function ArtistColorDot({ color }: { color: string }) {
   const preset = getThemePresetByBgColor(color);
   const dotColor = preset?.accentColor ?? color;
   return <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-border/40" style={{ backgroundColor: dotColor }} />;
