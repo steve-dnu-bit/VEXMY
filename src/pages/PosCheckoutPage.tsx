@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
+import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ import {
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 interface ServiceRow {
   id: string;
@@ -320,10 +321,8 @@ const PosCheckoutPage = () => {
                 <CardTitle>{t("pos.checkoutTitle")}</CardTitle>
                 <CardDescription>{t("pos.notEnabledDesc")}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button asChild variant="outline">
-                  <Link to="/admin?tab=pos-checkout">{t("pos.openAdminSettings")}</Link>
-                </Button>
+              <CardContent className="space-y-4">
+                <OrgPosSetupChecklist />
               </CardContent>
             </Card>
           </div>
@@ -356,9 +355,20 @@ const PosCheckoutPage = () => {
             </div>
           </div>
 
-          {!connectReady && (
-            <StripeConnectCard compact returnPath="/checkout" refreshPath="/checkout" />
-          )}
+          {!connectReady || !locationId ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t("pos.setupChecklist.finishSetupTitle")}</CardTitle>
+                <CardDescription>{t("pos.setupChecklist.finishSetupDesc")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!connectReady ? (
+                  <StripeConnectCard compact returnPath="/checkout" refreshPath="/checkout" />
+                ) : null}
+                <OrgPosSetupChecklist hideAdminLink />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <div className="grid lg:grid-cols-5 gap-6">
             {/* Services */}

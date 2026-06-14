@@ -427,8 +427,11 @@
     "stepBillingTitle": "Billing company",
     "stepBillingDesc": "Legal company details used on invoices and receipts.",
     "stepPayoutsTitle": "Card payouts",
-    "stepPayoutsDesc": "Connect your bank account so deposit and invoice payments go to your studio.",
+    "stepPayoutsDesc": "Connect your bank account so deposit, invoice, and in-person card payments go to your studio.",
     "stepPayoutsSkipHint": "You can finish setup now and connect payouts later from Admin.",
+    "stepPosOptionalTitle": "In-person checkout (optional)",
+    "stepPosOptionalDesc": "Take card payments at the desk with a Stripe WisePad reader. Each studio connects its own Stripe account.",
+    "stepPosEnableHint": "Turn on the Checkout page for staff after Connect and Terminal are set up.",
     "stepHoursTitle": "Working hours",
     "stepHoursDesc": "Default open hours for your schedule grid.",
     "stepLookTitle": "Dashboard look",
@@ -1793,7 +1796,28 @@
     "customItemPrice": "Unit price",
     "units": "Qty",
     "addToOrder": "Add to order",
-    "customItemInvalid": "Enter a description and valid price."
+    "customItemInvalid": "Enter a description and valid price.",
+    "setupChecklist": {
+      "title": "Setup checklist",
+      "adminDesc": "Each studio uses its own Stripe Connect account for deposits, invoices, and WisePad checkout.",
+      "finishSetupTitle": "Finish setup to take payments",
+      "finishSetupDesc": "Payments run on this studio's Stripe Connect account — complete the steps below first.",
+      "loading": "Checking POS setup…",
+      "connect": "Stripe Connect (your studio account)",
+      "connectDone": "Your studio bank account is connected.",
+      "connectPending": "Complete Connect so payments go to your studio, not a shared account.",
+      "terminal": "Terminal location",
+      "terminalDone": "Terminal location is registered for this shop.",
+      "terminalPending": "Create a Terminal location so WisePad readers can pair.",
+      "enabled": "Checkout enabled",
+      "enabledDone": "Staff can open Checkout from the menu.",
+      "enabledPending": "Enable checkout under Admin → POS checkout.",
+      "reader": "Pair WisePad reader",
+      "readerHint": "In your Stripe Dashboard (this studio's Connect account), register the WisePad against the Terminal location.",
+      "ready": "Ready to take in-person payments.",
+      "notReady": "Complete the steps above before charging cards at the desk.",
+      "stripeDashboardHint": "WisePad pairing is done in Stripe Dashboard → Terminal → Readers, logged into this studio's Connect account."
+    }
   },
   "staff": {
     "loading": "Loading…"

@@ -1469,8 +1469,11 @@
     "completeToast": "Dein Studio ist fertig — willkommen in Velbok!",
     "reviewHint": "Sie können diese später in Admin und Einstellungen ändern.",
     "stepPayoutsTitle": "Card payouts",
-    "stepPayoutsDesc": "Connect your bank account so deposit and invoice payments go to your studio.",
-    "stepPayoutsSkipHint": "You can finish setup now and connect payouts later from Admin.",
+    "stepPayoutsDesc": "Verbinden Sie Ihr Bankkonto, damit Anzahlungen, Rechnungen und Kartenzahlungen vor Ort an Ihr Studio gehen.",
+    "stepPayoutsSkipHint": "Sie können die Einrichtung jetzt abschließen und Auszahlungen später unter Admin verbinden.",
+    "stepPosOptionalTitle": "Kasse vor Ort (optional)",
+    "stepPosOptionalDesc": "Kartenzahlungen am Tresen mit Stripe WisePad. Jedes Studio verbindet sein eigenes Stripe-Konto.",
+    "stepPosEnableHint": "Aktivieren Sie die Kassenseite für Mitarbeiter, nachdem Connect und Terminal eingerichtet sind.",
     "currencyHint": "Client deposits and card invoices will be charged in {{currency}}.",
     "countryGeoHint": "Country suggested from your location — change if your studio is elsewhere."
   },
@@ -1573,6 +1576,27 @@
     "customItemPrice": "Einzelpreis",
     "units": "Menge",
     "addToOrder": "Zur Bestellung",
-    "customItemInvalid": "Beschreibung und gültigen Preis eingeben."
+    "customItemInvalid": "Beschreibung und gültigen Preis eingeben.",
+    "setupChecklist": {
+      "title": "Einrichtungs-Checkliste",
+      "adminDesc": "Jedes Studio nutzt ein eigenes Stripe-Connect-Konto für Anzahlungen, Rechnungen und WisePad-Kasse.",
+      "finishSetupTitle": "Einrichtung abschließen",
+      "finishSetupDesc": "Zahlungen laufen über das Stripe-Connect-Konto dieses Studios — zuerst die Schritte unten erledigen.",
+      "loading": "POS-Einrichtung wird geprüft…",
+      "connect": "Stripe Connect (Ihr Studio-Konto)",
+      "connectDone": "Studio-Bankkonto ist verbunden.",
+      "connectPending": "Connect abschließen, damit Zahlungen an Ihr Studio gehen.",
+      "terminal": "Terminal-Standort",
+      "terminalDone": "Terminal-Standort ist für dieses Studio registriert.",
+      "terminalPending": "Terminal-Standort anlegen, damit WisePad-Lesegeräte gekoppelt werden können.",
+      "enabled": "Kasse aktiviert",
+      "enabledDone": "Mitarbeiter können Kasse im Menü öffnen.",
+      "enabledPending": "Kasse unter Admin → POS-Kasse aktivieren.",
+      "reader": "WisePad koppeln",
+      "readerHint": "Im Stripe-Dashboard (Connect-Konto dieses Studios) WisePad am Terminal-Standort registrieren.",
+      "ready": "Bereit für Kartenzahlungen vor Ort.",
+      "notReady": "Schritte oben abschließen, bevor am Tresen abgerechnet wird.",
+      "stripeDashboardHint": "WisePad-Kopplung erfolgt in Stripe Dashboard → Terminal → Readers im Connect-Konto dieses Studios."
+    }
   }
 }

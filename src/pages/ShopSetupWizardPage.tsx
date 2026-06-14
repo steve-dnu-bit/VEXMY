@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Building2, Clock, Landmark, LayoutDashboard, MapPin, Palette, CheckCircle2 } from "lucide-react";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
+import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import {
   completeShopSetup,
   loadShopSettings,
@@ -451,6 +452,13 @@ const ShopSetupWizardPage = () => {
                   refreshPath="/shop-setup?step=payouts"
                 />
                 <p className="text-xs text-muted-foreground">{t("setup.stepPayoutsSkipHint")}</p>
+                <div className="pt-4 border-t border-border space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">{t("setup.stepPosOptionalTitle")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("setup.stepPosOptionalDesc")}</p>
+                  </div>
+                  <OrgPosSetupChecklist interactive />
+                </div>
               </>
             ) : null}
 

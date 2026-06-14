@@ -21,6 +21,7 @@ import {
   type ShopPosSettings,
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 
 interface ArtistProfile {
@@ -155,6 +156,16 @@ const AdminPosCheckoutPanel = () => {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("pos.setupChecklist.title")}</CardTitle>
+          <CardDescription>{t("pos.setupChecklist.adminDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OrgPosSetupChecklist hideAdminLink />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
