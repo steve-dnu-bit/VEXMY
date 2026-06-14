@@ -22,6 +22,8 @@ import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
+import { loadPosSaleForBooking, type PosSaleRow } from "@/lib/posCheckout";
+import { formatShopMoney } from "@/lib/shopCurrency";
 import { Link } from "react-router-dom";
 
 interface Booking {
@@ -79,6 +81,8 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
   const [consentLoading, setConsentLoading] = useState(true);
   const [consentRows, setConsentRows] = useState<Array<{ id: string; consent_pdf_url: string | null; created_at: string }>>([]);
   const [consentDownloadBusy, setConsentDownloadBusy] = useState(false);
+  const [posSale, setPosSale] = useState<PosSaleRow | null>(null);
+  const [posSaleLoading, setPosSaleLoading] = useState(true);
 
   const typeColors = BOOKING_TYPE_BADGE_STYLES;
 
@@ -123,6 +127,21 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
       cancelled = true;
     };
   }, [conductKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      setPosSaleLoading(true);
+      const sale = await loadPosSaleForBooking(booking.id);
+      if (!cancelled) {
+        setPosSale(sale);
+        setPosSaleLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [booking.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -402,12 +421,19 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
             </Button>
             <Button size="sm" variant="secondary" className="w-full h-8 mt-2 text-xs gap-1" asChild>
               <Link
-                to={`/checkout?artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
+                to={`/checkout?bookingId=${encodeURIComponent(booking.id)}&artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
               >
                 <CreditCard className="h-3 w-3" />
                 {t("schedule.payAtDesk")}
               </Link>
             </Button>
+            {posSaleLoading ? (
+              <p className="text-xs text-muted-foreground mt-2">{t("schedule.checkingPosPayment")}</p>
+            ) : posSale ? (
+              <Badge variant="default" className="mt-2 text-[10px]">
+                {t("schedule.posPaidAtDesk", { amount: formatShopMoney(posSale.total, posSale.currency) })}
+              </Badge>
+            ) : null}
           </div>
 
           <div className="pt-2 border-t border-border">

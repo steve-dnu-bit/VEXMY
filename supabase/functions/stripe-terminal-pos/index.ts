@@ -172,6 +172,7 @@ serve(async (req) => {
       const subtotal = Number(body.subtotal) || 0;
       const taxAmount = Number(body.taxAmount) || 0;
       const gratuityAmount = Number(body.gratuityAmount) || 0;
+      const bookingId = typeof body.bookingId === "string" ? body.bookingId.trim() : null;
 
       if (!artistId || items.length === 0) {
         return new Response(JSON.stringify({ error: "artistId and items are required" }), {
@@ -189,6 +190,21 @@ serve(async (req) => {
         });
       }
 
+      if (bookingId) {
+        const { data: bookingRow } = await admin
+          .from("bookings")
+          .select("id, artist_id, organization_id")
+          .eq("id", bookingId)
+          .maybeSingle();
+
+        if (!bookingRow || bookingRow.organization_id !== orgId || bookingRow.artist_id !== artistId) {
+          return new Response(JSON.stringify({ error: "Invalid booking for this payment" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       const zeroDecimal = ZERO_DECIMAL_CURRENCIES;
       const amountCents = toMinorUnits(amountMajor, currency);
 
@@ -199,6 +215,7 @@ serve(async (req) => {
           artist_id: artistId,
           created_by: user.id,
           client_name: clientName || null,
+          booking_id: bookingId || null,
           items,
           currency,
           subtotal,
@@ -231,6 +248,7 @@ serve(async (req) => {
           organization_id: orgId,
           artist_id: artistId,
           pos_sale_id: saleRow.id,
+          booking_id: bookingId || "",
           shop_amount: String(shopAmount),
           artist_amount: String(artistAmount),
         },

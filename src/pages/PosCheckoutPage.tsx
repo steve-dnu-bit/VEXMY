@@ -60,6 +60,7 @@ const PosCheckoutPage = () => {
   const [searchParams] = useSearchParams();
   const prefilledArtistId = searchParams.get("artistId");
   const prefilledClientName = searchParams.get("clientName");
+  const prefilledBookingId = searchParams.get("bookingId");
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [artists, setArtists] = useState<ArtistOption[]>([]);
@@ -264,6 +265,7 @@ const PosCheckoutPage = () => {
         artistAmount: totals.artistAmount,
         shopSplitPercent: activeSplit.shopPercent,
         artistSplitPercent: activeSplit.artistPercent,
+        bookingId: prefilledBookingId || undefined,
       });
 
       if (piErr || !piData.clientSecret || !piData.saleId) {
@@ -339,6 +341,11 @@ const PosCheckoutPage = () => {
             <div>
               <h1 className="text-2xl md:text-3xl font-display font-semibold tracking-tight">{t("pos.checkoutTitle")}</h1>
               <p className="text-sm text-muted-foreground mt-1">{t("pos.checkoutSubtitle")}</p>
+              {prefilledBookingId ? (
+                <Badge variant="outline" className="mt-2 text-xs">
+                  {t("pos.linkedBooking")}
+                </Badge>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
               {terminal.status === "connected" ? (

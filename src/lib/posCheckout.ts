@@ -173,6 +173,7 @@ export interface PosSaleRow {
   id: string;
   artist_id: string;
   client_name: string | null;
+  booking_id: string | null;
   total: number;
   currency: string;
   status: string;
@@ -182,10 +183,24 @@ export interface PosSaleRow {
   items: PosLineItem[];
 }
 
+export async function loadPosSaleForBooking(bookingId: string): Promise<PosSaleRow | null> {
+  const { data, error } = await supabase
+    .from("pos_sales" as any)
+    .select("id, artist_id, client_name, booking_id, total, currency, status, created_at, shop_amount, artist_amount, items")
+    .eq("booking_id", bookingId)
+    .eq("status", "succeeded")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as PosSaleRow;
+}
+
 export async function loadRecentPosSales(limit = 12): Promise<PosSaleRow[]> {
   const { data, error } = await supabase
     .from("pos_sales" as any)
-    .select("id, artist_id, client_name, total, currency, status, created_at, shop_amount, artist_amount, items")
+    .select("id, artist_id, client_name, booking_id, total, currency, status, created_at, shop_amount, artist_amount, items")
     .order("created_at", { ascending: false })
     .limit(limit);
 
