@@ -169,6 +169,30 @@ export function computePosTotals(input: {
   return { subtotal, taxAmount, gratuityAmount, total, shopAmount, artistAmount };
 }
 
+export interface PosSaleRow {
+  id: string;
+  artist_id: string;
+  client_name: string | null;
+  total: number;
+  currency: string;
+  status: string;
+  created_at: string;
+  shop_amount: number;
+  artist_amount: number;
+  items: PosLineItem[];
+}
+
+export async function loadRecentPosSales(limit = 12): Promise<PosSaleRow[]> {
+  const { data, error } = await supabase
+    .from("pos_sales" as any)
+    .select("id, artist_id, client_name, total, currency, status, created_at, shop_amount, artist_amount, items")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return [];
+  return data as PosSaleRow[];
+}
+
 export function toMinorUnits(amount: number, currency: string): number {
   const zeroDecimal = ["bif", "clp", "djf", "gnf", "jpy", "kmf", "krw", "mga", "pyg", "rwf", "ugx", "vnd", "vuv", "xaf", "xof", "xpf"];
   if (zeroDecimal.includes(currency.toLowerCase())) {

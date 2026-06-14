@@ -16,12 +16,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatShopMoney } from "@/lib/shopCurrency";
 import { loadOrgBillingContext } from "@/lib/orgBilling";
+import { format, parseISO } from "date-fns";
 import {
   computePosTotals,
   loadArtistPosSplits,
+  loadRecentPosSales,
   loadShopPosSettings,
   resolveSplitPercents,
   type PosLineItem,
+  type PosSaleRow,
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
@@ -59,6 +62,7 @@ const PosCheckoutPage = () => {
   const [artistId, setArtistId] = useState("");
   const [clientName, setClientName] = useState("");
   const [gratuityPercent, setGratuityPercent] = useState(0);
+  const [gratuityEnabled, setGratuityEnabled] = useState(false);
   const [currency, setCurrency] = useState("gbp");
   const [taxRate, setTaxRate] = useState(0);
   const [taxLabel, setTaxLabel] = useState("VAT");
@@ -72,14 +76,20 @@ const PosCheckoutPage = () => {
   const [connectReady, setConnectReady] = useState(false);
   const [paying, setPaying] = useState(false);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
+  const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
+
+  const refreshRecentSales = async () => {
+    const rows = await loadRecentPosSales();
+    setRecentSales(rows);
+  };
 
   useEffect(() => {
     if (!user) return;
     void (async () => {
       setLoading(true);
-      const [servicesRes, profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes] = await Promise.all([
+      const [servicesRes, profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
         supabase.from("services").select("id, name, price, service_category, duration, color").eq("is_active", true).order("sort_order"),
         supabase.from("profiles").select("user_id, display_name"),
         supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
@@ -87,6 +97,7 @@ const PosCheckoutPage = () => {
         loadShopPosSettings(),
         loadArtistPosSplits(),
         invokeEdgeFunctionJson<{ connect?: { ready?: boolean } }>("stripe-terminal-pos", { action: "connect_status" }),
+        loadRecentPosSales(),
       ]);
 
       const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
@@ -113,12 +124,14 @@ const PosCheckoutPage = () => {
         setPosEnabled(posSettings.enabled);
         setSimulatedReader(posSettings.simulated_reader);
         setLocationId(posSettings.stripe_terminal_location_id);
-        setGratuityPercent(posSettings.default_gratuity_percent);
+        setGratuityEnabled(posSettings.gratuity_enabled);
+        setGratuityPercent(posSettings.gratuity_enabled ? posSettings.default_gratuity_percent : 0);
         setShopSplit({
           shopPercent: posSettings.shop_split_percent,
           artistPercent: posSettings.artist_split_percent,
         });
       }
+      setRecentSales(recentSalesRes);
       setLoading(false);
     })();
   }, [user]);
@@ -150,11 +163,11 @@ const PosCheckoutPage = () => {
         taxRate,
         pricesIncludeTax,
         taxExempt,
-        gratuityPercent: posEnabled ? gratuityPercent : 0,
+        gratuityPercent: gratuityEnabled ? gratuityPercent : 0,
         shopPercent: activeSplit.shopPercent,
         artistPercent: activeSplit.artistPercent,
       }),
-    [lineItems, taxRate, pricesIncludeTax, taxExempt, gratuityPercent, posEnabled, activeSplit],
+    [lineItems, taxRate, pricesIncludeTax, taxExempt, gratuityPercent, gratuityEnabled, activeSplit],
   );
 
   const selectedArtist = artists.find((a) => a.user_id === artistId);
@@ -249,6 +262,7 @@ const PosCheckoutPage = () => {
       toast.success(t("pos.paymentSuccess"));
       setCart([]);
       setClientName("");
+      await refreshRecentSales();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
       toast.error(msg);
@@ -439,6 +453,26 @@ const PosCheckoutPage = () => {
 
                   <Separator />
 
+                  {gratuityEnabled && cart.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">{t("pos.gratuityAdjust")}</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {[0, 10, 15, 20].map((pct) => (
+                          <Button
+                            key={pct}
+                            type="button"
+                            size="sm"
+                            variant={gratuityPercent === pct ? "default" : "outline"}
+                            className="h-8 px-3"
+                            onClick={() => setGratuityPercent(pct)}
+                          >
+                            {pct === 0 ? t("pos.gratuityNone") : `${pct}%`}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <dl className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">{t("pos.subtotal")}</dt>
@@ -450,7 +484,7 @@ const PosCheckoutPage = () => {
                         <dd className="tabular-nums">{formatShopMoney(totals.taxAmount, currency)}</dd>
                       </div>
                     )}
-                    {gratuityPercent > 0 && (
+                    {gratuityEnabled && gratuityPercent > 0 && (
                       <div className="flex justify-between">
                         <dt className="text-muted-foreground">{t("pos.gratuity")} ({gratuityPercent}%)</dt>
                         <dd className="tabular-nums">{formatShopMoney(totals.gratuityAmount, currency)}</dd>
@@ -530,6 +564,66 @@ const PosCheckoutPage = () => {
               </Card>
             </div>
           </div>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">{t("pos.recentSales")}</CardTitle>
+              <CardDescription>{t("pos.recentSalesHint")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {recentSales.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">{t("pos.noRecentSales")}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="pb-2 pr-4 font-medium">{t("common.name")}</th>
+                        <th className="pb-2 pr-4 font-medium">{t("pos.artist")}</th>
+                        <th className="pb-2 pr-4 font-medium text-right">{t("pos.total")}</th>
+                        <th className="pb-2 pr-4 font-medium text-right">{t("pos.paymentSplit")}</th>
+                        <th className="pb-2 font-medium">{t("pos.saleTime")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentSales.map((sale) => {
+                        const artistName = artists.find((a) => a.user_id === sale.artist_id)?.display_name || "—";
+                        const itemSummary = Array.isArray(sale.items)
+                          ? (sale.items as PosLineItem[]).map((i) => i.name).slice(0, 2).join(", ")
+                          : "";
+                        const statusLabel =
+                          sale.status === "succeeded"
+                            ? t("pos.saleStatusSucceeded")
+                            : sale.status === "pending"
+                              ? t("pos.saleStatusPending")
+                              : t("pos.saleStatusFailed");
+                        return (
+                          <tr key={sale.id} className="border-b border-border/60 last:border-0">
+                            <td className="py-3 pr-4">
+                              <p className="font-medium">{sale.client_name || "—"}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[180px]">{itemSummary}</p>
+                            </td>
+                            <td className="py-3 pr-4">{artistName}</td>
+                            <td className="py-3 pr-4 text-right tabular-nums font-medium">
+                              {formatShopMoney(Number(sale.total), sale.currency)}
+                            </td>
+                            <td className="py-3 pr-4 text-right text-xs tabular-nums text-muted-foreground">
+                              {formatShopMoney(Number(sale.shop_amount), sale.currency)} / {formatShopMoney(Number(sale.artist_amount), sale.currency)}
+                            </td>
+                            <td className="py-3 text-xs text-muted-foreground whitespace-nowrap">
+                              <span className={sale.status === "succeeded" ? "text-emerald-600" : ""}>{statusLabel}</span>
+                              {" · "}
+                              {format(parseISO(sale.created_at), "d MMM HH:mm")}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </SubscriptionGate>
     </AppLayout>

@@ -1555,6 +1555,15 @@
     "invalidSplit": "Studio-Anteil muss zwischen 0 und 100 liegen.",
     "artistSplitSaved": "Künstler-Aufteilung gespeichert.",
     "artistSplitCleared": "Override entfernt — Standard wird verwendet.",
-    "actions": "Aktionen"
+    "actions": "Aktionen",
+    "gratuityAdjust": "Trinkgeld",
+    "gratuityNone": "Kein Trinkgeld",
+    "recentSales": "Letzte Zahlungen",
+    "recentSalesHint": "Zuletzt an der Kasse abgerechnet.",
+    "noRecentSales": "Noch keine Zahlungen.",
+    "saleStatusSucceeded": "Bezahlt",
+    "saleStatusPending": "Ausstehend",
+    "saleStatusFailed": "Fehlgeschlagen",
+    "saleTime": "Zeit"
   }
 }

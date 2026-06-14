@@ -1775,7 +1775,16 @@
     "invalidSplit": "Shop share must be between 0 and 100.",
     "artistSplitSaved": "Artist split saved.",
     "artistSplitCleared": "Artist override removed — using shop default.",
-    "actions": "Actions"
+    "actions": "Actions",
+    "gratuityAdjust": "Tip",
+    "gratuityNone": "No tip",
+    "recentSales": "Recent payments",
+    "recentSalesHint": "Last card payments taken at the desk.",
+    "noRecentSales": "No payments yet today.",
+    "saleStatusSucceeded": "Paid",
+    "saleStatusPending": "Pending",
+    "saleStatusFailed": "Failed",
+    "saleTime": "Time"
   },
   "staff": {
     "loading": "Loading…"

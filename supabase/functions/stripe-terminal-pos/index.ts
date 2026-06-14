@@ -133,14 +133,26 @@ serve(async (req) => {
         stripeOpts,
       );
 
-      await admin.from("shop_pos_settings").upsert(
-        {
+      const { data: existingPos } = await admin
+        .from("shop_pos_settings")
+        .select("organization_id")
+        .eq("organization_id", orgId)
+        .maybeSingle();
+
+      if (existingPos) {
+        await admin
+          .from("shop_pos_settings")
+          .update({
+            stripe_terminal_location_id: location.id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("organization_id", orgId);
+      } else {
+        await admin.from("shop_pos_settings").insert({
           organization_id: orgId,
           stripe_terminal_location_id: location.id,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "organization_id" },
-      );
+        });
+      }
 
       return new Response(JSON.stringify({ locationId: location.id }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
