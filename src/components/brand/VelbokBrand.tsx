@@ -6,23 +6,25 @@ import VelbokLogo from "@/components/brand/VelbokLogo";
 
 const VARIANTS = {
   marketing: {
-    scale: "text-xl",
-    title: "font-display font-bold tracking-[0.12em] text-gold",
+    title: "font-display text-xl font-bold tracking-[0.12em] text-gold",
     subtitle: "mt-0.5 text-[9px] tracking-[0.35em] text-gold/70",
-    gap: "gap-2",
+    gap: "gap-2.5",
+    /** Title + tagline stack on the landing header */
+    logoWithTagline: "h-11 w-11",
+    logo: "h-7 w-7",
   },
   auth: {
-    scale: "text-3xl",
-    title: "font-display font-bold tracking-[0.08em] text-gold",
+    title: "font-display text-3xl font-bold tracking-[0.08em] text-gold",
     subtitle: "",
-    gap: "gap-2.5",
+    gap: "gap-3",
+    logo: "h-10 w-10",
   },
   dashboard: {
-    scale: "text-lg",
-    title: "font-display font-bold text-gold",
+    title: "font-display text-lg font-bold text-gold",
     subtitle: "",
-    gap: "gap-2",
-    iconOnlyScale: "text-xl",
+    gap: "gap-2.5",
+    logo: "h-8 w-8",
+    logoIconOnly: "h-9 w-9",
   },
 } as const;
 
@@ -43,22 +45,50 @@ const VelbokBrand = ({
 }: VelbokBrandProps) => {
   const { t } = useTranslation();
   const styles = VARIANTS[variant];
-  const textScale =
-    hideText && variant === "dashboard" ? VARIANTS.dashboard.iconOnlyScale : styles.scale;
 
-  const content = (
-    <div className={cn("inline-flex items-center leading-none", styles.gap, textScale, className)}>
-      <VelbokLogo href={null} imageClassName="h-[1em] w-[1em] shrink-0" />
-      {!hideText ? (
-        <div className="flex min-w-0 flex-col leading-none">
-          <span className={cn(styles.title, "truncate")}>{BRANDING.platformName.toUpperCase()}</span>
-          {showTagline && variant === "marketing" ? (
-            <span className={styles.subtitle}>{t("common.studioPlatform")}</span>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+  const logoClass =
+    hideText && variant === "dashboard"
+      ? styles.logoIconOnly
+      : showTagline && variant === "marketing"
+        ? styles.logoWithTagline
+        : styles.logo;
+
+  const title = (
+    <span className={cn(styles.title, "truncate")}>{BRANDING.platformName.toUpperCase()}</span>
   );
+
+  const tagline =
+    showTagline && variant === "marketing" ? (
+      <span className={styles.subtitle}>{t("common.studioPlatform")}</span>
+    ) : null;
+
+  const content =
+    hideText ? (
+      <div className={cn("inline-flex items-center", className)}>
+        <VelbokLogo href={null} imageClassName={cn(logoClass, "shrink-0")} />
+      </div>
+    ) : showTagline && variant === "marketing" ? (
+      <div
+        className={cn(
+          "inline-grid grid-cols-[auto_1fr] items-center",
+          styles.gap,
+          className,
+        )}
+      >
+        <VelbokLogo
+          href={null}
+          className="row-span-2 self-center"
+          imageClassName={cn(logoClass, "shrink-0")}
+        />
+        {title}
+        {tagline}
+      </div>
+    ) : (
+      <div className={cn("inline-flex items-center", styles.gap, className)}>
+        <VelbokLogo href={null} imageClassName={cn(logoClass, "shrink-0")} />
+        {title}
+      </div>
+    );
 
   if (href == null) {
     return content;
