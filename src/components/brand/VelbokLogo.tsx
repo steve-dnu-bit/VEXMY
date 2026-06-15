@@ -25,14 +25,14 @@ type VelbokLogoProps = {
 };
 
 const VelbokLogo = ({ size = "md", className, imageClassName, href = "/" }: VelbokLogoProps) => {
+  const usePresetSize = !imageClassName;
   const image = (
     <img
       src={BRANDING.markSrc}
       alt=""
       aria-hidden
-      className={cn(SIZES[size], "object-contain", imageClassName)}
-      width={LOGO_PX[size]}
-      height={LOGO_PX[size]}
+      className={cn(usePresetSize && SIZES[size], "object-contain", imageClassName)}
+      {...(usePresetSize ? { width: LOGO_PX[size], height: LOGO_PX[size] } : {})}
     />
   );
 

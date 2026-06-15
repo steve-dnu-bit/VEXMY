@@ -6,24 +6,25 @@ import VelbokLogo from "@/components/brand/VelbokLogo";
 
 const VARIANTS = {
   marketing: {
-    logoSize: "md" as const,
-    title: "font-display text-xl font-bold tracking-[0.12em] text-gold",
+    scale: "text-xl",
+    title: "font-display font-bold tracking-[0.12em] text-gold",
     subtitle: "mt-0.5 text-[9px] tracking-[0.35em] text-gold/70",
-    gap: "gap-3",
+    gap: "gap-2",
   },
   auth: {
-    logoSize: "lg" as const,
-    title: "font-display text-3xl font-bold tracking-[0.08em] text-gold",
-    subtitle: "",
-    gap: "gap-3",
-  },
-  dashboard: {
-    logoSize: "sm" as const,
-    title: "font-display text-lg font-bold text-gold",
+    scale: "text-3xl",
+    title: "font-display font-bold tracking-[0.08em] text-gold",
     subtitle: "",
     gap: "gap-2.5",
   },
-};
+  dashboard: {
+    scale: "text-lg",
+    title: "font-display font-bold text-gold",
+    subtitle: "",
+    gap: "gap-2",
+    iconOnlyScale: "text-xl",
+  },
+} as const;
 
 type VelbokBrandProps = {
   variant?: keyof typeof VARIANTS;
@@ -42,10 +43,12 @@ const VelbokBrand = ({
 }: VelbokBrandProps) => {
   const { t } = useTranslation();
   const styles = VARIANTS[variant];
+  const textScale =
+    hideText && variant === "dashboard" ? VARIANTS.dashboard.iconOnlyScale : styles.scale;
 
   const content = (
-    <div className={cn("inline-flex items-center", styles.gap, className)}>
-      <VelbokLogo size={styles.logoSize} href={null} />
+    <div className={cn("inline-flex items-center leading-none", styles.gap, textScale, className)}>
+      <VelbokLogo href={null} imageClassName="h-[1em] w-[1em] shrink-0" />
       {!hideText ? (
         <div className="flex min-w-0 flex-col leading-none">
           <span className={cn(styles.title, "truncate")}>{BRANDING.platformName.toUpperCase()}</span>
