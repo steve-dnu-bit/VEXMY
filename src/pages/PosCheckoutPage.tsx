@@ -519,42 +519,20 @@ const PosCheckoutPage = () => {
             <div className="lg:col-span-3 space-y-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
                       <CardTitle className="text-lg">{t("pos.services")}</CardTitle>
                       <CardDescription>{t("pos.servicesHint")}</CardDescription>
-                      <p className="text-xs text-muted-foreground mt-1">{t("pos.productsCsvHint")}</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 shrink-0">
-                      <input
-                        ref={productsCsvInputRef}
-                        type="file"
-                        accept=".csv"
-                        className="hidden"
-                        onChange={importProductsCsv}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={importingProducts}
-                        onClick={() => productsCsvInputRef.current?.click()}
-                      >
-                        {importingProducts ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <Upload className="h-4 w-4 mr-1" />
-                        )}
-                        {t("pos.importProductsCsv")}
-                      </Button>
-                      <Button type="button" variant="ghost" size="sm" onClick={downloadProductsCsvTemplate}>
-                        <Download className="h-4 w-4 mr-1" />
-                        {t("pos.downloadProductsTemplate")}
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setCustomOpen(true)}>
-                        {t("pos.addCustomItem")}
-                      </Button>
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 self-start sm:self-auto"
+                      onClick={() => setCustomOpen(true)}
+                    >
+                      {t("pos.addCustomItem")}
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -594,6 +572,36 @@ const PosCheckoutPage = () => {
                     ) : filteredQuickItems.length === 0 ? (
                       <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noProductsMatch")}</p>
                     ) : null}
+                  </div>
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t("pos.productsCsvHint")}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        ref={productsCsvInputRef}
+                        type="file"
+                        accept=".csv"
+                        className="hidden"
+                        onChange={importProductsCsv}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={importingProducts}
+                        onClick={() => productsCsvInputRef.current?.click()}
+                      >
+                        {importingProducts ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-1" />
+                        )}
+                        {t("pos.importProductsCsv")}
+                      </Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={downloadProductsCsvTemplate}>
+                        <Download className="h-4 w-4 mr-1" />
+                        {t("pos.downloadProductsTemplate")}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
