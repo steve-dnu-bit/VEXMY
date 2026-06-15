@@ -19,9 +19,10 @@ type VelbokLogoProps = {
 const VelbokLogo = ({ size = "md", className, imageClassName, href = "/" }: VelbokLogoProps) => {
   const image = (
     <img
-      src={BRANDING.logoSrc}
-      alt={BRANDING.platformName}
-      className={cn(SIZES[size], "rounded-[18%] object-cover", imageClassName)}
+      src={BRANDING.markSrc}
+      alt=""
+      aria-hidden
+      className={cn(SIZES[size], "object-contain", imageClassName)}
       width={size === "xl" ? 96 : size === "lg" ? 64 : size === "md" ? 40 : 32}
       height={size === "xl" ? 96 : size === "lg" ? 64 : size === "md" ? 40 : 32}
     />

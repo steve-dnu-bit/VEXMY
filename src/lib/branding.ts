@@ -18,7 +18,9 @@ export const BRANDING = {
   websiteUrl: import.meta.env.VITE_SHOP_WEBSITE_URL || "",
   address: import.meta.env.VITE_SHOP_ADDRESS || "",
   accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "hsl(43, 34%, 54%)",
-  logoSrc: "/icons/logo.png",
+  /** V mark only — transparent PNG for in-app UI beside the wordmark text. */
+  markSrc: "/icons/logo-mark.png",
+  logoSrc: "/icons/logo-mark.png",
   iconSrc: "/icons/icon-512-plain.png",
 } as const;
 
