@@ -47,6 +47,16 @@ function hasRequiredBookingFields(value: BookingPayload | null | undefined): val
   return !!value?.id && !!value?.artist_id && !!value?.starts_at && !!value?.ends_at;
 }
 
+function isImportedPlaceholderBooking(booking: BookingPayload): boolean {
+  const notes = booking.notes?.trim().toLowerCase() ?? "";
+  if (!notes) return false;
+  return (
+    notes.startsWith("imported from csv") ||
+    notes.startsWith("imported from json") ||
+    notes.includes("contacts export")
+  );
+}
+
 async function authorizeBookingNotification(
   adminClient: ReturnType<typeof createClient>,
   req: Request,
@@ -103,7 +113,7 @@ serve(async (req) => {
     const { data: bookingRow } = await adminClient
       .from("bookings")
       .select(
-        "id, artist_id, client_name, client_email, client_phone, booking_type, service_category, status, starts_at, ends_at, notes, tattoo_style, tattoo_size, tattoo_placement, deposit_amount, deposit_paid",
+        "id, organization_id, artist_id, client_name, client_email, client_phone, booking_type, service_category, status, starts_at, ends_at, notes, tattoo_style, tattoo_size, tattoo_placement, deposit_amount, deposit_paid, suppress_booking_notifications",
       )
       .eq("id", bookingPayload.id)
       .maybeSingle();
@@ -115,6 +125,28 @@ serve(async (req) => {
       booking = bookingPayload;
     } else {
       return jsonResponse({ error: "Booking not found" }, 404);
+    }
+
+    if ((booking as { suppress_booking_notifications?: boolean }).suppress_booking_notifications) {
+      return jsonResponse({
+        ok: true,
+        emailAttempted: false,
+        attempted: 0,
+        sent: 0,
+        failedCount: 0,
+        skipped: "notifications_suppressed",
+      });
+    }
+
+    if (isImportedPlaceholderBooking(booking)) {
+      return jsonResponse({
+        ok: true,
+        emailAttempted: false,
+        attempted: 0,
+        sent: 0,
+        failedCount: 0,
+        skipped: "import_placeholder_booking",
+      });
     }
 
     try {
@@ -153,7 +185,10 @@ serve(async (req) => {
       adminClient.from("profiles").select("display_name").eq("user_id", booking.artist_id).maybeSingle(),
     ]);
 
-    const shopReminderSettings = await loadShopReminderSettings(adminClient);
+    const shopReminderSettings = await loadShopReminderSettings(adminClient, {
+      organizationId: (booking as { organization_id?: string | null }).organization_id ?? null,
+      artistUserId: booking.artist_id,
+    });
     const bookingConfirmationEnabled = shopReminderSettings?.booking_confirmation ?? true;
     if (action === "created" && bookingConfirmationEnabled === false) {
       return jsonResponse({

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,15 +41,27 @@ const AdminEmailSettingsPanel = () => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const saveSettings = async () => {
+  const saveSettings = useCallback(async (next?: ShopReminderSettings) => {
+    const payload = next ?? settings;
     setSaving(true);
-    const { error } = await saveShopReminderSettings(settings);
+    const { error } = await saveShopReminderSettings(payload);
     setSaving(false);
     if (error) {
       toast({ title: t("settings.saveFailed"), description: error, variant: "destructive" });
-      return;
+      return false;
     }
     toast({ title: t("settings.settingsSaved"), description: t("admin.emailSettingsSavedDesc") });
+    return true;
+  }, [settings, t]);
+
+  const onBookingConfirmationChange = (enabled: boolean) => {
+    const previous = settings;
+    const next = { ...settings, bookingConfirmation: enabled };
+    setSettings(next);
+    void (async () => {
+      const ok = await saveSettings(next);
+      if (!ok) setSettings(previous);
+    })();
   };
 
   const sendTestEmail = async () => {
@@ -122,7 +134,8 @@ const AdminEmailSettingsPanel = () => {
             <Switch
               id="admin-booking-confirm"
               checked={settings.bookingConfirmation}
-              onCheckedChange={(v) => update("bookingConfirmation", v)}
+              disabled={saving}
+              onCheckedChange={onBookingConfirmationChange}
             />
           </div>
           <div className="rounded-lg border border-border p-3 space-y-2">
@@ -239,7 +252,7 @@ const AdminEmailSettingsPanel = () => {
         </CardContent>
       </Card>
 
-      <Button onClick={saveSettings} disabled={saving} className="w-full max-w-md">
+      <Button onClick={() => void saveSettings()} disabled={saving} className="w-full max-w-md">
         {saving ? t("settings.saving") : t("settings.saveSettings")}
       </Button>
     </div>

@@ -37,25 +37,6 @@ const AdminDashboardThemePanel = lazy(() => import("@/components/admin/AdminDash
 const AdminWebsiteEmbedPanel = lazy(() => import("@/components/admin/AdminWebsiteEmbedPanel"));
 const AdminPosCheckoutPanel = lazy(() => import("@/components/admin/AdminPosCheckoutPanel"));
 
-type BookingNotificationPayload = {
-  id: string;
-  artist_id: string;
-  client_name: string;
-  client_email: string | null;
-  client_phone: string | null;
-  booking_type: string;
-  status: string;
-  starts_at: string;
-  ends_at: string;
-  notes: string | null;
-};
-
-type BookingNotificationResult = {
-  ok?: boolean;
-  sent?: number;
-  failed?: Array<{ email?: string; message?: string }>;
-};
-
 const staffFeatureLabels: Record<string, string> = {
   schedule: "Schedule",
   inbox: "Inbox",
@@ -199,37 +180,6 @@ const AdminPage = () => {
   const [inviting, setInviting] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
-
-  const sendBookingNotification = async (
-    action: "created" | "updated" | "deleted",
-    booking: BookingNotificationPayload,
-  ) => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    const token = session?.access_token ?? null;
-    if (sessionError || !token) {
-      console.warn("Booking notification skipped: expired session");
-      return;
-    }
-
-    const { data, error } = await supabase.functions.invoke<BookingNotificationResult>("booking-notifications", {
-      body: { action, booking },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (error) {
-      const status = (error as any)?.context?.status ?? (error as any)?.status;
-      if (status === 401) {
-        console.warn("Booking notification skipped: session expired (401)");
-        return;
-      }
-      console.error("Booking notification failed:", error);
-      return;
-    }
-    if (data?.failed && data.failed.length > 0) {
-      console.warn("Booking notification partial failure:", data.failed);
-    }
-  };
 
   useEffect(() => {
     const userId = user?.id;
@@ -474,29 +424,17 @@ const AdminPage = () => {
       starts_at: r.starts_at,
       ends_at: r.ends_at,
       deposit_paid: r.deposit_paid ?? null,
+      suppress_booking_notifications: true,
     }));
-    const { data: insertedBookings, error } = await supabase
-      .from("bookings")
-      .insert(batch)
-      .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes");
+    const { error } = await supabase.from("bookings").insert(batch);
     if (error) return toast.error(error.message);
-    if (insertedBookings?.length) {
-      await Promise.allSettled(insertedBookings.map((b) => sendBookingNotification("created", b as BookingNotificationPayload)));
-    }
     toast.success(t("admin.importedBookings", { count: batch.length }));
   };
 
   const resetSchedule = async () => {
     if (!window.confirm(t("admin.deleteAllBookingsConfirm"))) return;
-    const { data: snapshots } = await supabase
-      .from("bookings")
-      .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes");
-    // Avoid UUID comparisons here; use a guaranteed non-null timestamp column.
     const { error } = await supabase.from("bookings").delete().not("created_at", "is", null);
     if (error) return toast.error(error.message);
-    if (snapshots?.length) {
-      await Promise.allSettled(snapshots.map((b) => sendBookingNotification("deleted", b as BookingNotificationPayload)));
-    }
     toast.success(t("admin.scheduleReset"));
   };
   if (loading) {

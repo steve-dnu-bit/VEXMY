@@ -18,13 +18,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const syncUser = (nextUser: User | null) => {
       if (cancelled) return;
-      setUser(nextUser);
+      setUser((prev) => {
+        const prevId = prev?.id ?? null;
+        const nextId = nextUser?.id ?? null;
+        if (prevId === nextId) return prev;
+        return nextUser;
+      });
       setLoading(false);
     };
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Token refresh is silent — avoid re-rendering the whole app tree.
+      if (event === "TOKEN_REFRESHED") return;
       syncUser(session?.user ?? null);
     });
 

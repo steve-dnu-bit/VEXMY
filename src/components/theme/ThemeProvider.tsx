@@ -60,7 +60,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
 
   const setTheme = async (nextTheme: AppTheme) => {
     setThemeState(nextTheme);

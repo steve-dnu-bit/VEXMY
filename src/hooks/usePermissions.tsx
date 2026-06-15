@@ -31,16 +31,26 @@ export const usePermissions = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) {
+      setPermissions([]);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
     supabase
       .from("user_permissions")
       .select("user_id, feature, granted")
       .eq("user_id", user.id)
       .then(({ data }) => {
+        if (cancelled) return;
         if (data) setPermissions(data);
         setLoading(false);
       });
-  }, [user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const hasPermission = (feature: Feature): boolean =>
     permissions.some((p) => p.feature === feature && p.granted);

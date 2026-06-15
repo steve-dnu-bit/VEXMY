@@ -160,13 +160,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     };
 
     void fetchAndApplyTheme();
-    window.addEventListener("focus", fetchAndApplyTheme);
     window.addEventListener(PORTAL_THEME_UPDATED_EVENT, fetchAndApplyTheme);
     return () => {
-      window.removeEventListener("focus", fetchAndApplyTheme);
       window.removeEventListener(PORTAL_THEME_UPDATED_EVENT, fetchAndApplyTheme);
     };
-  }, [user, location.pathname]);
+  }, [user?.id, location.pathname]);
 
   const shellStyle = useMemo(() => {
     const preset = getThemePresetByBgColor(portalBgColor);

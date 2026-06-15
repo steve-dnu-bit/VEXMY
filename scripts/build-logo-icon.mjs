@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const source = join(root, "public/velbok-logo-source.png");
+const source = join(root, "public/icon-source.png");
 
 const BEIGE = "#b8a06e";
 const RADIUS_RATIO = 0.18;
@@ -114,49 +114,14 @@ async function buildInstallIcon(size, crop) {
     .toBuffer();
 }
 
-async function detectLeftLogoBox() {
-  const { data, info } = await sharp(source).raw().toBuffer({ resolveWithObject: true });
-  const w = info.width;
-  const h = info.height;
-  const channels = info.channels;
-  const splitX = Math.floor(w / 2);
-
-  let minX = splitX;
-  let minY = h;
-  let maxX = 0;
-  let maxY = 0;
-
-  for (let y = 0; y < h; y += 1) {
-    for (let x = 0; x < splitX; x += 1) {
-      const i = (y * w + x) * channels;
-      const sum = data[i] + data[i + 1] + data[i + 2];
-      if (sum > 90) {
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-      }
-    }
-  }
-
-  const bw = maxX - minX;
-  const bh = maxY - minY;
-  const side = Math.max(bw, bh);
-  const pad = Math.round(side * PAD_RATIO);
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-
-  const left = Math.max(0, Math.round(cx - side / 2 - pad));
-  const top = Math.max(0, Math.round(cy - side / 2 - pad));
-  const width = Math.min(w - left, Math.round(side + pad * 2));
-  const height = Math.min(h - top, Math.round(side + pad * 2));
-  const cropSide = Math.min(width, height);
-
-  return { left, top, width: cropSide, height: cropSide };
+async function detectSourceCrop() {
+  const meta = await sharp(source).metadata();
+  const side = Math.min(meta.width ?? 0, meta.height ?? 0);
+  return { left: 0, top: 0, width: side, height: side };
 }
 
-const crop = await detectLeftLogoBox();
-console.log("Left logo crop:", crop);
+const crop = await detectSourceCrop();
+console.log("Icon source crop:", crop);
 
 const testPath = join(root, "public/icons/_test-left-crop.png");
 await sharp(source).extract(crop).resize(512, 512, { fit: "cover" }).toFile(testPath);

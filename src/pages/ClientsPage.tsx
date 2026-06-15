@@ -41,25 +41,6 @@ interface BookingClient {
   last_visit: string | null;
 }
 
-type BookingNotificationPayload = {
-  id: string;
-  artist_id: string;
-  client_name: string;
-  client_email: string | null;
-  client_phone: string | null;
-  booking_type: string;
-  status: string;
-  starts_at: string;
-  ends_at: string;
-  notes: string | null;
-};
-
-type BookingNotificationResult = {
-  ok?: boolean;
-  sent?: number;
-  failed?: Array<{ email?: string; message?: string }>;
-};
-
 /** Maximum client rows per CSV/JSON import. */
 const MAX_CLIENT_IMPORT_ROWS = 5000;
 const CLIENT_IMPORT_CHUNK_SIZE = 150;
@@ -76,6 +57,7 @@ type ClientImportInsert = {
   booking_type: string;
   status: string;
   deposit_paid: boolean;
+  suppress_booking_notifications: boolean;
 };
 
 /** Parse CSV including quoted commas and newlines; strips UTF-8 BOM. */
@@ -160,37 +142,6 @@ const ClientsPage = () => {
   const [search, setSearch] = useState("");
   const csvInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
-
-  const sendBookingNotification = async (
-    action: "created" | "updated" | "deleted",
-    booking: BookingNotificationPayload,
-  ) => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    const token = session?.access_token ?? null;
-    if (sessionError || !token) {
-      console.warn("Booking notification skipped: expired session");
-      return;
-    }
-
-    const { data, error } = await supabase.functions.invoke<BookingNotificationResult>("booking-notifications", {
-      body: { action, booking },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (error) {
-      const status = (error as any)?.context?.status ?? (error as any)?.status;
-      if (status === 401) {
-        console.warn("Booking notification skipped: session expired (401)");
-        return;
-      }
-      console.error("Booking notification failed:", error);
-      return;
-    }
-    if (data?.failed && data.failed.length > 0) {
-      console.warn("Booking notification partial failure:", data.failed);
-    }
-  };
 
   useEffect(() => {
     fetchClients();
@@ -361,17 +312,10 @@ const ClientsPage = () => {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-    const { data: snapshots } = await supabase
-      .from("bookings")
-      .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes")
-      .eq("booking_type", "consultation");
     const { error } = await supabase.from("bookings").delete().eq("booking_type", "consultation");
     if (error) {
       toast({ title: t("clients.failedDeleteClients"), description: error.message, variant: "destructive" });
     } else {
-      if (snapshots?.length) {
-        await Promise.allSettled(snapshots.map((b) => sendBookingNotification("deleted", b as BookingNotificationPayload)));
-      }
       toast({ title: t("clients.importedDeleted") });
       fetchClients();
     }
@@ -445,17 +389,14 @@ const ClientsPage = () => {
     const errors: string[] = [];
     for (let i = 0; i < toInsert.length; i += CLIENT_IMPORT_CHUNK_SIZE) {
       const chunk = toInsert.slice(i, i + CLIENT_IMPORT_CHUNK_SIZE);
-      const { data: inserted, error } = await supabase
+      const { error } = await supabase
         .from("bookings")
         .insert(chunk)
-        .select("id, artist_id, client_name, client_email, client_phone, booking_type, status, starts_at, ends_at, notes");
+        .select("id");
       if (error) {
         errors.push(`rows ${i + 1}-${i + chunk.length}: ${error.message}`);
       } else {
         imported += chunk.length;
-        if (inserted?.length) {
-          await Promise.allSettled(inserted.map((b) => sendBookingNotification("created", b as BookingNotificationPayload)));
-        }
       }
     }
 
@@ -533,6 +474,7 @@ const ClientsPage = () => {
           booking_type: "consultation",
           status: "confirmed",
           deposit_paid: true,
+          suppress_booking_notifications: true,
         });
       }
 
@@ -587,6 +529,7 @@ const ClientsPage = () => {
             booking_type: "consultation",
             status: "confirmed",
             deposit_paid: true,
+            suppress_booking_notifications: true,
           });
         }
 

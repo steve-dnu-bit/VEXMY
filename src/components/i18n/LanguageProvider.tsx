@@ -79,7 +79,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     return () => {
       cancelled = true;
     };
-  }, [user, i18nInstance]);
+  }, [user?.id, i18nInstance]);
 
   const setLanguage = useCallback(
     async (next: AppLanguage) => {

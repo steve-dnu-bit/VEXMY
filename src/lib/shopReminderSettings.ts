@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getUserOrganizationId } from "@/lib/shopSettings";
 
 export interface ShopReminderSettings {
   bookingConfirmation: boolean;
@@ -18,8 +19,45 @@ export const defaultShopReminderSettings: ShopReminderSettings = {
   reminderChannel: "email",
 };
 
-/** Primary admin user_id — shop-wide reminder_settings are stored on this row. */
-export async function getShopReminderSettingsUserId(): Promise<string | null> {
+const REMINDER_COLUMNS =
+  "booking_confirmation, deposit_reminder, appointment_reminder, deposit_reminder_timing, appointment_reminder_timing, reminder_channel";
+
+function rowToSettings(data: Record<string, unknown>): ShopReminderSettings {
+  return {
+    bookingConfirmation: !!data.booking_confirmation,
+    depositReminder: !!data.deposit_reminder,
+    appointmentReminder: !!data.appointment_reminder,
+    depositReminderTiming: (data.deposit_reminder_timing as string) || "24h",
+    appointmentReminderTiming: (data.appointment_reminder_timing as string) || "24h",
+    reminderChannel: (data.reminder_channel as string) || "email",
+  };
+}
+
+/** Primary shop owner user_id — reminder_settings are stored on this row per studio. */
+export async function resolveShopReminderOwnerUserId(orgId?: string | null): Promise<string | null> {
+  const resolvedOrgId = orgId ?? (await getUserOrganizationId());
+  if (resolvedOrgId) {
+    const { data: owner } = await supabase
+      .from("organization_members" as any)
+      .select("user_id")
+      .eq("organization_id", resolvedOrgId)
+      .eq("role", "owner")
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (owner?.user_id) return owner.user_id as string;
+
+    const { data: orgAdmin } = await supabase
+      .from("organization_members" as any)
+      .select("user_id")
+      .eq("organization_id", resolvedOrgId)
+      .eq("role", "admin")
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (orgAdmin?.user_id) return orgAdmin.user_id as string;
+  }
+
   const { data, error } = await supabase
     .from("user_roles")
     .select("user_id")
@@ -31,32 +69,27 @@ export async function getShopReminderSettingsUserId(): Promise<string | null> {
 }
 
 export async function loadShopReminderSettings(): Promise<ShopReminderSettings> {
-  const ownerId = await getShopReminderSettingsUserId();
+  const ownerId = await resolveShopReminderOwnerUserId();
   if (!ownerId) return { ...defaultShopReminderSettings };
 
   const { data, error } = await supabase
     .from("reminder_settings" as any)
-    .select(
-      "booking_confirmation, deposit_reminder, appointment_reminder, deposit_reminder_timing, appointment_reminder_timing, reminder_channel",
-    )
+    .select(REMINDER_COLUMNS)
     .eq("user_id", ownerId)
     .maybeSingle();
 
-  if (error || !data) return { ...defaultShopReminderSettings };
+  if (error) {
+    console.warn("loadShopReminderSettings:", error.message);
+    return { ...defaultShopReminderSettings };
+  }
+  if (!data) return { ...defaultShopReminderSettings };
 
-  return {
-    bookingConfirmation: !!data.booking_confirmation,
-    depositReminder: !!data.deposit_reminder,
-    appointmentReminder: !!data.appointment_reminder,
-    depositReminderTiming: data.deposit_reminder_timing || "24h",
-    appointmentReminderTiming: data.appointment_reminder_timing || "24h",
-    reminderChannel: data.reminder_channel || "email",
-  };
+  return rowToSettings(data as Record<string, unknown>);
 }
 
 export async function saveShopReminderSettings(settings: ShopReminderSettings): Promise<{ error: string | null }> {
-  const ownerId = await getShopReminderSettingsUserId();
-  if (!ownerId) return { error: "No shop admin found" };
+  const ownerId = await resolveShopReminderOwnerUserId();
+  if (!ownerId) return { error: "No shop admin found for this studio" };
 
   const { error } = await supabase.from("reminder_settings" as any).upsert(
     {
