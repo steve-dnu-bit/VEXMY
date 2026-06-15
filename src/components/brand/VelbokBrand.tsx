@@ -9,22 +9,22 @@ const VARIANTS = {
     title: "font-display text-xl font-bold tracking-[0.12em] text-gold",
     subtitle: "mt-0.5 text-[9px] tracking-[0.35em] text-gold/70",
     gap: "gap-2.5",
-    /** Title + tagline stack on the landing header */
-    logoWithTagline: "h-11 w-11",
-    logo: "h-7 w-7",
+    /** Title + tagline stack on the landing header (+50% from 44px) */
+    logoWithTagline: "h-[4.125rem] w-[4.125rem]",
+    logo: "h-[2.625rem] w-[2.625rem]",
   },
   auth: {
     title: "font-display text-3xl font-bold tracking-[0.08em] text-gold",
     subtitle: "",
     gap: "gap-3",
-    logo: "h-10 w-10",
+    logo: "h-[3.75rem] w-[3.75rem]",
   },
   dashboard: {
     title: "font-display text-lg font-bold text-gold",
     subtitle: "",
     gap: "gap-2.5",
-    logo: "h-8 w-8",
-    logoIconOnly: "h-9 w-9",
+    logo: "h-12 w-12",
+    logoIconOnly: "h-[3.375rem] w-[3.375rem]",
   },
 } as const;
 
