@@ -10,6 +10,7 @@ import {
 } from "../_shared/email-templates.ts";
 import { resolveOrganizationForUser } from "../_shared/organization.ts";
 import { getActiveConnectAccount, stripeRequestOptions } from "../_shared/stripe-connect.ts";
+import { createConnectStripe, getConnectStripeSecret } from "../_shared/stripe-keys.ts";
 import { maxDepositAmountForCurrency, resolveBookingDepositAmount } from "../_shared/deposit-limits.ts";
 import { formatShopMoney, getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 
@@ -34,7 +35,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeSecret = getConnectStripeSecret();
     if (!supabaseUrl || !serviceKey || !stripeSecret) {
       return new Response(JSON.stringify({ error: "Server misconfigured" }), {
         status: 500,
@@ -91,7 +92,7 @@ serve(async (req) => {
       });
     }
 
-    const stripe = new Stripe(stripeSecret);
+    const stripe = createConnectStripe();
     const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "http://localhost:5173";
     const baseUrl = origin.replace(/\/$/, "");
 

@@ -131,6 +131,14 @@
     border-image: linear-gradient(135deg, hsl(43 30% 50%), hsl(43 25% 35%)) 1;
   }
 
+  .glass-surface {
+    @apply border-border/70 bg-card/55 backdrop-blur-md;
+  }
+
+  .glass-surface-subtle {
+    @apply border-border/60 bg-card/40 backdrop-blur-sm;
+  }
+
   .bg-noise {
     position: relative;
   }

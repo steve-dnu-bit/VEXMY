@@ -95,13 +95,13 @@ const SalesReportsPanel = ({ currency }: SalesReportsPanelProps) => {
           {t("salesReports.savedAt", { time: format(parseISO(report.generated_at), "d MMM yyyy, HH:mm") })}
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label={t("salesReports.deskPayments")} value={money(d.deskTotal)} sub={`${d.posCount} ${t("salesReports.payments")}`} />
-          <Metric label={t("salesReports.deposits")} value={money(d.depositsTotal)} sub={`${d.depositsCount} ${t("salesReports.payments")}`} />
-          <Metric label={t("salesReports.invoices")} value={money(d.invoicesTotal)} sub={`${d.invoicesCount} ${t("salesReports.paid")}`} />
-          <Metric label={t("salesReports.totalCollected")} value={money(d.grandCollected)} sub={t("salesReports.totalCollectedHint")} highlight />
+          <Metric label={t("salesReports.deskPayments")} value={money(d.deskTotal)} sub={`${d.posCount} ${t("salesReports.payments")}`} tone="blue" />
+          <Metric label={t("salesReports.deposits")} value={money(d.depositsTotal)} sub={`${d.depositsCount} ${t("salesReports.payments")}`} tone="amber" />
+          <Metric label={t("salesReports.invoices")} value={money(d.invoicesTotal)} sub={`${d.invoicesCount} ${t("salesReports.paid")}`} tone="violet" />
+          <Metric label={t("salesReports.totalCollected")} value={money(d.grandCollected)} sub={t("salesReports.totalCollectedHint")} tone="gold" />
         </div>
         {d.posCount > 0 ? (
-          <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2 text-sm">
+          <div className="rounded-lg border border-border/60 bg-secondary/25 backdrop-blur-sm p-3 space-y-2 text-sm">
             <p className="font-medium">{t("salesReports.posBreakdown")}</p>
             <div className="grid sm:grid-cols-2 gap-2 text-xs">
               <Row label={t("salesReports.sessionValue")} value={money(d.sessionTotal)} />
@@ -255,18 +255,25 @@ const SalesReportsPanel = ({ currency }: SalesReportsPanelProps) => {
   );
 };
 
+const METRIC_TONES = {
+  blue: "border-blue-500/30 bg-blue-500/10",
+  amber: "border-amber-500/30 bg-amber-500/10",
+  violet: "border-violet-500/30 bg-violet-500/10",
+  gold: "border-primary/40 bg-primary/10",
+} as const;
+
 const Metric = ({
   label,
   value,
   sub,
-  highlight = false,
+  tone = "blue",
 }: {
   label: string;
   value: string;
   sub: string;
-  highlight?: boolean;
+  tone?: keyof typeof METRIC_TONES;
 }) => (
-  <div className={`rounded-lg border p-3 ${highlight ? "border-primary/40 bg-primary/5" : "border-border bg-secondary/50"}`}>
+  <div className={`rounded-lg border p-3 backdrop-blur-sm ${METRIC_TONES[tone]}`}>
     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
     <p className="font-display text-xl font-bold mt-1 tabular-nums">{value}</p>
     <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>

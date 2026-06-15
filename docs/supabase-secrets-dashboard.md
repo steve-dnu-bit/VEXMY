@@ -96,6 +96,26 @@ Create matching **recurring monthly** Stripe prices in each currency (Products �
 
 ---
 
+## Tattoo shop payouts (Stripe Connect)
+
+Velbok Co is the **Stripe Connect platform**. Each studio on Velbok (e.g. Inkaholics Brentwood) gets an **Express connected account** under that platform for client deposits and payouts.
+
+| What | Stripe account |
+|------|----------------|
+| Platform subscriptions (`/subscribe`) | Velbok Co — `STRIPE_SECRET_KEY` |
+| Shop client payments & payouts | Velbok Co Connect — same `STRIPE_SECRET_KEY` |
+| Shop legal entity at onboarding | From `shop_settings.legal_name` (e.g. Inkaholics Limited) |
+
+Stripe may show **Velbok** during payout setup — that is the platform name. The studio enters **Inkaholics Limited** (or their legal name) and their **studio bank account** in the form; money goes to the connected account, not Velbok's balance.
+
+**Optional:** `STRIPE_CONNECT_SECRET_KEY` only if you run Connect on a *different* Stripe account than subscriptions (unusual). If unset, Connect uses `STRIPE_SECRET_KEY`.
+
+**Webhook:** `account.updated` and deposit checkout events can use the same Velbok webhook (`STRIPE_WEBHOOK_SECRET`). `STRIPE_CONNECT_WEBHOOK_SECRET` is optional if you use a separate Connect Stripe account.
+
+**Reset a wrong payout link:** `supabase/scripts/reset-organization-stripe-connect.sql`
+
+---
+
 ## Auth SMTP (password reset — separate page)
 
 **Where:** **Authentication** → **SMTP Settings** → **Enable Custom SMTP**

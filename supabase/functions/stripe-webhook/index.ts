@@ -6,6 +6,12 @@ import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
 import { getShopPaymentSettings } from "../_shared/shop-currency.ts";
+import {
+  constructVerifiedStripeEvent,
+  createConnectStripe,
+  createPlatformStripe,
+  getPlatformStripeSecret,
+} from "../_shared/stripe-keys.ts";
 
 function mapStripeSubStatus(status: Stripe.Subscription.Status): string {
   const allowed = ["trialing", "active", "past_due", "canceled", "unpaid", "incomplete", "paused"];
@@ -32,9 +38,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
-    if (!supabaseUrl || !serviceKey || !stripeSecret || !webhookSecret) {
+    const platformStripeSecret = getPlatformStripeSecret();
+    const platformWebhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
+    const connectWebhookSecret = Deno.env.get("STRIPE_CONNECT_WEBHOOK_SECRET") ?? "";
+    if (!supabaseUrl || !serviceKey || !platformStripeSecret || (!platformWebhookSecret && !connectWebhookSecret)) {
       return new Response("Server misconfigured", { status: 500 });
     }
 
@@ -42,8 +49,9 @@ serve(async (req) => {
     if (!signature) return new Response("Missing stripe-signature", { status: 400 });
 
     const rawBody = await req.text();
-    const stripe = new Stripe(stripeSecret);
-    const event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
+    const { event, source } = await constructVerifiedStripeEvent(rawBody, signature);
+    const platformStripe = createPlatformStripe();
+    const connectStripe = createConnectStripe();
     const admin = createClient(supabaseUrl, serviceKey);
     const emailReady = getEmailDeliveryStatus();
     const canSendEmail = emailReady.from && (emailReady.resendApi || emailReady.smtp);
@@ -199,7 +207,7 @@ serve(async (req) => {
       if (kind === "platform_subscription" && session.mode === "subscription") {
         const orgId = session.metadata?.organization_id ?? null;
         if (session.subscription && orgId) {
-          const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
+          const subscription = await platformStripe.subscriptions.retrieve(String(session.subscription));
           await syncPlatformSubscription(subscription);
         }
       }
@@ -235,7 +243,7 @@ serve(async (req) => {
     if (event.type === "invoice.payment_failed") {
       const invoice = event.data.object as Stripe.Invoice;
       if (invoice.subscription) {
-        const subscription = await stripe.subscriptions.retrieve(String(invoice.subscription));
+        const subscription = await platformStripe.subscriptions.retrieve(String(invoice.subscription));
         await syncPlatformSubscription(subscription);
       }
     }
@@ -243,7 +251,7 @@ serve(async (req) => {
     if (event.type === "account.updated") {
       const account = event.data.object as Stripe.Account;
       if (account.id) {
-        await syncConnectAccountFromStripe(admin, stripe, account.id);
+        await syncConnectAccountFromStripe(admin, connectStripe, account.id);
       }
     }
 

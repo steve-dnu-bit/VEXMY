@@ -7,6 +7,7 @@ import {
   getConnectStatusForOrg,
   stripeRequestOptions,
 } from "../_shared/stripe-connect.ts";
+import { createConnectStripe, getConnectStripeSecret } from "../_shared/stripe-keys.ts";
 import { getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 import { mapShopCountryToStripe } from "../_shared/stripe-connect.ts";
 
@@ -46,7 +47,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeSecret = getConnectStripeSecret();
     if (!supabaseUrl || !serviceKey || !stripeSecret) {
       return new Response(JSON.stringify({ error: "Server misconfigured" }), {
         status: 500,
@@ -88,7 +89,7 @@ serve(async (req) => {
       });
     }
 
-    const stripe = new Stripe(stripeSecret);
+    const stripe = createConnectStripe();
     const stripeOpts = stripeRequestOptions(connect.stripeConnectAccountId);
     const body = await req.json().catch(() => ({}));
     const action = typeof body.action === "string" ? body.action : "";

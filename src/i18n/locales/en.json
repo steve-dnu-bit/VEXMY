@@ -606,7 +606,7 @@
     "statusReady": "Connected",
     "statusIncomplete": "Action required",
     "statusNotStarted": "Not connected",
-    "stripeHostedNote": "You'll complete a short Stripe form for bank and identity checks. No separate Stripe account signup is needed.",
+    "stripeHostedNote": "Stripe may show Velbok as the platform — that's normal. Enter your studio legal entity (e.g. Inkaholics Limited) and bank account during the form. Payouts go to your studio, not Velbok.",
     "returnToast": "Payout setup updated — checking status…",
     "refreshToast": "Continue payout setup where you left off.",
     "loadFailed": "Could not load payout status",

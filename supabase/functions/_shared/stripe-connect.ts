@@ -21,6 +21,96 @@ export function mapShopCountryToStripe(country: string | null | undefined): stri
   return stripeCountryForShopCountry(country);
 }
 
+type ShopConnectProfile = {
+  shop_name?: string | null;
+  legal_name?: string | null;
+  trading_name?: string | null;
+  support_email?: string | null;
+  website_url?: string | null;
+  country?: string | null;
+};
+
+/** Express connected account under the Velbok Connect platform (one per shop org). */
+export function buildConnectExpressAccountParams(
+  organizationId: string,
+  orgName: string,
+  shop: ShopConnectProfile | null | undefined,
+  fallbackEmail?: string | null,
+) {
+  const tradingName = shop?.trading_name?.trim() || shop?.shop_name?.trim() || orgName;
+  const legalName = shop?.legal_name?.trim() || tradingName;
+  const supportEmail = shop?.support_email?.trim() || fallbackEmail?.trim() || undefined;
+
+  return {
+    type: "express" as const,
+    country: mapShopCountryToStripe(shop?.country),
+    email: supportEmail,
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+    business_type: "company" as const,
+    company: { name: legalName },
+    metadata: {
+      organization_id: organizationId,
+      legal_name: legalName,
+      trading_name: tradingName,
+    },
+    business_profile: {
+      name: tradingName,
+      support_email: supportEmail,
+      url: shop?.website_url || undefined,
+    },
+  };
+}
+
+function connectAccountReadinessScore(account: Stripe.Account): number {
+  return (
+    (account.charges_enabled ? 8 : 0) +
+    (account.payouts_enabled ? 4 : 0) +
+    (account.details_submitted ? 2 : 0)
+  );
+}
+
+/** Find Express accounts already created for this Velbok organization (metadata.organization_id). */
+export async function findConnectAccountsForOrganization(
+  stripe: Stripe,
+  organizationId: string,
+): Promise<Stripe.Account[]> {
+  try {
+    const result = await stripe.accounts.search({
+      query: `metadata['organization_id']:'${organizationId}'`,
+      limit: 20,
+    });
+    return result.data;
+  } catch {
+    return [];
+  }
+}
+
+/** Reuse the stored account, or recover an existing Stripe account when the DB link is missing. */
+export async function resolveConnectAccountId(
+  stripe: Stripe,
+  organizationId: string,
+  storedAccountId: string | null | undefined,
+): Promise<string | null> {
+  if (storedAccountId) {
+    try {
+      await stripe.accounts.retrieve(storedAccountId);
+      return storedAccountId;
+    } catch {
+      // Stored id is invalid — try metadata search below.
+    }
+  }
+
+  const matches = await findConnectAccountsForOrganization(stripe, organizationId);
+  if (!matches.length) return null;
+
+  return [...matches].sort(
+    (a, b) => connectAccountReadinessScore(b) - connectAccountReadinessScore(a),
+  )[0].id;
+}
+
 export async function canManageStripeConnect(
   admin: SupabaseClient,
   userId: string,
@@ -75,17 +165,28 @@ export async function syncConnectAccountFromStripe(
     await admin.from("organizations").update(patch).eq("stripe_connect_account_id", accountId);
   }
 
-  const { data: company } = await admin
-    .from("companies")
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (company?.id) {
-    await admin
-      .from("companies")
-      .update({ stripe_account_id: accountId, updated_at: new Date().toISOString() })
-      .eq("id", company.id);
+  if (organizationId) {
+    const { data: shop } = await admin
+      .from("shop_settings")
+      .select("legal_name, trading_name")
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    const names = [shop?.legal_name, shop?.trading_name].filter((name): name is string => !!name?.trim());
+    if (names.length) {
+      const orFilter = names.map((name) => `name.ilike.${name},legal_name.ilike.${name}`).join(",");
+      const { data: company } = await admin
+        .from("companies")
+        .select("id")
+        .or(orFilter)
+        .limit(1)
+        .maybeSingle();
+      if (company?.id) {
+        await admin
+          .from("companies")
+          .update({ stripe_account_id: accountId, updated_at: new Date().toISOString() })
+          .eq("id", company.id);
+      }
+    }
   }
 
   return {

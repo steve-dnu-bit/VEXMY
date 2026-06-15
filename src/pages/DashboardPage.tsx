@@ -177,13 +177,27 @@ const DashboardPage = () => {
   };
 
   const stats = [
-    { label: t("dashboard.todaysBookings"), value: String(bookingCount), icon: Calendar },
+    {
+      label: t("dashboard.todaysBookings"),
+      value: String(bookingCount),
+      icon: Calendar,
+      cardClass: "border-blue-500/30 bg-blue-500/10",
+      iconClass: "bg-blue-500/15 text-blue-400",
+    },
     {
       label: hasFeature("staff_inbox") ? t("dashboard.openTickets") : t("dashboard.contactableClients"),
       value: String(messageCount),
       icon: hasFeature("staff_inbox") ? MessageSquare : Users,
+      cardClass: hasFeature("staff_inbox")
+        ? "border-emerald-500/30 bg-emerald-500/10"
+        : "border-violet-500/30 bg-violet-500/10",
+      iconClass: hasFeature("staff_inbox")
+        ? "bg-emerald-500/15 text-emerald-400"
+        : "bg-violet-500/15 text-violet-400",
     },
   ];
+
+  const panelClass = "rounded-xl border border-border/70 bg-card/55 backdrop-blur-md p-5";
 
   return (
     <AppLayout>
@@ -197,10 +211,10 @@ const DashboardPage = () => {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           {stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-border bg-card p-5">
+            <div key={stat.label} className={`rounded-xl border p-5 backdrop-blur-md ${stat.cardClass}`}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <stat.icon className="h-4 w-4 text-primary" />
+                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconClass}`}>
+                  <stat.icon className="h-4 w-4" />
                 </div>
               </div>
               <p className="font-display text-2xl font-bold">{stat.value}</p>
@@ -209,14 +223,14 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className={panelClass}>
           <h2 className="font-display text-lg font-semibold mb-4">{t("dashboard.todaysBookings")}</h2>
           {recentBookings.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">{t("dashboard.noBookingsToday")}</p>
           ) : (
             <div className="space-y-2">
               {recentBookings.map((b) => (
-                <div key={b.id} className="flex items-center justify-between rounded-lg border border-border bg-secondary p-3">
+                <div key={b.id} className="flex items-center justify-between rounded-lg border border-border/60 bg-secondary/35 backdrop-blur-sm p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
                       <Users className="h-3.5 w-3.5 text-muted-foreground" />
@@ -235,7 +249,7 @@ const DashboardPage = () => {
           )}
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5 mt-6">
+        <div className={`${panelClass} mt-6`}>
           <div className="flex items-center justify-between gap-3 mb-4">
             <h2 className="font-display text-lg font-semibold">{t("dashboard.stripeVerification")}</h2>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
@@ -245,22 +259,22 @@ const DashboardPage = () => {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3 mb-4">
-            <div className="rounded-lg border border-border bg-secondary/70 p-3">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-sm p-3">
+              <div className="flex items-center gap-2 text-xs text-emerald-300/90">
                 <Receipt className="h-4 w-4" />
                 {t("dashboard.paidInvoices")}
               </div>
               <p className="font-display text-2xl font-bold mt-1">{stripeInvoicePaidCount}</p>
             </div>
-            <div className="rounded-lg border border-border bg-secondary/70 p-3">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm p-3">
+              <div className="flex items-center gap-2 text-xs text-blue-300/90">
                 <CreditCard className="h-4 w-4" />
                 {t("dashboard.invoiceValuePaid")}
               </div>
               <p className="font-display text-2xl font-bold mt-1">{money(stripeInvoicePaidValue)}</p>
             </div>
-            <div className="rounded-lg border border-border bg-secondary/70 p-3">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 backdrop-blur-sm p-3">
+              <div className="flex items-center gap-2 text-xs text-amber-300/90">
                 <Calendar className="h-4 w-4" />
                 {t("dashboard.depositsPaid")}
               </div>
@@ -269,14 +283,14 @@ const DashboardPage = () => {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-lg border border-border bg-secondary/20 p-3">
+            <div className="rounded-lg border border-border/60 bg-secondary/25 backdrop-blur-sm p-3">
               <p className="text-sm font-semibold mb-2">{t("dashboard.recentPaidInvoices")}</p>
               {recentPaidInvoices.length === 0 ? (
                 <p className="text-xs text-muted-foreground">{t("dashboard.noPaidInvoices")}</p>
               ) : (
                 <div className="space-y-2">
                   {recentPaidInvoices.map((inv) => (
-                    <div key={inv.id} className="rounded-md border border-border bg-card px-3 py-2 flex items-center justify-between gap-2">
+                    <div key={inv.id} className="rounded-md border border-border/60 bg-card/40 backdrop-blur-sm px-3 py-2 flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{inv.invoice_number} · {inv.client_name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -295,14 +309,14 @@ const DashboardPage = () => {
               )}
             </div>
 
-            <div className="rounded-lg border border-border bg-secondary/20 p-3">
+            <div className="rounded-lg border border-border/60 bg-secondary/25 backdrop-blur-sm p-3">
               <p className="text-sm font-semibold mb-2">{t("dashboard.recentPaidDeposits")}</p>
               {recentPaidDeposits.length === 0 ? (
                 <p className="text-xs text-muted-foreground">{t("dashboard.noPaidDeposits")}</p>
               ) : (
                 <div className="space-y-2">
                   {recentPaidDeposits.map((dep) => (
-                    <div key={dep.id} className="rounded-md border border-border bg-card px-3 py-2 flex items-center justify-between gap-2">
+                    <div key={dep.id} className="rounded-md border border-border/60 bg-card/40 backdrop-blur-sm px-3 py-2 flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{dep.client_name}</p>
                         <p className="text-xs text-muted-foreground">{new Date(dep.starts_at).toLocaleString()}</p>
@@ -324,7 +338,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className={`${panelClass} mt-6`}>
           <div className="flex items-center justify-between gap-3 mb-4">
             <h2 className="font-display text-lg font-semibold">{t("dashboard.consents")}</h2>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
@@ -343,7 +357,7 @@ const DashboardPage = () => {
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/70 p-3"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-secondary/35 backdrop-blur-sm p-3"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate">{c.full_name}</p>

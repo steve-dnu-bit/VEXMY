@@ -6,6 +6,7 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildInvoiceEmail } from "../_shared/email-templates.ts";
 import { getActiveConnectAccount } from "../_shared/stripe-connect.ts";
+import { getConnectStripeSecret } from "../_shared/stripe-keys.ts";
 import { formatShopMoney, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 
 const corsHeaders: Record<string, string> = {
@@ -206,7 +207,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeSecret = getConnectStripeSecret();
     if (!supabaseUrl || !serviceKey) {
       return new Response(JSON.stringify({ error: "Server misconfigured" }), {
         status: 500,

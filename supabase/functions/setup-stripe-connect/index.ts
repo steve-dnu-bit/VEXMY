@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import Stripe from "npm:stripe@16.12.0";
-import { mapShopCountryToStripe, syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
+import { buildConnectExpressAccountParams, resolveConnectAccountId, syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
+import { createConnectStripe, getConnectStripeSecret, hasSeparateConnectStripeAccount, stripeSecretMode } from "../_shared/stripe-keys.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -33,7 +33,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeSecret = getConnectStripeSecret();
     if (!supabaseUrl || !serviceKey || !stripeSecret) {
       return new Response(JSON.stringify({ error: "Server misconfigured" }), {
         status: 500,
@@ -56,7 +56,7 @@ serve(async (req) => {
       : "/admin";
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const stripe = new Stripe(stripeSecret);
+    const stripe = createConnectStripe();
 
     const { data: orgs, error: orgsError } = await admin
       .from("organizations")
@@ -83,23 +83,20 @@ serve(async (req) => {
       let accountId = org.stripe_connect_account_id;
       let createdAccount = false;
 
-      if (!accountId) {
-        const account = await stripe.accounts.create({
-          type: "express",
-          country: mapShopCountryToStripe(shop?.country),
-          email: shop?.support_email || undefined,
-          capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
-          },
-          business_type: "company",
-          metadata: { organization_id: org.id },
-          business_profile: {
-            name: shopName,
-            support_email: shop?.support_email || undefined,
-            url: shop?.website_url || undefined,
-          },
-        });
+      const resolvedAccountId = await resolveConnectAccountId(stripe, org.id, accountId);
+      if (resolvedAccountId) {
+        accountId = resolvedAccountId;
+        if (resolvedAccountId !== org.stripe_connect_account_id) {
+          await admin
+            .from("organizations")
+            .update({ stripe_connect_account_id: resolvedAccountId })
+            .eq("id", org.id);
+        }
+      } else {
+        const account = await stripe.accounts.create(
+          buildConnectExpressAccountParams(org.id, org.name, shop),
+          { idempotencyKey: `velbok-connect-express-${org.id}` },
+        );
         accountId = account.id;
         createdAccount = true;
         await admin
@@ -152,7 +149,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         ok: true,
-        stripeMode: stripeSecret.startsWith("sk_test_") ? "test" : "live",
+        stripeMode: stripeSecretMode(stripeSecret),
+        connectPlatformSeparate: hasSeparateConnectStripeAccount(),
         allReady,
         organizations: results,
         nextStep: allReady

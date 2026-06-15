@@ -211,7 +211,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Sidebar */}
       <aside
-        className={`themed-scrollbar fixed inset-y-0 left-0 z-40 overflow-y-scroll overflow-x-hidden border-r border-sidebar-border bg-sidebar flex flex-col transition-all duration-200 md:relative md:translate-x-0 ${
+        className={`themed-scrollbar fixed inset-y-0 left-0 z-40 overflow-y-scroll overflow-x-hidden border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md flex flex-col transition-all duration-200 md:relative md:translate-x-0 ${
           sidebarCollapsed ? "md:w-16" : "md:w-56"
         } ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
