@@ -2,11 +2,19 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { BRANDING } from "@/lib/branding";
 
+/** In-app logo sizes (~12.5% larger than the original 32/40/64/96px set). */
+const LOGO_PX = {
+  sm: 36,
+  md: 45,
+  lg: 72,
+  xl: 108,
+} as const;
+
 const SIZES = {
-  sm: "h-8 w-8",
-  md: "h-10 w-10",
-  lg: "h-16 w-16",
-  xl: "h-24 w-24",
+  sm: "h-9 w-9",
+  md: "h-[45px] w-[45px]",
+  lg: "h-[4.5rem] w-[4.5rem]",
+  xl: "h-[6.75rem] w-[6.75rem]",
 } as const;
 
 type VelbokLogoProps = {
@@ -23,8 +31,8 @@ const VelbokLogo = ({ size = "md", className, imageClassName, href = "/" }: Velb
       alt=""
       aria-hidden
       className={cn(SIZES[size], "object-contain", imageClassName)}
-      width={size === "xl" ? 96 : size === "lg" ? 64 : size === "md" ? 40 : 32}
-      height={size === "xl" ? 96 : size === "lg" ? 64 : size === "md" ? 40 : 32}
+      width={LOGO_PX[size]}
+      height={LOGO_PX[size]}
     />
   );
 
