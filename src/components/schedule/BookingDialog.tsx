@@ -858,7 +858,7 @@ const BookingDialog = ({
           <div>
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.artistRequired")}</Label>
             <Select value={artistId} onValueChange={setArtistId}>
-              <SelectTrigger className="mt-1 bg-secondary border-border">
+              <SelectTrigger className="mt-1 field-surface border-border">
                 <SelectValue placeholder={t("schedule.selectArtist")} />
               </SelectTrigger>
               <SelectContent>
@@ -873,7 +873,7 @@ const BookingDialog = ({
           <div>
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.serviceRequired")}</Label>
             <Select value={serviceId} onValueChange={setServiceId}>
-              <SelectTrigger className="mt-1 bg-secondary border-border">
+              <SelectTrigger className="mt-1 field-surface border-border">
                 <SelectValue placeholder={t("schedule.select")} />
               </SelectTrigger>
               <SelectContent>
@@ -898,7 +898,7 @@ const BookingDialog = ({
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.phone")}</Label>
-              <Input value={form.client_phone} onChange={(e) => update("client_phone", e.target.value)} className="mt-1 bg-secondary border-border" />
+              <Input value={form.client_phone} onChange={(e) => update("client_phone", e.target.value)} className="mt-1 field-surface border-border" />
             </div>
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">Email</Label>
@@ -908,7 +908,7 @@ const BookingDialog = ({
                   skipAutoLinkFromEmailRef.current = false;
                   update("client_email", e.target.value);
                 }}
-                className="mt-1 bg-secondary border-border"
+                className="mt-1 field-surface border-border"
               />
             </div>
           </div>
@@ -929,12 +929,12 @@ const BookingDialog = ({
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.style")}</Label>
-              <Input value={form.tattoo_style} onChange={(e) => update("tattoo_style", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("schedule.stylePlaceholder")} />
+              <Input value={form.tattoo_style} onChange={(e) => update("tattoo_style", e.target.value)} className="mt-1 field-surface border-border" placeholder={t("schedule.stylePlaceholder")} />
             </div>
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.size")}</Label>
               <Select value={form.tattoo_size} onValueChange={(v) => update("tattoo_size", v)}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.select")} /></SelectTrigger>
+                <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.select")} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="small">{t("schedule.tattooSizes.small")}</SelectItem>
                   <SelectItem value="medium">{t("schedule.tattooSizes.medium")}</SelectItem>
@@ -946,23 +946,23 @@ const BookingDialog = ({
           </div>
           <div>
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.placement")}</Label>
-            <Input value={form.tattoo_placement} onChange={(e) => update("tattoo_placement", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("schedule.placementPlaceholder")} />
+            <Input value={form.tattoo_placement} onChange={(e) => update("tattoo_placement", e.target.value)} className="mt-1 field-surface border-border" placeholder={t("schedule.placementPlaceholder")} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.date")}</Label>
-              <Input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} className="mt-1 bg-secondary border-border" />
+              <Input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} className="mt-1 field-surface border-border" />
             </div>
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.startTime")}</Label>
-              <Input type="time" step={900} value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 bg-secondary border-border" />
+              <Input type="time" step={900} value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 field-surface border-border" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.status")}</Label>
               <Select value={form.status} onValueChange={(v) => update("status", v)}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.status")} /></SelectTrigger>
+                <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.status")} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="confirmed">{t("schedule.statusOptions.confirmed")}</SelectItem>
                   <SelectItem value="completed">{t("schedule.statusOptions.completed")}</SelectItem>
@@ -974,7 +974,7 @@ const BookingDialog = ({
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
               <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
-                <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
+                <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
                   <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
@@ -997,7 +997,7 @@ const BookingDialog = ({
                   deposit_amount: parsed ?? (Number(e.target.value) || 0),
                 }));
               }}
-              className="mt-1 bg-secondary border-border"
+              className="mt-1 field-surface border-border"
             />
             <p className="text-xs text-muted-foreground mt-1">
               {t("schedule.depositAmountHint", { max: formatShopMoney(maxDeposit, shopCurrency) })}
@@ -1008,7 +1008,7 @@ const BookingDialog = ({
           </div>
           <div>
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.notes")}</Label>
-            <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="mt-1 bg-secondary border-border" rows={2} />
+            <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="mt-1 field-surface border-border" rows={2} />
           </div>
           {bookingToEdit ? (
             <BookingConsentSection

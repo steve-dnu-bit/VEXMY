@@ -7,7 +7,7 @@
     "db:push": "npx supabase@latest db push",
     "db:link": "npx supabase@latest link --project-ref tkremoxfkgoiuwghtzwd",
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generate-sitemap.mjs && node scripts/build-logo-icon.mjs && vite build",
     "build:icons": "node scripts/build-logo-icon.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

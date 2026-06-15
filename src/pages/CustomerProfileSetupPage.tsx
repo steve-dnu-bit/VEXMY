@@ -158,7 +158,7 @@ const CustomerProfileSetupPage = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder={t("customer.fullName")}
-                className="bg-secondary border-border"
+                className="field-surface border-border"
                 disabled={loading}
                 required
               />
@@ -182,7 +182,7 @@ const CustomerProfileSetupPage = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder={t("schedule.phone")}
-                className="bg-secondary border-border"
+                className="field-surface border-border"
                 disabled={loading}
                 required
               />
@@ -195,7 +195,7 @@ const CustomerProfileSetupPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t("customer.newPasswordPlaceholder")}
-                className="bg-secondary border-border"
+                className="field-surface border-border"
                 disabled={loading}
                 required
               />
@@ -208,7 +208,7 @@ const CustomerProfileSetupPage = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder={t("customer.confirmPasswordPlaceholder")}
-                className="bg-secondary border-border"
+                className="field-surface border-border"
                 disabled={loading}
                 required
               />

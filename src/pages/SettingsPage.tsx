@@ -230,7 +230,7 @@ const SettingsPage = () => {
                 {t("settings.consentHandSignNotice")}
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Input readOnly value={consentUrl} className="font-mono text-xs bg-secondary border-border" />
+                <Input readOnly value={consentUrl} className="font-mono text-xs field-surface border-border" />
                 <div className="flex gap-2 shrink-0">
                   <Button type="button" variant="outline" size="sm" onClick={copyConsentLink} className="gap-1">
                     <Copy className="h-4 w-4" /> {t("settings.copy")}

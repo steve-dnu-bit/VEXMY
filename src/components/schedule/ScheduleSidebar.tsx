@@ -125,7 +125,7 @@ const ScheduleSidebar = ({
             placeholder={t("schedule.searchArtists")}
             value={teamSearch}
             onChange={(e) => setTeamSearch(e.target.value)}
-            className="pl-8 h-9 text-xs bg-secondary border-border"
+            className="pl-8 h-9 text-xs field-surface border-border"
           />
         </div>
         <Select
@@ -135,7 +135,7 @@ const ScheduleSidebar = ({
             else setSelectedArtists([v]);
           }}
         >
-          <SelectTrigger className="h-9 text-xs bg-secondary border-border">
+          <SelectTrigger className="h-9 text-xs field-surface border-border">
             <SelectValue placeholder={t("schedule.selectArtist")}>
               {selectedId === "all" ? t("schedule.allArtistsCount", { count: profiles.length }) : selectedProfile?.display_name || t("schedule.artist")}
             </SelectValue>

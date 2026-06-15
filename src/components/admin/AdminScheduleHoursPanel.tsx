@@ -73,7 +73,7 @@ const AdminScheduleHoursPanel = () => {
               step={900}
               value={settings.openTime}
               onChange={(e) => setSettings((prev) => ({ ...prev, openTime: e.target.value }))}
-              className="mt-1 bg-secondary"
+              className="mt-1"
             />
           </div>
           <div>
@@ -84,7 +84,7 @@ const AdminScheduleHoursPanel = () => {
               step={900}
               value={settings.closeTime}
               onChange={(e) => setSettings((prev) => ({ ...prev, closeTime: e.target.value }))}
-              className="mt-1 bg-secondary"
+              className="mt-1"
             />
           </div>
         </div>
@@ -96,7 +96,7 @@ const AdminScheduleHoursPanel = () => {
               value={String(settings.extraBufferMinutes)}
               onValueChange={(v) => setSettings((prev) => ({ ...prev, extraBufferMinutes: Number(v) }))}
             >
-              <SelectTrigger id="schedule-buffer" className="mt-1 bg-secondary">
+              <SelectTrigger id="schedule-buffer" className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -120,7 +120,7 @@ const AdminScheduleHoursPanel = () => {
               }
               disabled={settings.extraBufferMinutes === 0}
             >
-              <SelectTrigger id="schedule-buffer-at" className="mt-1 bg-secondary">
+              <SelectTrigger id="schedule-buffer-at" className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

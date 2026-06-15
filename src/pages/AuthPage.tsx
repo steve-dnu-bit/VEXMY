@@ -233,7 +233,7 @@ const AuthPage = () => {
                     placeholder="••••••••"
                     showLockIcon={false}
                     className="mt-1.5"
-                    inputClassName="h-10 bg-secondary border-border"
+                    inputClassName="h-10 field-surface border-border"
                     required
                     minLength={6}
                     autoComplete="new-password"
@@ -249,7 +249,7 @@ const AuthPage = () => {
                     placeholder="••••••••"
                     showLockIcon={false}
                     className="mt-1.5"
-                    inputClassName="h-10 bg-secondary border-border"
+                    inputClassName="h-10 field-surface border-border"
                     required
                     minLength={6}
                     autoComplete="new-password"

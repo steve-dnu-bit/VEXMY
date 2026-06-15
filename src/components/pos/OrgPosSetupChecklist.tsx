@@ -214,7 +214,7 @@ const OrgPosSetupChecklist = ({
                   min={0}
                   max={100}
                   step={1}
-                  className="mt-1 bg-secondary max-w-[8rem]"
+                  className="mt-1 max-w-[8rem]"
                   value={settings.shop_split_percent}
                   onChange={(e) => patchSettings({ shop_split_percent: Number(e.target.value) })}
                   onBlur={() => void persistSettings({ shop_split_percent: settings.shop_split_percent })}

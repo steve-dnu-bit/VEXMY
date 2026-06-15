@@ -195,7 +195,7 @@ const AdminPosCheckoutPanel = () => {
                   step={1}
                   value={settings.shop_split_percent}
                   onChange={(e) => patchSettings({ shop_split_percent: Number(e.target.value) })}
-                  className="pr-8 bg-secondary"
+                  className="pr-8"
                 />
                 <Percent className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               </div>
@@ -213,7 +213,7 @@ const AdminPosCheckoutPanel = () => {
                 step={1}
                 value={settings.default_gratuity_percent}
                 onChange={(e) => patchSettings({ default_gratuity_percent: Number(e.target.value) })}
-                className="mt-1 bg-secondary"
+                className="mt-1"
                 disabled={!settings.gratuity_enabled}
               />
             </div>
@@ -243,7 +243,7 @@ const AdminPosCheckoutPanel = () => {
                   id="pos-reader-label"
                   value={settings.reader_label}
                   onChange={(e) => patchSettings({ reader_label: e.target.value })}
-                  className="mt-1 bg-secondary"
+                  className="mt-1"
                 />
               </div>
               <div>
@@ -311,7 +311,7 @@ const AdminPosCheckoutPanel = () => {
                               [artist.user_id]: { ...draft, shop: e.target.value },
                             }))
                           }
-                          className="h-8 w-24 bg-secondary"
+                          className="h-8 w-24"
                         />
                         {override && (
                           <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -329,7 +329,7 @@ const AdminPosCheckoutPanel = () => {
                               [artist.user_id]: { ...draft, connect: e.target.value },
                             }))
                           }
-                          className="h-8 font-mono text-xs bg-secondary"
+                          className="h-8 font-mono text-xs"
                         />
                       </TableCell>
                       <TableCell className="text-right">

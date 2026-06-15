@@ -22,7 +22,7 @@ const CustomerShopSelector = () => {
         {t("customer.selectStudio")}
       </label>
       <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
-        <SelectTrigger className="w-full bg-secondary">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={t("customer.selectStudioPlaceholder")} />
         </SelectTrigger>
         <SelectContent>

@@ -245,7 +245,7 @@ const ScheduleHeader = ({
                   if (inviteEmail.trim().length >= 2) setInviteMenuOpen(true);
                 }}
                 placeholder={t("schedule.invitePlaceholder")}
-                className="h-8 w-full min-w-0 text-xs bg-secondary border-border pr-8"
+                className="h-8 w-full min-w-0 text-xs field-surface border-border pr-8"
                 autoComplete="off"
               />
               {inviteSearchLoading && (

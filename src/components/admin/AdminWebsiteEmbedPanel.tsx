@@ -107,7 +107,7 @@ const AdminWebsiteEmbedPanel = () => {
                   }}
                 />
               </div>
-              <Textarea readOnly value={buttonHtml} className="min-h-[160px] font-mono text-xs bg-secondary" />
+              <Textarea readOnly value={buttonHtml} className="min-h-[160px] font-mono text-xs" />
               <Button type="button" className="gap-2" onClick={() => void copy(buttonHtml)}>
                 <Copy className="h-4 w-4" />
                 {t("admin.websiteEmbedCopyButton")}
@@ -125,7 +125,7 @@ const AdminWebsiteEmbedPanel = () => {
                   loading="lazy"
                 />
               </div>
-              <Textarea readOnly value={iframeHtml} className="min-h-[200px] font-mono text-xs bg-secondary" />
+              <Textarea readOnly value={iframeHtml} className="min-h-[200px] font-mono text-xs" />
               <div className="flex flex-wrap gap-2">
                 <Button type="button" className="gap-2" onClick={() => void copy(iframeHtml)}>
                   <Copy className="h-4 w-4" />

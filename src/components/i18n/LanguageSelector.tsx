@@ -39,7 +39,7 @@ const LanguageSelector = ({ compact = false, className = "" }: LanguageSelectorP
         {t("settings.languageTitle")}
       </Label>
       <Select value={language} onValueChange={(v) => void setLanguage(v as AppLanguage)}>
-        <SelectTrigger id="app-language" className="mt-2 bg-secondary border-border">
+        <SelectTrigger id="app-language" className="mt-2 field-surface border-border">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

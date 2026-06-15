@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
@@ -7,6 +7,7 @@ import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,28 +26,21 @@ import {
   computePosTotals,
   loadArtistPosSplits,
   loadBookingForPosPrefill,
+  loadPosItemTemplates,
   loadRecentPosSales,
   loadShopPosSettings,
-  pickServiceForBooking,
+  recordPosItemUsage,
+  savePosItemTemplate,
   resolveSplitPercents,
   splitPosAmount,
   type PosBookingPrefill,
+  type PosItemTemplate,
   type PosLineItem,
   type PosSaleRow,
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
 import { useSearchParams } from "react-router-dom";
-
-interface ServiceRow {
-  id: string;
-  name: string;
-  price: number | null;
-  service_category: string;
-  booking_type: string;
-  duration: number;
-  color: string;
-}
 
 interface ArtistOption {
   user_id: string;
@@ -55,7 +49,7 @@ interface ArtistOption {
 
 interface CartEntry {
   key: string;
-  serviceId: string | null;
+  templateId: string | null;
   name: string;
   unitPrice: number;
   quantity: number;
@@ -69,7 +63,7 @@ const PosCheckoutPage = () => {
   const prefilledClientName = searchParams.get("clientName");
   const prefilledBookingId = searchParams.get("bookingId");
   const [loading, setLoading] = useState(true);
-  const [services, setServices] = useState<ServiceRow[]>([]);
+  const [quickItems, setQuickItems] = useState<PosItemTemplate[]>([]);
   const [artists, setArtists] = useState<ArtistOption[]>([]);
   const [cart, setCart] = useState<CartEntry[]>([]);
   const [artistId, setArtistId] = useState("");
@@ -92,8 +86,9 @@ const PosCheckoutPage = () => {
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
   const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1" });
+  const [saveForQuickAdd, setSaveForQuickAdd] = useState(true);
   const [linkedBooking, setLinkedBooking] = useState<PosBookingPrefill | null>(null);
-  const bookingPrefillDone = useRef(false);
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
 
@@ -102,12 +97,16 @@ const PosCheckoutPage = () => {
     setRecentSales(rows);
   };
 
+  const refreshQuickItems = async (orgId?: string | null) => {
+    const rows = await loadPosItemTemplates(orgId ?? organizationId);
+    setQuickItems(rows);
+  };
+
   useEffect(() => {
     if (!user) return;
     void (async () => {
       setLoading(true);
-      const [servicesRes, profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
-        supabase.from("services").select("id, name, price, service_category, booking_type, duration, color").eq("is_active", true).order("sort_order"),
+      const [profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
         supabase.from("profiles").select("user_id, display_name"),
         supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
         loadOrgBillingContext(),
@@ -119,9 +118,12 @@ const PosCheckoutPage = () => {
 
       const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
       const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as ArtistOption[];
+      const orgId = billingCtx.organizationId ?? null;
+      const itemTemplates = await loadPosItemTemplates(orgId);
 
+      setOrganizationId(orgId);
       setArtists(artistList);
-      setServices((servicesRes.data || []) as ServiceRow[]);
+      setQuickItems(itemTemplates);
       setCurrency(billingCtx.currency);
       setTaxRate(billingCtx.defaultTaxRate);
       setTaxLabel(billingCtx.taxLabel);
@@ -162,30 +164,10 @@ const PosCheckoutPage = () => {
     });
   }, [prefilledBookingId, loading]);
 
-  useEffect(() => {
-    if (!prefilledBookingId || loading || bookingPrefillDone.current) return;
-    bookingPrefillDone.current = true;
-    void (async () => {
-      const booking = await loadBookingForPosPrefill(prefilledBookingId);
-      if (!booking) return;
-      const service = pickServiceForBooking(services, booking);
-      if (!service) return;
-      setCart([
-        {
-          key: service.id,
-          serviceId: service.id,
-          name: service.name,
-          unitPrice: service.price ?? 0,
-          quantity: 1,
-        },
-      ]);
-    })();
-  }, [prefilledBookingId, loading, services]);
-
   const lineItems: PosLineItem[] = useMemo(
     () =>
       cart.map((entry) => ({
-        serviceId: entry.serviceId,
+        serviceId: entry.templateId,
         name: entry.name,
         quantity: entry.quantity,
         unitPrice: entry.unitPrice,
@@ -233,21 +215,22 @@ const PosCheckoutPage = () => {
 
   const selectedArtist = artists.find((a) => a.user_id === artistId);
 
-  const addService = (service: ServiceRow) => {
-    const price = service.price ?? 0;
+  const addQuickItem = (item: PosItemTemplate) => {
+    const unitPrice = Number(item.unit_price) || 0;
+    const quantity = Math.max(1, Number(item.default_quantity) || 1);
     setCart((prev) => {
-      const existing = prev.find((c) => c.serviceId === service.id);
+      const existing = prev.find((c) => c.templateId === item.id);
       if (existing) {
-        return prev.map((c) => (c.serviceId === service.id ? { ...c, quantity: c.quantity + 1 } : c));
+        return prev.map((c) => (c.templateId === item.id ? { ...c, quantity: c.quantity + quantity } : c));
       }
       return [
         ...prev,
         {
-          key: service.id,
-          serviceId: service.id,
-          name: service.name,
-          unitPrice: price,
-          quantity: 1,
+          key: item.id,
+          templateId: item.id,
+          name: item.name,
+          unitPrice,
+          quantity,
         },
       ];
     });
@@ -261,7 +244,7 @@ const PosCheckoutPage = () => {
     );
   };
 
-  const addCustomItem = () => {
+  const addCustomItem = async () => {
     const name = customForm.name.trim();
     const unitPrice = Number(customForm.price);
     const quantity = Math.max(1, parseInt(customForm.quantity, 10) || 1);
@@ -269,10 +252,33 @@ const PosCheckoutPage = () => {
       toast.error(t("pos.customItemInvalid"));
       return;
     }
+
+    if (saveForQuickAdd) {
+      const { error } = await savePosItemTemplate(name, unitPrice, quantity, organizationId);
+      if (error) {
+        toast.error(error);
+      } else {
+        toast.success(t("pos.itemSaved"));
+        await refreshQuickItems();
+      }
+    }
+
     const key = `custom-${Date.now()}`;
-    setCart((prev) => [...prev, { key, serviceId: null, name, unitPrice, quantity }]);
+    setCart((prev) => [...prev, { key, templateId: null, name, unitPrice, quantity }]);
     setCustomForm({ name: "", price: "", quantity: "1" });
     setCustomOpen(false);
+  };
+
+  const finalizeSale = async () => {
+    await recordPosItemUsage(
+      lineItems.map((item) => ({ name: item.name, unitPrice: item.unitPrice, quantity: item.quantity })),
+      organizationId,
+    );
+    await refreshQuickItems();
+    setCart([]);
+    setClientName("");
+    setLinkedBooking(null);
+    await refreshRecentSales();
   };
 
   const clearCart = () => {
@@ -331,10 +337,7 @@ const PosCheckoutPage = () => {
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
         toast.success(t("pos.depositCoversBalance"));
-        setCart([]);
-        setClientName("");
-        setLinkedBooking(null);
-        await refreshRecentSales();
+        await finalizeSale();
         return;
       }
 
@@ -354,10 +357,7 @@ const PosCheckoutPage = () => {
 
       setLastSaleId(piData.saleId);
       toast.success(t("pos.paymentSuccess"));
-      setCart([]);
-      setClientName("");
-      setLinkedBooking(null);
-      await refreshRecentSales();
+      await finalizeSale();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
       toast.error(msg);
@@ -464,25 +464,27 @@ const PosCheckoutPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid sm:grid-cols-2 gap-3">
-                    {services.map((service) => (
+                    {quickItems.map((item) => (
                       <button
-                        key={service.id}
+                        key={item.id}
                         type="button"
-                        onClick={() => addService(service)}
-                        className="text-left rounded-xl border border-border bg-card hover:bg-accent/40 transition-colors p-4 space-y-2"
+                        onClick={() => addQuickItem(item)}
+                        className="text-left rounded-xl border border-border bg-card/55 hover:bg-accent/40 transition-colors p-4 space-y-2"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className="font-medium leading-snug">{service.name}</span>
+                          <span className="font-medium leading-snug">{item.name}</span>
                           <span className="text-sm font-semibold tabular-nums shrink-0">
-                            {formatShopMoney(service.price ?? 0, currency)}
+                            {formatShopMoney(Number(item.unit_price) || 0, currency)}
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {service.service_category} · {service.duration} min
-                        </p>
+                        {item.use_count > 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            {t("pos.usedCount", { count: item.use_count })}
+                          </p>
+                        ) : null}
                       </button>
                     ))}
-                    {services.length === 0 && (
+                    {quickItems.length === 0 && (
                       <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noServices")}</p>
                     )}
                   </div>
@@ -500,7 +502,7 @@ const PosCheckoutPage = () => {
                   <div>
                     <Label>{t("pos.artist")}</Label>
                     <Select value={artistId} onValueChange={setArtistId}>
-                      <SelectTrigger className="mt-1 bg-secondary">
+                      <SelectTrigger className="mt-1">
                         <SelectValue placeholder={t("pos.selectArtist")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -519,7 +521,7 @@ const PosCheckoutPage = () => {
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
                       placeholder={t("pos.clientNamePlaceholder")}
-                      className="mt-1 bg-secondary"
+                      className="mt-1"
                     />
                   </div>
                 </CardContent>
@@ -772,7 +774,7 @@ const PosCheckoutPage = () => {
                   value={customForm.name}
                   onChange={(e) => setCustomForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder={t("pos.customItemNamePlaceholder")}
-                  className="mt-1 bg-secondary"
+                  className="mt-1"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -785,7 +787,7 @@ const PosCheckoutPage = () => {
                     step={0.01}
                     value={customForm.price}
                     onChange={(e) => setCustomForm((f) => ({ ...f, price: e.target.value }))}
-                    className="mt-1 bg-secondary"
+                    className="mt-1"
                   />
                 </div>
                 <div>
@@ -796,11 +798,15 @@ const PosCheckoutPage = () => {
                     min={1}
                     value={customForm.quantity}
                     onChange={(e) => setCustomForm((f) => ({ ...f, quantity: e.target.value }))}
-                    className="mt-1 bg-secondary"
+                    className="mt-1"
                   />
                 </div>
               </div>
-              <Button type="button" className="w-full" onClick={addCustomItem}>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={saveForQuickAdd} onCheckedChange={(v) => setSaveForQuickAdd(v === true)} />
+                <span>{t("pos.saveForQuickAdd")}</span>
+              </label>
+              <Button type="button" className="w-full" onClick={() => void addCustomItem()}>
                 {t("pos.addToOrder")}
               </Button>
             </div>

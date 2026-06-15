@@ -266,7 +266,7 @@ function ConsentFilters({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, email, phone, artist…"
-          className="pl-9 bg-secondary"
+          className="pl-9"
         />
       </div>
       <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>

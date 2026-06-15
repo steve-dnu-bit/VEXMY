@@ -63,7 +63,7 @@ const MFAVerify = ({ factorId, onVerified, onCancel }: MFAVerifyProps) => {
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
           placeholder="000000"
-          className="bg-secondary border-border text-center text-2xl tracking-[0.5em] font-mono h-14"
+          className="field-surface border-border text-center text-2xl tracking-[0.5em] font-mono h-14"
           maxLength={6}
           autoFocus
           onKeyDown={(e) => e.key === "Enter" && code.length === 6 && handleVerify()}

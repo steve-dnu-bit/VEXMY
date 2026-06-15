@@ -547,7 +547,7 @@ const AdminPage = () => {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="newuser@example.com"
-                className="mt-1 bg-secondary"
+                className="mt-1"
               />
             </div>
             <Button onClick={sendInvite} disabled={inviting || seatUsage?.canAdd === false} className="gap-2">

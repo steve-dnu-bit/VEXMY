@@ -171,7 +171,7 @@ const AdminEmailSettingsPanel = () => {
             <div className="flex items-center justify-between">
               <Label>{t("settings.sendReminder")}</Label>
               <Select value={settings.depositReminderTiming} onValueChange={(v) => update("depositReminderTiming", v)}>
-                <SelectTrigger className="w-48 bg-secondary border-border">
+                <SelectTrigger className="w-48 field-surface border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -211,7 +211,7 @@ const AdminEmailSettingsPanel = () => {
                 value={settings.appointmentReminderTiming}
                 onValueChange={(v) => update("appointmentReminderTiming", v)}
               >
-                <SelectTrigger className="w-48 bg-secondary border-border">
+                <SelectTrigger className="w-48 field-surface border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -239,7 +239,7 @@ const AdminEmailSettingsPanel = () => {
           <div className="flex items-center justify-between">
             <Label>{t("settings.sendVia")}</Label>
             <Select value={settings.reminderChannel} onValueChange={(v) => update("reminderChannel", v)}>
-              <SelectTrigger className="w-48 bg-secondary border-border">
+              <SelectTrigger className="w-48 field-surface border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

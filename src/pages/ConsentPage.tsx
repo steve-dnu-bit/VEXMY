@@ -94,7 +94,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by client name…"
-            className="pl-9 bg-secondary border-border"
+            className="pl-9 field-surface border-border"
           />
         </div>
 
@@ -636,7 +636,7 @@ const ConsentPage = () => {
                   <div>
                     <Label>Booking</Label>
                     <Select value={selectedBookingId} onValueChange={setSelectedBookingId}>
-                      <SelectTrigger className="mt-1 bg-secondary border-border">
+                      <SelectTrigger className="mt-1 field-surface border-border">
                         <SelectValue placeholder="Select booking" />
                       </SelectTrigger>
                       <SelectContent>
@@ -724,13 +724,13 @@ const ConsentPage = () => {
             {shopDisplayName ? (
               <div>
                 <Label>Organization / studio</Label>
-                <Input value={shopDisplayName} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
+                <Input value={shopDisplayName} readOnly className="mt-1/60" tabIndex={-1} />
               </div>
             ) : null}
             {artistDisplayName ? (
               <div>
                 <Label>Artist / practitioner</Label>
-                <Input value={artistDisplayName} readOnly className="mt-1 bg-secondary/60" tabIndex={-1} />
+                <Input value={artistDisplayName} readOnly className="mt-1/60" tabIndex={-1} />
               </div>
             ) : null}
             <div>
@@ -739,28 +739,28 @@ const ConsentPage = () => {
                 id="fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 bg-secondary"
+                className="mt-1"
                 autoComplete="name"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-secondary" placeholder="optional" />
+                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" placeholder="optional" />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 bg-secondary" type="email" />
+                <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" type="email" />
               </div>
             </div>
             <div>
               <Label htmlFor="address">Address</Label>
-              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1 bg-secondary" placeholder="optional" />
+              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="optional" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="dob">Date of birth</Label>
-                <Input id="dob" value={dob} onChange={(e) => setDob(e.target.value)} className="mt-1 bg-secondary" type="date" />
+                <Input id="dob" value={dob} onChange={(e) => setDob(e.target.value)} className="mt-1" type="date" />
               </div>
               <div>
                 <Label htmlFor="placement">{activeTemplate?.content.placementLabel ?? "Treatment location / description"}</Label>
@@ -768,7 +768,7 @@ const ConsentPage = () => {
                   id="placement"
                   value={treatmentLocation}
                   onChange={(e) => setTreatmentLocation(e.target.value)}
-                  className="mt-1 bg-secondary"
+                  className="mt-1"
                   placeholder="e.g. Forearm or Lobe"
                 />
               </div>
@@ -776,7 +776,7 @@ const ConsentPage = () => {
             {yesAnswers[UNDER_18_QUESTION] ? (
               <div>
                 <Label htmlFor="guardianName">Parent / legal guardian print name</Label>
-                <Input id="guardianName" value={guardianName} onChange={(e) => setGuardianName(e.target.value)} className="mt-1 bg-secondary" />
+                <Input id="guardianName" value={guardianName} onChange={(e) => setGuardianName(e.target.value)} className="mt-1" />
               </div>
             ) : null}
           </CardContent>

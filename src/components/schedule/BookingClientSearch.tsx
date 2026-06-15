@@ -51,7 +51,7 @@ const BookingClientSearch = ({
             if (clientName.trim().length >= 2) setSuggestionsOpen(true);
           }}
           autoComplete="off"
-          className="mt-0 bg-secondary border-border pr-9"
+          className="mt-0 field-surface border-border pr-9"
           placeholder={t("schedule.clientSearchPlaceholder")}
         />
         {suggestionsLoading && (

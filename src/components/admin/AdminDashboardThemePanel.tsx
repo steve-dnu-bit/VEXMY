@@ -107,7 +107,7 @@ const AdminDashboardThemePanel = () => {
               }))
             }
           >
-            <SelectTrigger id="dashboard-theme-mode" className="mt-1 bg-secondary">
+            <SelectTrigger id="dashboard-theme-mode" className="mt-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

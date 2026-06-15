@@ -461,16 +461,16 @@ const CustomerAccountPage = () => {
           <CardContent className="space-y-3">
             <div>
               <Label className="text-xs text-muted-foreground">{t("common.email")}</Label>
-              <Input type="email" value={email} disabled className="mt-1 bg-secondary/50" required />
+              <Input type="email" value={email} disabled className="mt-1/50" required />
               <p className="text-[11px] text-muted-foreground mt-1">{t("customer.emailLocked")}</p>
             </div>
             <div>
               <Label htmlFor="dn">{t("customer.fullName")}</Label>
-              <Input id="dn" value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-secondary" required />
+              <Input id="dn" value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1" required />
             </div>
             <div>
               <Label htmlFor="ph">{t("schedule.phone")}</Label>
-              <Input id="ph" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-secondary" required />
+              <Input id="ph" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" required />
             </div>
             <Button size="sm" onClick={saveProfile} disabled={saving}>
               {saving ? t("settings.saving") : t("customer.saveProfile")}

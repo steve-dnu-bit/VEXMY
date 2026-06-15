@@ -183,7 +183,7 @@ const MFAEnrollment = () => {
                   value={verifyCode}
                   onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
-                  className="bg-secondary border-border text-center text-lg tracking-[0.5em] font-mono"
+                  className="field-surface border-border text-center text-lg tracking-[0.5em] font-mono"
                   maxLength={6}
                 />
                 <Button

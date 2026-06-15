@@ -70,7 +70,7 @@ function AftercareEditor({
           <Input
             value={template.badge}
             onChange={(e) => onChange({ ...template, badge: e.target.value })}
-            className="mt-1 bg-secondary"
+            className="mt-1"
           />
         </div>
         <div>
@@ -78,7 +78,7 @@ function AftercareEditor({
           <Input
             value={template.emailSubject}
             onChange={(e) => onChange({ ...template, emailSubject: e.target.value })}
-            className="mt-1 bg-secondary"
+            className="mt-1"
           />
         </div>
       </div>
@@ -88,7 +88,7 @@ function AftercareEditor({
         <Input
           value={template.title}
           onChange={(e) => onChange({ ...template, title: e.target.value })}
-          className="mt-1 bg-secondary"
+          className="mt-1"
         />
       </div>
 
@@ -204,7 +204,7 @@ function AftercareEditor({
                     value={section.bodyHtml || ""}
                     onChange={(e) => updateSection(sectionIndex, { bodyHtml: e.target.value, listItems: undefined })}
                     rows={4}
-                    className="mt-1 bg-secondary font-mono text-xs"
+                    className="mt-1 font-mono text-xs"
                   />
                 </div>
               )}

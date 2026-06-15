@@ -584,7 +584,7 @@ const ClientsPage = () => {
                 placeholder={t("clients.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 bg-secondary border-border min-h-11"
+                className="pl-9 field-surface border-border min-h-11"
               />
             </div>
             <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={importCSV} />

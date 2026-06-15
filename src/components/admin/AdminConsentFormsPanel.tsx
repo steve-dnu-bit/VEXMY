@@ -80,7 +80,7 @@ function ConsentFormEditor({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label>{t("admin.consentFormName")}</Label>
-          <Input value={template.name} onChange={(e) => onChange({ ...template, name: e.target.value })} className="mt-1 bg-secondary" />
+          <Input value={template.name} onChange={(e) => onChange({ ...template, name: e.target.value })} className="mt-1" />
         </div>
         <div>
           <Label>{t("admin.consentFormSlug")}</Label>
@@ -88,7 +88,7 @@ function ConsentFormEditor({
             value={template.slug}
             disabled={!isNew && (template.slug === "tattoo" || template.slug === "piercing")}
             onChange={(e) => onChange({ ...template, slug: slugify(e.target.value) })}
-            className="mt-1 bg-secondary font-mono text-sm"
+            className="mt-1 font-mono text-sm"
           />
         </div>
       </div>
@@ -96,7 +96,7 @@ function ConsentFormEditor({
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
           <Label>{t("admin.consentFormVersion")}</Label>
-          <Input value={template.version} onChange={(e) => onChange({ ...template, version: e.target.value })} className="mt-1 bg-secondary" />
+          <Input value={template.version} onChange={(e) => onChange({ ...template, version: e.target.value })} className="mt-1" />
         </div>
         <div>
           <Label>{t("admin.consentDefaultCategory")}</Label>
@@ -109,7 +109,7 @@ function ConsentFormEditor({
               })
             }
           >
-            <SelectTrigger className="mt-1 bg-secondary">
+            <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -127,20 +127,20 @@ function ConsentFormEditor({
 
       <div>
         <Label>{t("admin.consentGuideTitle")}</Label>
-        <Input value={c.formTitle} onChange={(e) => updateContent({ formTitle: e.target.value })} className="mt-1 bg-secondary" />
+        <Input value={c.formTitle} onChange={(e) => updateContent({ formTitle: e.target.value })} className="mt-1" />
       </div>
       <div>
         <Label>{t("admin.consentPdfTitle")}</Label>
-        <Input value={c.pdfTitle} onChange={(e) => updateContent({ pdfTitle: e.target.value })} className="mt-1 bg-secondary" />
+        <Input value={c.pdfTitle} onChange={(e) => updateContent({ pdfTitle: e.target.value })} className="mt-1" />
       </div>
       <div>
         <Label>{t("admin.consentIntro")}</Label>
-        <Textarea value={c.introText} onChange={(e) => updateContent({ introText: e.target.value })} rows={3} className="mt-1 bg-secondary text-sm" />
+        <Textarea value={c.introText} onChange={(e) => updateContent({ introText: e.target.value })} rows={3} className="mt-1 text-sm" />
         <p className="mt-1 text-xs text-muted-foreground">{t("admin.consentIntroHint")}</p>
       </div>
       <div>
         <Label>{t("admin.consentPlacementLabel")}</Label>
-        <Input value={c.placementLabel} onChange={(e) => updateContent({ placementLabel: e.target.value })} className="mt-1 bg-secondary" />
+        <Input value={c.placementLabel} onChange={(e) => updateContent({ placementLabel: e.target.value })} className="mt-1" />
       </div>
       <div>
         <Label>{t("admin.consentDeclColumns")}</Label>
@@ -237,7 +237,7 @@ function ConsentFormEditor({
                   })
                 }
                 rows={2}
-                className="mt-1 bg-secondary text-sm"
+                className="mt-1 text-sm"
               />
             </div>
           ))}

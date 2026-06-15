@@ -341,11 +341,11 @@ const ShopSetupWizardPage = () => {
               <>
                 <div>
                   <Label>{t("setup.shopName")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.shop_name} onChange={(e) => patchForm({ shop_name: e.target.value })} />
+                  <Input className="mt-1" value={form.shop_name} onChange={(e) => patchForm({ shop_name: e.target.value })} />
                 </div>
                 <div>
                   <Label>{t("setup.tradingName")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.trading_name} onChange={(e) => patchForm({ trading_name: e.target.value })} placeholder={form.shop_name} />
+                  <Input className="mt-1" value={form.trading_name} onChange={(e) => patchForm({ trading_name: e.target.value })} placeholder={form.shop_name} />
                 </div>
                 <div>
                   <Label>{t("setup.logo")}</Label>
@@ -369,33 +369,33 @@ const ShopSetupWizardPage = () => {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label>{t("setup.supportEmail")}</Label>
-                    <Input type="email" className="mt-1 bg-secondary" value={form.support_email} onChange={(e) => patchForm({ support_email: e.target.value })} />
+                    <Input type="email" className="mt-1" value={form.support_email} onChange={(e) => patchForm({ support_email: e.target.value })} />
                   </div>
                   <div>
                     <Label>{t("setup.phone")}</Label>
-                    <Input className="mt-1 bg-secondary" value={form.phone} onChange={(e) => patchForm({ phone: e.target.value })} />
+                    <Input className="mt-1" value={form.phone} onChange={(e) => patchForm({ phone: e.target.value })} />
                   </div>
                 </div>
                 <div>
                   <Label>{t("setup.website")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.website_url} onChange={(e) => patchForm({ website_url: e.target.value })} placeholder="https://" />
+                  <Input className="mt-1" value={form.website_url} onChange={(e) => patchForm({ website_url: e.target.value })} placeholder="https://" />
                 </div>
                 <div>
                   <Label>{t("setup.addressLine1")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.address_line1} onChange={(e) => patchForm({ address_line1: e.target.value })} />
+                  <Input className="mt-1" value={form.address_line1} onChange={(e) => patchForm({ address_line1: e.target.value })} />
                 </div>
                 <div>
                   <Label>{t("setup.addressLine2")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.address_line2} onChange={(e) => patchForm({ address_line2: e.target.value })} />
+                  <Input className="mt-1" value={form.address_line2} onChange={(e) => patchForm({ address_line2: e.target.value })} />
                 </div>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div>
                     <Label>{t("setup.city")}</Label>
-                    <Input className="mt-1 bg-secondary" value={form.city} onChange={(e) => patchForm({ city: e.target.value })} />
+                    <Input className="mt-1" value={form.city} onChange={(e) => patchForm({ city: e.target.value })} />
                   </div>
                   <div>
                     <Label>{t("setup.postcode")}</Label>
-                    <Input className="mt-1 bg-secondary" value={form.postcode} onChange={(e) => patchForm({ postcode: e.target.value })} />
+                    <Input className="mt-1" value={form.postcode} onChange={(e) => patchForm({ postcode: e.target.value })} />
                   </div>
                   <div>
                     <Label>{t("setup.country")}</Label>
@@ -406,7 +406,7 @@ const ShopSetupWizardPage = () => {
                         patchForm({ country: code as ShopCountryCode });
                       }}
                     >
-                      <SelectTrigger className="mt-1 bg-secondary">
+                      <SelectTrigger className="mt-1">
                         <SelectValue placeholder={t("setup.country")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -434,11 +434,11 @@ const ShopSetupWizardPage = () => {
               <>
                 <div>
                   <Label>{t("setup.companyDisplayName")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.company_name} onChange={(e) => patchForm({ company_name: e.target.value })} />
+                  <Input className="mt-1" value={form.company_name} onChange={(e) => patchForm({ company_name: e.target.value })} />
                 </div>
                 <div>
                   <Label>{t("setup.companyLegalName")}</Label>
-                  <Input className="mt-1 bg-secondary" value={form.company_legal_name} onChange={(e) => patchForm({ company_legal_name: e.target.value })} placeholder="Studio Name Ltd" />
+                  <Input className="mt-1" value={form.company_legal_name} onChange={(e) => patchForm({ company_legal_name: e.target.value })} placeholder="Studio Name Ltd" />
                 </div>
                 <p className="text-xs text-muted-foreground">{t("setup.billingHint")}</p>
               </>
@@ -467,18 +467,18 @@ const ShopSetupWizardPage = () => {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label>{t("admin.scheduleOpenTime")}</Label>
-                    <Input type="time" step={900} className="mt-1 bg-secondary" value={scheduleHours.openTime} onChange={(e) => setScheduleHours((h) => ({ ...h, openTime: e.target.value }))} />
+                    <Input type="time" step={900} className="mt-1" value={scheduleHours.openTime} onChange={(e) => setScheduleHours((h) => ({ ...h, openTime: e.target.value }))} />
                   </div>
                   <div>
                     <Label>{t("admin.scheduleCloseTime")}</Label>
-                    <Input type="time" step={900} className="mt-1 bg-secondary" value={scheduleHours.closeTime} onChange={(e) => setScheduleHours((h) => ({ ...h, closeTime: e.target.value }))} />
+                    <Input type="time" step={900} className="mt-1" value={scheduleHours.closeTime} onChange={(e) => setScheduleHours((h) => ({ ...h, closeTime: e.target.value }))} />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label>{t("admin.scheduleExtraBuffer")}</Label>
                     <Select value={String(scheduleHours.extraBufferMinutes)} onValueChange={(v) => setScheduleHours((h) => ({ ...h, extraBufferMinutes: Number(v) }))}>
-                      <SelectTrigger className="mt-1 bg-secondary"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="0">{t("admin.scheduleBufferNone")}</SelectItem>
                         <SelectItem value="30">{t("admin.scheduleBuffer30")}</SelectItem>
@@ -490,7 +490,7 @@ const ShopSetupWizardPage = () => {
                   <div>
                     <Label>{t("admin.scheduleBufferAt")}</Label>
                     <Select value={scheduleHours.extraBufferAt} onValueChange={(v) => setScheduleHours((h) => ({ ...h, extraBufferAt: v as ShopScheduleHours["extraBufferAt"] }))} disabled={scheduleHours.extraBufferMinutes === 0}>
-                      <SelectTrigger className="mt-1 bg-secondary"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="start">{t("admin.scheduleBufferBeforeOpen")}</SelectItem>
                         <SelectItem value="end">{t("admin.scheduleBufferAfterClose")}</SelectItem>
@@ -507,7 +507,7 @@ const ShopSetupWizardPage = () => {
                 <div>
                   <Label>{t("admin.dashboardThemeMode")}</Label>
                   <Select value={dashboardTheme.mode} onValueChange={(v) => setDashboardTheme((d) => ({ ...d, mode: (v === "shop" ? "shop" : "per_artist") as DashboardThemeMode }))}>
-                    <SelectTrigger className="mt-1 bg-secondary"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="per_artist">{t("admin.dashboardThemePerArtist")}</SelectItem>
                       <SelectItem value="shop">{t("admin.dashboardThemeShopWide")}</SelectItem>

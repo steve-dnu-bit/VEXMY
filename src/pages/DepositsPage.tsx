@@ -282,7 +282,7 @@ const DepositsPage = () => {
                 step={0.01}
                 value={defaultDepositInput}
                 onChange={(e) => setDefaultDepositInput(e.target.value)}
-                className="mt-1 bg-secondary"
+                className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 {t("deposits.defaultDepositHint", {

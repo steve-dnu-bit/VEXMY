@@ -253,7 +253,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
                               placeholder={field.placeholder}
                               value={formValues[ch.id]?.[field.key] || ""}
                               onChange={(e) => updateField(ch.id, field.key, e.target.value)}
-                              className="mt-1 bg-secondary border-border text-sm"
+                              className="mt-1 field-surface border-border text-sm"
                             />
                           </div>
                         ))}

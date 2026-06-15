@@ -94,7 +94,7 @@ const CustomerSecurityPage = () => {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-1 bg-secondary"
+                className="mt-1"
                 placeholder={t("customer.newPasswordPlaceholder")}
               />
             </div>
@@ -105,7 +105,7 @@ const CustomerSecurityPage = () => {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 bg-secondary"
+                className="mt-1"
                 placeholder={t("customer.confirmPasswordPlaceholder")}
               />
             </div>

@@ -200,23 +200,23 @@ const ServicesPage = () => {
           <div className="space-y-3 mt-2">
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.nameLabel")}</Label>
-              <Input value={form.name} onChange={(e) => update("name", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("services.namePlaceholder")} />
+              <Input value={form.name} onChange={(e) => update("name", e.target.value)} className="mt-1 field-surface border-border" placeholder={t("services.namePlaceholder")} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.durationLabel")}</Label>
-                <Input type="number" value={form.duration} onChange={(e) => update("duration", e.target.value)} className="mt-1 bg-secondary border-border" />
+                <Input type="number" value={form.duration} onChange={(e) => update("duration", e.target.value)} className="mt-1 field-surface border-border" />
               </div>
               <div>
                 <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.priceLabel")}</Label>
-                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} className="mt-1 bg-secondary border-border" placeholder={t("services.pricePlaceholder")} />
+                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} className="mt-1 field-surface border-border" placeholder={t("services.pricePlaceholder")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.calendarTypeLabel")}</Label>
                 <Select value={form.booking_type} onValueChange={(v) => update("booking_type", v)}>
-                  <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1 field-surface border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CALENDAR_TYPE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
@@ -229,7 +229,7 @@ const ServicesPage = () => {
               <div>
                 <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.serviceCategoryLabel")}</Label>
                 <Select value={form.service_category} onValueChange={(v) => update("service_category", v)}>
-                  <SelectTrigger className="mt-1 bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1 field-surface border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tattoo">{t("services.categoryTattoo")}</SelectItem>
                     <SelectItem value="piercing">{t("services.categoryPiercing")}</SelectItem>
@@ -243,7 +243,7 @@ const ServicesPage = () => {
               <div>
                 <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.colorLabel")}</Label>
                 <Select value={form.color} onValueChange={(v) => update("color", v)}>
-                  <SelectTrigger className="mt-1 bg-secondary border-border">
+                  <SelectTrigger className="mt-1 field-surface border-border">
                     <div className="flex items-center gap-2">
                       <div className={`w-3 h-3 rounded-full ${getColorClass(form.color)}`} />
                       <span className="capitalize">{form.color}</span>

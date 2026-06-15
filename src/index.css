@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-medium.woff2") format("woff2");
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-semibold.woff2") format("woff2");
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/fonts/playfair-bold.woff2") format("woff2");
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -137,6 +161,10 @@
 
   .glass-surface-subtle {
     @apply border-border/60 bg-card/40 backdrop-blur-sm;
+  }
+
+  .field-surface {
+    @apply bg-secondary/45 backdrop-blur-sm;
   }
 
   .bg-noise {

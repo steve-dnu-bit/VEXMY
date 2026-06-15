@@ -141,6 +141,77 @@ export function resolveSplitPercents(
   };
 }
 
+export interface PosItemTemplate {
+  id: string;
+  name: string;
+  unit_price: number;
+  default_quantity: number;
+  use_count: number;
+}
+
+export async function loadPosItemTemplates(orgId?: string | null): Promise<PosItemTemplate[]> {
+  const resolvedOrgId = orgId ?? (await getUserOrganizationId());
+  if (!resolvedOrgId) return [];
+
+  const { data, error } = await supabase
+    .from("pos_item_templates" as any)
+    .select("id, name, unit_price, default_quantity, use_count")
+    .eq("organization_id", resolvedOrgId)
+    .order("use_count", { ascending: false })
+    .order("name");
+
+  if (error || !data) return [];
+  return data as PosItemTemplate[];
+}
+
+export async function savePosItemTemplate(
+  name: string,
+  unitPrice: number,
+  defaultQuantity = 1,
+  orgId?: string | null,
+): Promise<{ error: string | null }> {
+  const resolvedOrgId = orgId ?? (await getUserOrganizationId());
+  if (!resolvedOrgId) return { error: "Organization not found" };
+
+  const trimmed = name.trim();
+  if (!trimmed) return { error: "Name is required" };
+
+  const { error } = await supabase.from("pos_item_templates" as any).upsert(
+    {
+      organization_id: resolvedOrgId,
+      name: trimmed,
+      unit_price: unitPrice,
+      default_quantity: Math.max(1, defaultQuantity),
+    },
+    { onConflict: "organization_id,name", ignoreDuplicates: false },
+  );
+
+  return { error: error?.message ?? null };
+}
+
+export async function recordPosItemUsage(
+  items: Array<{ name: string; unitPrice: number; quantity: number }>,
+  orgId?: string | null,
+): Promise<void> {
+  const resolvedOrgId = orgId ?? (await getUserOrganizationId());
+  if (!resolvedOrgId || items.length === 0) return;
+
+  const seen = new Set<string>();
+  for (const item of items) {
+    const name = item.name.trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    await supabase.rpc("bump_pos_item_template_usage" as any, {
+      p_org_id: resolvedOrgId,
+      p_name: name,
+      p_unit_price: item.unitPrice,
+      p_default_quantity: Math.max(1, item.quantity),
+    });
+  }
+}
+
 export interface PosBookingPrefill {
   id: string;
   booking_type: string;
@@ -149,15 +220,6 @@ export interface PosBookingPrefill {
   ends_at: string;
   deposit_paid: boolean | null;
   deposit_amount: number | null;
-}
-
-export interface PosServiceMatch {
-  id: string;
-  name: string;
-  price: number | null;
-  booking_type: string;
-  service_category: string;
-  duration: number;
 }
 
 export async function loadBookingForPosPrefill(bookingId: string): Promise<PosBookingPrefill | null> {
@@ -194,30 +256,6 @@ export function splitPosAmount(
   const shopAmount = Math.round(amount * (shopPercent / 100) * 100) / 100;
   const artistAmount = Math.round((amount - shopAmount) * 100) / 100;
   return { shopAmount, artistAmount };
-}
-
-export function pickServiceForBooking(
-  services: PosServiceMatch[],
-  booking: PosBookingPrefill,
-): PosServiceMatch | null {
-  if (services.length === 0) return null;
-
-  const category = booking.service_category?.trim();
-  const byCategory = category ? services.filter((s) => s.service_category === category) : [];
-  const byType = services.filter((s) => s.booking_type === booking.booking_type);
-  const candidates = byCategory.length > 0 ? byCategory : byType;
-  if (candidates.length === 0) return null;
-
-  const durationMins = Math.max(
-    0,
-    Math.round((new Date(booking.ends_at).getTime() - new Date(booking.starts_at).getTime()) / 60_000),
-  );
-  if (durationMins > 0) {
-    const byDuration = candidates.find((s) => s.duration === durationMins);
-    if (byDuration) return byDuration;
-  }
-
-  return candidates[0];
 }
 
 export function computePosTotals(input: {
