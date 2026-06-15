@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2 } from "lucide-react";
+import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
@@ -24,11 +24,13 @@ import {
   computeAmountDue,
   computeDepositCredit,
   computePosTotals,
+  importPosItemTemplates,
   loadArtistPosSplits,
   loadBookingForPosPrefill,
   loadPosItemTemplates,
   loadRecentPosSales,
   loadShopPosSettings,
+  parsePosProductsFromCsv,
   recordPosItemUsage,
   savePosItemTemplate,
   resolveSplitPercents,
@@ -89,6 +91,9 @@ const PosCheckoutPage = () => {
   const [saveForQuickAdd, setSaveForQuickAdd] = useState(true);
   const [linkedBooking, setLinkedBooking] = useState<PosBookingPrefill | null>(null);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [importingProducts, setImportingProducts] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
+  const productsCsvInputRef = useRef<HTMLInputElement>(null);
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
 
@@ -175,6 +180,12 @@ const PosCheckoutPage = () => {
       })),
     [cart],
   );
+
+  const filteredQuickItems = useMemo(() => {
+    const q = productSearch.trim().toLowerCase();
+    if (!q) return quickItems;
+    return quickItems.filter((item) => item.name.toLowerCase().includes(q));
+  }, [quickItems, productSearch]);
 
   const activeSplit = useMemo(() => {
     const override = artistSplits.find((s) => s.artist_id === artistId);
@@ -285,6 +296,62 @@ const PosCheckoutPage = () => {
     setCart([]);
     setClientName("");
     setLastSaleId(null);
+  };
+
+  const downloadProductsCsvTemplate = () => {
+    const csv = ["name,price,quantity", "Small tattoo,120,1", "Touch-up,60,1", "Merchandise,25,1"].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "checkout-products-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importProductsCsv = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const text = ev.target?.result as string;
+      const parsed = parsePosProductsFromCsv(text);
+      if (parsed.error === "csv_needs_header") {
+        toast.error(t("pos.productsCsvInvalid"));
+        return;
+      }
+      if (parsed.error === "csv_missing_columns") {
+        toast.error(t("pos.productsCsvMissingColumns"));
+        return;
+      }
+      if (parsed.error === "csv_no_valid_rows") {
+        toast.error(t("pos.productsCsvNoRows"));
+        return;
+      }
+      if (parsed.error === "csv_too_many_rows") {
+        toast.error(t("pos.productsCsvTooMany"));
+        return;
+      }
+      if (!organizationId) {
+        toast.error(t("pos.productsCsvOrgMissing"));
+        return;
+      }
+
+      setImportingProducts(true);
+      try {
+        const { imported, error } = await importPosItemTemplates(parsed.rows, organizationId);
+        if (error) {
+          toast.error(error);
+          return;
+        }
+        await refreshQuickItems();
+        toast.success(t("pos.productsImported", { count: imported }));
+      } finally {
+        setImportingProducts(false);
+      }
+    };
+    reader.readAsText(file);
+    if (productsCsvInputRef.current) productsCsvInputRef.current.value = "";
   };
 
   const handlePay = async () => {
@@ -456,15 +523,53 @@ const PosCheckoutPage = () => {
                     <div>
                       <CardTitle className="text-lg">{t("pos.services")}</CardTitle>
                       <CardDescription>{t("pos.servicesHint")}</CardDescription>
+                      <p className="text-xs text-muted-foreground mt-1">{t("pos.productsCsvHint")}</p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setCustomOpen(true)}>
-                      {t("pos.addCustomItem")}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <input
+                        ref={productsCsvInputRef}
+                        type="file"
+                        accept=".csv"
+                        className="hidden"
+                        onChange={importProductsCsv}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={importingProducts}
+                        onClick={() => productsCsvInputRef.current?.click()}
+                      >
+                        {importingProducts ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-1" />
+                        )}
+                        {t("pos.importProductsCsv")}
+                      </Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={downloadProductsCsvTemplate}>
+                        <Download className="h-4 w-4 mr-1" />
+                        {t("pos.downloadProductsTemplate")}
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setCustomOpen(true)}>
+                        {t("pos.addCustomItem")}
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {quickItems.map((item) => (
+                <CardContent className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      placeholder={t("pos.searchProductsPlaceholder")}
+                      className="pl-9"
+                      aria-label={t("pos.searchProductsPlaceholder")}
+                    />
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3 max-h-[min(28rem,50vh)] overflow-y-auto themed-scrollbar pr-1">
+                    {filteredQuickItems.map((item) => (
                       <button
                         key={item.id}
                         type="button"
@@ -484,9 +589,11 @@ const PosCheckoutPage = () => {
                         ) : null}
                       </button>
                     ))}
-                    {quickItems.length === 0 && (
+                    {quickItems.length === 0 ? (
                       <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noServices")}</p>
-                    )}
+                    ) : filteredQuickItems.length === 0 ? (
+                      <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noProductsMatch")}</p>
+                    ) : null}
                   </div>
                 </CardContent>
               </Card>

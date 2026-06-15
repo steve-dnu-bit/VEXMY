@@ -5,6 +5,7 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { formatBookingDateRange, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { aftercareEmailSubject, buildAftercareEmail } from "../_shared/email-templates.ts";
 import { loadShopAftercareTemplates } from "../_shared/shop-aftercare-templates.ts";
+import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -19,6 +20,8 @@ type BookingRow = {
   starts_at: string;
   ends_at: string;
   status: string;
+  notes?: string | null;
+  suppress_booking_notifications?: boolean | null;
 };
 
 type ServiceRow = {
@@ -136,10 +139,11 @@ serve(async (req) => {
 
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
-      .select("id, client_name, client_email, booking_type, service_category, starts_at, ends_at, status")
+      .select("id, client_name, client_email, booking_type, service_category, starts_at, ends_at, status, notes, suppress_booking_notifications")
       .gte("starts_at", minDate)
       .lte("starts_at", maxDate)
       .neq("status", "cancelled")
+      .eq("suppress_booking_notifications", false)
       .order("starts_at", { ascending: true });
     if (bookingErr) {
       return new Response(JSON.stringify({ error: bookingErr.message }), {
@@ -156,6 +160,11 @@ serve(async (req) => {
 
     for (const booking of (bookings || []) as BookingRow[]) {
       checked += 1;
+      if (isImportedContactPlaceholderBooking(booking)) {
+        skipped += 1;
+        skipReasons.push({ bookingId: booking.id, reason: "import_placeholder_booking" });
+        continue;
+      }
       if (!booking.client_email) {
         skipped += 1;
         skipReasons.push({ bookingId: booking.id, reason: "no_client_email" });

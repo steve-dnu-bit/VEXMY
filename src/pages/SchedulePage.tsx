@@ -14,6 +14,7 @@ import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artis
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours } from "@/lib/shopScheduleHours";
 import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
+import { isImportedContactPlaceholderBooking } from "@/lib/importedContacts";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -166,7 +167,7 @@ const SchedulePage = () => {
       toast.error(error.message || t("schedule.couldNotLoadBookings", { defaultValue: "Could not load bookings" }));
       return;
     }
-    setBookings((data || []) as Booking[]);
+    setBookings(((data || []) as Booking[]).filter((b) => !isImportedContactPlaceholderBooking(b)));
   };
 
   const fetchProfiles = async () => {

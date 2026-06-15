@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { parseCsvRecords } from "@/lib/csvRecords";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { computeInvoiceTotals } from "@/lib/orgBilling";
 
@@ -162,6 +163,101 @@ export async function loadPosItemTemplates(orgId?: string | null): Promise<PosIt
 
   if (error || !data) return [];
   return data as PosItemTemplate[];
+}
+
+export interface PosProductCsvRow {
+  name: string;
+  unitPrice: number;
+  defaultQuantity: number;
+}
+
+export const MAX_POS_PRODUCT_IMPORT_ROWS = 500;
+const POS_PRODUCT_IMPORT_CHUNK_SIZE = 150;
+
+function headerIndex(headers: string[], candidates: string[]): number {
+  return headers.findIndex((h) => candidates.some((c) => h === c || h.includes(c)));
+}
+
+function parseMoneyField(raw: string): number {
+  const cleaned = raw.replace(/[£$€,\s]/g, "").trim();
+  const value = Number(cleaned);
+  return Number.isFinite(value) ? value : NaN;
+}
+
+export function parsePosProductsFromCsv(raw: string): { rows: PosProductCsvRow[]; error: string | null } {
+  const allRows = parseCsvRecords(raw);
+  if (allRows.length < 2) {
+    return { rows: [], error: "csv_needs_header" };
+  }
+
+  const headers = allRows[0].map((h) => h.toLowerCase().trim().replace(/^\uFEFF/, ""));
+  const nameIndex = headerIndex(headers, ["name", "product", "item", "description", "title"]);
+  const priceIndex = headerIndex(headers, ["price", "unit_price", "unit price", "amount", "cost"]);
+  const qtyIndex = headerIndex(headers, ["quantity", "qty", "default_quantity", "units"]);
+
+  if (nameIndex < 0 || priceIndex < 0) {
+    return { rows: [], error: "csv_missing_columns" };
+  }
+
+  const rows: PosProductCsvRow[] = [];
+  for (let i = 1; i < allRows.length; i++) {
+    const cols = allRows[i];
+    if (!cols || cols.length <= nameIndex) continue;
+    const name = (cols[nameIndex] || "").trim();
+    if (!name) continue;
+    const unitPrice = parseMoneyField(cols[priceIndex] || "");
+    if (Number.isNaN(unitPrice) || unitPrice < 0) continue;
+    const qtyRaw = qtyIndex >= 0 ? cols[qtyIndex] : "1";
+    const defaultQuantity = Math.max(1, parseInt(String(qtyRaw || "1"), 10) || 1);
+    rows.push({ name, unitPrice, defaultQuantity });
+  }
+
+  if (rows.length === 0) {
+    return { rows: [], error: "csv_no_valid_rows" };
+  }
+  if (rows.length > MAX_POS_PRODUCT_IMPORT_ROWS) {
+    return { rows: [], error: "csv_too_many_rows" };
+  }
+
+  return { rows, error: null };
+}
+
+export async function importPosItemTemplates(
+  items: PosProductCsvRow[],
+  orgId?: string | null,
+): Promise<{ imported: number; error: string | null }> {
+  const resolvedOrgId = orgId ?? (await getUserOrganizationId());
+  if (!resolvedOrgId) return { imported: 0, error: "Organization not found" };
+  if (items.length === 0) return { imported: 0, error: "No items to import" };
+  if (items.length > MAX_POS_PRODUCT_IMPORT_ROWS) {
+    return { imported: 0, error: `Maximum ${MAX_POS_PRODUCT_IMPORT_ROWS} products per import` };
+  }
+
+  const deduped = new Map<string, PosProductCsvRow>();
+  for (const item of items) {
+    const key = item.name.trim().toLowerCase();
+    if (!key) continue;
+    deduped.set(key, item);
+  }
+  const payload = [...deduped.values()].map((item) => ({
+    organization_id: resolvedOrgId,
+    name: item.name.trim(),
+    unit_price: item.unitPrice,
+    default_quantity: item.defaultQuantity,
+  }));
+
+  let imported = 0;
+  for (let i = 0; i < payload.length; i += POS_PRODUCT_IMPORT_CHUNK_SIZE) {
+    const chunk = payload.slice(i, i + POS_PRODUCT_IMPORT_CHUNK_SIZE);
+    const { error } = await supabase.from("pos_item_templates" as any).upsert(chunk, {
+      onConflict: "organization_id,name",
+      ignoreDuplicates: false,
+    });
+    if (error) return { imported, error: error.message };
+    imported += chunk.length;
+  }
+
+  return { imported, error: null };
 }
 
 export async function savePosItemTemplate(

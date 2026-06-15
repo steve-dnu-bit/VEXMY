@@ -9,6 +9,7 @@ import {
   type BookingEmailDetails,
 } from "../_shared/email-templates.ts";
 import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
+import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -84,10 +85,11 @@ serve(async (req) => {
 
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
-      .select("id, artist_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount")
+      .select("id, artist_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount, notes, suppress_booking_notifications")
       .gte("starts_at", new Date(now).toISOString())
       .lte("starts_at", horizon)
       .neq("status", "cancelled")
+      .eq("suppress_booking_notifications", false)
       .order("starts_at", { ascending: true });
     if (bookingErr) {
       return new Response(JSON.stringify({ error: bookingErr.message }), {
@@ -115,6 +117,10 @@ serve(async (req) => {
 
     for (const booking of bookings || []) {
       checked += 1;
+      if (isImportedContactPlaceholderBooking(booking)) {
+        skipped += 1;
+        continue;
+      }
       if (!booking.client_email) {
         skipped += 1;
         continue;

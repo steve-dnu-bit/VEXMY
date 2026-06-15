@@ -11,13 +11,23 @@ const BEIGE = "#b8a06e";
 const HOME_BG = { r: 12, g: 12, b: 15, alpha: 1 };
 const HOME_BG_HEX = "#0c0c0f";
 const RADIUS_RATIO = 0.18;
+/** Tighter crop around the V — less empty margin in every exported icon. */
+const APP_MARK_PAD_RATIO = 0.04;
+const FRAMED_INSET_RATIO = 0.05;
+const HOME_MARK_SCALE = 0.86;
+const HOME_MASKABLE_SCALE = 0.66;
+const TRIM_THRESHOLD = 12;
 
 function borderWidth(size) {
   return Math.max(1, Math.round((size * 2) / 512));
 }
 
 async function loadMark() {
-  return sharp(source).ensureAlpha().png().toBuffer();
+  return sharp(source)
+    .trim({ threshold: TRIM_THRESHOLD })
+    .ensureAlpha()
+    .png()
+    .toBuffer();
 }
 
 async function buildMarkBuffer(targetSize) {
@@ -39,7 +49,7 @@ function pngOptions() {
 
 /** Transparent mark for in-app UI (sidebar, auth, marketing). */
 async function buildAppMark(size) {
-  const pad = Math.round(size * 0.1);
+  const pad = Math.round(size * APP_MARK_PAD_RATIO);
   const inner = Math.max(1, size - pad * 2);
 
   const mark = await buildMarkBuffer(inner);
@@ -61,7 +71,7 @@ async function buildAppMark(size) {
 async function buildFramedIcon(size) {
   const border = borderWidth(size);
   const radius = Math.round(size * RADIUS_RATIO);
-  const inset = Math.round(size * 0.11);
+  const inset = Math.round(size * FRAMED_INSET_RATIO);
   const markSize = Math.max(1, size - inset * 2 - border);
 
   const mark = await buildMarkBuffer(markSize);
@@ -96,7 +106,7 @@ async function buildHomeScreenIcon(size, { maskable = false } = {}) {
   const border = borderWidth(size);
   const radius = Math.round(size * RADIUS_RATIO);
   // Maskable: keep artwork inside Android's ~66% safe circle.
-  const markScale = maskable ? 0.56 : 0.74;
+  const markScale = maskable ? HOME_MASKABLE_SCALE : HOME_MARK_SCALE;
   const markSize = Math.max(1, Math.round(size * markScale));
   const markOffset = Math.round((size - markSize) / 2);
 

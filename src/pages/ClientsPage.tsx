@@ -26,9 +26,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSubscription } from "@/hooks/useSubscription";
 import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
+import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
 import { extractClientUserIdFromListKey } from "@/lib/messagingLinks";
+import { parseCsvRecords } from "@/lib/csvRecords";
 
 interface BookingClient {
   /** Stable key for React lists and dedupe (never collapse different people on same first name). */
@@ -45,72 +47,15 @@ interface BookingClient {
 const MAX_CLIENT_IMPORT_ROWS = 5000;
 const CLIENT_IMPORT_CHUNK_SIZE = 150;
 
-type ClientImportInsert = {
-  client_name: string;
-  client_email: string | null;
-  client_phone: string | null;
+type ContactImportInsert = {
+  organization_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
   tattoo_style: string | null;
   notes: string | null;
-  artist_id: string;
-  starts_at: string;
-  ends_at: string;
-  booking_type: string;
-  status: string;
-  deposit_paid: boolean;
-  suppress_booking_notifications: boolean;
+  created_by: string;
 };
-
-/** Parse CSV including quoted commas and newlines; strips UTF-8 BOM. */
-function parseCsvRecords(raw: string): string[][] {
-  const text = raw.replace(/^\uFEFF/, "");
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let inQuotes = false;
-
-  const pushField = () => {
-    row.push(field.trim());
-    field = "";
-  };
-  const pushRow = () => {
-    if (row.length > 0 && row.some((c) => c.length > 0)) rows.push(row);
-    row = [];
-  };
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        field += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ",") {
-        pushField();
-      } else if (ch === "\r" && text[i + 1] === "\n") {
-        pushField();
-        pushRow();
-        i++;
-      } else if (ch === "\n" || ch === "\r") {
-        pushField();
-        pushRow();
-      } else {
-        field += ch;
-      }
-    }
-  }
-  pushField();
-  pushRow();
-  return rows;
-}
 
 function sessionBookingGroupKey(b: {
   client_name: string;
@@ -263,14 +208,16 @@ const ClientsPage = () => {
 
     // Include imported contacts table records in the client list so bulk imports are visible on this page.
     // Fetch in pages because project API row limits often cap single requests (e.g. 1000 rows).
+    const orgId = await getUserOrganizationId();
     const importedContacts: Array<{ name?: string | null; email?: string | null; phone?: string | null }> = [];
-    {
+    if (orgId) {
       const pageSize = 1000;
       let from = 0;
       for (;;) {
         const { data, error } = await supabase
           .from("contacts_import" as any)
           .select("name, email, phone")
+          .eq("organization_id", orgId)
           .range(from, from + pageSize - 1);
         if (error || !data?.length) break;
         importedContacts.push(...(data as Array<{ name?: string | null; email?: string | null; phone?: string | null }>));
@@ -308,17 +255,31 @@ const ClientsPage = () => {
   };
 
   const deleteAllClients = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await supabase.from("bookings").delete().eq("booking_type", "consultation");
-    if (error) {
-      toast({ title: t("clients.failedDeleteClients"), description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: t("clients.importedDeleted") });
-      fetchClients();
+    const orgId = await getUserOrganizationId();
+    if (!orgId) {
+      toast({ title: t("clients.failedDeleteClients"), description: "Organization not found", variant: "destructive" });
+      return;
     }
+
+    const { error: contactsError } = await supabase.from("contacts_import" as any).delete().eq("organization_id", orgId);
+    if (contactsError) {
+      toast({ title: t("clients.failedDeleteClients"), description: contactsError.message, variant: "destructive" });
+      return;
+    }
+
+    // Legacy cleanup: placeholder consultation rows from older imports.
+    const { error: legacyError } = await supabase
+      .from("bookings")
+      .delete()
+      .eq("booking_type", "consultation")
+      .or("notes.ilike.Imported from CSV%,notes.ilike.Imported from JSON%");
+    if (legacyError) {
+      toast({ title: t("clients.failedDeleteClients"), description: legacyError.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: t("clients.importedDeleted") });
+    fetchClients();
   };
 
   const downloadBlob = (content: string, filename: string, type: string) => {
@@ -376,7 +337,7 @@ const ClientsPage = () => {
     toast({ title: t("clients.exportedJson", { count: clients.length }) });
   };
 
-  const insertImportedClients = async (toInsert: ClientImportInsert[], source: "csv" | "json") => {
+  const insertImportedClients = async (toInsert: ContactImportInsert[], source: "csv" | "json") => {
     if (toInsert.length > MAX_CLIENT_IMPORT_ROWS) {
       toast({
         title: t("clients.importLimitExceeded", { max: MAX_CLIENT_IMPORT_ROWS, count: toInsert.length }),
@@ -389,10 +350,7 @@ const ClientsPage = () => {
     const errors: string[] = [];
     for (let i = 0; i < toInsert.length; i += CLIENT_IMPORT_CHUNK_SIZE) {
       const chunk = toInsert.slice(i, i + CLIENT_IMPORT_CHUNK_SIZE);
-      const { error } = await supabase
-        .from("bookings")
-        .insert(chunk)
-        .select("id");
+      const { error } = await supabase.from("contacts_import" as any).insert(chunk);
       if (error) {
         errors.push(`rows ${i + 1}-${i + chunk.length}: ${error.message}`);
       } else {
@@ -409,6 +367,7 @@ const ClientsPage = () => {
     } else {
       toast({
         title: source === "csv" ? t("clients.importedFromCsv", { count: imported }) : t("clients.importedFromJson", { count: imported }),
+        description: t("clients.importNoEmailsHint"),
       });
     }
     fetchClients();
@@ -447,34 +406,32 @@ const ClientsPage = () => {
         toast({ title: t("clients.mustBeLoggedInImport"), variant: "destructive" });
         return;
       }
+      const orgId = await getUserOrganizationId();
+      if (!orgId) {
+        toast({ title: t("clients.mustBeLoggedInImport"), description: "Organization not found", variant: "destructive" });
+        return;
+      }
 
-      const baseMs = Date.now();
-      const toInsert: ClientImportInsert[] = [];
+      const toInsert: ContactImportInsert[] = [];
 
       for (let r = 0; r < dataRows.length; r++) {
         const cols = dataRows[r];
         if (!cols || cols.length <= nameIndex) continue;
         const name = (cols[nameIndex] || "").trim();
         if (!name) continue;
-        const email = (cols[emailIndex] || cols[emailAltIndex] || "").trim().toLowerCase();
+        const emailRaw = (cols[emailIndex] || cols[emailAltIndex] || "").trim().toLowerCase();
+        const email = emailRaw.replace(/^mailto:/, "") || null;
         const phone = (cols[phoneIndex] || cols[phoneAltIndex] || "").trim();
         const style = styleIndex >= 0 ? (cols[styleIndex] || "").trim() : "";
-        const start = new Date(baseMs + r * 1000).toISOString();
-        const end = new Date(baseMs + r * 1000 + 3600000).toISOString();
 
         toInsert.push({
-          client_name: name,
-          client_email: email || null,
-          client_phone: phone || null,
+          organization_id: orgId,
+          name,
+          email: email || null,
+          phone: phone || null,
           tattoo_style: style || null,
           notes: "Imported from CSV (contacts export)",
-          artist_id: user.id,
-          starts_at: start,
-          ends_at: end,
-          booking_type: "consultation",
-          status: "confirmed",
-          deposit_paid: true,
-          suppress_booking_notifications: true,
+          created_by: user.id,
         });
       }
 
@@ -509,27 +466,25 @@ const ClientsPage = () => {
           return;
         }
 
-        const baseMs = Date.now();
-        const toInsert: ClientImportInsert[] = [];
+        const orgId = await getUserOrganizationId();
+        if (!orgId) {
+          toast({ title: t("clients.mustBeLoggedInImport"), description: "Organization not found", variant: "destructive" });
+          return;
+        }
+
+        const toInsert: ContactImportInsert[] = [];
         for (let r = 0; r < list.length; r++) {
           const row = list[r] as Record<string, unknown>;
           const name = String(row.name || row.client_name || "").trim();
           if (!name) continue;
-          const start = new Date(baseMs + r * 1000).toISOString();
-          const end = new Date(baseMs + r * 1000 + 3600000).toISOString();
           toInsert.push({
-            client_name: name,
-            client_email: (row.email as string) || (row.client_email as string) || null,
-            client_phone: (row.phone as string) || (row.client_phone as string) || null,
-            tattoo_style: (row.last_style as string) || (row.tattoo_style as string) || null,
+            organization_id: orgId,
+            name,
+            email: (String(row.email || row.client_email || "").trim().toLowerCase().replace(/^mailto:/, "") || null),
+            phone: ((row.phone as string) || (row.client_phone as string) || "").trim() || null,
+            tattoo_style: ((row.last_style as string) || (row.tattoo_style as string) || "").trim() || null,
             notes: "Imported from JSON (contacts export)",
-            artist_id: user.id,
-            starts_at: start,
-            ends_at: end,
-            booking_type: "consultation",
-            status: "confirmed",
-            deposit_paid: true,
-            suppress_booking_notifications: true,
+            created_by: user.id,
           });
         }
 

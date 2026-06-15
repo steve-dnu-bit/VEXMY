@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, Clock, Landmark, LayoutDashboard, MapPin, Palette, CheckCircle2 } from "lucide-react";
+import { Building2, Clock, Landmark, LayoutDashboard, MapPin, Palette, CheckCircle2, Users } from "lucide-react";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import {
@@ -43,8 +43,11 @@ import {
 } from "@/lib/shopCurrency";
 import { detectShopCountryFromIp, shouldSuggestCountryFromGeo } from "@/lib/detectShopCountry";
 import { THEME_PRESETS } from "@/lib/themePresets";
+import { applyOwnerPractitionerChoice } from "@/lib/ownerPractitioner";
+import { useArtistSeats } from "@/hooks/useSubscription";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-const STEPS = ["brand", "contact", "billing", "payouts", "hours", "look", "review"] as const;
+const STEPS = ["brand", "contact", "team", "billing", "payouts", "hours", "look", "review"] as const;
 type Step = (typeof STEPS)[number];
 
 const ShopSetupWizardPage = () => {
@@ -81,6 +84,8 @@ const ShopSetupWizardPage = () => {
   const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
   const [dashboardTheme, setDashboardTheme] = useState<ShopDashboardThemeSettings>(defaultShopDashboardThemeSettings);
   const [countrySuggestedFromGeo, setCountrySuggestedFromGeo] = useState(false);
+  const [ownerIsPractitioner, setOwnerIsPractitioner] = useState<boolean | null>(null);
+  const { data: seatUsage } = useArtistSeats();
 
   useEffect(() => {
     const stepParam = searchParams.get("step");
@@ -112,6 +117,9 @@ const ShopSetupWizardPage = () => {
           ...wizardData,
           support_email: wizardData.support_email || user.email || "",
         });
+        if (shop.owner_is_practitioner != null) {
+          setOwnerIsPractitioner(shop.owner_is_practitioner);
+        }
       }
 
       if (shouldSuggestCountryFromGeo(shop)) {
@@ -194,6 +202,20 @@ const ShopSetupWizardPage = () => {
     return true;
   };
 
+  const persistTeam = async () => {
+    if (!shopId || !user) return false;
+    if (ownerIsPractitioner === null) {
+      toast.error(t("setup.practitionerRequired"));
+      return false;
+    }
+    const { error } = await applyOwnerPractitionerChoice(user.id, shopId, ownerIsPractitioner);
+    if (error) {
+      toast.error(error);
+      return false;
+    }
+    return true;
+  };
+
   const persistBilling = async () => {
     if (!shopId) return false;
     if (!form.company_name.trim() || !form.company_legal_name.trim()) {
@@ -256,6 +278,7 @@ const ShopSetupWizardPage = () => {
     let ok = true;
     if (step === "brand") ok = await persistBrand();
     else if (step === "contact") ok = await persistContact();
+    else if (step === "team") ok = await persistTeam();
     else if (step === "billing") ok = await persistBilling();
     else if (step === "hours") ok = await persistHours();
     else if (step === "look") ok = await persistLook();
@@ -276,6 +299,7 @@ const ShopSetupWizardPage = () => {
     const ok =
       (await persistBrand()) &&
       (await persistContact()) &&
+      (await persistTeam()) &&
       (await persistBilling()) &&
       (await persistHours()) &&
       (await persistLook());
@@ -296,6 +320,7 @@ const ShopSetupWizardPage = () => {
   const stepMeta: Record<Step, { title: string; desc: string; icon: typeof Building2 }> = {
     brand: { title: t("setup.stepBrandTitle"), desc: t("setup.stepBrandDesc"), icon: Palette },
     contact: { title: t("setup.stepContactTitle"), desc: t("setup.stepContactDesc"), icon: MapPin },
+    team: { title: t("setup.stepTeamTitle"), desc: t("setup.stepTeamDesc"), icon: Users },
     billing: { title: t("setup.stepBillingTitle"), desc: t("setup.stepBillingDesc"), icon: Building2 },
     payouts: { title: t("setup.stepPayoutsTitle"), desc: t("setup.stepPayoutsDesc"), icon: Landmark },
     hours: { title: t("setup.stepHoursTitle"), desc: t("setup.stepHoursDesc"), icon: Clock },
@@ -430,6 +455,39 @@ const ShopSetupWizardPage = () => {
               </>
             ) : null}
 
+            {step === "team" ? (
+              <>
+                <div>
+                  <Label>{t("setup.practitionerQuestion")}</Label>
+                  <RadioGroup
+                    className="mt-3 space-y-3"
+                    value={ownerIsPractitioner === null ? undefined : ownerIsPractitioner ? "yes" : "no"}
+                    onValueChange={(value) => setOwnerIsPractitioner(value === "yes")}
+                  >
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 has-[:checked]:border-gold has-[:checked]:bg-gold/5">
+                      <RadioGroupItem value="yes" className="mt-0.5" />
+                      <div>
+                        <p className="font-medium">{t("setup.practitionerYes")}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{t("setup.practitionerYesHint")}</p>
+                      </div>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 has-[:checked]:border-gold has-[:checked]:bg-gold/5">
+                      <RadioGroupItem value="no" className="mt-0.5" />
+                      <div>
+                        <p className="font-medium">{t("setup.practitionerNo")}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{t("setup.practitionerNoHint")}</p>
+                      </div>
+                    </label>
+                  </RadioGroup>
+                </div>
+                {seatUsage?.max != null ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t("setup.practitionerSeatsHint", { max: seatUsage.max })}
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+
             {step === "billing" ? (
               <>
                 <div>
@@ -543,6 +601,14 @@ const ShopSetupWizardPage = () => {
                 <p><span className="text-muted-foreground">{t("setup.phone")}:</span> {form.phone || "—"}</p>
                 <p><span className="text-muted-foreground">{t("setup.website")}:</span> {form.website_url || "—"}</p>
                 <p><span className="text-muted-foreground">{t("setup.companyLegalName")}:</span> {form.company_legal_name}</p>
+                <p>
+                  <span className="text-muted-foreground">{t("setup.practitionerReview")}:</span>{" "}
+                  {ownerIsPractitioner === true
+                    ? t("setup.practitionerYesShort")
+                    : ownerIsPractitioner === false
+                      ? t("setup.practitionerNoShort")
+                      : "—"}
+                </p>
                 <p><span className="text-muted-foreground">{t("admin.scheduleOpenTime")}:</span> {scheduleHours.openTime} – {scheduleHours.closeTime}</p>
                 <p className="text-xs text-muted-foreground pt-2">{t("setup.reviewHint")}</p>
               </div>
