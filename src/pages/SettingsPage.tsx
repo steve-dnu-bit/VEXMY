@@ -15,6 +15,7 @@ import LanguageSelector from "@/components/i18n/LanguageSelector";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
+import { canArtistCustomizeDashboardTheme } from "@/lib/shopDashboardTheme";
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
