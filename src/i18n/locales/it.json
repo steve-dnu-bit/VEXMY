@@ -270,7 +270,10 @@
     "sendingReset": "Invio e-mail di reimpostazione…",
     "termsAgree": "Continuando accetti i nostri",
     "privacyNotice": "Informativa sulla privacy",
-    "cookiePolicy": "Informativa sui cookie"
+    "cookiePolicy": "Informativa sui cookie",
+    "continueWithGoogle": "Continua con Google",
+    "continuingWithGoogle": "Reindirizzamento a Google…",
+    "googleSignInFailed": "Impossibile avviare l'accesso a Google. Per favore riprova."
   },
   "subscribe": {
     "label": "Abbonati",

@@ -270,7 +270,10 @@
     "sendingReset": "Изпращане на имейл за нулиране…",
     "termsAgree": "Продължавайки, приемате нашите",
     "privacyNotice": "Известие за поверителност",
-    "cookiePolicy": "Политика за бисквитки"
+    "cookiePolicy": "Политика за бисквитки",
+    "continueWithGoogle": "Продължете с Google",
+    "continuingWithGoogle": "Пренасочване към Google...",
+    "googleSignInFailed": "Неуспешно влизане в Google. Моля, опитайте отново."
   },
   "subscribe": {
     "label": "Абонирай се",

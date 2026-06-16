@@ -270,7 +270,10 @@
     "sendingReset": "Надсилання листа для скидання…",
     "termsAgree": "Продовжуючи, ви погоджуєтеся з нашими",
     "privacyNotice": "Політикою конфіденційності",
-    "cookiePolicy": "Політикою щодо cookies"
+    "cookiePolicy": "Політикою щодо cookies",
+    "continueWithGoogle": "Continue with Google",
+    "continuingWithGoogle": "Redirecting to Google…",
+    "googleSignInFailed": "Could not start Google sign-in. Please try again."
   },
   "subscribe": {
     "label": "Підписатися",

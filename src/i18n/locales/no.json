@@ -270,7 +270,10 @@
     "sendingReset": "Sender e-post for tilbakestilling…",
     "termsAgree": "Ved å fortsette godtar du våre",
     "privacyNotice": "Personvernerklæring",
-    "cookiePolicy": "Retningslinjer for informasjonskapsler"
+    "cookiePolicy": "Retningslinjer for informasjonskapsler",
+    "continueWithGoogle": "Fortsett med Google",
+    "continuingWithGoogle": "Omdirigerer til Google …",
+    "googleSignInFailed": "Kunne ikke starte Google-pålogging. Vennligst prøv igjen."
   },
   "subscribe": {
     "label": "Abonner",

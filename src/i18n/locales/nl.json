@@ -270,7 +270,10 @@
     "sendingReset": "Reset-e-mail verzenden…",
     "termsAgree": "Door verder te gaan ga je akkoord met onze",
     "privacyNotice": "Privacyverklaring",
-    "cookiePolicy": "Cookiebeleid"
+    "cookiePolicy": "Cookiebeleid",
+    "continueWithGoogle": "Ga verder met Google",
+    "continuingWithGoogle": "Omleiden naar Google…",
+    "googleSignInFailed": "Kan inloggen bij Google niet starten. Probeer het opnieuw."
   },
   "subscribe": {
     "label": "Abonneren",

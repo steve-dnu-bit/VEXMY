@@ -270,7 +270,10 @@
     "sendingReset": "Se trimite e-mailul de resetare…",
     "termsAgree": "Continuând, ești de acord cu",
     "privacyNotice": "Politica de confidențialitate",
-    "cookiePolicy": "Politica privind cookie-urile"
+    "cookiePolicy": "Politica privind cookie-urile",
+    "continueWithGoogle": "Continuați cu Google",
+    "continuingWithGoogle": "Se redirecționează către Google...",
+    "googleSignInFailed": "Nu s-a putut porni conectarea la Google. Vă rugăm să încercați din nou."
   },
   "subscribe": {
     "label": "Abonare",

@@ -270,7 +270,10 @@
     "sendingReset": "Skickar e-post för återställning…",
     "termsAgree": "Genom att fortsätta godkänner du våra",
     "privacyNotice": "Integritetspolicy",
-    "cookiePolicy": "Cookiepolicy"
+    "cookiePolicy": "Cookiepolicy",
+    "continueWithGoogle": "Fortsätt med Google",
+    "continuingWithGoogle": "Omdirigerar till Google...",
+    "googleSignInFailed": "Kunde inte starta Google-inloggning. Försök igen."
   },
   "subscribe": {
     "label": "Prenumerera",

@@ -270,7 +270,10 @@
     "sendingReset": "Envoi de l'e-mail de réinitialisation…",
     "termsAgree": "En continuant, vous acceptez nos",
     "privacyNotice": "Politique de confidentialité",
-    "cookiePolicy": "Politique relative aux cookies"
+    "cookiePolicy": "Politique relative aux cookies",
+    "continueWithGoogle": "Continuer avec Google",
+    "continuingWithGoogle": "Redirection vers Google…",
+    "googleSignInFailed": "Impossible de démarrer la connexion à Google. Veuillez réessayer."
   },
   "subscribe": {
     "label": "S'abonner",

@@ -270,7 +270,10 @@
     "sendingReset": "E-Mail zum Zurücksetzen wird gesendet…",
     "termsAgree": "Mit dem Fortfahren stimmen Sie unseren",
     "privacyNotice": "Datenschutzhinweis",
-    "cookiePolicy": "Cookie-Richtlinie"
+    "cookiePolicy": "Cookie-Richtlinie",
+    "continueWithGoogle": "Weiter mit Google",
+    "continuingWithGoogle": "Weiterleitung zu Google…",
+    "googleSignInFailed": "Die Google-Anmeldung konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
   },
   "subscribe": {
     "label": "Abonnieren",
