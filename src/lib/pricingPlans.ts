@@ -171,7 +171,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Are Stripe fees included?",
-    a: "No. Card processing fees are charged by Stripe on top of your subscription. Velbok integrates with your Stripe account for deposits and invoices.",
+    a: "No. Card processing fees are charged by Stripe on top of your subscription. Typical UK Stripe rates are 1.5% + 20p for online UK cards and 1.4% + 10p for in-person Terminal EEA cards (higher for international cards). Stripe pricing can change, so confirm your live rates in Stripe.",
   },
   {
     q: "Can I switch plans later?",

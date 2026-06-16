@@ -5,6 +5,7 @@ import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSet
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 import { needsShopSetup } from "@/lib/shopSettings";
 import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
+import { isNativeApp } from "@/lib/platform";
 
 export type AppRole = "admin" | "artist" | "customer";
 
@@ -71,7 +72,7 @@ export async function resolvePostLoginPath(userId: string, rawNext: string | nul
   if (next) return next;
   if (await fetchHasNoAppRoles(userId)) return "/account";
   if (await fetchIsOnlyCustomer(userId)) return "/account";
-  if (await fetchHasStaffAccess(userId)) return "/schedule";
+  if (await fetchHasStaffAccess(userId)) return isNativeApp() ? "/checkout" : "/schedule";
   return "/account";
 }
 

@@ -16,9 +16,22 @@
     "deploy:preview:only": "npx netlify-cli deploy --dir=dist",
     "deploy:prod": "npm run build && npx netlify-cli deploy --prod --dir=dist --site dc785d32-2796-486d-8a45-93f1ea0a41e3",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:mobile": "vite build",
+    "cap:sync": "npm run build:mobile && npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios",
+    "cap:run:android": "npm run cap:sync && npx cap run android",
+    "cap:run:ios": "npm run cap:sync && npx cap run ios"
   },
   "dependencies": {
+    "@capacitor-community/stripe-terminal": "^8.1.1",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
+    "@capacitor/splash-screen": "^8.0.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",

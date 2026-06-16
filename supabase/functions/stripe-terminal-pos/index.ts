@@ -7,7 +7,7 @@ import {
   getConnectStatusForOrg,
   stripeRequestOptions,
 } from "../_shared/stripe-connect.ts";
-import { createConnectStripe, getConnectStripeSecret } from "../_shared/stripe-keys.ts";
+import { createConnectStripe, getConnectStripeSecret, stripeSecretMode } from "../_shared/stripe-keys.ts";
 import { getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 import { mapShopCountryToStripe } from "../_shared/stripe-connect.ts";
 
@@ -101,61 +101,84 @@ serve(async (req) => {
       });
     }
 
+    if (action === "terminal_config") {
+      const mode = stripeSecretMode(getConnectStripeSecret());
+      return new Response(JSON.stringify({ isTest: mode === "test" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "ensure_location") {
+      const forceRecreate = body.forceRecreate === true;
+
+      const saveLocationId = async (locationId: string) => {
+        const { data: existingPos } = await admin
+          .from("shop_pos_settings")
+          .select("organization_id")
+          .eq("organization_id", orgId)
+          .maybeSingle();
+
+        if (existingPos) {
+          await admin
+            .from("shop_pos_settings")
+            .update({
+              stripe_terminal_location_id: locationId,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("organization_id", orgId);
+        } else {
+          await admin.from("shop_pos_settings").insert({
+            organization_id: orgId,
+            stripe_terminal_location_id: locationId,
+          });
+        }
+      };
+
+      const createLocation = async () => {
+        const { data: shop } = await admin
+          .from("shop_settings")
+          .select("shop_name, address_line1, city, postcode, country_code")
+          .eq("organization_id", orgId)
+          .maybeSingle();
+
+        const country = mapShopCountryToStripe(shop?.country_code);
+        const location = await stripe.terminal.locations.create(
+          {
+            display_name: shop?.shop_name || "Studio",
+            address: {
+              line1: shop?.address_line1 || "1 Main Street",
+              city: shop?.city || "London",
+              postal_code: shop?.postcode || "SW1A 1AA",
+              country,
+            },
+          },
+          stripeOpts,
+        );
+        await saveLocationId(location.id);
+        return location.id;
+      };
+
       const { data: posSettings } = await admin
         .from("shop_pos_settings")
         .select("stripe_terminal_location_id")
         .eq("organization_id", orgId)
         .maybeSingle();
 
-      if (posSettings?.stripe_terminal_location_id) {
-        return new Response(JSON.stringify({ locationId: posSettings.stripe_terminal_location_id }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      const storedId = posSettings?.stripe_terminal_location_id?.trim() || "";
+
+      if (!forceRecreate && storedId) {
+        try {
+          await stripe.terminal.locations.retrieve(storedId, stripeOpts);
+          return new Response(JSON.stringify({ locationId: storedId }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch {
+          /* stale location — recreate below */
+        }
       }
 
-      const { data: shop } = await admin
-        .from("shop_settings")
-        .select("shop_name, address_line1, city, postcode, country_code")
-        .eq("organization_id", orgId)
-        .maybeSingle();
-
-      const country = mapShopCountryToStripe(shop?.country_code);
-      const location = await stripe.terminal.locations.create(
-        {
-          display_name: shop?.shop_name || "Studio",
-          address: {
-            line1: shop?.address_line1 || "1 Main Street",
-            city: shop?.city || "London",
-            postal_code: shop?.postcode || "SW1A 1AA",
-            country,
-          },
-        },
-        stripeOpts,
-      );
-
-      const { data: existingPos } = await admin
-        .from("shop_pos_settings")
-        .select("organization_id")
-        .eq("organization_id", orgId)
-        .maybeSingle();
-
-      if (existingPos) {
-        await admin
-          .from("shop_pos_settings")
-          .update({
-            stripe_terminal_location_id: location.id,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("organization_id", orgId);
-      } else {
-        await admin.from("shop_pos_settings").insert({
-          organization_id: orgId,
-          stripe_terminal_location_id: location.id,
-        });
-      }
-
-      return new Response(JSON.stringify({ locationId: location.id }), {
+      const locationId = await createLocation();
+      return new Response(JSON.stringify({ locationId, recreated: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

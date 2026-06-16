@@ -15,6 +15,8 @@ import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
+import { isNativeApp } from "@/lib/platform";
+import MobileAppRoutes from "./MobileAppRoutes";
 
 const CustomerPortalShell = () => (
   <CustomerShopProvider>
@@ -112,6 +114,9 @@ const App = () => (
           <BrowserRouter>
             <RouteErrorBoundary label="App">
               <Suspense fallback={<PageFallback />}>
+                {isNativeApp() ? (
+                  <MobileAppRoutes />
+                ) : (
                 <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
@@ -154,9 +159,10 @@ const App = () => (
                 <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+                )}
               </Suspense>
             </RouteErrorBoundary>
-            <CookieConsentBanner />
+            {!isNativeApp() ? <CookieConsentBanner /> : null}
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>

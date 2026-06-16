@@ -42,6 +42,7 @@ import {
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
+import { isNativeApp } from "@/lib/platform";
 import { useSearchParams } from "react-router-dom";
 
 interface ArtistOption {
@@ -94,6 +95,13 @@ const PosCheckoutPage = () => {
   const [importingProducts, setImportingProducts] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const productsCsvInputRef = useRef<HTMLInputElement>(null);
+
+  const canConnectReader = connectReady && !!locationId && (simulatedReader || isNativeApp());
+  const connectBlockedReason = !connectReady
+    ? t("pos.connectRequired")
+    : !locationId
+      ? t("pos.locationRequired")
+      : null;
 
   const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
 
@@ -499,6 +507,12 @@ const PosCheckoutPage = () => {
             </div>
           </div>
 
+          {isNativeApp() ? (
+            <p className="text-xs text-emerald-600">{t("pos.nativeBluetoothReady")}</p>
+          ) : !simulatedReader ? (
+            <p className="text-xs text-muted-foreground rounded-lg border border-border bg-muted/30 p-3">{t("pos.mobileAppRequired")}</p>
+          ) : null}
+
           {!connectReady || !locationId ? (
             <Card>
               <CardHeader className="pb-3">
@@ -762,8 +776,18 @@ const PosCheckoutPage = () => {
                         type="button"
                         variant="outline"
                         className="w-full"
-                        disabled={terminal.status === "discovering" || terminal.status === "connecting"}
-                        onClick={() => void terminal.discoverAndConnect().catch(() => undefined)}
+                        disabled={
+                          terminal.status === "discovering" ||
+                          terminal.status === "connecting" ||
+                          !canConnectReader
+                        }
+                        onClick={() => {
+                          if (connectBlockedReason) {
+                            toast.error(connectBlockedReason);
+                            return;
+                          }
+                          void terminal.discoverAndConnect().catch(() => undefined);
+                        }}
                       >
                         {terminal.status === "discovering" || terminal.status === "connecting" ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />

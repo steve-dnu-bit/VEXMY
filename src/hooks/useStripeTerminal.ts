@@ -1,99 +1,56 @@
-import { useCallback, useRef, useState } from "react";
-import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createTerminalProvider, type TerminalProviderStatus } from "@/lib/terminal";
+import { formatTerminalError } from "@/lib/terminal/formatTerminalError";
+import type { TerminalReaderInfo } from "@/lib/terminal/types";
 
-type TerminalReader = {
-  id: string;
-  label?: string;
-  device_type?: string;
-  status?: string;
-};
-
-type TerminalInstance = {
-  discoverReaders: (config: Record<string, unknown>) => Promise<{ discoveredReaders?: TerminalReader[]; error?: { message?: string } }>;
-  connectReader: (reader: TerminalReader) => Promise<{ reader?: TerminalReader; error?: { message?: string } }>;
-  disconnectReader: () => Promise<void>;
-  collectPaymentMethod: (clientSecret: string) => Promise<{ paymentIntent?: { id: string }; error?: { message?: string } }>;
-  processPayment: (paymentIntent: { id: string }) => Promise<{ paymentIntent?: { id: string; status?: string }; error?: { message?: string } }>;
-  getConnectedReader: () => TerminalReader | null;
-};
-
-export type TerminalStatus = "idle" | "initializing" | "discovering" | "connecting" | "connected" | "processing" | "error";
+export type { TerminalProviderStatus };
 
 export function useStripeTerminal(options: { simulated: boolean; locationId?: string | null }) {
-  const terminalRef = useRef<TerminalInstance | null>(null);
-  const [status, setStatus] = useState<TerminalStatus>("idle");
-  const [reader, setReader] = useState<TerminalReader | null>(null);
+  const providerRef = useRef(createTerminalProvider({
+    simulated: options.simulated,
+    locationId: options.locationId,
+    onUnexpectedDisconnect: () => {
+      setReader(null);
+      setStatus("idle");
+    },
+  }));
+  const [status, setStatus] = useState<TerminalProviderStatus>("idle");
+  const [reader, setReader] = useState<TerminalReaderInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConnectionToken = useCallback(async () => {
-    const { data, error: err } = await invokeEdgeFunctionJson<{ secret?: string }>("stripe-terminal-pos", {
-      action: "connection_token",
+  useEffect(() => {
+    providerRef.current = createTerminalProvider({
+      simulated: options.simulated,
+      locationId: options.locationId,
+      onUnexpectedDisconnect: () => {
+        setReader(null);
+        setStatus("idle");
+      },
     });
-    if (err || !data.secret) throw new Error(err?.message || "Could not get connection token");
-    return data.secret;
-  }, []);
-
-  const initTerminal = useCallback(async () => {
-    if (terminalRef.current) return terminalRef.current;
-    setStatus("initializing");
+    setReader(null);
+    setStatus("idle");
     setError(null);
-    try {
-      const { loadStripeTerminal } = await import("@stripe/terminal-js");
-      const StripeTerminalFactory = await loadStripeTerminal();
-      const terminal = StripeTerminalFactory.create({
-        onFetchConnectionToken: fetchConnectionToken,
-        onUnexpectedReaderDisconnect: () => {
-          setReader(null);
-          setStatus("idle");
-        },
-      }) as TerminalInstance;
-      terminalRef.current = terminal;
-      setStatus("idle");
-      return terminal;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Terminal init failed";
-      setError(msg);
-      setStatus("error");
-      throw e;
-    }
-  }, [fetchConnectionToken]);
+  }, [options.locationId, options.simulated]);
 
   const discoverAndConnect = useCallback(async () => {
     setError(null);
     setStatus("discovering");
     try {
-      const terminal = await initTerminal();
-      const discoverConfig: Record<string, unknown> = options.simulated
-        ? { simulated: true }
-        : { location: options.locationId };
-      const discoverResult = await terminal.discoverReaders(discoverConfig);
-      if (discoverResult.error) {
-        throw new Error(discoverResult.error.message || "Reader discovery failed");
-      }
-      const readers = discoverResult.discoveredReaders || [];
-      if (readers.length === 0) {
-        throw new Error(options.simulated ? "No simulated reader found" : "No WisePad reader found nearby");
-      }
       setStatus("connecting");
-      const connectResult = await terminal.connectReader(readers[0]);
-      if (connectResult.error) {
-        throw new Error(connectResult.error.message || "Could not connect reader");
-      }
-      setReader(connectResult.reader || readers[0]);
+      const connected = await providerRef.current.discoverAndConnect();
+      setReader(connected);
       setStatus("connected");
-      return connectResult.reader || readers[0];
+      return connected;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Reader connection failed";
+      const msg = formatTerminalError(e, "Reader connection failed");
       setError(msg);
       setStatus("error");
       throw e;
     }
-  }, [initTerminal, options.locationId, options.simulated]);
+  }, []);
 
   const disconnect = useCallback(async () => {
-    if (terminalRef.current) {
-      await terminalRef.current.disconnectReader();
-    }
+    await providerRef.current.disconnect();
     setReader(null);
     setStatus("idle");
   }, []);
@@ -103,34 +60,20 @@ export function useStripeTerminal(options: { simulated: boolean; locationId?: st
       setError(null);
       setStatus("processing");
       try {
-        const terminal = await initTerminal();
-        if (!terminal.getConnectedReader()) {
+        if (!providerRef.current.getConnectedReader()) {
           await discoverAndConnect();
         }
-        const collectResult = await terminal.collectPaymentMethod(clientSecret);
-        if (collectResult.error) {
-          throw new Error(collectResult.error.message || "Payment collection failed");
-        }
-        if (!collectResult.paymentIntent) {
-          throw new Error("No payment intent returned");
-        }
-        const processResult = await terminal.processPayment(collectResult.paymentIntent);
-        if (processResult.error) {
-          throw new Error(processResult.error.message || "Payment processing failed");
-        }
+        const result = await providerRef.current.collectAndProcess(clientSecret);
         setStatus("connected");
-        return {
-          paymentIntentId: processResult.paymentIntent?.id || collectResult.paymentIntent.id,
-          readerId: terminal.getConnectedReader()?.id || reader?.id || null,
-        };
+        return result;
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Payment failed";
+        const msg = formatTerminalError(e, "Payment failed");
         setError(msg);
         setStatus(reader ? "connected" : "error");
         throw e;
       }
     },
-    [discoverAndConnect, initTerminal, reader?.id],
+    [discoverAndConnect, reader],
   );
 
   return {

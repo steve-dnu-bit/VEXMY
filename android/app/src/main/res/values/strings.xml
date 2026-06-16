@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Velbok</string>
+    <string name="title_activity_main">Velbok</string>
+    <string name="package_name">com.velbok.app</string>
+    <string name="custom_url_scheme">com.velbok.app</string>
+</resources>
