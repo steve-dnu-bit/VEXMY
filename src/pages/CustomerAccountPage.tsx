@@ -20,6 +20,8 @@ import { bookingEligibleForConsent } from "@/lib/bookingTypes";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { bookingMatchesCustomerShop } from "@/lib/customerShops";
 import { useCustomerShop } from "@/hooks/useCustomerShop";
+import { hasActiveOrganizationSubscription } from "@/lib/shopSettings";
+import { fetchHasStaffAccess } from "@/hooks/useUserRoles";
 import { useTranslation } from "react-i18next";
 
 type BookingRow = {
@@ -129,7 +131,8 @@ const CustomerAccountPage = () => {
     if (!user) return;
     (async () => {
       if (await fetchHasStaffAccess(user.id)) {
-        navigate("/schedule", { replace: true });
+        const hasSub = await hasActiveOrganizationSubscription(user.id);
+        navigate(hasSub ? "/schedule" : "/subscribe?plan=studio", { replace: true });
         return;
       }
       setChecking(false);

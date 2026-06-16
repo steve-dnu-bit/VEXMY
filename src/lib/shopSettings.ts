@@ -97,7 +97,7 @@ export async function needsShopSetup(userId: string): Promise<boolean> {
   return !shop.setup_completed_at;
 }
 
-async function hasActiveOrganizationSubscription(userId: string): Promise<boolean> {
+export async function hasActiveOrganizationSubscription(userId: string): Promise<boolean> {
   const orgId = await getUserOrganizationId(userId);
   if (!orgId) return false;
 

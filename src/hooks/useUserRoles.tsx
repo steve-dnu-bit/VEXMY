@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
-import { needsShopSetup } from "@/lib/shopSettings";
+import { hasActiveOrganizationSubscription, needsShopSetup } from "@/lib/shopSettings";
 import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
 import { isNativeApp } from "@/lib/platform";
 
@@ -70,9 +70,12 @@ export async function resolvePostLoginPath(userId: string, rawNext: string | nul
   if (await needsCustomerProfileSetup(userId)) return "/customer-profile-setup";
   const next = getSafeNextPath(rawNext);
   if (next) return next;
-  if (await fetchHasNoAppRoles(userId)) return "/account";
   if (await fetchIsOnlyCustomer(userId)) return "/account";
-  if (await fetchHasStaffAccess(userId)) return isNativeApp() ? "/checkout" : "/schedule";
+  if (await fetchHasStaffAccess(userId)) {
+    if (!(await hasActiveOrganizationSubscription(userId))) return "/subscribe?plan=studio";
+    return isNativeApp() ? "/checkout" : "/schedule";
+  }
+  if (await fetchHasNoAppRoles(userId)) return "/subscribe?plan=studio";
   return "/account";
 }
 
