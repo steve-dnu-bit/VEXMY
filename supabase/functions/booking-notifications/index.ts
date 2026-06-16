@@ -9,6 +9,7 @@ import {
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
+import { resolveEmailLocale, t, type EmailLanguage } from "../_shared/email-i18n.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildBookingNotificationEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
@@ -19,7 +20,9 @@ type BookingNotificationAction = "created" | "updated" | "deleted";
 
 type BookingPayload = {
   id: string;
+  organization_id?: string | null;
   artist_id: string;
+  client_user_id?: string | null;
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
@@ -113,7 +116,7 @@ serve(async (req) => {
     const { data: bookingRow } = await adminClient
       .from("bookings")
       .select(
-        "id, organization_id, artist_id, client_name, client_email, client_phone, booking_type, service_category, status, starts_at, ends_at, notes, tattoo_style, tattoo_size, tattoo_placement, deposit_amount, deposit_paid, suppress_booking_notifications",
+        "id, organization_id, artist_id, client_user_id, client_name, client_email, client_phone, booking_type, service_category, status, starts_at, ends_at, notes, tattoo_style, tattoo_size, tattoo_placement, deposit_amount, deposit_paid, suppress_booking_notifications",
       )
       .eq("id", bookingPayload.id)
       .maybeSingle();
@@ -210,12 +213,15 @@ serve(async (req) => {
     if (isValidEmail(customerEmailRaw)) recipients.set(customerEmailRaw, { role: "customer", name: booking.client_name || "Customer" });
 
     const brand = getShopBranding();
-    const baseSubject =
-      action === "created"
-        ? `Booking confirmed — ${brand.shopName}`
-        : action === "updated"
-          ? `Booking updated — ${brand.shopName}`
-          : `Booking cancelled — ${brand.shopName}`;
+    const organizationId = (booking as { organization_id?: string | null }).organization_id ?? null;
+    const artistLocale = await resolveEmailLocale(adminClient, {
+      recipientUserId: booking.artist_id,
+      organizationId,
+    });
+    const customerLocale = await resolveEmailLocale(adminClient, {
+      recipientUserId: (booking as { client_user_id?: string | null }).client_user_id ?? null,
+      organizationId,
+    });
 
     const bookingDetails: BookingEmailDetails = {
       ...booking,
@@ -224,18 +230,19 @@ serve(async (req) => {
     };
 
     const sendJobs = [...recipients.entries()].map(async ([email, recipient]) => {
+      const locale: EmailLanguage = recipient.role === "artist" ? artistLocale : customerLocale;
       const subject =
         action === "created"
           ? recipient.role === "artist"
-            ? `New booking — ${brand.shopName}`
-            : baseSubject
+            ? t(locale, "subjects.booking.created.artist", { shopName: brand.shopName })
+            : t(locale, "subjects.booking.created.customer", { shopName: brand.shopName })
           : action === "updated"
             ? recipient.role === "artist"
-              ? `Booking updated — ${brand.shopName}`
-              : baseSubject
+              ? t(locale, "subjects.booking.updated.artist", { shopName: brand.shopName })
+              : t(locale, "subjects.booking.updated.customer", { shopName: brand.shopName })
             : recipient.role === "artist"
-              ? `Booking removed — ${brand.shopName}`
-              : baseSubject;
+              ? t(locale, "subjects.booking.deleted.artist", { shopName: brand.shopName })
+              : t(locale, "subjects.booking.deleted.customer", { shopName: brand.shopName });
 
       try {
         const { html, attachments } = buildBookingNotificationEmail({
@@ -243,6 +250,7 @@ serve(async (req) => {
           recipientName: recipient.name,
           booking: bookingDetails,
           includeCalendarHint: recipient.role === "customer" || action !== "deleted",
+          locale,
         });
 
         const delivery = await sendTransactionalEmail({

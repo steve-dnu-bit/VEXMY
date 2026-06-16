@@ -4,6 +4,7 @@ import Stripe from "npm:stripe@16.12.0";
 import { getShopBranding } from "../_shared/branding.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
+import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
 import { syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
 import { getShopPaymentSettings } from "../_shared/shop-currency.ts";
 import {
@@ -135,12 +136,13 @@ serve(async (req) => {
         .eq("id", bookingId)
         .or("deposit_paid.is.null,deposit_paid.eq.false")
         .select(
-          "id, artist_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount",
+          "id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount",
         );
       const paidBooking = updatedRows?.[0] as
         | {
             id: string;
             artist_id: string;
+            client_user_id?: string | null;
             client_name: string | null;
             client_email: string | null;
             starts_at: string;
@@ -175,6 +177,10 @@ serve(async (req) => {
             deposit_paid: true,
           };
           const orgId = session.metadata?.organization_id ?? null;
+          const locale = await resolveEmailLocale(admin, {
+            recipientUserId: paidBooking.client_user_id ?? null,
+            organizationId: orgId,
+          });
           const { currency: shopCurrency } = await getShopPaymentSettings(admin, orgId);
           const receipt = buildDepositReceiptEmail({
             clientName: paidBooking.client_name || "there",
@@ -182,10 +188,11 @@ serve(async (req) => {
             amount: Number(paidBooking.deposit_amount ?? 50),
             currency: shopCurrency,
             booking: bookingDetails,
+            locale,
           });
           await sendTransactionalEmail({
             to: receiptTo,
-            subject: `Deposit received — ${getShopBranding().shopName}`,
+            subject: t(locale, "subjects.deposit.receipt", { shopName: getShopBranding().shopName }),
             html: receipt.html,
             attachments: receipt.attachments,
             fromKind: "booking",

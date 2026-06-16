@@ -15,6 +15,7 @@ import {
   getBookingReplyEmail,
   siteUrl,
 } from "./email.ts";
+import { t, type EmailLanguage } from "./email-i18n.ts";
 import { bookingIcsAttachment, type IcsBookingEvent } from "./ics.ts";
 import type { EmailAttachment } from "./email.ts";
 import { formatShopMoney } from "./shop-currency.ts";
@@ -50,10 +51,15 @@ function depositStatusLabel(
   paid: boolean | null | undefined,
   amount: number | null | undefined,
   currency = "gbp",
+  locale: EmailLanguage = "en",
 ): string {
-  if (paid) return amount ? `Paid (${formatShopMoney(Number(amount), currency)})` : "Paid";
-  if (amount) return `Outstanding (${formatShopMoney(Number(amount), currency)})`;
-  return "Outstanding";
+  const formattedAmount = amount ? formatShopMoney(Number(amount), currency) : null;
+  if (paid) {
+    if (formattedAmount) return t(locale, "depositStatus.paidWithAmount", { amount: formattedAmount });
+    return t(locale, "depositStatus.paid");
+  }
+  if (formattedAmount) return t(locale, "depositStatus.outstandingWithAmount", { amount: formattedAmount });
+  return t(locale, "depositStatus.outstanding");
 }
 
 export function buildBookingIcsEvent(
@@ -95,46 +101,51 @@ export function buildBookingNotificationEmail(params: {
   recipientName: string;
   booking: BookingEmailDetails;
   includeCalendarHint?: boolean;
+  locale?: EmailLanguage;
 }): { html: string; attachments: EmailAttachment[] } {
   const { action, recipientName, booking } = params;
+  const locale = params.locale ?? "en";
   const brand = getShopBranding();
-  const title =
-    action === "created" ? "Booking confirmed" : action === "updated" ? "Booking updated" : "Booking cancelled";
-  const intro =
-    action === "created"
-      ? "Your appointment is confirmed. Full details are below — add it to your calendar using the attached file."
-      : action === "updated"
-        ? "Your appointment details have changed. Review the update below and re-import the calendar file if needed."
-        : "This appointment has been cancelled. The attached calendar file will remove it from supported calendar apps.";
+  const title = action === "created"
+    ? t(locale, "bookingNotification.title.created")
+    : action === "updated"
+      ? t(locale, "bookingNotification.title.updated")
+      : t(locale, "bookingNotification.title.deleted");
+  const intro = action === "created"
+    ? t(locale, "bookingNotification.intro.created")
+    : action === "updated"
+      ? t(locale, "bookingNotification.intro.updated")
+      : t(locale, "bookingNotification.intro.deleted");
 
   const details = emailDetailTable([
-    { label: "Client", value: booking.client_name },
-    { label: "Artist", value: booking.artistName },
-    { label: "Date & time", value: formatBookingDateRange(booking.starts_at, booking.ends_at) },
-    { label: "Service", value: formatBookingType(booking) },
-    { label: "Status", value: booking.status || "confirmed" },
-    { label: "Style", value: booking.tattoo_style },
-    { label: "Size", value: booking.tattoo_size },
-    { label: "Placement", value: booking.tattoo_placement },
-    { label: "Deposit", value: depositStatusLabel(booking.deposit_paid, booking.deposit_amount) },
-    { label: "Phone", value: booking.client_phone },
-    { label: "Email", value: booking.client_email },
-    { label: "Reference", value: booking.id.slice(0, 8).toUpperCase() },
+    { label: t(locale, "bookingNotification.details.client"), value: booking.client_name },
+    { label: t(locale, "bookingNotification.details.artist"), value: booking.artistName },
+    { label: t(locale, "bookingNotification.details.dateTime"), value: formatBookingDateRange(booking.starts_at, booking.ends_at, locale) },
+    { label: t(locale, "bookingNotification.details.service"), value: formatBookingType(booking) },
+    { label: t(locale, "bookingNotification.details.status"), value: booking.status || "confirmed" },
+    { label: t(locale, "bookingNotification.details.style"), value: booking.tattoo_style },
+    { label: t(locale, "bookingNotification.details.size"), value: booking.tattoo_size },
+    { label: t(locale, "bookingNotification.details.placement"), value: booking.tattoo_placement },
+    { label: t(locale, "bookingNotification.details.deposit"), value: depositStatusLabel(booking.deposit_paid, booking.deposit_amount, "gbp", locale) },
+    { label: t(locale, "bookingNotification.details.phone"), value: booking.client_phone },
+    { label: t(locale, "bookingNotification.details.email"), value: booking.client_email },
+    { label: t(locale, "bookingNotification.details.reference"), value: booking.id.slice(0, 8).toUpperCase() },
   ]);
 
-  const notes = booking.notes ? emailNoteBox("Studio notes", booking.notes) : "";
+  const notes = booking.notes ? emailNoteBox(t(locale, "bookingNotification.notes.studioNotes"), booking.notes) : "";
   const calendarHint = params.includeCalendarHint !== false
     ? emailNoteBox(
-        "Add to calendar",
-        "Open the attached booking.ics file on your phone or computer to add this appointment to Apple Calendar, Google Calendar, or Outlook.",
+        t(locale, "bookingNotification.calendarHint.title"),
+        t(locale, "bookingNotification.calendarHint.body"),
       )
     : "";
 
   const html = emailLayout({
     brand,
-    badge: "Booking",
+    locale,
+    badge: t(locale, "bookingNotification.badge"),
     title,
-    greeting: `Hi ${escapeHtml(recipientName)},`,
+    greeting: t(locale, "common.greeting", { name: escapeHtml(recipientName) }),
     intro,
     bodyHtml: `${details}${notes}${calendarHint}`,
   });
@@ -143,25 +154,26 @@ export function buildBookingNotificationEmail(params: {
   return { html, attachments: [ics] };
 }
 
-export function buildAppointmentReminderEmail(booking: BookingEmailDetails): {
+export function buildAppointmentReminderEmail(booking: BookingEmailDetails, locale: EmailLanguage = "en"): {
   html: string;
   attachments: EmailAttachment[];
 } {
   const brand = getShopBranding();
   const details = emailDetailTable([
-    { label: "Artist", value: booking.artistName },
-    { label: "When", value: formatBookingDateRange(booking.starts_at, booking.ends_at) },
-    { label: "Service", value: formatBookingType(booking) },
-    { label: "Deposit", value: depositStatusLabel(booking.deposit_paid, booking.deposit_amount) },
+    { label: t(locale, "appointmentReminder.details.artist"), value: booking.artistName },
+    { label: t(locale, "appointmentReminder.details.when"), value: formatBookingDateRange(booking.starts_at, booking.ends_at, locale) },
+    { label: t(locale, "appointmentReminder.details.service"), value: formatBookingType(booking) },
+    { label: t(locale, "appointmentReminder.details.deposit"), value: depositStatusLabel(booking.deposit_paid, booking.deposit_amount, "gbp", locale) },
   ]);
 
   const html = emailLayout({
     brand,
-    badge: "Appointment reminder",
-    title: "Your session is coming up",
-    greeting: `Hi ${escapeHtml(booking.client_name)},`,
-    intro: "This is a friendly reminder about your upcoming appointment.",
-    bodyHtml: `${details}${emailNoteBox("Calendar", "Use the attached booking.ics file to add or update this appointment in your calendar.")}`,
+    locale,
+    badge: t(locale, "appointmentReminder.badge"),
+    title: t(locale, "appointmentReminder.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(booking.client_name) }),
+    intro: t(locale, "appointmentReminder.intro"),
+    bodyHtml: `${details}${emailNoteBox(t(locale, "appointmentReminder.notes.calendarTitle"), t(locale, "appointmentReminder.notes.calendarBody"))}`,
   });
 
   return {
@@ -170,28 +182,34 @@ export function buildAppointmentReminderEmail(booking: BookingEmailDetails): {
   };
 }
 
-export function buildDepositReminderEmail(booking: BookingEmailDetails, checkoutUrl?: string): {
+export function buildDepositReminderEmail(booking: BookingEmailDetails, checkoutUrl?: string, locale: EmailLanguage = "en"): {
   html: string;
   attachments: EmailAttachment[];
 } {
   const brand = getShopBranding();
   const amount = booking.deposit_amount
     ? formatShopMoney(Number(booking.deposit_amount), "gbp")
-    : "your deposit";
+    : t(locale, "depositReminder.amountPlaceholder");
   const payBlock = checkoutUrl
-    ? emailButton(checkoutUrl, "Pay deposit securely")
-    : emailNoteBox("Payment", `Please contact ${brand.supportEmail} to complete your ${amount} deposit.`);
+    ? emailButton(checkoutUrl, t(locale, "depositReminder.pay.buttonLabel"), locale)
+    : emailNoteBox(
+        t(locale, "depositReminder.pay.noteTitle"),
+        t(locale, "depositReminder.pay.noteBody", { supportEmail: brand.supportEmail, amount }),
+      );
+  const dateRange = escapeHtml(formatBookingDateRange(booking.starts_at, booking.ends_at, locale));
+  const intro = t(locale, "depositReminder.intro", { dateRange, amount: escapeHtml(amount) });
 
   const html = emailLayout({
     brand,
-    badge: "Deposit reminder",
-    title: "Deposit still outstanding",
-    greeting: `Hi ${escapeHtml(booking.client_name)},`,
-    intro: `Your session on ${escapeHtml(formatBookingDateRange(booking.starts_at, booking.ends_at))} requires a ${amount} deposit to secure your slot.`,
+    locale,
+    badge: t(locale, "depositReminder.badge"),
+    title: t(locale, "depositReminder.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(booking.client_name) }),
+    intro,
     bodyHtml: `${emailDetailTable([
-      { label: "Artist", value: booking.artistName },
-      { label: "Appointment", value: formatBookingDateRange(booking.starts_at, booking.ends_at) },
-      { label: "Deposit due", value: amount },
+      { label: t(locale, "depositReminder.details.artist"), value: booking.artistName },
+      { label: t(locale, "depositReminder.details.appointment"), value: formatBookingDateRange(booking.starts_at, booking.ends_at, locale) },
+      { label: t(locale, "depositReminder.details.depositDue"), value: amount },
     ])}${payBlock}`,
   });
 
@@ -207,18 +225,22 @@ export function buildDepositRequestEmail(params: {
   checkoutUrl: string;
   depositAmount?: number | null;
   currency?: string;
+  locale?: EmailLanguage;
 }): string {
   const brand = getShopBranding();
+  const locale = params.locale ?? "en";
   const amount = params.depositAmount
     ? formatShopMoney(Number(params.depositAmount), params.currency ?? "gbp")
-    : "your deposit";
+    : t(locale, "depositRequest.amountPlaceholder");
+  const startsAtText = escapeHtml(formatDateTimeGb(params.startsAt, locale));
   return emailLayout({
     brand,
-    badge: "Deposit payment",
-    title: "Complete your deposit",
-    greeting: `Hi ${escapeHtml(params.clientName || "there")},`,
-    intro: `Please pay ${amount} to secure your session on ${escapeHtml(formatDateTimeGb(params.startsAt))}.`,
-    bodyHtml: emailButton(params.checkoutUrl, "Pay deposit securely"),
+    locale,
+    badge: t(locale, "depositRequest.badge"),
+    title: t(locale, "depositRequest.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName || "there") }),
+    intro: t(locale, "depositRequest.intro", { amount: escapeHtml(amount), startsAt: startsAtText }),
+    bodyHtml: emailButton(params.checkoutUrl, t(locale, "depositRequest.buttonLabel"), locale),
   });
 }
 
@@ -228,23 +250,26 @@ export function buildDepositReceiptEmail(params: {
   amount: number;
   currency?: string;
   booking?: BookingEmailDetails | null;
+  locale?: EmailLanguage;
 }): { html: string; attachments?: EmailAttachment[] } {
   const brand = getShopBranding();
+  const locale = params.locale ?? "en";
   const currency = params.currency ?? "gbp";
   const body = emailDetailTable([
-    { label: "Amount received", value: formatShopMoney(params.amount, currency) },
-    { label: "Session date", value: formatDateTimeGb(params.startsAt) },
-    { label: "Status", value: "Deposit paid — session secured" },
+    { label: t(locale, "depositReceipt.details.amountReceived"), value: formatShopMoney(params.amount, currency) },
+    { label: t(locale, "depositReceipt.details.sessionDate"), value: formatDateTimeGb(params.startsAt, locale) },
+    { label: t(locale, "depositReceipt.details.status"), value: t(locale, "depositReceipt.statusPaid") },
   ]);
 
   const html = emailLayout({
     brand,
-    badge: "Payment confirmation",
-    title: "Deposit received",
-    greeting: `Hi ${escapeHtml(params.clientName || "there")},`,
-    intro: "Thank you — we've received your deposit payment.",
+    locale,
+    badge: t(locale, "depositReceipt.badge"),
+    title: t(locale, "depositReceipt.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName || "there") }),
+    intro: t(locale, "depositReceipt.intro"),
     bodyHtml: body,
-    footerNote: "Keep this email for your records.",
+    footerNote: t(locale, "depositReceipt.footer"),
   });
 
   if (params.booking) {
@@ -261,16 +286,20 @@ export function buildChatUpdateEmail(params: {
   senderName: string;
   previewText: string;
   chatUrl: string;
+  locale?: EmailLanguage;
 }): string {
   const brand = getShopBranding();
+  const locale = params.locale ?? "en";
+  const senderNameStrong = `<strong>${escapeHtml(params.senderName)}</strong>`;
   return emailLayout({
     brand,
-    badge: "Message",
-    title: "New chat update",
-    greeting: `Hi ${escapeHtml(params.recipientName)},`,
-    intro: `<strong>${escapeHtml(params.senderName)}</strong> sent you a message:`,
-    bodyHtml: `${emailNoteBox("Preview", params.previewText)}${emailButton(params.chatUrl, "Open chat")}`,
-    footerNote: "Please sign in first if prompted.",
+    locale,
+    badge: t(locale, "chatUpdate.badge"),
+    title: t(locale, "chatUpdate.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.recipientName) }),
+    intro: t(locale, "chatUpdate.intro", { senderName: senderNameStrong }),
+    bodyHtml: `${emailNoteBox(t(locale, "chatUpdate.preview.noteTitle"), params.previewText)}${emailButton(params.chatUrl, t(locale, "chatUpdate.openChatButtonLabel"), locale)}`,
+    footerNote: t(locale, "chatUpdate.footerNote"),
   });
 }
 
@@ -288,35 +317,41 @@ export function buildInvoiceEmail(params: {
   payUrl?: string | null;
   currency?: string;
   taxLabel?: string;
+  locale?: EmailLanguage;
 }): string {
   const brand = getShopBranding();
+  const locale = params.locale ?? "en";
   const currency = params.currency ?? "gbp";
   const taxLabel = params.taxLabel ?? "VAT";
   const fmt = (n: number) => formatShopMoney(Number(n), currency);
   const details = emailDetailTable([
-    { label: "Invoice number", value: params.invoiceNumber },
-    { label: "Issue date", value: params.issueText },
-    { label: "Due date", value: params.dueText },
-    { label: "Subtotal", value: fmt(params.subtotal) },
+    { label: t(locale, "invoice.details.invoiceNumber"), value: params.invoiceNumber },
+    { label: t(locale, "invoice.details.issueDate"), value: params.issueText },
+    { label: t(locale, "invoice.details.dueDate"), value: params.dueText },
+    { label: t(locale, "invoice.details.subtotal"), value: fmt(params.subtotal) },
     { label: taxLabel, value: fmt(params.taxAmount) },
-    { label: "Total due", value: fmt(params.total) },
-    { label: "Payment method", value: params.paymentMethodLabel },
-    { label: "Payment option", value: params.paymentTermLabel },
-    { label: "Legal name", value: brand.legalName },
-    { label: "Trading name", value: brand.tradingName },
+    { label: t(locale, "invoice.details.totalDue"), value: fmt(params.total) },
+    { label: t(locale, "invoice.details.paymentMethod"), value: params.paymentMethodLabel },
+    { label: t(locale, "invoice.details.paymentOption"), value: params.paymentTermLabel },
+    { label: t(locale, "invoice.details.legalName"), value: brand.legalName },
+    { label: t(locale, "invoice.details.tradingName"), value: brand.tradingName },
   ]);
 
-  const notesBlock = params.notes ? emailNoteBox("Note from studio", params.notes) : "";
-  const payBlock = params.payUrl ? emailButton(params.payUrl, "Pay this invoice securely") : "";
+  const notesBlock = params.notes ? emailNoteBox(t(locale, "invoice.notesBlockTitle"), params.notes) : "";
+  const payBlock = params.payUrl ? emailButton(params.payUrl, t(locale, "invoice.payButtonLabel"), locale) : "";
+
+  const intro = t(locale, "invoice.intro", { shopName: escapeHtml(brand.shopName) });
+  const footerNote = t(locale, "invoice.footerNote", { invoiceNumber: params.invoiceNumber });
 
   return emailLayout({
     brand,
-    badge: "Invoice",
-    title: `Invoice ${params.invoiceNumber}`,
-    greeting: `Hi ${escapeHtml(params.clientFirstName)},`,
-    intro: `Your personalised invoice from ${escapeHtml(brand.shopName)} is ready. A detailed PDF copy is attached.`,
+    locale,
+    badge: t(locale, "invoice.badge"),
+    title: t(locale, "invoice.title", { invoiceNumber: params.invoiceNumber }),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientFirstName) }),
+    intro,
     bodyHtml: `${details}${notesBlock}${payBlock}`,
-    footerNote: `Please use ${params.invoiceNumber} as your payment reference.`,
+    footerNote,
   });
 }
 
@@ -362,17 +397,20 @@ export function buildAftercareEmailFromTemplate(params: {
   clientName: string;
   bookingWindow: string;
   shopName?: string;
+  locale?: EmailLanguage;
 }): string {
   const brand = getShopBranding();
+  const locale = params.locale ?? "en";
   const shopName = params.shopName || brand.shopName;
   const intro = renderAftercareIntro(params.template.introTemplate, shopName, params.bookingWindow);
   const bodyHtml = renderAftercareSections(params.template.sections, brand.accentColor);
 
   return emailLayout({
     brand,
+    locale,
     badge: params.template.badge,
     title: params.template.title,
-    greeting: `Hi ${escapeHtml(params.clientName)},`,
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName) }),
     intro,
     bodyHtml,
   });
@@ -387,11 +425,13 @@ export function buildAftercareEmail(params: {
   clientName: string;
   bookingWindow: string;
   template?: AftercareTemplateContent;
+  locale?: EmailLanguage;
 }): string {
   const content = params.template ?? defaultAftercareForKind(params.kind);
   return buildAftercareEmailFromTemplate({
     template: content,
     clientName: params.clientName,
     bookingWindow: params.bookingWindow,
+    locale: params.locale,
   });
 }

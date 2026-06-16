@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Hola {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Mensaje automatizado de {{shopName}}.",
+    "button": {
+      "doesNotWork": "Si el botón no funciona:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Pagada",
+    "paidWithAmount": "Pagado ({{amount}})",
+    "outstanding": "Pendiente",
+    "outstandingWithAmount": "Sobresaliente ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Reserva",
+    "title": {
+      "created": "Reserva confirmada",
+      "updated": "Reserva actualizada",
+      "deleted": "Reserva cancelada"
+    },
+    "intro": {
+      "created": "Tu cita está confirmada. Los detalles completos se encuentran a continuación: agréguelo a su calendario usando el archivo adjunto.",
+      "updated": "Los detalles de su cita han cambiado. Revise la actualización a continuación y vuelva a importar el archivo de calendario si es necesario.",
+      "deleted": "Esta cita ha sido cancelada. El archivo de calendario adjunto lo eliminará de las aplicaciones de calendario compatibles."
+    },
+    "calendarHint": {
+      "title": "Añadir al calendario",
+      "body": "Abra el archivo booking.ics adjunto en su teléfono o computadora para agregar esta cita a Apple Calendar, Google Calendar o Outlook."
+    },
+    "notes": {
+      "studioNotes": "Notas de estudio"
+    },
+    "details": {
+      "client": "Cliente",
+      "artist": "Artista",
+      "dateTime": "Fecha y hora",
+      "service": "Servicio",
+      "status": "Estado",
+      "style": "Estilo",
+      "size": "Tamaño",
+      "placement": "Colocación",
+      "deposit": "Depósito",
+      "phone": "Teléfono",
+      "email": "Correo electrónico",
+      "reference": "Referencia"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Recordatorio de cita",
+    "title": "Tu sesión se acerca",
+    "intro": "Este es un recordatorio amistoso sobre su próxima cita.",
+    "notes": {
+      "calendarTitle": "Calendario",
+      "calendarBody": "Utilice el archivo booking.ics adjunto para agregar o actualizar esta cita en su calendario."
+    },
+    "details": {
+      "artist": "Artista",
+      "when": "Cuando",
+      "service": "Servicio",
+      "deposit": "Depósito"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "tu deposito",
+    "badge": "Recordatorio de depósito",
+    "title": "El depósito aún está pendiente",
+    "intro": "Su sesión el {{dateRange}} requiere un depósito de {{amount}} para asegurar su lugar.",
+    "notes": {
+      "depositPaymentLabel": "Pago"
+    },
+    "pay": {
+      "noteTitle": "Pago",
+      "noteBody": "Comuníquese con {{supportEmail}} para completar su depósito de {{amount}}.",
+      "buttonLabel": "Pague el depósito de forma segura"
+    },
+    "details": {
+      "artist": "Artista",
+      "appointment": "Cita",
+      "depositDue": "Depósito adeudado"
+    }
+  },
+  "depositRequest": {
+    "badge": "Pago de deposito",
+    "amountPlaceholder": "tu deposito",
+    "title": "Completa tu depósito",
+    "intro": "Pague {{amount}} para asegurar su sesión el {{startsAt}}.",
+    "buttonLabel": "Pague el depósito de forma segura"
+  },
+  "depositReceipt": {
+    "badge": "Confirmación de pago",
+    "title": "Depósito recibido",
+    "intro": "Gracias. Hemos recibido el pago de su depósito.",
+    "details": {
+      "amountReceived": "Cantidad recibida",
+      "sessionDate": "fecha de la sesión",
+      "status": "Estado"
+    },
+    "statusPaid": "Depósito pagado – sesión asegurada",
+    "footer": "Guarde este correo electrónico para sus registros."
+  },
+  "chatUpdate": {
+    "badge": "Mensaje",
+    "title": "Nueva actualización de chat",
+    "intro": "{{senderName}} te envió un mensaje:",
+    "preview": {
+      "noteTitle": "Avance"
+    },
+    "openChatButtonLabel": "abrir chat",
+    "footerNote": "Inicie sesión primero si se le solicita."
+  },
+  "invoice": {
+    "badge": "Factura",
+    "title": "Factura {{invoiceNumber}}",
+    "intro": "Tu factura personalizada de {{shopName}} está lista. Se adjunta una copia detallada en PDF.",
+    "notesBlockTitle": "Nota del estudio",
+    "payButtonLabel": "Paga esta factura de forma segura",
+    "footerNote": "Utilice {{invoiceNumber}} como referencia de pago.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "transferencia bancaria",
+        "cash": "Dinero",
+        "card": "Tarjeta"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Pagado en su totalidad",
+        "due": "Pendiente"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Número de factura",
+      "issueDate": "Fecha de asunto",
+      "dueDate": "Fecha de vencimiento",
+      "subtotal": "Total parcial",
+      "totalDue": "Total adeudado",
+      "paymentMethod": "Método de pago",
+      "paymentOption": "Opción de pago",
+      "legalName": "Nombre legal",
+      "tradingName": "Nombre comercial"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Nueva reserva — {{shopName}}",
+        "customer": "Reserva confirmada — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Reserva actualizada — {{shopName}}",
+        "customer": "Reserva actualizada — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Reserva eliminada: {{shopName}}",
+        "customer": "Reserva cancelada — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Recordatorio de depósito: {{shopName}}",
+      "appointment": "Recordatorio de cita — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Recordatorio de pago de depósito — {{shopName}}",
+      "receipt": "Depósito recibido — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Factura {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Nueva actualización del chat: {{shopName}}"
+    },
+    "inbox": {
+      "update": "Nuevo mensaje en la bandeja de entrada: {{shopName}}"
+    }
+  }
+}

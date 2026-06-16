@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Здравей {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Автоматично съобщение от {{shopName}}.",
+    "button": {
+      "doesNotWork": "Ако бутонът не работи:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Платено",
+    "paidWithAmount": "Платено ({{amount}})",
+    "outstanding": "Изключителен",
+    "outstandingWithAmount": "Изключителен ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Резервация",
+    "title": {
+      "created": "Резервацията е потвърдена",
+      "updated": "Резервацията е актуализирана",
+      "deleted": "Резервацията е отменена"
+    },
+    "intro": {
+      "created": "Вашата среща е потвърдена. Пълните подробности са по-долу — добавете го към календара си, като използвате прикачения файл.",
+      "updated": "Подробностите за вашата среща са променени. Прегледайте актуализацията по-долу и импортирайте повторно файла с календара, ако е необходимо.",
+      "deleted": "Тази среща е отменена. Прикаченият календарен файл ще го премахне от поддържаните календарни приложения."
+    },
+    "calendarHint": {
+      "title": "Добавяне към календара",
+      "body": "Отворете прикачения файл booking.ics на вашия телефон или компютър, за да добавите тази среща към Apple Calendar, Google Calendar или Outlook."
+    },
+    "notes": {
+      "studioNotes": "Студийни бележки"
+    },
+    "details": {
+      "client": "Клиент",
+      "artist": "Художник",
+      "dateTime": "Дата и час",
+      "service": "Обслужване",
+      "status": "Статус",
+      "style": "стил",
+      "size": "Размер",
+      "placement": "Поставяне",
+      "deposit": "Депозит",
+      "phone": "Телефон",
+      "email": "Имейл",
+      "reference": "справка"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Напомняне за среща",
+    "title": "Сесията ви предстои",
+    "intro": "Това е приятелско напомняне за предстоящата ви среща.",
+    "notes": {
+      "calendarTitle": "Календар",
+      "calendarBody": "Използвайте прикачения файл booking.ics, за да добавите или актуализирате тази среща във вашия календар."
+    },
+    "details": {
+      "artist": "Художник",
+      "when": "Кога",
+      "service": "Обслужване",
+      "deposit": "Депозит"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "вашия депозит",
+    "badge": "Напомняне за депозит",
+    "title": "Депозитът все още е неизплатен",
+    "intro": "Вашата сесия на {{dateRange}} изисква депозит от {{amount}}, за да защитите своя слот.",
+    "notes": {
+      "depositPaymentLabel": "Плащане"
+    },
+    "pay": {
+      "noteTitle": "Плащане",
+      "noteBody": "Моля, свържете се с {{supportEmail}}, за да завършите своя {{amount}} депозит.",
+      "buttonLabel": "Платете депозит сигурно"
+    },
+    "details": {
+      "artist": "Художник",
+      "appointment": "Назначаване",
+      "depositDue": "Дължим депозит"
+    }
+  },
+  "depositRequest": {
+    "badge": "Плащане на депозит",
+    "amountPlaceholder": "вашия депозит",
+    "title": "Завършете депозита си",
+    "intro": "Моля, платете {{amount}}, за да осигурите сесията си на {{startsAt}}.",
+    "buttonLabel": "Платете депозит сигурно"
+  },
+  "depositReceipt": {
+    "badge": "Потвърждение за плащане",
+    "title": "Депозитът е получен",
+    "intro": "Благодарим ви — получихме вашия депозит.",
+    "details": {
+      "amountReceived": "Получена сума",
+      "sessionDate": "Дата на сесията",
+      "status": "Статус"
+    },
+    "statusPaid": "Платен депозит — сесията е осигурена",
+    "footer": "Запазете този имейл за ваша документация."
+  },
+  "chatUpdate": {
+    "badge": "Съобщение",
+    "title": "Нова актуализация на чата",
+    "intro": "{{senderName}} ви изпрати съобщение:",
+    "preview": {
+      "noteTitle": "Преглед"
+    },
+    "openChatButtonLabel": "Отворете чата",
+    "footerNote": "Моля, първо влезте, ако бъдете подканени."
+  },
+  "invoice": {
+    "badge": "Фактура",
+    "title": "Фактура {{invoiceNumber}}",
+    "intro": "Вашата персонализирана фактура от {{shopName}} е готова. Приложено е подробно PDF копие.",
+    "notesBlockTitle": "Бележка от студиото",
+    "payButtonLabel": "Платете тази фактура сигурно",
+    "footerNote": "Моля, използвайте {{invoiceNumber}} като справка за плащане.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Банков превод",
+        "cash": "Парични средства",
+        "card": "карта"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Изплатени изцяло",
+        "due": "дължим"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Номер на фактура",
+      "issueDate": "Дата на издаване",
+      "dueDate": "Краен срок",
+      "subtotal": "Междинна сума",
+      "totalDue": "Общо дължимо",
+      "paymentMethod": "Начин на плащане",
+      "paymentOption": "Възможност за плащане",
+      "legalName": "Официално име",
+      "tradingName": "Търговско име"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Нова резервация — {{shopName}}",
+        "customer": "Резервацията е потвърдена — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Резервацията е актуализирана — {{shopName}}",
+        "customer": "Резервацията е актуализирана — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Резервацията е премахната — {{shopName}}",
+        "customer": "Резервация анулирана — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Напомняне за депозит — {{shopName}}",
+      "appointment": "Напомняне за среща — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Напомняне за плащане на депозит — {{shopName}}",
+      "receipt": "Получен депозит — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Фактура {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Нова актуализация на чата — {{shopName}}"
+    },
+    "inbox": {
+      "update": "Ново съобщение във входящата кутия — {{shopName}}"
+    }
+  }
+}

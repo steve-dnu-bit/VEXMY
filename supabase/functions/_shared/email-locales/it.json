@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Ciao {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Messaggio automatico da {{shopName}}.",
+    "button": {
+      "doesNotWork": "Se il pulsante non funziona:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Pagata",
+    "paidWithAmount": "Pagato ({{amount}})",
+    "outstanding": "Eccezionale",
+    "outstandingWithAmount": "Eccezionale ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Prenotazione",
+    "title": {
+      "created": "Prenotazione confermata",
+      "updated": "Prenotazione aggiornata",
+      "deleted": "Prenotazione annullata"
+    },
+    "intro": {
+      "created": "Il tuo appuntamento è confermato. I dettagli completi sono riportati di seguito: aggiungilo al tuo calendario utilizzando il file allegato.",
+      "updated": "I dettagli dell'appuntamento sono cambiati. Rivedi l'aggiornamento di seguito e reimporta il file del calendario, se necessario.",
+      "deleted": "Questo appuntamento è stato annullato. Il file di calendario allegato lo rimuoverà dalle app di calendario supportate."
+    },
+    "calendarHint": {
+      "title": "Aggiungi al calendario",
+      "body": "Apri il file booking.ics allegato sul tuo telefono o computer per aggiungere questo appuntamento a Apple Calendar, Google Calendar o Outlook."
+    },
+    "notes": {
+      "studioNotes": "Appunti dello studio"
+    },
+    "details": {
+      "client": "Cliente",
+      "artist": "Artista",
+      "dateTime": "Data e ora",
+      "service": "Servizio",
+      "status": "Stato",
+      "style": "Stile",
+      "size": "Misurare",
+      "placement": "Posizionamento",
+      "deposit": "Depositare",
+      "phone": "Telefono",
+      "email": "E-mail",
+      "reference": "Riferimento"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Promemoria appuntamento",
+    "title": "La tua sessione si avvicina",
+    "intro": "Questo è un promemoria amichevole sul tuo prossimo appuntamento.",
+    "notes": {
+      "calendarTitle": "Calendario",
+      "calendarBody": "Utilizza il file booking.ics allegato per aggiungere o aggiornare questo appuntamento nel tuo calendario."
+    },
+    "details": {
+      "artist": "Artista",
+      "when": "Quando",
+      "service": "Servizio",
+      "deposit": "Depositare"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "il tuo deposito",
+    "badge": "Promemoria di deposito",
+    "title": "Deposito ancora in sospeso",
+    "intro": "La tua sessione su {{dateRange}} richiede un deposito di {{amount}} per assicurarti il ​​tuo slot.",
+    "notes": {
+      "depositPaymentLabel": "Pagamento"
+    },
+    "pay": {
+      "noteTitle": "Pagamento",
+      "noteBody": "Contatta {{supportEmail}} per completare il tuo deposito {{amount}}.",
+      "buttonLabel": "Paga il deposito in modo sicuro"
+    },
+    "details": {
+      "artist": "Artista",
+      "appointment": "Appuntamento",
+      "depositDue": "Deposito dovuto"
+    }
+  },
+  "depositRequest": {
+    "badge": "Pagamento del deposito",
+    "amountPlaceholder": "il tuo deposito",
+    "title": "Completa il tuo deposito",
+    "intro": "Si prega di pagare {{amount}} per proteggere la sessione su {{startsAt}}.",
+    "buttonLabel": "Paga il deposito in modo sicuro"
+  },
+  "depositReceipt": {
+    "badge": "Conferma del pagamento",
+    "title": "Deposito ricevuto",
+    "intro": "Grazie: abbiamo ricevuto il pagamento del deposito.",
+    "details": {
+      "amountReceived": "Importo ricevuto",
+      "sessionDate": "Data della sessione",
+      "status": "Stato"
+    },
+    "statusPaid": "Deposito pagato – sessione assicurata",
+    "footer": "Conserva questa email per i tuoi archivi."
+  },
+  "chatUpdate": {
+    "badge": "Messaggio",
+    "title": "Nuovo aggiornamento della chat",
+    "intro": "{{senderName}} ti ha inviato un messaggio:",
+    "preview": {
+      "noteTitle": "Anteprima"
+    },
+    "openChatButtonLabel": "Apri la chat",
+    "footerNote": "Se richiesto, accedi prima."
+  },
+  "invoice": {
+    "badge": "Fattura",
+    "title": "Fattura {{invoiceNumber}}",
+    "intro": "La tua fattura personalizzata di {{shopName}} è pronta. Si allega una copia PDF dettagliata.",
+    "notesBlockTitle": "Nota dallo studio",
+    "payButtonLabel": "Paga questa fattura in modo sicuro",
+    "footerNote": "Utilizza {{invoiceNumber}} come riferimento del pagamento.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Bonifico bancario",
+        "cash": "Contanti",
+        "card": "Carta"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Pagato per intero",
+        "due": "Dovuta"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Numero della fattura",
+      "issueDate": "Data di emissione",
+      "dueDate": "Scadenza",
+      "subtotal": "Totale parziale",
+      "totalDue": "Totale dovuto",
+      "paymentMethod": "Metodo di pagamento",
+      "paymentOption": "Opzione di pagamento",
+      "legalName": "Nome legale",
+      "tradingName": "Nome commerciale"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Nuova prenotazione — {{shopName}}",
+        "customer": "Prenotazione confermata — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Prenotazione aggiornata — {{shopName}}",
+        "customer": "Prenotazione aggiornata — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Prenotazione rimossa — {{shopName}}",
+        "customer": "Prenotazione annullata — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Promemoria di deposito — {{shopName}}",
+      "appointment": "Promemoria appuntamento — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Promemoria pagamento deposito — {{shopName}}",
+      "receipt": "Deposito ricevuto — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Fattura {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Nuovo aggiornamento della chat — {{shopName}}"
+    },
+    "inbox": {
+      "update": "Nuovo messaggio di posta in arrivo — {{shopName}}"
+    }
+  }
+}

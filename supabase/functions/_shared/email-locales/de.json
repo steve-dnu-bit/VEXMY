@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Hallo {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Automatisierte Nachricht von {{shopName}}.",
+    "button": {
+      "doesNotWork": "Wenn die Schaltfläche nicht funktioniert:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Bezahlt",
+    "paidWithAmount": "Bezahlt ({{amount}})",
+    "outstanding": "Hervorragend",
+    "outstandingWithAmount": "Hervorragend ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Buchung",
+    "title": {
+      "created": "Buchung bestätigt",
+      "updated": "Buchung aktualisiert",
+      "deleted": "Buchung storniert"
+    },
+    "intro": {
+      "created": "Ihr Termin ist bestätigt. Ausführliche Informationen finden Sie weiter unten. Fügen Sie sie mithilfe der angehängten Datei zu Ihrem Kalender hinzu.",
+      "updated": "Ihre Termindetails haben sich geändert. Überprüfen Sie das Update unten und importieren Sie die Kalenderdatei bei Bedarf erneut.",
+      "deleted": "Dieser Termin wurde abgesagt. Durch die angehängte Kalenderdatei wird sie aus den unterstützten Kalender-Apps entfernt."
+    },
+    "calendarHint": {
+      "title": "Zum Kalender hinzufügen",
+      "body": "Öffnen Sie die angehängte Datei booking.ics auf Ihrem Telefon oder Computer, um diesen Termin zu Apple Kalender, Google Kalender oder Outlook hinzuzufügen."
+    },
+    "notes": {
+      "studioNotes": "Studionotizen"
+    },
+    "details": {
+      "client": "Kunde",
+      "artist": "Künstlerin",
+      "dateTime": "Datum und Uhrzeit",
+      "service": "Service",
+      "status": "Status",
+      "style": "Stil",
+      "size": "Größe",
+      "placement": "Platzierung",
+      "deposit": "Kaution",
+      "phone": "Telefon",
+      "email": "E-Mail",
+      "reference": "Referenz"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Terminerinnerung",
+    "title": "Ihre Sitzung steht vor der Tür",
+    "intro": "Dies ist eine freundliche Erinnerung an Ihren bevorstehenden Termin.",
+    "notes": {
+      "calendarTitle": "Kalender",
+      "calendarBody": "Verwenden Sie die beigefügte Datei booking.ics, um diesen Termin in Ihrem Kalender hinzuzufügen oder zu aktualisieren."
+    },
+    "details": {
+      "artist": "Künstlerin",
+      "when": "Wann",
+      "service": "Service",
+      "deposit": "Kaution"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "Ihre Anzahlung",
+    "badge": "Einzahlungserinnerung",
+    "title": "Anzahlung noch ausstehend",
+    "intro": "Für Ihre Sitzung am {{dateRange}} ist eine Anzahlung von {{amount}} erforderlich, um Ihren Platz zu sichern.",
+    "notes": {
+      "depositPaymentLabel": "Zahlung"
+    },
+    "pay": {
+      "noteTitle": "Zahlung",
+      "noteBody": "Bitte kontaktieren Sie {{supportEmail}}, um Ihre {{amount}}-Einzahlung abzuschließen.",
+      "buttonLabel": "Zahlen Sie die Anzahlung sicher"
+    },
+    "details": {
+      "artist": "Künstlerin",
+      "appointment": "Termin",
+      "depositDue": "Anzahlung fällig"
+    }
+  },
+  "depositRequest": {
+    "badge": "Anzahlung",
+    "amountPlaceholder": "Ihre Anzahlung",
+    "title": "Schließen Sie Ihre Einzahlung ab",
+    "intro": "Bitte zahlen Sie {{amount}}, um Ihre Sitzung am {{startsAt}} zu sichern.",
+    "buttonLabel": "Zahlen Sie die Anzahlung sicher"
+  },
+  "depositReceipt": {
+    "badge": "Zahlungsbestätigung",
+    "title": "Anzahlung erhalten",
+    "intro": "Vielen Dank – wir haben Ihre Anzahlung erhalten.",
+    "details": {
+      "amountReceived": "Erhaltener Betrag",
+      "sessionDate": "Sitzungsdatum",
+      "status": "Status"
+    },
+    "statusPaid": "Anzahlung geleistet – Sitzung gesichert",
+    "footer": "Bewahren Sie diese E-Mail für Ihre Unterlagen auf."
+  },
+  "chatUpdate": {
+    "badge": "Nachricht",
+    "title": "Neues Chat-Update",
+    "intro": "{{senderName}} hat dir eine Nachricht gesendet:",
+    "preview": {
+      "noteTitle": "Vorschau"
+    },
+    "openChatButtonLabel": "Chat öffnen",
+    "footerNote": "Bitte melden Sie sich zuerst an, wenn Sie dazu aufgefordert werden."
+  },
+  "invoice": {
+    "badge": "Rechnung",
+    "title": "Rechnung {{invoiceNumber}}",
+    "intro": "Ihre personalisierte Rechnung von {{shopName}} ist fertig. Eine ausführliche PDF-Kopie ist beigefügt.",
+    "notesBlockTitle": "Hinweis vom Studio",
+    "payButtonLabel": "Bezahlen Sie diese Rechnung sicher",
+    "footerNote": "Bitte verwenden Sie {{invoiceNumber}} als Zahlungsreferenz.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Banküberweisung",
+        "cash": "Kasse",
+        "card": "Karte"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Vollständig bezahlt",
+        "due": "Fällig"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Rechnungsnummer",
+      "issueDate": "Ausgabedatum",
+      "dueDate": "Fälligkeitsdatum",
+      "subtotal": "Zwischensumme",
+      "totalDue": "Gesamtbetrag fällig",
+      "paymentMethod": "Zahlungsart",
+      "paymentOption": "Zahlungsoption",
+      "legalName": "Offizieller Name",
+      "tradingName": "Handelsname"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Neue Buchung – {{shopName}}",
+        "customer": "Buchung bestätigt – {{shopName}}"
+      },
+      "updated": {
+        "artist": "Buchung aktualisiert – {{shopName}}",
+        "customer": "Buchung aktualisiert – {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Buchung entfernt – {{shopName}}",
+        "customer": "Buchung storniert – {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Einzahlungserinnerung – {{shopName}}",
+      "appointment": "Terminerinnerung – {{shopName}}"
+    },
+    "deposit": {
+      "request": "Erinnerung an die Anzahlung – {{shopName}}",
+      "receipt": "Anzahlung erhalten – {{shopName}}"
+    },
+    "invoice": {
+      "default": "Rechnung {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Neues Chat-Update – {{shopName}}"
+    },
+    "inbox": {
+      "update": "Neue Posteingangsnachricht – {{shopName}}"
+    }
+  }
+}

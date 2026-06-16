@@ -1,0 +1,178 @@
+{
+  "common": {
+    "greeting": "Hi {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Automated message from {{shopName}}.",
+    "button": {
+      "doesNotWork": "If the button does not work:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Paid",
+    "paidWithAmount": "Paid ({{amount}})",
+    "outstanding": "Outstanding",
+    "outstandingWithAmount": "Outstanding ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Booking",
+    "title": {
+      "created": "Booking confirmed",
+      "updated": "Booking updated",
+      "deleted": "Booking cancelled"
+    },
+    "intro": {
+      "created": "Your appointment is confirmed. Full details are below — add it to your calendar using the attached file.",
+      "updated": "Your appointment details have changed. Review the update below and re-import the calendar file if needed.",
+      "deleted": "This appointment has been cancelled. The attached calendar file will remove it from supported calendar apps."
+    },
+    "calendarHint": {
+      "title": "Add to calendar",
+      "body": "Open the attached booking.ics file on your phone or computer to add this appointment to Apple Calendar, Google Calendar, or Outlook."
+    },
+    "notes": {
+      "studioNotes": "Studio notes"
+    },
+    "details": {
+      "client": "Client",
+      "artist": "Artist",
+      "dateTime": "Date & time",
+      "service": "Service",
+      "status": "Status",
+      "style": "Style",
+      "size": "Size",
+      "placement": "Placement",
+      "deposit": "Deposit",
+      "phone": "Phone",
+      "email": "Email",
+      "reference": "Reference"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Appointment reminder",
+    "title": "Your session is coming up",
+    "intro": "This is a friendly reminder about your upcoming appointment.",
+    "notes": {
+      "calendarTitle": "Calendar",
+      "calendarBody": "Use the attached booking.ics file to add or update this appointment in your calendar."
+    },
+    "details": {
+      "artist": "Artist",
+      "when": "When",
+      "service": "Service",
+      "deposit": "Deposit"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "your deposit",
+    "badge": "Deposit reminder",
+    "title": "Deposit still outstanding",
+    "intro": "Your session on {{dateRange}} requires a {{amount}} deposit to secure your slot.",
+    "notes": {
+      "depositPaymentLabel": "Payment"
+    },
+    "pay": {
+      "noteTitle": "Payment",
+      "noteBody": "Please contact {{supportEmail}} to complete your {{amount}} deposit.",
+      "buttonLabel": "Pay deposit securely"
+    },
+    "details": {
+      "artist": "Artist",
+      "appointment": "Appointment",
+      "depositDue": "Deposit due"
+    }
+  },
+  "depositRequest": {
+    "badge": "Deposit payment",
+    "amountPlaceholder": "your deposit",
+    "title": "Complete your deposit",
+    "intro": "Please pay {{amount}} to secure your session on {{startsAt}}.",
+    "buttonLabel": "Pay deposit securely"
+  },
+  "depositReceipt": {
+    "badge": "Payment confirmation",
+    "title": "Deposit received",
+    "intro": "Thank you — we've received your deposit payment.",
+    "details": {
+      "amountReceived": "Amount received",
+      "sessionDate": "Session date",
+      "status": "Status"
+    },
+    "statusPaid": "Deposit paid — session secured",
+    "footer": "Keep this email for your records."
+  },
+  "chatUpdate": {
+    "badge": "Message",
+    "title": "New chat update",
+    "intro": "{{senderName}} sent you a message:",
+    "preview": {
+      "noteTitle": "Preview"
+    },
+    "openChatButtonLabel": "Open chat",
+    "footerNote": "Please sign in first if prompted."
+  },
+  "invoice": {
+    "badge": "Invoice",
+    "title": "Invoice {{invoiceNumber}}",
+    "intro": "Your personalised invoice from {{shopName}} is ready. A detailed PDF copy is attached.",
+    "notesBlockTitle": "Note from studio",
+    "payButtonLabel": "Pay this invoice securely",
+    "footerNote": "Please use {{invoiceNumber}} as your payment reference.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Bank transfer",
+        "cash": "Cash",
+        "card": "Card"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Paid in full",
+        "due": "Due"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Invoice number",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "subtotal": "Subtotal",
+      "totalDue": "Total due",
+      "paymentMethod": "Payment method",
+      "paymentOption": "Payment option",
+      "legalName": "Legal name",
+      "tradingName": "Trading name"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "New booking — {{shopName}}",
+        "customer": "Booking confirmed — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Booking updated — {{shopName}}",
+        "customer": "Booking updated — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Booking removed — {{shopName}}",
+        "customer": "Booking cancelled — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Deposit reminder — {{shopName}}",
+      "appointment": "Appointment reminder — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Deposit payment reminder — {{shopName}}",
+      "receipt": "Deposit received — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Invoice {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "New chat update — {{shopName}}"
+    },
+    "inbox": {
+      "update": "New inbox message — {{shopName}}"
+    }
+  }
+}
+

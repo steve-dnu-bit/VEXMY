@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, requireCronAuth } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
 import { formatBookingDateRange, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
+import { resolveEmailLocale } from "../_shared/email-i18n.ts";
 import { aftercareEmailSubject, buildAftercareEmail } from "../_shared/email-templates.ts";
 import { loadShopAftercareTemplates } from "../_shared/shop-aftercare-templates.ts";
 import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
@@ -13,7 +14,9 @@ type AftercareKind = "tattoo" | "piercing";
 
 type BookingRow = {
   id: string;
+  organization_id: string | null;
   client_name: string;
+  client_user_id: string | null;
   client_email: string | null;
   booking_type: string;
   service_category: string | null;
@@ -139,7 +142,7 @@ serve(async (req) => {
 
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
-      .select("id, client_name, client_email, booking_type, service_category, starts_at, ends_at, status, notes, suppress_booking_notifications")
+      .select("id, organization_id, client_user_id, client_name, client_email, booking_type, service_category, starts_at, ends_at, status, notes, suppress_booking_notifications")
       .gte("starts_at", minDate)
       .lte("starts_at", maxDate)
       .neq("status", "cancelled")
@@ -202,7 +205,11 @@ serve(async (req) => {
         continue;
       }
 
-      const bookingWindow = formatBookingDateRange(booking.starts_at, booking.ends_at);
+      const locale = await resolveEmailLocale(admin, {
+        recipientUserId: booking.client_user_id ?? null,
+        organizationId: booking.organization_id ?? null,
+      });
+      const bookingWindow = formatBookingDateRange(booking.starts_at, booking.ends_at, locale);
       const clientName = booking.client_name || "there";
       const brand = getShopBranding();
       const subject = aftercareEmailSubject(templateRow, brand.tradingName);
@@ -211,6 +218,7 @@ serve(async (req) => {
         clientName,
         bookingWindow,
         template: templateRow,
+        locale,
       });
 
       try {

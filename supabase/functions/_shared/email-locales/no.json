@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Hei {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Automatisert melding fra {{shopName}}.",
+    "button": {
+      "doesNotWork": "Hvis knappen ikke virker:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Betalt",
+    "paidWithAmount": "Betalt ({{amount}})",
+    "outstanding": "Utestående",
+    "outstandingWithAmount": "Enestående ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Bestilling",
+    "title": {
+      "created": "Bestilling bekreftet",
+      "updated": "Booking oppdatert",
+      "deleted": "Bestilling kansellert"
+    },
+    "intro": {
+      "created": "Din avtale er bekreftet. Full detalj er nedenfor - legg den til i kalenderen din ved å bruke den vedlagte filen.",
+      "updated": "Avtaleopplysningene dine er endret. Se gjennom oppdateringen nedenfor og importer kalenderfilen på nytt om nødvendig.",
+      "deleted": "Denne avtalen er kansellert. Den vedlagte kalenderfilen vil fjerne den fra støttede kalenderapper."
+    },
+    "calendarHint": {
+      "title": "Legg til i kalenderen",
+      "body": "Åpne den vedlagte booking.ics-filen på telefonen eller datamaskinen for å legge til denne avtalen i Apple Kalender, Google Kalender eller Outlook."
+    },
+    "notes": {
+      "studioNotes": "Studio notater"
+    },
+    "details": {
+      "client": "Klient",
+      "artist": "Artist",
+      "dateTime": "Dato og tid",
+      "service": "Service",
+      "status": "Status",
+      "style": "Stil",
+      "size": "Størrelse",
+      "placement": "Plassering",
+      "deposit": "Innskudd",
+      "phone": "Telefon",
+      "email": "E-post",
+      "reference": "Referanse"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Påminnelse om avtale",
+    "title": "Økten din nærmer seg",
+    "intro": "Dette er en vennlig påminnelse om din kommende avtale.",
+    "notes": {
+      "calendarTitle": "Kalender",
+      "calendarBody": "Bruk den vedlagte booking.ics-filen for å legge til eller oppdatere denne avtalen i kalenderen din."
+    },
+    "details": {
+      "artist": "Artist",
+      "when": "Når",
+      "service": "Service",
+      "deposit": "Innskudd"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "innskuddet ditt",
+    "badge": "Innskuddspåminnelse",
+    "title": "Innskudd fortsatt utestående",
+    "intro": "Økten din på {{dateRange}} krever et innskudd på {{amount}} for å sikre spilleautomaten din.",
+    "notes": {
+      "depositPaymentLabel": "Betaling"
+    },
+    "pay": {
+      "noteTitle": "Betaling",
+      "noteBody": "Ta kontakt med {{supportEmail}} for å fullføre innskuddet {{amount}}.",
+      "buttonLabel": "Betal depositum sikkert"
+    },
+    "details": {
+      "artist": "Artist",
+      "appointment": "Ansettelse",
+      "depositDue": "Innskudd forfaller"
+    }
+  },
+  "depositRequest": {
+    "badge": "Innskuddsbetaling",
+    "amountPlaceholder": "innskuddet ditt",
+    "title": "Fullfør innskuddet ditt",
+    "intro": "Vennligst betal {{amount}} for å sikre økten din på {{startsAt}}.",
+    "buttonLabel": "Betal depositum sikkert"
+  },
+  "depositReceipt": {
+    "badge": "Betalingsbekreftelse",
+    "title": "Innskudd mottatt",
+    "intro": "Takk – vi har mottatt innbetalingen din.",
+    "details": {
+      "amountReceived": "Mottatt beløp",
+      "sessionDate": "Sesjonsdato",
+      "status": "Status"
+    },
+    "statusPaid": "Innskudd betalt — økt sikret",
+    "footer": "Ta vare på denne e-posten."
+  },
+  "chatUpdate": {
+    "badge": "Beskjed",
+    "title": "Ny chat-oppdatering",
+    "intro": "{{senderName}} sendte deg en melding:",
+    "preview": {
+      "noteTitle": "Forhåndsvisning"
+    },
+    "openChatButtonLabel": "Åpne chat",
+    "footerNote": "Logg på først hvis du blir bedt om det."
+  },
+  "invoice": {
+    "badge": "Faktura",
+    "title": "Faktura {{invoiceNumber}}",
+    "intro": "Din personlige faktura fra {{shopName}} er klar. En detaljert PDF-kopi er vedlagt.",
+    "notesBlockTitle": "Notat fra studio",
+    "payButtonLabel": "Betal denne fakturaen sikkert",
+    "footerNote": "Bruk {{invoiceNumber}} som betalingsreferanse.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Bankoverføring",
+        "cash": "Kontanter",
+        "card": "Kort"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Betalt i sin helhet",
+        "due": "Forfaller"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Fakturanummer",
+      "issueDate": "Utstedelsesdato",
+      "dueDate": "Forfallsdato",
+      "subtotal": "Delsum",
+      "totalDue": "Total forfall",
+      "paymentMethod": "Betalingsmåte",
+      "paymentOption": "Betalingsalternativ",
+      "legalName": "Juridisk navn",
+      "tradingName": "Handelsnavn"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Ny bestilling — {{shopName}}",
+        "customer": "Bestilling bekreftet — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Bestilling oppdatert — {{shopName}}",
+        "customer": "Bestilling oppdatert — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Bestilling fjernet — {{shopName}}",
+        "customer": "Bestilling kansellert — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Innskuddspåminnelse — {{shopName}}",
+      "appointment": "Påminnelse om avtale — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Påminnelse om innskuddsbetaling — {{shopName}}",
+      "receipt": "Innskudd mottatt — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Faktura {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Ny chatoppdatering — {{shopName}}"
+    },
+    "inbox": {
+      "update": "Ny innboksmelding — {{shopName}}"
+    }
+  }
+}

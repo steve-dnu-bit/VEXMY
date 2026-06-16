@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, jsonResponse, requireCronAuth } from "../_shared/auth.ts";
 import { getShopBranding } from "../_shared/branding.ts";
+import { resolveEmailLocale, t, type EmailLanguage } from "../_shared/email-i18n.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
   buildAppointmentReminderEmail,
@@ -85,7 +86,7 @@ serve(async (req) => {
 
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
-      .select("id, artist_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount, notes, suppress_booking_notifications")
+      .select("id, organization_id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount, notes, suppress_booking_notifications")
       .gte("starts_at", new Date(now).toISOString())
       .lte("starts_at", horizon)
       .neq("status", "cancelled")
@@ -114,6 +115,18 @@ serve(async (req) => {
     const failures: Array<{ bookingId: string; reminderType: ReminderType; reminderTiming: string; recipientEmail: string; error: string }> = [];
 
     const brand = getShopBranding();
+    const localeCache = new Map<string, EmailLanguage>();
+    const getBookingLocale = async (booking: any): Promise<EmailLanguage> => {
+      const key = `${booking.organization_id ?? ""}|${booking.client_user_id ?? ""}`;
+      const cached = localeCache.get(key);
+      if (cached) return cached;
+      const resolved = await resolveEmailLocale(admin, {
+        recipientUserId: booking.client_user_id ?? null,
+        organizationId: booking.organization_id ?? null,
+      });
+      localeCache.set(key, resolved);
+      return resolved;
+    };
 
     for (const booking of bookings || []) {
       checked += 1;
@@ -160,10 +173,11 @@ serve(async (req) => {
           continue;
         }
 
+        const locale = await getBookingLocale(booking);
         const subject =
           candidate.type === "deposit"
-            ? `Deposit reminder — ${brand.shopName}`
-            : `Appointment reminder — ${brand.shopName}`;
+            ? t(locale, "subjects.reminders.deposit", { shopName: brand.shopName })
+            : t(locale, "subjects.reminders.appointment", { shopName: brand.shopName });
 
         const bookingDetails: BookingEmailDetails = {
           id: booking.id,
@@ -182,8 +196,8 @@ serve(async (req) => {
 
         const built =
           candidate.type === "deposit"
-            ? buildDepositReminderEmail(bookingDetails)
-            : buildAppointmentReminderEmail(bookingDetails);
+            ? buildDepositReminderEmail(bookingDetails, undefined, locale)
+            : buildAppointmentReminderEmail(bookingDetails, locale);
 
         try {
           await sendTransactionalEmail({

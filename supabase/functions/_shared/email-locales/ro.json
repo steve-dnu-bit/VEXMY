@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Bună {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Mesaj automat de la {{shopName}}.",
+    "button": {
+      "doesNotWork": "Dacă butonul nu funcționează:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Plătit",
+    "paidWithAmount": "Plătit ({{amount}})",
+    "outstanding": "Remarcabil",
+    "outstandingWithAmount": "Remarcabil ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Rezervare",
+    "title": {
+      "created": "Rezervare confirmată",
+      "updated": "Rezervarea a fost actualizată",
+      "deleted": "Rezervarea a fost anulată"
+    },
+    "intro": {
+      "created": "Numirea dvs. este confirmată. Detaliile complete sunt mai jos - adăugați-l în calendar folosind fișierul atașat.",
+      "updated": "Detaliile programării tale s-au schimbat. Examinați actualizarea de mai jos și reimportați fișierul calendar dacă este necesar.",
+      "deleted": "Această întâlnire a fost anulată. Fișierul de calendar atașat îl va elimina din aplicațiile de calendar acceptate."
+    },
+    "calendarHint": {
+      "title": "Adăugați în calendar",
+      "body": "Deschideți fișierul booking.ics atașat pe telefon sau computer pentru a adăuga această întâlnire la Apple Calendar, Google Calendar sau Outlook."
+    },
+    "notes": {
+      "studioNotes": "Note de studio"
+    },
+    "details": {
+      "client": "Client",
+      "artist": "Artist",
+      "dateTime": "Data și ora",
+      "service": "Serviciu",
+      "status": "Stare",
+      "style": "Stil",
+      "size": "Dimensiune",
+      "placement": "Plasarea",
+      "deposit": "Depozit",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "reference": "Referinţă"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Memento de întâlnire",
+    "title": "Sesiunea ta se apropie",
+    "intro": "Acesta este un memento prietenos despre următoarea întâlnire.",
+    "notes": {
+      "calendarTitle": "Calendaristic",
+      "calendarBody": "Utilizați fișierul booking.ics atașat pentru a adăuga sau actualiza această întâlnire în calendarul dvs."
+    },
+    "details": {
+      "artist": "Artist",
+      "when": "Când",
+      "service": "Serviciu",
+      "deposit": "Depozit"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "depozitul dvs",
+    "badge": "Memento de depozit",
+    "title": "Depozit inca restant",
+    "intro": "Sesiunea dvs. de pe {{dateRange}} necesită o depunere de {{amount}} pentru a vă asigura slotul.",
+    "notes": {
+      "depositPaymentLabel": "Plată"
+    },
+    "pay": {
+      "noteTitle": "Plată",
+      "noteBody": "Vă rugăm să contactați {{supportEmail}} pentru a finaliza depunerea {{amount}}.",
+      "buttonLabel": "Plătiți depozitul în siguranță"
+    },
+    "details": {
+      "artist": "Artist",
+      "appointment": "Numire",
+      "depositDue": "Depozit datorat"
+    }
+  },
+  "depositRequest": {
+    "badge": "Plata depozitului",
+    "amountPlaceholder": "depozitul dvs",
+    "title": "Completați depozitul",
+    "intro": "Vă rugăm să plătiți {{amount}} pentru a vă asigura sesiunea pe {{startsAt}}.",
+    "buttonLabel": "Plătiți depozitul în siguranță"
+  },
+  "depositReceipt": {
+    "badge": "Confirmare plată",
+    "title": "Depozit primit",
+    "intro": "Vă mulțumim — am primit plata depozitului.",
+    "details": {
+      "amountReceived": "Suma primită",
+      "sessionDate": "Data sesiunii",
+      "status": "Stare"
+    },
+    "statusPaid": "Depozit plătit — sesiune securizată",
+    "footer": "Păstrați acest e-mail pentru evidențele dvs."
+  },
+  "chatUpdate": {
+    "badge": "Mesaj",
+    "title": "Noua actualizare de chat",
+    "intro": "{{senderName}} ți-a trimis un mesaj:",
+    "preview": {
+      "noteTitle": "Previzualizare"
+    },
+    "openChatButtonLabel": "Deschide chatul",
+    "footerNote": "Vă rugăm să vă conectați mai întâi dacă vi se solicită."
+  },
+  "invoice": {
+    "badge": "Factura",
+    "title": "Factura {{invoiceNumber}}",
+    "intro": "Factura dvs. personalizată de la {{shopName}} este gata. O copie PDF detaliată este atașată.",
+    "notesBlockTitle": "Notă de la studio",
+    "payButtonLabel": "Plătiți această factură în siguranță",
+    "footerNote": "Vă rugăm să utilizați {{invoiceNumber}} ca referință de plată.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Transfer bancar",
+        "cash": "Numerar",
+        "card": "Card"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Plătit integral",
+        "due": "Datorită"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Numărul facturii",
+      "issueDate": "Data emiterii",
+      "dueDate": "Data scadenței",
+      "subtotal": "Subtotal",
+      "totalDue": "Total datorat",
+      "paymentMethod": "Modalitate de plată",
+      "paymentOption": "Opțiune de plată",
+      "legalName": "Denumirea legală",
+      "tradingName": "Nume comercial"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Rezervare nouă — {{shopName}}",
+        "customer": "Rezervare confirmată — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Rezervare actualizată — {{shopName}}",
+        "customer": "Rezervare actualizată — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Rezervarea a fost eliminată — {{shopName}}",
+        "customer": "Rezervare anulată — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Memento de depunere — {{shopName}}",
+      "appointment": "Memento de întâlnire — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Memento de plată a depozitului — {{shopName}}",
+      "receipt": "Depozit primit — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Factură {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Noua actualizare de chat — {{shopName}}"
+    },
+    "inbox": {
+      "update": "Mesaj nou inbox — {{shopName}}"
+    }
+  }
+}

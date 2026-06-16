@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
 import { getShopBranding } from "../_shared/branding.ts";
+import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
 import { getEmailDeliveryStatus, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
   buildDepositReceiptEmail,
@@ -137,6 +138,12 @@ serve(async (req) => {
       const bookingOrgId =
         booking.organization_id ??
         (await resolveOrganizationForUser(admin, booking.artist_id));
+
+      const clientLocale = await resolveEmailLocale(admin, {
+        recipientUserId: booking.client_user_id ?? null,
+        organizationId: bookingOrgId ?? null,
+      });
+
       const connectCtx = await getActiveConnectAccount(admin, {
         organizationId: bookingOrgId,
         userId: user.id,
@@ -231,10 +238,11 @@ serve(async (req) => {
               amount: resolvedDeposit,
               currency: shopCurrency,
               booking: bookingDetails,
+              locale: clientLocale,
             });
             await sendTransactionalEmail({
               to: receiptTo,
-              subject: `Deposit received — ${getShopBranding().shopName}`,
+              subject: t(clientLocale, "subjects.deposit.receipt", { shopName: getShopBranding().shopName }),
               html: receipt.html,
               attachments: receipt.attachments,
               fromKind: "booking",
@@ -337,10 +345,11 @@ serve(async (req) => {
               checkoutUrl: session.url,
               depositAmount: booking.deposit_amount,
               currency: shopCurrency,
+              locale: clientLocale,
             });
             await sendTransactionalEmail({
               to: booking.client_email,
-              subject: `Deposit payment reminder — ${getShopBranding().shopName}`,
+              subject: t(clientLocale, "subjects.deposit.request", { shopName: getShopBranding().shopName }),
               html,
               fromKind: "booking",
             });

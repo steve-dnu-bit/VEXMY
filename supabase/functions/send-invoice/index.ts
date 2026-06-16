@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import { getShopBranding } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildInvoiceEmail } from "../_shared/email-templates.ts";
+import { emailLocaleToIntlDateLocale, resolveEmailLocale, t } from "../_shared/email-i18n.ts";
 import { getActiveConnectAccount } from "../_shared/stripe-connect.ts";
 import { getConnectStripeSecret } from "../_shared/stripe-keys.ts";
 import { formatShopMoney, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
@@ -283,15 +284,23 @@ serve(async (req) => {
 
     requireEmailDeliveryConfig();
 
-    const issueText = new Date().toLocaleDateString("en-GB");
-    const dueText = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString("en-GB") : "N/A";
+    const locale = await resolveEmailLocale(adminClient, {
+      recipientUserId: authData.user.id,
+      organizationId: invoice.organization_id ?? null,
+    });
+    const intlDateLocale = emailLocaleToIntlDateLocale(locale);
+    const issueText = new Date().toLocaleDateString(intlDateLocale);
+    const dueText = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString(intlDateLocale) : "N/A";
     const paymentMethodLabel =
       invoice.payment_method === "bank_transfer"
-        ? "Bank transfer"
+        ? t(locale, "invoice.values.paymentMethod.bank_transfer")
         : invoice.payment_method === "cash"
-          ? "Cash"
-          : "Card";
-    const paymentTermLabel = invoice.payment_term === "paid_in_full" ? "Paid in full" : "Due";
+          ? t(locale, "invoice.values.paymentMethod.cash")
+          : t(locale, "invoice.values.paymentMethod.card");
+    const paymentTermLabel =
+      invoice.payment_term === "paid_in_full"
+        ? t(locale, "invoice.values.paymentTerm.paid_in_full")
+        : t(locale, "invoice.values.paymentTerm.due");
     const firstName = (invoice.client_name || "").trim().split(/\s+/)[0] || "there";
     const itemRows = Array.isArray(invoice.items) ? invoice.items : [];
     const parsedItems = itemRows.map((r: any) => ({
@@ -355,6 +364,7 @@ serve(async (req) => {
       payUrl,
       currency: invoiceCurrency,
       taxLabel,
+      locale,
     });
 
     const pdfBase64 = await buildInvoicePdf({
@@ -396,7 +406,10 @@ serve(async (req) => {
     try {
       await sendTransactionalEmail({
         to: invoice.client_email,
-        subject: `Invoice ${invoice.invoice_number} — ${brand.shopName}`,
+        subject: t(locale, "subjects.invoice.default", {
+          invoiceNumber: invoice.invoice_number,
+          shopName: brand.shopName,
+        }),
         html,
         attachments: [
           {

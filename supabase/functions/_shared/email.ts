@@ -1,5 +1,6 @@
 import nodemailer from "npm:nodemailer@6.9.15";
 import { emailSupportLine, getShopBranding, type ShopBranding } from "./branding.ts";
+import { emailLocaleToHtmlLang, emailLocaleToIntlDateLocale, t, type EmailLanguage } from "./email-i18n.ts";
 
 export type SmtpConfig = {
   host: string;
@@ -43,23 +44,24 @@ export function displayOrNa(value: string | null | undefined): string {
   return escapeHtml(value?.trim() || "N/A");
 }
 
-export function formatBookingDateRange(startsAt: string, endsAt: string): string {
+export function formatBookingDateRange(startsAt: string, endsAt: string, locale: EmailLanguage = "en"): string {
   const start = new Date(startsAt);
   const end = new Date(endsAt);
-  const datePart = start.toLocaleDateString("en-GB", {
+  const intlLocale = emailLocaleToIntlDateLocale(locale);
+  const datePart = start.toLocaleDateString(intlLocale, {
     weekday: "long",
     day: "2-digit",
     month: "long",
     year: "numeric",
     timeZone: TZ,
   });
-  const startTime = start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
-  const endTime = end.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
+  const startTime = start.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit", timeZone: TZ });
+  const endTime = end.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit", timeZone: TZ });
   return `${datePart} · ${startTime} – ${endTime}`;
 }
 
-export function formatDateTimeGb(iso: string): string {
-  return new Date(iso).toLocaleString("en-GB", { timeZone: TZ, dateStyle: "medium", timeStyle: "short" });
+export function formatDateTimeGb(iso: string, locale: EmailLanguage = "en"): string {
+  return new Date(iso).toLocaleString(emailLocaleToIntlDateLocale(locale), { timeZone: TZ, dateStyle: "medium", timeStyle: "short" });
 }
 
 export function emailDetailTable(rows: Array<{ label: string; value: string | null | undefined }>): string {
@@ -80,17 +82,17 @@ export function emailDetailTable(rows: Array<{ label: string; value: string | nu
     </table>`;
 }
 
-export function emailButton(href: string, label: string): string {
+export function emailButton(href: string, label: string, locale: EmailLanguage = "en"): string {
   const safeHref = escapeHtml(href);
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:20px auto;">
       <tr>
         <td align="center" bgcolor="${getShopBranding().accentColor}" style="border-radius:999px;background-color:${getShopBranding().accentColor};">
-          <a href="${href}" style="display:inline-block;padding:14px 28px;font-size:14px;font-weight:800;color:#1a1a1a;text-decoration:none;border-radius:999px;">${escapeHtml(label)}</a>
+          <a href="${safeHref}" style="display:inline-block;padding:14px 28px;font-size:14px;font-weight:800;color:#1a1a1a;text-decoration:none;border-radius:999px;">${escapeHtml(label)}</a>
         </td>
       </tr>
     </table>
-    <p style="margin:8px 0 0;font-size:12px;color:#9f9f9f;word-break:break-all;text-align:center;">If the button does not work: <a href="${safeHref}" style="color:${getShopBranding().accentColor};">${safeHref}</a></p>`;
+    <p style="margin:8px 0 0;font-size:12px;color:#9f9f9f;word-break:break-all;text-align:center;">${t(locale, "email.button.doesNotWork")} <a href="${safeHref}" style="color:${getShopBranding().accentColor};">${safeHref}</a></p>`;
 }
 
 export function emailNoteBox(title: string, body: string): string {
@@ -103,6 +105,7 @@ export function emailNoteBox(title: string, body: string): string {
 
 export function emailLayout(params: {
   brand?: ShopBranding;
+  locale?: EmailLanguage;
   badge: string;
   title: string;
   greeting?: string;
@@ -111,6 +114,7 @@ export function emailLayout(params: {
   footerNote?: string;
 }): string {
   const brand = params.brand ?? getShopBranding();
+  const locale = params.locale ?? "en";
   const accent = brand.accentColor || "hsl(43, 34%, 54%)";
   const greeting = params.greeting
     ? `<p style="margin:0 0 12px;font-size:15px;color:#d7d7d7;">${params.greeting}</p>`
@@ -118,10 +122,10 @@ export function emailLayout(params: {
   const body = params.bodyHtml ?? "";
   const footer = params.footerNote
     ? `<p style="margin:14px 0 0;font-size:12px;color:#9f9f9f;">${escapeHtml(params.footerNote)}</p>`
-    : `<p style="margin:14px 0 0;font-size:12px;color:#9f9f9f;">Automated message from ${escapeHtml(brand.shopName)}.</p>`;
+    : `<p style="margin:14px 0 0;font-size:12px;color:#9f9f9f;">${escapeHtml(t(locale, "email.automatedMessage", { shopName: brand.shopName }))}</p>`;
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${emailLocaleToHtmlLang(locale)}">
 <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
 <body style="margin:0;padding:0;background:#090a0f;">
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#090a0f;font-family:Arial,Helvetica,sans-serif;">

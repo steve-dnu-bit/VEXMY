@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Hej {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Automatiskt meddelande från {{shopName}}.",
+    "button": {
+      "doesNotWork": "Om knappen inte fungerar:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Betalt",
+    "paidWithAmount": "Betald ({{amount}})",
+    "outstanding": "Utestående",
+    "outstandingWithAmount": "Enastående ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Bokning",
+    "title": {
+      "created": "Bokning bekräftad",
+      "updated": "Bokningen uppdaterad",
+      "deleted": "Bokning avbruten"
+    },
+    "intro": {
+      "created": "Ditt möte är bekräftat. Fullständig information finns nedan - lägg till den i din kalender med hjälp av den bifogade filen.",
+      "updated": "Dina mötesuppgifter har ändrats. Granska uppdateringen nedan och importera om kalenderfilen om det behövs.",
+      "deleted": "Detta möte har ställts in. Den bifogade kalenderfilen tar bort den från kalenderappar som stöds."
+    },
+    "calendarHint": {
+      "title": "Lägg till i kalendern",
+      "body": "Öppna den bifogade booking.ics-filen på din telefon eller dator för att lägga till det här mötet i Apple Calendar, Google Calendar eller Outlook."
+    },
+    "notes": {
+      "studioNotes": "Studio anteckningar"
+    },
+    "details": {
+      "client": "Klient",
+      "artist": "Konstnär",
+      "dateTime": "Datum & tid",
+      "service": "Service",
+      "status": "Status",
+      "style": "Stil",
+      "size": "Storlek",
+      "placement": "Placering",
+      "deposit": "Deposition",
+      "phone": "Telefon",
+      "email": "E-post",
+      "reference": "Hänvisning"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Påminnelse om möte",
+    "title": "Din session närmar sig",
+    "intro": "Det här är en vänlig påminnelse om ditt kommande möte.",
+    "notes": {
+      "calendarTitle": "Kalender",
+      "calendarBody": "Använd den bifogade booking.ics-filen för att lägga till eller uppdatera detta möte i din kalender."
+    },
+    "details": {
+      "artist": "Konstnär",
+      "when": "När",
+      "service": "Service",
+      "deposit": "Deposition"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "din insättning",
+    "badge": "Insättningspåminnelse",
+    "title": "Depositionen är fortfarande utestående",
+    "intro": "Din session på {{dateRange}} kräver en {{amount}} insättning för att säkra din slot.",
+    "notes": {
+      "depositPaymentLabel": "Betalning"
+    },
+    "pay": {
+      "noteTitle": "Betalning",
+      "noteBody": "Kontakta {{supportEmail}} för att slutföra din {{amount}} insättning.",
+      "buttonLabel": "Betala deposition säkert"
+    },
+    "details": {
+      "artist": "Konstnär",
+      "appointment": "Utnämning",
+      "depositDue": "Deposition förfallen"
+    }
+  },
+  "depositRequest": {
+    "badge": "Depositionsbetalning",
+    "amountPlaceholder": "din insättning",
+    "title": "Slutför din insättning",
+    "intro": "Vänligen betala {{amount}} för att säkra din session på {{startsAt}}.",
+    "buttonLabel": "Betala deposition säkert"
+  },
+  "depositReceipt": {
+    "badge": "Betalningsbekräftelse",
+    "title": "Deposition mottagen",
+    "intro": "Tack – vi har tagit emot din insättningsbetalning.",
+    "details": {
+      "amountReceived": "Mottaget belopp",
+      "sessionDate": "Sessionsdatum",
+      "status": "Status"
+    },
+    "statusPaid": "Insättning betald — session säkrad",
+    "footer": "Spara det här e-postmeddelandet för dina register."
+  },
+  "chatUpdate": {
+    "badge": "Meddelande",
+    "title": "Ny chattuppdatering",
+    "intro": "{{senderName}} skickade ett meddelande till dig:",
+    "preview": {
+      "noteTitle": "Förhandsvisning"
+    },
+    "openChatButtonLabel": "Öppna chatt",
+    "footerNote": "Logga in först om du uppmanas."
+  },
+  "invoice": {
+    "badge": "Faktura",
+    "title": "Faktura {{invoiceNumber}}",
+    "intro": "Din personliga faktura från {{shopName}} är klar. En detaljerad PDF-kopia bifogas.",
+    "notesBlockTitle": "Anteckning från studio",
+    "payButtonLabel": "Betala denna faktura på ett säkert sätt",
+    "footerNote": "Använd {{invoiceNumber}} som din betalningsreferens.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Banköverföring",
+        "cash": "Kontanter",
+        "card": "Kort"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Helt betalt",
+        "due": "Förfaller"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Fakturanummer",
+      "issueDate": "Utgivningsdatum",
+      "dueDate": "Förfallodatum",
+      "subtotal": "Delsumma",
+      "totalDue": "Totalt förfallna",
+      "paymentMethod": "Betalningsmetod",
+      "paymentOption": "Betalningsalternativ",
+      "legalName": "Lagligt namn",
+      "tradingName": "Handelsnamn"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Ny bokning — {{shopName}}",
+        "customer": "Bokning bekräftad — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Bokningen uppdaterad — {{shopName}}",
+        "customer": "Bokningen uppdaterad — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Bokning borttagen — {{shopName}}",
+        "customer": "Bokning avbruten — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Insättningspåminnelse — {{shopName}}",
+      "appointment": "Tidspåminnelse — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Påminnelse om insättningsbetalning — {{shopName}}",
+      "receipt": "Mottagen insättning — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Faktura {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Ny chattuppdatering — {{shopName}}"
+    },
+    "inbox": {
+      "update": "Nytt inkorgsmeddelande — {{shopName}}"
+    }
+  }
+}

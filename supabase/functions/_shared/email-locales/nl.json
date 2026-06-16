@@ -1,0 +1,177 @@
+{
+  "common": {
+    "greeting": "Hallo {{name}},"
+  },
+  "email": {
+    "automatedMessage": "Geautomatiseerd bericht van {{shopName}}.",
+    "button": {
+      "doesNotWork": "Als de knop niet werkt:"
+    }
+  },
+  "depositStatus": {
+    "paid": "Betaald",
+    "paidWithAmount": "Betaald ({{amount}})",
+    "outstanding": "Uitstekend",
+    "outstandingWithAmount": "Uitstaand ({{amount}})"
+  },
+  "bookingNotification": {
+    "badge": "Boeking",
+    "title": {
+      "created": "Boeking bevestigd",
+      "updated": "Boeking bijgewerkt",
+      "deleted": "Boeking geannuleerd"
+    },
+    "intro": {
+      "created": "Uw afspraak is bevestigd. Volledige details vindt u hieronder. Voeg het toe aan uw agenda met behulp van het bijgevoegde bestand.",
+      "updated": "Uw afspraakgegevens zijn gewijzigd. Bekijk de onderstaande update en importeer het agendabestand indien nodig opnieuw.",
+      "deleted": "Deze afspraak is geannuleerd. Het bijgevoegde agendabestand verwijdert het uit ondersteunde agenda-apps."
+    },
+    "calendarHint": {
+      "title": "Voeg toe aan kalender",
+      "body": "Open het bijgevoegde booking.ics-bestand op uw telefoon of computer om deze afspraak toe te voegen aan Apple Agenda, Google Agenda of Outlook."
+    },
+    "notes": {
+      "studioNotes": "Studio-aantekeningen"
+    },
+    "details": {
+      "client": "Cliënt",
+      "artist": "Artiest",
+      "dateTime": "Datum & tijd",
+      "service": "Dienst",
+      "status": "Status",
+      "style": "Stijl",
+      "size": "Maat",
+      "placement": "Plaatsing",
+      "deposit": "Borg",
+      "phone": "Telefoon",
+      "email": "E-mail",
+      "reference": "Referentie"
+    }
+  },
+  "appointmentReminder": {
+    "badge": "Afspraakherinnering",
+    "title": "Je sessie komt eraan",
+    "intro": "Dit is een vriendelijke herinnering aan uw aanstaande afspraak.",
+    "notes": {
+      "calendarTitle": "Kalender",
+      "calendarBody": "Gebruik het bijgevoegde booking.ics-bestand om deze afspraak in uw agenda toe te voegen of bij te werken."
+    },
+    "details": {
+      "artist": "Artiest",
+      "when": "Wanneer",
+      "service": "Dienst",
+      "deposit": "Borg"
+    }
+  },
+  "depositReminder": {
+    "amountPlaceholder": "uw storting",
+    "badge": "Herinnering voor storting",
+    "title": "Borgsom nog openstaand",
+    "intro": "Voor uw sessie op {{dateRange}} is een aanbetaling van {{amount}} vereist om uw slot veilig te stellen.",
+    "notes": {
+      "depositPaymentLabel": "Betaling"
+    },
+    "pay": {
+      "noteTitle": "Betaling",
+      "noteBody": "Neem contact op met {{supportEmail}} om uw {{amount}}-storting te voltooien.",
+      "buttonLabel": "Betaal de aanbetaling veilig"
+    },
+    "details": {
+      "artist": "Artiest",
+      "appointment": "Afspraak",
+      "depositDue": "Borg verschuldigd"
+    }
+  },
+  "depositRequest": {
+    "badge": "Aanbetaling",
+    "amountPlaceholder": "uw storting",
+    "title": "Voltooi uw storting",
+    "intro": "Betaal {{amount}} om uw sessie op {{startsAt}} veilig te stellen.",
+    "buttonLabel": "Betaal de aanbetaling veilig"
+  },
+  "depositReceipt": {
+    "badge": "Betalingsbevestiging",
+    "title": "Aanbetaling ontvangen",
+    "intro": "Bedankt, we hebben uw aanbetaling ontvangen.",
+    "details": {
+      "amountReceived": "Ontvangen bedrag",
+      "sessionDate": "Sessie datum",
+      "status": "Status"
+    },
+    "statusPaid": "Aanbetaling betaald - sessie beveiligd",
+    "footer": "Bewaar deze e-mail voor uw administratie."
+  },
+  "chatUpdate": {
+    "badge": "Bericht",
+    "title": "Nieuwe chat-update",
+    "intro": "{{senderName}} heeft je een bericht gestuurd:",
+    "preview": {
+      "noteTitle": "Voorbeeld"
+    },
+    "openChatButtonLabel": "Chat openen",
+    "footerNote": "Meld u eerst aan als daarom wordt gevraagd."
+  },
+  "invoice": {
+    "badge": "Factuur",
+    "title": "Factuur {{invoiceNumber}}",
+    "intro": "Uw gepersonaliseerde factuur van {{shopName}} is klaar. Een gedetailleerd PDF-exemplaar is bijgevoegd.",
+    "notesBlockTitle": "Opmerking van studio",
+    "payButtonLabel": "Betaal deze factuur veilig",
+    "footerNote": "Gebruik {{invoiceNumber}} als betalingskenmerk.",
+    "values": {
+      "paymentMethod": {
+        "bank_transfer": "Bankoverschrijving",
+        "cash": "Contant geld",
+        "card": "Kaart"
+      },
+      "paymentTerm": {
+        "paid_in_full": "Volledig betaald",
+        "due": "Vanwege"
+      }
+    },
+    "details": {
+      "invoiceNumber": "Factuurnummer",
+      "issueDate": "Datum van uitgifte",
+      "dueDate": "Deadline",
+      "subtotal": "Subtotaal",
+      "totalDue": "Totaal verschuldigd",
+      "paymentMethod": "Betaalmethode",
+      "paymentOption": "Betalingsmogelijkheid",
+      "legalName": "Wettelijke naam",
+      "tradingName": "Handelsnaam"
+    }
+  },
+  "subjects": {
+    "booking": {
+      "created": {
+        "artist": "Nieuwe boeking — {{shopName}}",
+        "customer": "Boeking bevestigd — {{shopName}}"
+      },
+      "updated": {
+        "artist": "Boeking bijgewerkt — {{shopName}}",
+        "customer": "Boeking bijgewerkt — {{shopName}}"
+      },
+      "deleted": {
+        "artist": "Boeking verwijderd — {{shopName}}",
+        "customer": "Boeking geannuleerd — {{shopName}}"
+      }
+    },
+    "reminders": {
+      "deposit": "Stortingsherinnering — {{shopName}}",
+      "appointment": "Afspraakherinnering — {{shopName}}"
+    },
+    "deposit": {
+      "request": "Betalingsherinnering aanbetaling — {{shopName}}",
+      "receipt": "Ontvangen storting — {{shopName}}"
+    },
+    "invoice": {
+      "default": "Factuur {{invoiceNumber}} — {{shopName}}"
+    },
+    "chat": {
+      "update": "Nieuwe chatupdate — {{shopName}}"
+    },
+    "inbox": {
+      "update": "Nieuw inboxbericht — {{shopName}}"
+    }
+  }
+}
