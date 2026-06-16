@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,8 +38,6 @@ import {
 import { applyConsentTemplateVars } from "@/lib/consentTemplateText";
 import { useCustomerShop } from "@/hooks/useCustomerShop";
 
-const UNDER_18_QUESTION = "Are you under 18?";
-
 type StaffConsentRow = {
   id: string;
   full_name: string;
@@ -55,6 +54,7 @@ type StaffConsentRow = {
 };
 
 function StaffConsentList({ user }: { user: { id: string } }) {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<StaffConsentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -68,13 +68,13 @@ function StaffConsentList({ user }: { user: { id: string } }) {
         .eq("artist_id", user.id)
         .order("created_at", { ascending: false });
       if (error) {
-        toast.error(error.message || "Could not load consent forms");
+        toast.error(error.message || t("consentPage.loadFormsError"));
       } else {
         setRows((data || []) as unknown as StaffConsentRow[]);
       }
       setLoading(false);
     })();
-  }, [user.id]);
+  }, [user.id, t]);
 
   const filtered = search.trim()
     ? rows.filter((r) => r.full_name.toLowerCase().includes(search.trim().toLowerCase()))
@@ -84,8 +84,8 @@ function StaffConsentList({ user }: { user: { id: string } }) {
     <AppLayout>
       <div className="max-w-3xl mx-auto p-4 space-y-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gold">Signed consent forms</h1>
-          <p className="text-sm text-muted-foreground mt-1">View, print, or download consent PDFs for your bookings.</p>
+          <h1 className="font-display text-2xl font-bold text-gold">{t("consentPage.staffTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("consentPage.staffSubtitle")}</p>
         </div>
 
         <div className="relative">
@@ -93,7 +93,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by client name…"
+            placeholder={t("consentPage.searchPlaceholder")}
             className="pl-9 field-surface border-border"
           />
         </div>
@@ -107,7 +107,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
             <CardContent className="py-8 text-center">
               <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
-                {search.trim() ? "No consent forms match your search." : "No signed consent forms yet."}
+                {search.trim() ? t("consentPage.noSearchResults") : t("consentPage.noSignedForms")}
               </p>
             </CardContent>
           </Card>
@@ -128,11 +128,11 @@ function StaffConsentList({ user }: { user: { id: string } }) {
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold truncate">{row.full_name}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Signed {format(parseISO(row.created_at), "d MMM yyyy, HH:mm")}
-                          {bookingDate ? ` · Booking: ${bookingDate}` : ""}
+                          {t("consentPage.signedAt", { date: format(parseISO(row.created_at), "d MMM yyyy, HH:mm") })}
+                          {bookingDate ? t("consentPage.bookingDate", { date: bookingDate }) : ""}
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">
-                          {consentType === "piercing" ? "Piercing" : "Tattoo"} consent
+                          {consentType === "piercing" ? t("consentPage.piercingConsent") : t("consentPage.tattooConsent")}
                           {row.email ? ` · ${row.email}` : ""}
                         </p>
                       </div>
@@ -143,7 +143,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
                             variant="outline"
                             size="sm"
                             className="h-8 w-8 p-0"
-                            title="Print"
+                            title={t("consentPage.print")}
                             onClick={() => printConsentPdf(row.consent_pdf_url!)}
                           >
                             <Printer className="h-3.5 w-3.5" />
@@ -153,14 +153,14 @@ function StaffConsentList({ user }: { user: { id: string } }) {
                             variant="outline"
                             size="sm"
                             className="h-8 w-8 p-0"
-                            title="Download"
+                            title={t("consentPage.download")}
                             disabled={busyId === row.id}
                             onClick={async () => {
                               setBusyId(row.id);
                               try {
                                 const base = consentPdfBasename(row.full_name, row.created_at);
                                 const ok = await downloadConsentPdf(row.consent_pdf_url!, base);
-                                if (!ok) toast.info("Opened in a new tab — use Save as to download.");
+                                if (!ok) toast.info(t("consentPage.downloadOpenedInTab"));
                               } finally {
                                 setBusyId(null);
                               }
@@ -172,7 +172,7 @@ function StaffConsentList({ user }: { user: { id: string } }) {
                           </Button>
                         </div>
                       ) : (
-                        <p className="text-[10px] text-muted-foreground shrink-0">No PDF</p>
+                        <p className="text-[10px] text-muted-foreground shrink-0">{t("consentPage.noPdf")}</p>
                       )}
                     </div>
                   </CardContent>
@@ -206,6 +206,8 @@ type ConsentBooking = {
 };
 
 const ConsentPage = () => {
+  const { t } = useTranslation();
+  const under18Question = t("consentPage.under18Question");
   const { user, loading: authLoading } = useAuth();
   const { hasPermission, loading: permLoading } = usePermissions();
   const { selectedOrgId, shops, selectedShop, loading: shopLoading } = useCustomerShop();
@@ -390,7 +392,7 @@ const ConsentPage = () => {
         .order("starts_at", { ascending: true });
 
       if (error) {
-        toast.error(error.message || "Failed to load bookings");
+        toast.error(error.message || t("consentPage.loadBookingsError"));
         return;
       }
 
@@ -405,7 +407,7 @@ const ConsentPage = () => {
         setSelectedBookingId((prev) => (prev && list.some((row) => row.id === prev) ? prev : list[0]?.id ?? ""));
       }
     })();
-  }, [user, searchParams, selectedOrgId, shops.length]);
+  }, [user, searchParams, selectedOrgId, shops.length, t]);
 
   useEffect(() => {
     if (!selectedBooking) return;
@@ -441,35 +443,35 @@ const ConsentPage = () => {
 
   const submit = async () => {
     if (!selectedBooking) {
-      toast.error("Select a booking first");
+      toast.error(t("consentPage.selectBookingFirst"));
       return;
     }
     if (!fullName.trim()) {
-      toast.error("Please enter your full legal name");
+      toast.error(t("consentPage.fullNameRequired"));
       return;
     }
     if (!agreed) {
-      toast.error("Please confirm you have read and agree to the consent");
+      toast.error(t("consentPage.agreeRequired"));
       return;
     }
     if (!hasSignedRef.current) {
-      toast.error("Please sign in the signature area");
+      toast.error(t("consentPage.signatureRequired"));
       return;
     }
     if (!email.trim()) {
-      toast.error("Email is required so we can notify the studio");
+      toast.error(t("consentPage.emailRequired"));
       return;
     }
     if (!photoConsent || !soberConsent || !ageConsent || !riskAcknowledged) {
-      toast.error("Please confirm all mandatory declarations");
+      toast.error(t("consentPage.declarationsRequired"));
       return;
     }
     if (!activeTemplate) {
-      toast.error("Consent form could not be loaded");
+      toast.error(t("consentPage.formLoadError"));
       return;
     }
-    if (yesAnswers[UNDER_18_QUESTION] && !guardianName.trim()) {
-      toast.error("Guardian name is required for under 18 consent");
+    if (yesAnswers[under18Question] && !guardianName.trim()) {
+      toast.error(t("consentPage.guardianRequired"));
       return;
     }
 
@@ -514,13 +516,13 @@ const ConsentPage = () => {
       if (data && (data as { pdfSaved?: boolean }).pdfSaved === false) {
         const gen = (data as { pdfGenerationError?: string }).pdfGenerationError;
         const up = (data as { pdfUploadError?: string }).pdfUploadError;
-        const detail = gen || up || "Unknown reason";
-        toast.warning(`Consent saved, but the PDF file was not stored (${detail}). The studio can check Supabase logs and storage.`);
+        const detail = gen || up || t("consentPage.unknownReason");
+        toast.warning(t("consentPage.pdfSaveWarning", { detail }));
       } else {
-        toast.success("Consent submitted. Thank you.");
+        toast.success(t("consentPage.submitSuccess"));
       }
     } catch (e: any) {
-      toast.error(e?.message || "Could not submit consent");
+      toast.error(e?.message || t("consentPage.submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -529,7 +531,7 @@ const ConsentPage = () => {
   if (authLoading || permLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       </div>
     );
   }
@@ -537,7 +539,7 @@ const ConsentPage = () => {
   if (onlyCustomer === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       </div>
     );
   }
@@ -545,7 +547,7 @@ const ConsentPage = () => {
   if (onlyCustomer && shopLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       </div>
     );
   }
@@ -555,12 +557,12 @@ const ConsentPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-base">Consent access</CardTitle>
-            <CardDescription>Please sign in to submit your consent form.</CardDescription>
+            <CardTitle className="text-base">{t("consentPage.consentAccessTitle")}</CardTitle>
+            <CardDescription>{t("consentPage.consentAccessDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="gold-outline" className="w-full">
-              <Link to="/auth">Sign in</Link>
+              <Link to="/auth">{t("common.signIn")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -579,15 +581,15 @@ const ConsentPage = () => {
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-6 w-6 text-primary" />
             <div>
-              <h1 className="font-display text-xl font-bold">Consent submitted</h1>
-              <p className="text-sm text-muted-foreground">Your signed consent form has been saved and emailed.</p>
+              <h1 className="font-display text-xl font-bold">{t("consentPage.submittedTitle")}</h1>
+              <p className="text-sm text-muted-foreground">{t("consentPage.submittedDescription")}</p>
             </div>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Your signed PDF</CardTitle>
-              <CardDescription>Generated from the studio consent template.</CardDescription>
+              <CardTitle className="text-base">{t("consentPage.signedPdfTitle")}</CardTitle>
+              <CardDescription>{t("consentPage.signedPdfDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               {consentPdfUrl ? (
@@ -597,14 +599,14 @@ const ConsentPage = () => {
                   rel="noreferrer"
                   className="text-primary hover:underline break-all"
                 >
-                  View signed consent PDF
+                  {t("consentPage.viewSignedPdf")}
                 </a>
               ) : (
-                <p className="text-sm text-muted-foreground">Signature recorded successfully.</p>
+                <p className="text-sm text-muted-foreground">{t("consentPage.signatureRecorded")}</p>
               )}
               <div className="mt-4">
                 <Button asChild variant="outline" className="w-full">
-                  <Link to="/account">Back to my account</Link>
+                  <Link to="/account">{t("consentPage.backToAccount")}</Link>
                 </Button>
               </div>
             </CardContent>
@@ -618,32 +620,32 @@ const ConsentPage = () => {
     <CustomerLayout portalBrand={portalBrand}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gold">{activeTemplate?.content.formTitle ?? "Consent form"}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Fill the form and sign. No reference image or ID upload is required.</p>
+          <h1 className="font-display text-2xl font-bold text-gold">{activeTemplate?.content.formTitle ?? t("consentPage.defaultFormTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("consentPage.formIntro")}</p>
         </div>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">1) Choose your appointment</CardTitle>
-            <CardDescription>We’ll use the selected booking to send the consent to the artist and to your email.</CardDescription>
+            <CardTitle className="text-base">{t("consentPage.step1Title")}</CardTitle>
+            <CardDescription>{t("consentPage.step1Description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {bookings.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No bookings found for your account.</p>
+              <p className="text-sm text-muted-foreground">{t("consentPage.noBookings")}</p>
             ) : (
               <>
                 {bookings.length > 1 ? (
                   <div>
-                    <Label>Booking</Label>
+                    <Label>{t("consentPage.bookingLabel")}</Label>
                     <Select value={selectedBookingId} onValueChange={setSelectedBookingId}>
                       <SelectTrigger className="mt-1 field-surface border-border">
-                        <SelectValue placeholder="Select booking" />
+                        <SelectValue placeholder={t("consentPage.selectBookingPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {bookings.map((b) => (
                           <SelectItem key={b.id} value={b.id}>
                       {format(parseISO(b.starts_at), "EEE d MMM")} · {format(parseISO(b.starts_at), "h:mm a")}{" "}
-                      · {(b.service_category || "").toLowerCase() === "piercing" ? "Piercing" : "Tattoo"}
+                      · {(b.service_category || "").toLowerCase() === "piercing" ? t("consentPage.piercing") : t("consentPage.tattoo")}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -656,12 +658,12 @@ const ConsentPage = () => {
                     <p className="text-sm font-semibold">{selectedBooking.client_name}</p>
                     {shopDisplayName ? (
                       <p className="text-sm text-foreground mt-1">
-                        Organization: <span className="font-medium">{shopDisplayName}</span>
+                        {t("consentPage.organization")} <span className="font-medium">{shopDisplayName}</span>
                       </p>
                     ) : null}
                     {artistDisplayName ? (
                       <p className="text-sm text-foreground mt-1">
-                        Artist: <span className="font-medium">{artistDisplayName}</span>
+                        {t("consentPage.artist")} <span className="font-medium">{artistDisplayName}</span>
                       </p>
                     ) : null}
                     <p className="text-xs text-muted-foreground">
@@ -669,10 +671,10 @@ const ConsentPage = () => {
                       {selectedBooking.service_category || "tattoo"} · {selectedBooking.status}
                     </p>
                     {selectedBooking.tattoo_style ? (
-                      <p className="text-xs text-muted-foreground mt-1">Style: {selectedBooking.tattoo_style}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t("consentPage.style")} {selectedBooking.tattoo_style}</p>
                     ) : null}
                     {selectedBooking.tattoo_placement ? (
-                      <p className="text-xs text-muted-foreground">Placement: {selectedBooking.tattoo_placement}</p>
+                      <p className="text-xs text-muted-foreground">{t("consentPage.placement")} {selectedBooking.tattoo_placement}</p>
                     ) : null}
                   </div>
                 ) : null}
@@ -683,8 +685,8 @@ const ConsentPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">2) Medical and treatment questions</CardTitle>
-            <CardDescription>Do you suffer from or are you: Yes / No</CardDescription>
+            <CardTitle className="text-base">{t("consentPage.step2Title")}</CardTitle>
+            <CardDescription>{t("consentPage.step2Description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {(activeTemplate?.content.healthQuestions ?? []).map((question) => (
@@ -698,7 +700,7 @@ const ConsentPage = () => {
                       checked={yesAnswers[question] === true}
                       onChange={() => setYesAnswers((prev) => ({ ...prev, [question]: true }))}
                     />
-                    Yes
+                    {t("consentPage.yes")}
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -707,7 +709,7 @@ const ConsentPage = () => {
                       checked={yesAnswers[question] === false}
                       onChange={() => setYesAnswers((prev) => ({ ...prev, [question]: false }))}
                     />
-                    No
+                    {t("consentPage.no")}
                   </label>
                 </div>
               </div>
@@ -717,24 +719,24 @@ const ConsentPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">3) Your details</CardTitle>
-            <CardDescription>Fields are saved with your submission.</CardDescription>
+            <CardTitle className="text-base">{t("consentPage.step3Title")}</CardTitle>
+            <CardDescription>{t("consentPage.step3Description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {shopDisplayName ? (
               <div>
-                <Label>Organization / studio</Label>
+                <Label>{t("consentPage.organizationStudio")}</Label>
                 <Input value={shopDisplayName} readOnly className="mt-1/60" tabIndex={-1} />
               </div>
             ) : null}
             {artistDisplayName ? (
               <div>
-                <Label>Artist / practitioner</Label>
+                <Label>{t("consentPage.artistPractitioner")}</Label>
                 <Input value={artistDisplayName} readOnly className="mt-1/60" tabIndex={-1} />
               </div>
             ) : null}
             <div>
-              <Label htmlFor="fullName">Full legal name *</Label>
+              <Label htmlFor="fullName">{t("consentPage.fullLegalName")}</Label>
               <Input
                 id="fullName"
                 value={fullName}
@@ -745,37 +747,37 @@ const ConsentPage = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" placeholder="optional" />
+                <Label htmlFor="phone">{t("consentPage.phone")}</Label>
+                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" placeholder={t("consentPage.optional")} />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("consentPage.email")}</Label>
                 <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" type="email" />
               </div>
             </div>
             <div>
-              <Label htmlFor="address">Address</Label>
-              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="optional" />
+              <Label htmlFor="address">{t("consentPage.address")}</Label>
+              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder={t("consentPage.optional")} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="dob">Date of birth</Label>
+                <Label htmlFor="dob">{t("consentPage.dateOfBirth")}</Label>
                 <Input id="dob" value={dob} onChange={(e) => setDob(e.target.value)} className="mt-1" type="date" />
               </div>
               <div>
-                <Label htmlFor="placement">{activeTemplate?.content.placementLabel ?? "Treatment location / description"}</Label>
+                <Label htmlFor="placement">{activeTemplate?.content.placementLabel ?? t("consentPage.treatmentLocationLabel")}</Label>
                 <Input
                   id="placement"
                   value={treatmentLocation}
                   onChange={(e) => setTreatmentLocation(e.target.value)}
                   className="mt-1"
-                  placeholder="e.g. Forearm or Lobe"
+                  placeholder={t("consentPage.treatmentLocationPlaceholder")}
                 />
               </div>
             </div>
-            {yesAnswers[UNDER_18_QUESTION] ? (
+            {yesAnswers[under18Question] ? (
               <div>
-                <Label htmlFor="guardianName">Parent / legal guardian print name</Label>
+                <Label htmlFor="guardianName">{t("consentPage.guardianName")}</Label>
                 <Input id="guardianName" value={guardianName} onChange={(e) => setGuardianName(e.target.value)} className="mt-1" />
               </div>
             ) : null}
@@ -786,9 +788,9 @@ const ConsentPage = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <PenLine className="h-4 w-4 text-primary" />
-              4) Signature
+              {t("consentPage.step4Title")}
             </CardTitle>
-            <CardDescription>Draw your signature below.</CardDescription>
+            <CardDescription>{t("consentPage.step4Description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div
@@ -806,15 +808,15 @@ const ConsentPage = () => {
               />
             </div>
             <Button type="button" variant="outline" size="sm" onClick={clearSignature} className="w-full">
-              Clear signature
+              {t("consentPage.clearSignature")}
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">5) Consent declarations</CardTitle>
-            <CardDescription>Please read these statements carefully before signing.</CardDescription>
+            <CardTitle className="text-base">{t("consentPage.step5Title")}</CardTitle>
+            <CardDescription>{t("consentPage.step5Description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {resolvedTemplateContent?.introText ? (
@@ -867,10 +869,10 @@ const ConsentPage = () => {
           {submitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              Submitting…
+              {t("consentPage.submitting")}
             </>
           ) : (
-            "Submit signed consent"
+            t("consentPage.submitButton")
           )}
         </Button>
       </div>

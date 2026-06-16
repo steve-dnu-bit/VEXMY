@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { format, parseISO, startOfDay } from "date-fns";
 import { toast } from "sonner";
-import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { bookingMatchesCustomerShop } from "@/lib/customerShops";
 import { useCustomerShop } from "@/hooks/useCustomerShop";
@@ -197,7 +196,7 @@ const CustomerDepositsPage = () => {
                   </div>
                   {b.vip_client ? (
                     <p className="text-xs text-muted-foreground sm:max-w-[min(100%,300px)] sm:text-right leading-relaxed border border-yellow-500/20 bg-yellow-500/5 rounded-md p-2">
-                      {VIP_DEPOSIT_EXEMPT_MESSAGE}
+                      {t("depositCheckout.vipExempt")}
                     </p>
                   ) : (
                     <Button

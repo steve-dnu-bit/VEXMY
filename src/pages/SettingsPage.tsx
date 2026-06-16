@@ -14,7 +14,7 @@ import MFAEnrollment from "@/components/auth/MFAEnrollment";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
-import { canArtistCustomizeDashboardTheme } from "@/lib/shopDashboardTheme";
+import i18n from "@/i18n";
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
@@ -33,7 +33,7 @@ class SectionErrorBoundary extends React.Component<
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">{this.props.title}</CardTitle>
-            <CardDescription>This section could not load right now.</CardDescription>
+            <CardDescription>{i18n.t("errors.sectionLoadFailed")}</CardDescription>
           </CardHeader>
         </Card>
       );
@@ -168,7 +168,7 @@ const SettingsPage = () => {
           </Card>
 
           {/* MFA / Two-Factor Authentication */}
-          <SectionErrorBoundary title="Two-Factor Authentication">
+          <SectionErrorBoundary title={t("mfa.title")}>
             <MFAEnrollment />
           </SectionErrorBoundary>
 

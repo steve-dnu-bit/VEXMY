@@ -19,6 +19,7 @@ import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
 import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
+import i18n from "@/i18n";
 import {
   loadAdminTeamData,
   type AdminDefaultRow,
@@ -36,26 +37,6 @@ const AdminScheduleHoursPanel = lazy(() => import("@/components/admin/AdminSched
 const AdminDashboardThemePanel = lazy(() => import("@/components/admin/AdminDashboardThemePanel"));
 const AdminWebsiteEmbedPanel = lazy(() => import("@/components/admin/AdminWebsiteEmbedPanel"));
 const AdminPosCheckoutPanel = lazy(() => import("@/components/admin/AdminPosCheckoutPanel"));
-
-const staffFeatureLabels: Record<string, string> = {
-  schedule: "Schedule",
-  inbox: "Inbox",
-  services: "Services",
-  stencil: "Stencil",
-  clients: "Clients",
-  stock: "Stock",
-  dashboard: "Dashboard",
-  settings: "Settings",
-  deposits: "Deposits",
-  billing: "Billing",
-  checkout: "Checkout",
-  admin: "Admin",
-};
-
-const customerFeatureLabels: Record<string, string> = {
-  my_bookings: "My bookings / profile",
-  customer_consent: "Consent form link",
-};
 
 const ADMIN_TABS = [
   "defaults",
@@ -118,7 +99,7 @@ class AdminSectionErrorBoundary extends React.Component<
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">{this.props.title}</CardTitle>
-            <CardDescription>This section could not load. Try refreshing the page.</CardDescription>
+            <CardDescription>{i18n.t("errors.adminSectionFailed")}</CardDescription>
           </CardHeader>
         </Card>
       );
@@ -146,10 +127,10 @@ class AdminPageErrorBoundary extends React.Component<
         <AppLayout>
           <div className="flex flex-col items-center justify-center h-[60vh] gap-3 p-6 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />
-            <p className="font-medium">Admin page failed to load</p>
+            <p className="font-medium">{i18n.t("errors.adminPageFailed")}</p>
             <p className="text-sm text-muted-foreground max-w-md">{this.state.message}</p>
             <Button variant="outline" onClick={() => window.location.reload()}>
-              Refresh page
+              {i18n.t("routeError.refresh")}
             </Button>
           </div>
         </AppLayout>
@@ -161,6 +142,9 @@ class AdminPageErrorBoundary extends React.Component<
 
 const AdminPage = () => {
   const { t } = useTranslation();
+  const staffFeatureLabel = (f: string) => t(`nav.${f}`);
+  const customerFeatureLabel = (f: string) =>
+    f === "my_bookings" ? t("admin.featureMyBookings") : t("admin.featureConsentLink");
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -452,10 +436,10 @@ const AdminPage = () => {
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3 p-6 text-center">
           <AlertCircle className="h-10 w-10 text-destructive" />
-          <p className="font-medium">Could not load admin data</p>
+          <p className="font-medium">{i18n.t("errors.adminDataFailed")}</p>
           <p className="text-sm text-muted-foreground max-w-md">{loadError}</p>
           <Button variant="outline" onClick={() => window.location.reload()}>
-            Refresh page
+            {t("routeError.refresh")}
           </Button>
         </div>
       </AppLayout>
@@ -486,10 +470,9 @@ const AdminPage = () => {
         {!hasOrganization ? (
           <Card className="border-amber-500/40 bg-amber-500/5">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">No studio linked to this account</CardTitle>
+              <CardTitle className="text-base">{t("admin.noStudioTitle")}</CardTitle>
               <CardDescription>
-                Team and permission lists are scoped to your studio. Finish shop setup in Settings, or run the
-                platform admin grant script in Supabase if this is the Velbok operator account.
+                {t("admin.noStudioDesc")}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -615,7 +598,7 @@ const AdminPage = () => {
                 <CardContent className="space-y-2">
                   {CUSTOMER_FEATURES.map((f) => (
                     <div key={f} className="flex items-center justify-between gap-2 py-1">
-                      <span className="text-sm">{customerFeatureLabels[f]}</span>
+                      <span className="text-sm">{customerFeatureLabel(f)}</span>
                       <Button
                         size="sm"
                         variant={defaultGranted("customer", f) ? "default" : "outline"}
@@ -637,7 +620,7 @@ const AdminPage = () => {
                 <CardContent className="space-y-1 max-h-[320px] overflow-y-auto">
                   {STAFF_FEATURES.map((f) => (
                     <div key={f} className="flex items-center justify-between gap-2 py-0.5">
-                      <span className="text-xs">{staffFeatureLabels[f]}</span>
+                      <span className="text-xs">{staffFeatureLabel(f)}</span>
                       <Button
                         size="sm"
                         variant={defaultGranted("artist", f) ? "default" : "outline"}
@@ -650,7 +633,7 @@ const AdminPage = () => {
                   ))}
                   {CUSTOMER_FEATURES.map((f) => (
                     <div key={`a-${f}`} className="flex items-center justify-between gap-2 py-0.5 border-t border-border mt-2 pt-2">
-                      <span className="text-xs text-muted-foreground">{customerFeatureLabels[f]} ({t("admin.customerNav")})</span>
+                      <span className="text-xs text-muted-foreground">{customerFeatureLabel(f)} ({t("admin.customerNav")})</span>
                       <Button
                         size="sm"
                         variant={defaultGranted("artist", f) ? "default" : "outline"}
@@ -682,7 +665,7 @@ const AdminPage = () => {
                       <TableHead className="sticky left-0 bg-card z-10 min-w-[120px]">{t("admin.user")}</TableHead>
                       {STAFF_FEATURES.map((f) => (
                         <TableHead key={f} className="text-center text-[10px] px-1 min-w-[56px]">
-                          {staffFeatureLabels[f]}
+                          {staffFeatureLabel(f)}
                         </TableHead>
                       ))}
                       <TableHead className="text-center text-[10px] px-2">{t("admin.all")}</TableHead>
@@ -801,47 +784,47 @@ const AdminPage = () => {
             </Card>
           </TabsContent>
 
-          <LazyAdminTab tab="consents" activeTab={activeTab} title="Consents">
+          <LazyAdminTab tab="consents" activeTab={activeTab} title={t("admin.tabConsents")}>
             <AdminConsentsPanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="consent-forms" activeTab={activeTab} title="Consent forms">
+          <LazyAdminTab tab="consent-forms" activeTab={activeTab} title={t("admin.tabConsentForms")}>
             <AdminConsentFormsPanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="emails" activeTab={activeTab} title="Emails">
+          <LazyAdminTab tab="emails" activeTab={activeTab} title={t("admin.tabEmails")}>
             <AdminEmailSettingsPanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="aftercare" activeTab={activeTab} title="Aftercare">
+          <LazyAdminTab tab="aftercare" activeTab={activeTab} title={t("admin.tabAftercare")}>
             <AdminAftercareSettingsPanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="schedule-hours" activeTab={activeTab} title="Schedule hours">
+          <LazyAdminTab tab="schedule-hours" activeTab={activeTab} title={t("admin.tabScheduleHours")}>
             <AdminScheduleHoursPanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="dashboard-theme" activeTab={activeTab} title="Dashboard theme">
+          <LazyAdminTab tab="dashboard-theme" activeTab={activeTab} title={t("admin.tabDashboardTheme")}>
             <AdminDashboardThemePanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="website-embed" activeTab={activeTab} title="Website embed">
+          <LazyAdminTab tab="website-embed" activeTab={activeTab} title={t("admin.tabWebsiteEmbed")}>
             <AdminWebsiteEmbedPanel />
           </LazyAdminTab>
 
-          <LazyAdminTab tab="pos-checkout" activeTab={activeTab} title="POS checkout">
+          <LazyAdminTab tab="pos-checkout" activeTab={activeTab} title={t("admin.tabPosCheckout")}>
             <AdminPosCheckoutPanel />
           </LazyAdminTab>
         </Tabs>
 
         <div id="subscription" className="scroll-mt-6 space-y-6">
-          <AdminSectionErrorBoundary title="Subscription">
+          <AdminSectionErrorBoundary title={t("subscription.title")}>
             <Suspense fallback={<TabPanelFallback />}>
               <SubscriptionSettingsCard />
             </Suspense>
           </AdminSectionErrorBoundary>
           <div id="payouts" className="scroll-mt-6">
-            <AdminSectionErrorBoundary title="Payouts">
+            <AdminSectionErrorBoundary title={t("stripeConnect.title")}>
               <Suspense fallback={<TabPanelFallback />}>
                 <StripeConnectCard returnPath="/admin" refreshPath="/admin" />
               </Suspense>

@@ -40,7 +40,8 @@
     "expandMenu": "Розгорнути меню",
     "collapseMenu": "Згорнути меню",
     "and": "та",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "organizationNotFound": "Organization not found"
   },
   "nav": {
     "schedule": "Розклад",
@@ -58,7 +59,8 @@
     "account": "Обліковий запис",
     "chats": "Чати",
     "security": "Безпека",
-    "contact": "Contact"
+    "contact": "Contact",
+    "checkout": "Checkout"
   },
   "marketing": {
     "footerTagline": "Універсальна платформа для тату-студій — розклад, депозити, згода, оплата та спілкування з клієнтами в одному місці.",
@@ -69,7 +71,41 @@
     "notSurePlan": "Не впевнені, який план підходить?",
     "notSurePlanBody": "Розкажіть про свою студію — ми порекомендуємо оптимальне рішення або почніть безкоштовний пробний період з Starter чи Studio.",
     "pricesGbp": "Ціни в GBP, щомісячна оплата. Комісії Stripe за карткові платежі стягуються окремо від платежів клієнтів. Питання?",
-    "mostPopular": "Найпопулярніший"
+    "mostPopular": "Найпопулярніший",
+    "landingMocks": {
+      "scheduleTitle": "velbok.com/schedule",
+      "scheduleLabel": "Schedule",
+      "scheduleDay": "Wednesday · week view",
+      "newBooking": "+ New booking",
+      "confirmed": "Confirmed",
+      "bookingFullSleeve": "Full sleeve consult",
+      "bookingPortrait": "Portrait session",
+      "bookingTouchUp": "Touch-up",
+      "bookingConsult": "Consultation",
+      "depositsTitle": "velbok.com/deposits",
+      "depositsLabel": "Deposits",
+      "depositsSubtitle": "Payment links & tracking",
+      "inWindow": "In window",
+      "paid": "Paid",
+      "pending": "Pending",
+      "sendLink": "Send link",
+      "stencilTitle": "velbok.com/stencil",
+      "stencilLabel": "AI Stencil",
+      "stencilSubtitle": "Design prep workspace",
+      "generate": "Generate",
+      "reference": "Reference",
+      "stencilOutput": "Stencil output",
+      "contrast": "Contrast +12",
+      "lineWeight": "Line weight",
+      "exportPng": "Export PNG",
+      "consentTitle": "velbok.com/consent",
+      "consentLabel": "Digital consent",
+      "consentFormTitle": "Tattoo consent form",
+      "clientDetails": "Client details",
+      "healthQuestionnaire": "Health questionnaire",
+      "aftercareAck": "Aftercare acknowledgement",
+      "signature": "Signature"
+    }
   },
   "pricing": {
     "starter": {
@@ -136,7 +172,6 @@
       "unifiedInbox": "Unified inbox",
       "inboxStudio": "Email + 1 channel",
       "inboxEnterprise": "All channels",
-      "apiMessages": "API messages / month",
       "contactCentre": "Client contact centre"
     },
     "faq": {
@@ -178,12 +213,13 @@
       },
       "studio": {
         "0": "Unified inbox (email + 1 channel)",
-        "1": "300 API messages / month"
+        "1": "WhatsApp, SMS & email links from every booking",
+        "2": "Automated booking reminders & aftercare emails"
       },
       "enterprise": {
         "0": "Unified inbox (all channels)",
-        "1": "500 API messages / month",
-        "2": "£0.06/msg overage"
+        "1": "WhatsApp, SMS & email links from every booking",
+        "2": "Automated booking reminders & aftercare emails"
       }
     }
   },
@@ -363,7 +399,11 @@
     "timing1w": "За 1 тиждень",
     "timing1h": "За 1 годину",
     "timing3h": "За 3 години",
-    "artistProfileShopThemeNote": "Ваш магазин використовує спільний вигляд панелі, заданий адміністратором. Ви все ще можете редагувати ім'я, біо та контактні дані."
+    "artistProfileShopThemeNote": "Ваш магазин використовує спільний вигляд панелі, заданий адміністратором. Ви все ще можете редагувати ім'я, біо та контактні дані.",
+    "consentHandSignNotice": "Customers must sign the pre-filled consent with a pen, by hand, at your studio. Keep the original signed copy stored safely on your premises.",
+    "payAtDesk": "Pay at desk",
+    "checkingPosPayment": "Checking desk payment…",
+    "posPaidAtDesk": "Paid at desk · {{amount}}"
   },
   "admin": {
     "title": "Адмін",
@@ -531,7 +571,15 @@
     "websiteEmbedPreview": "Preview",
     "websiteEmbedLoginUrl": "Customer login URL",
     "websiteEmbedPoweredBy": "Powered by {{platform}}",
-    "websiteEmbedOpenPage": "Open embed page"
+    "websiteEmbedOpenPage": "Open embed page",
+    "consentHandSignNotice": "Customers must sign the pre-filled consent with a pen, by hand, at your studio. Keep the original signed copy stored safely on your premises.",
+    "consentIntroHint": "Use {{shopName}} and {{artistName}} in custom wording. Both are filled in automatically on client forms and PDFs.",
+    "consentAutoFillNote": "Organization name ({{shopName}}) and the booking artist ({{artistName}}) are inserted automatically on client forms and PDFs. Your organization is currently: {{shopName}}.",
+    "tabPosCheckout": "POS checkout",
+    "featureMyBookings": "My bookings / profile",
+    "featureConsentLink": "Consent form link",
+    "noStudioTitle": "No studio linked to this account",
+    "noStudioDesc": "Team and permission lists are scoped to your studio. Finish shop setup in Settings, or run the platform admin grant script in Supabase if this is the Velbok operator account."
   },
   "notFound": {
     "title": "Сторінку не знайдено",
@@ -630,7 +678,10 @@
     "contactStudioDesc": "Message the studio on WhatsApp or email — replies go directly to their team.",
     "emailStudio": "Email",
     "contactCardTitle": "Contact studio",
-    "contactCardDesc": "Reach your artist via WhatsApp or email."
+    "contactCardDesc": "Reach your artist via WhatsApp or email.",
+    "selectStudio": "Studio",
+    "selectStudioPlaceholder": "Choose a studio",
+    "selectStudioHint": "Bookings, deposits, consent, and messages are shown for the studio you select."
   },
   "landing": {
     "heroBadge": "Створено для сучасних тату-студій",
@@ -825,7 +876,8 @@
     "submitted": "Подано",
     "viewPdf": "Переглянути PDF",
     "pdfPending": "PDF очікується",
-    "contactableClients": "Clients to contact"
+    "contactableClients": "Clients to contact",
+    "openTickets": "Open inbox threads"
   },
   "clients": {
     "title": "Клієнти",
@@ -874,7 +926,14 @@
     "importedFromCsv": "Імпортовано {{count}} клієнтів з CSV",
     "noClientsArray": "У JSON немає масиву clients",
     "importedFromJson": "Імпортовано {{count}} клієнтів з JSON",
-    "invalidJsonFile": "Недійсний файл JSON"
+    "invalidJsonFile": "Недійсний файл JSON",
+    "tableContact": "Contact",
+    "customerFallback": "Customer",
+    "totalClients": "{{count}} clients",
+    "searchResults": "Showing {{count}} of {{total}} clients",
+    "whatsAppPrefill": "Hi {{name}}, this is your tattoo studio. How can we help?",
+    "importLimitExceeded": "Too many clients — maximum {{max}} per import (your file has {{count}} valid rows). Split into smaller files.",
+    "importNoEmailsHint": "Contacts were saved without creating bookings or sending emails."
   },
   "billing": {
     "adminRequired": "Потрібен доступ адміністратора",
@@ -990,7 +1049,9 @@
     "defaultPaymentTermDays": "Днів до оплати за замовчуванням",
     "defaultPaymentMethod": "Спосіб оплати за замовчуванням",
     "saveBillingSettings": "Зберегти налаштування рахунків",
-    "connectRequired": "Set up client payouts below before creating invoice payment links."
+    "connectRequired": "Set up client payouts below before creating invoice payment links.",
+    "invoicePrefixHint": "Set automatically from your studio slug ({{slug}}).",
+    "invoicePrefixExample": "Example: {{example}}"
   },
   "deposits": {
     "title": "Депозити",
@@ -1454,7 +1515,10 @@
     "depositAmount": "Deposit amount",
     "depositAmountHint": "Maximum {{max}} (equivalent of £200). Applied when sending payment links.",
     "depositAmountInvalid": "Enter a valid deposit up to {{max}} (equivalent of £200).",
-    "openInbox": "Open in inbox"
+    "openInbox": "Open in inbox",
+    "payAtDesk": "Pay at desk",
+    "checkingPosPayment": "Checking desk payment…",
+    "posPaidAtDesk": "Paid at desk · {{amount}}"
   },
   "staff": {
     "loading": "Завантаження…"
@@ -1504,7 +1568,22 @@
     "stepPayoutsDesc": "Connect your bank account so deposit and invoice payments go to your studio.",
     "stepPayoutsSkipHint": "You can finish setup now and connect payouts later from Admin.",
     "currencyHint": "Client deposits and card invoices will be charged in {{currency}}.",
-    "countryGeoHint": "Country suggested from your location — change if your studio is elsewhere."
+    "countryGeoHint": "Country suggested from your location — change if your studio is elsewhere.",
+    "stepTeamTitle": "Your role",
+    "stepTeamDesc": "Tell us whether you also take bookings, so we can set up your artist seats correctly.",
+    "stepPosOptionalTitle": "In-person checkout (optional)",
+    "stepPosOptionalDesc": "Take card payments at the desk with a Stripe Terminal reader. We recommend WisePad 3 for mobile checkout, or WisePOS E / Stripe Reader S700 for standalone setups. Each studio connects its own Stripe account.",
+    "stepPosEnableHint": "Turn on the Checkout page for staff after Connect and Terminal are set up.",
+    "practitionerQuestion": "Do you also take bookings as an artist or piercer?",
+    "practitionerYes": "Yes — I take bookings",
+    "practitionerYesHint": "You will appear on the schedule and use one of your plan's artist seats.",
+    "practitionerNo": "No — I manage the studio only",
+    "practitionerNoHint": "You won't appear on the schedule. You can invite artists to use your plan's seats from Admin.",
+    "practitionerRequired": "Please choose whether you take bookings as an artist or piercer.",
+    "practitionerSeatsHint": "Your plan includes up to {{max}} artist seats for people who take bookings.",
+    "practitionerReview": "You take bookings",
+    "practitionerYesShort": "Yes",
+    "practitionerNoShort": "No — admin only"
   },
   "embed": {
     "customerPortalSubtitle": "Customer portal",
@@ -1541,7 +1620,7 @@
     "refresh": "Refresh",
     "connectChannels": "Connect channels",
     "usage": "{{used}} / {{cap}} messages this month",
-    "usageUnlimited": "No API message cap on this plan",
+    "usageUnlimited": "Inbox messaging included with your plan",
     "noMessages": "No messages yet",
     "noMessagesHint": "Connect a channel or wait for inbound email to arrive.",
     "selectThread": "Select a conversation",
@@ -1570,7 +1649,7 @@
     "studioAdds": {
       "feed": "One inbox feed for all conversations",
       "channels": "Connect email + WhatsApp or Instagram",
-      "quota": "300 API messages per month included",
+      "replies": "Reply to clients from one screen",
       "history": "Full thread history inside Velbok"
     },
     "statClients": "Clients with contact details",
@@ -1604,6 +1683,626 @@
     "email": "Email",
     "instagram": "Instagram",
     "copy": "Copy",
-    "copied": "Copied to clipboard"
+    "copied": "Copied to clipboard",
+    "facebook": "Facebook"
+  },
+  "salesReports": {
+    "title": "Sales reports",
+    "subtitle": "Saved end-of-day and end-of-month totals — desk payments, deposits, and invoices.",
+    "refresh": "Refresh & save",
+    "endOfDay": "End of day",
+    "endOfMonth": "End of month",
+    "pickDay": "Date",
+    "loadDay": "Load / save day",
+    "noReportYet": "No saved report for this period yet. Use Refresh to generate one.",
+    "savedAt": "Saved {{time}}",
+    "deskPayments": "Desk (WisePad)",
+    "deposits": "Deposits",
+    "invoices": "Invoices",
+    "totalCollected": "Total collected",
+    "totalCollectedHint": "Desk + deposits + invoices",
+    "payments": "payments",
+    "paid": "paid",
+    "posBreakdown": "Desk checkout detail",
+    "sessionValue": "Session value",
+    "depositCredit": "Deposit credit",
+    "shopShare": "Shop share (desk)",
+    "artistShare": "Artist share (desk)",
+    "tax": "Tax",
+    "byArtist": "By artist",
+    "savedDays": "Recent saved days",
+    "savedMonths": "Recent saved months"
+  },
+  "platformAdmin": {
+    "title": "Platform",
+    "heading": "Platform admin",
+    "subheading": "All studios, subscriptions, and users across Velbok.",
+    "backToApp": "Back to app",
+    "openDashboard": "Open platform dashboard",
+    "adminCardDesc": "Manage all studios, grant complimentary subscriptions, and view billing activity.",
+    "tabs": {
+      "studios": "Studios",
+      "users": "Users",
+      "activity": "Activity"
+    },
+    "stats": {
+      "studios": "Studios",
+      "paying": "Active subs",
+      "trialing": "Trialing",
+      "canceled": "Canceled",
+      "users": "Users",
+      "customers": "Customers"
+    },
+    "studiosTitle": "All studios",
+    "studiosDesc": "Subscription status, plans, and complimentary grants.",
+    "usersTitle": "All users",
+    "usersDesc": "Artists, studio admins, and customers.",
+    "activityTitle": "Billing activity",
+    "activityDesc": "Stripe webhooks and manual platform admin actions.",
+    "searchUsers": "Search by name or email…",
+    "filterRole": "Filter by role",
+    "allRoles": "All roles",
+    "grantGratuity": "Grant gratuity",
+    "gratuity": "Gratuity",
+    "grantFree": "Grant free",
+    "revoke": "Revoke access",
+    "revokeDesc": "Stops Velbok access immediately and cancels Stripe billing when linked.",
+    "noSub": "No sub",
+    "trial": "Trial",
+    "grantDialogTitle": "Grant gratuity",
+    "grantDialogDesc": "Give {{name}} complimentary Velbok access without Stripe billing.",
+    "grantStripeHint": "This studio has an active Stripe subscription. Cancel Stripe billing to avoid double charging.",
+    "cancelStripeOnGrant": "Cancel Stripe billing",
+    "cancelStripeOnGrantDesc": "Stops future Stripe charges when switching this studio to gratuity access.",
+    "grantLifetime": "Lifetime (10 years)",
+    "grantPlan": "Plan",
+    "grantMonths": "Duration (months)",
+    "grantNote": "Note (optional)",
+    "grantNotePlaceholder": "e.g. beta partner, support comp",
+    "grantConfirm": "Grant gratuity",
+    "grantSuccess": "Granted gratuity access to {{name}}",
+    "grantSuccessStripe": "Granted gratuity and canceled Stripe billing for {{name}}",
+    "cancelConfirm": "Revoke access and stop billing for {{name}}? This takes effect immediately.",
+    "cancelSuccess": "Revoked access for {{name}}",
+    "cancelSuccessStripe": "Revoked access and canceled Stripe billing for {{name}}",
+    "col": {
+      "studio": "Studio",
+      "owner": "Owner",
+      "plan": "Plan",
+      "status": "Status",
+      "periodEnd": "Period end",
+      "seats": "Artists",
+      "actions": "Actions",
+      "roles": "Roles",
+      "when": "When",
+      "event": "Event",
+      "details": "Details"
+    }
+  },
+  "tickets": {
+    "pageTitle": "Inbox",
+    "pageSubtitle": "Reply to customer messages in the portal. Use WhatsApp links below for quick outbound contact.",
+    "staffTitle": "Inbox",
+    "customerTitle": "Connect",
+    "customerNav": "Connect",
+    "customerDesc": "Message an artist at the studio, or reach them directly on WhatsApp.",
+    "quickContact": "Message the studio directly",
+    "quickContactHint": "WhatsApp opens in your app — replies go straight to the studio, not through Velbok.",
+    "yourTickets": "Your conversations",
+    "raiseTicket": "New message",
+    "newTicket": "New message",
+    "chooseArtist": "Who should receive this?",
+    "noArtists": "No artists are available for this studio yet.",
+    "subjectPlaceholder": "What do you need help with?",
+    "messagePlaceholder": "Write your message…",
+    "relatedBooking": "Related booking (optional)",
+    "noBooking": "No specific booking",
+    "submitTicket": "Send message",
+    "created": "Message sent",
+    "createFailed": "Could not send message",
+    "noTicketsYet": "No messages yet. Start a conversation if you need help from the studio.",
+    "backToList": "Back to list",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search inbox…",
+    "filterOpen": "Open",
+    "filterClosed": "Closed",
+    "filterAll": "All",
+    "noTickets": "No conversations match this filter.",
+    "selectTicket": "Select a conversation to view messages.",
+    "open": "Open",
+    "closedLabel": "Closed",
+    "closeTicket": "Close conversation",
+    "reopenTicket": "Reopen",
+    "closed": "Conversation closed",
+    "closedHint": "This conversation is closed. Message the studio on WhatsApp or start a new message if you need more help.",
+    "reopened": "Conversation reopened",
+    "closeFailed": "Could not close conversation",
+    "reopenFailed": "Could not reopen conversation",
+    "replyPlaceholder": "Write a reply…",
+    "sendReply": "Send reply",
+    "replySent": "Reply sent",
+    "replyFailed": "Could not send reply",
+    "loadFailed": "Could not load inbox",
+    "customer": "Customer",
+    "staff": "Studio",
+    "participant": "Participant",
+    "viewTickets": "Open inbox",
+    "messageCustomer": "Message customer",
+    "messageCustomerHint": "Start a portal message with a customer on your bookings.",
+    "chooseCustomer": "Choose customer",
+    "noCustomers": "No booked customers with portal accounts yet.",
+    "sendMessage": "Send message",
+    "messageStarted": "Message sent to customer",
+    "staffDefaultSubject": "Message from your studio",
+    "withArtist": "With {{name}}",
+    "emailNotifyHint": "Email notifications are sent if there is no reply within 2 minutes.",
+    "imagesRemaining": "{{count}} of {{max}} photos left for you",
+    "imageAlt": "Attached photo",
+    "imageUnavailable": "Photo unavailable",
+    "uploadFailed": "Could not upload photo",
+    "imageLimitReached": "You can attach up to {{max}} photos per conversation",
+    "invalidImageType": "Please choose an image file",
+    "category": {
+      "general": "General",
+      "booking": "Booking",
+      "deposit": "Deposit",
+      "design": "Design",
+      "aftercare": "Aftercare"
+    }
+  },
+  "pos": {
+    "checkoutTitle": "Checkout",
+    "checkoutSubtitle": "Take payment at the desk with your Stripe WisePad reader.",
+    "linkedBooking": "Linked to this booking",
+    "depositCredit": "Deposit paid",
+    "amountDue": "Due today",
+    "depositSplitHint": "Split applies to the balance charged on the WisePad (deposit was collected separately).",
+    "depositCoversBalance": "Session covered by deposit — no card charge needed.",
+    "completeNoCharge": "Complete (deposit covers balance)",
+    "notEnabledDesc": "Point-of-sale checkout is turned off. An admin can enable it and set split percentages under Admin → POS checkout.",
+    "openAdminSettings": "Open POS settings",
+    "services": "Quick items",
+    "servicesHint": "Tap an item to add it. Most-used items appear first.",
+    "noServices": "No saved items yet — add a custom item to build your list.",
+    "saveForQuickAdd": "Save for quick add",
+    "itemSaved": "Item saved for quick add.",
+    "usedCount": "Used {{count}} times",
+    "sessionDetails": "Session",
+    "artist": "Artist",
+    "selectArtist": "Select artist",
+    "clientName": "Client name",
+    "clientNamePlaceholder": "Optional",
+    "orderSummary": "Order summary",
+    "withArtist": "With {{name}}",
+    "emptyCart": "No items yet — tap a quick item or add a custom one.",
+    "subtotal": "Subtotal",
+    "gratuity": "Gratuity",
+    "total": "Total",
+    "paymentSplit": "Payment split",
+    "shopShare": "Shop ({{percent}}%)",
+    "artistShare": "Artist ({{percent}}%)",
+    "connectReader": "Connect WisePad",
+    "mobileAppRequired": "WisePad 3 requires the Velbok mobile app (Android or iPhone). Browser checkout supports Wi‑Fi/standalone readers such as WisePOS E or Stripe Reader S700.",
+    "nativeBluetoothReady": "Bluetooth WisePad pairing is available in this app. Turn the reader on and tap Connect WisePad.",
+    "disconnectReader": "Disconnect reader",
+    "readerDisconnected": "Reader not connected",
+    "chargeCard": "Charge {{amount}}",
+    "clearOrder": "Clear order",
+    "addItemsFirst": "Add at least one item and select an artist.",
+    "connectRequired": "Complete Stripe Connect setup before taking payments.",
+    "locationRequired": "Set up a Terminal location in Admin → POS checkout first.",
+    "paymentFailed": "Payment could not be completed.",
+    "paymentSuccess": "Payment successful.",
+    "lastPaymentRecorded": "Last payment recorded.",
+    "adminTitle": "POS checkout",
+    "adminIntro": "Configure in-person card payments with Stripe Terminal (WisePad 3, WisePOS E, or Stripe Reader S700). Set default shop/artist split percentages and optional per-artist overrides.",
+    "enableCheckout": "Enable checkout page",
+    "enableCheckoutHint": "Shows Checkout in the staff menu for users with checkout or billing access.",
+    "shopSplitPercent": "Shop share",
+    "artistGets": "Artist receives {{percent}}%",
+    "defaultGratuity": "Default gratuity %",
+    "gratuityEnabled": "Allow gratuity",
+    "gratuityEnabledHint": "Adds a percentage on top of the total before charging.",
+    "terminalTitle": "Stripe Terminal readers",
+    "terminalIntro": "Register your shop location so Stripe Terminal readers can pair. We recommend WisePad 3 for Bluetooth mobile use, with WisePOS E or Stripe Reader S700 as compatible alternatives. Use simulated reader for testing without hardware.",
+    "readerLabel": "Reader label",
+    "terminalLocation": "Terminal location ID",
+    "notConfigured": "Not set up yet",
+    "setupTerminal": "Create Terminal location",
+    "simulatedReader": "Use simulated reader (testing)",
+    "terminalSetupDone": "Terminal location ready.",
+    "terminalSetupFailed": "Could not create Terminal location.",
+    "settingsSaved": "POS settings saved.",
+    "artistOverridesTitle": "Per-artist splits",
+    "artistOverridesIntro": "Leave shop share blank to use the default. Add a Stripe Connect account ID to auto-transfer the artist share after payment.",
+    "artistConnectAccount": "Artist Connect account",
+    "noArtists": "No artists in this shop yet.",
+    "invalidSplit": "Shop share must be between 0 and 100.",
+    "artistSplitSaved": "Artist split saved.",
+    "artistSplitCleared": "Artist override removed — using shop default.",
+    "actions": "Actions",
+    "gratuityAdjust": "Tip",
+    "gratuityNone": "No tip",
+    "recentSales": "Recent payments",
+    "recentSalesHint": "Last card payments taken at the desk.",
+    "noRecentSales": "No payments yet today.",
+    "saleStatusSucceeded": "Paid",
+    "saleStatusPending": "Pending",
+    "saleStatusFailed": "Failed",
+    "saleTime": "Time",
+    "addCustomItem": "Custom item",
+    "customItemName": "Description",
+    "customItemNamePlaceholder": "e.g. Touch-up, merchandise",
+    "customItemPrice": "Unit price",
+    "units": "Qty",
+    "addToOrder": "Add to order",
+    "customItemInvalid": "Enter a description and valid price.",
+    "importProductsCsv": "Import CSV",
+    "downloadProductsTemplate": "Template",
+    "productsCsvHint": "CSV columns: name, price, quantity (optional). Updates existing items with the same name.",
+    "productsImported": "Imported {{count}} products for quick add.",
+    "productsCsvInvalid": "CSV must include a header row and at least one product.",
+    "productsCsvMissingColumns": "CSV needs name and price columns (e.g. name, price, quantity).",
+    "productsCsvNoRows": "No valid products found in the CSV.",
+    "productsCsvTooMany": "Too many products — maximum 500 per import.",
+    "productsCsvOrgMissing": "Could not resolve your studio organization.",
+    "searchProductsPlaceholder": "Search products…",
+    "noProductsMatch": "No products match your search.",
+    "setupChecklist": {
+      "title": "Setup checklist",
+      "adminDesc": "Each studio uses its own Stripe Connect account for deposits, invoices, and WisePad checkout.",
+      "finishSetupTitle": "Finish setup to take payments",
+      "finishSetupDesc": "Payments run on this studio's Stripe Connect account — complete the steps below first.",
+      "loading": "Checking POS setup…",
+      "connect": "Stripe Connect (your studio account)",
+      "connectDone": "Your studio bank account is connected.",
+      "connectPending": "Complete Connect so payments go to your studio, not a shared account.",
+      "terminal": "Terminal location",
+      "terminalDone": "Terminal location is registered for this shop.",
+      "terminalPending": "Create a Terminal location so Stripe readers can pair.",
+      "enabled": "Checkout enabled",
+      "enabledDone": "Staff can open Checkout from the menu.",
+      "enabledPending": "Enable checkout under Admin → POS checkout.",
+      "reader": "Pair a Stripe Terminal reader",
+      "readerHint": "WisePad 3 pairs over Bluetooth in the Velbok mobile app. WisePOS E and Stripe Reader S700 can be used as Wi‑Fi/standalone alternatives.",
+      "ready": "Ready to take in-person payments.",
+      "notReady": "Complete the steps above before charging cards at the desk.",
+      "stripeDashboardHint": "Stripe Terminal onboarding, account verification, hardware provisioning, and terminal support are provided by Stripe (not Velbok). Manage readers in Stripe Dashboard → Terminal."
+    }
+  },
+  "consentPage": {
+    "under18Question": "Are you under 18?",
+    "staffTitle": "Signed consent forms",
+    "staffSubtitle": "View, print, or download consent PDFs for your bookings.",
+    "searchPlaceholder": "Search by client name…",
+    "noSearchResults": "No consent forms match your search.",
+    "noSignedForms": "No signed consent forms yet.",
+    "loadFormsError": "Could not load consent forms",
+    "signedAt": "Signed {{date}}",
+    "bookingDate": " · Booking: {{date}}",
+    "piercingConsent": "Piercing consent",
+    "tattooConsent": "Tattoo consent",
+    "print": "Print",
+    "download": "Download",
+    "downloadOpenedInTab": "Opened in a new tab — use Save as to download.",
+    "noPdf": "No PDF",
+    "piercing": "Piercing",
+    "tattoo": "Tattoo",
+    "consentAccessTitle": "Consent access",
+    "consentAccessDescription": "Please sign in to submit your consent form.",
+    "loadBookingsError": "Failed to load bookings",
+    "selectBookingFirst": "Select a booking first",
+    "fullNameRequired": "Please enter your full legal name",
+    "agreeRequired": "Please confirm you have read and agree to the consent",
+    "signatureRequired": "Please sign in the signature area",
+    "emailRequired": "Email is required so we can notify the studio",
+    "declarationsRequired": "Please confirm all mandatory declarations",
+    "formLoadError": "Consent form could not be loaded",
+    "guardianRequired": "Guardian name is required for under 18 consent",
+    "pdfSaveWarning": "Consent saved, but the PDF file was not stored ({{detail}}). The studio can check Supabase logs and storage.",
+    "unknownReason": "Unknown reason",
+    "submitSuccess": "Consent submitted. Thank you.",
+    "submitError": "Could not submit consent",
+    "submittedTitle": "Consent submitted",
+    "submittedDescription": "Your signed consent form has been saved and emailed.",
+    "signedPdfTitle": "Your signed PDF",
+    "signedPdfDescription": "Generated from the studio consent template.",
+    "viewSignedPdf": "View signed consent PDF",
+    "signatureRecorded": "Signature recorded successfully.",
+    "backToAccount": "Back to my account",
+    "defaultFormTitle": "Consent form",
+    "formIntro": "Fill the form and sign. No reference image or ID upload is required.",
+    "step1Title": "1) Choose your appointment",
+    "step1Description": "We'll use the selected booking to send the consent to the artist and to your email.",
+    "noBookings": "No bookings found for your account.",
+    "bookingLabel": "Booking",
+    "selectBookingPlaceholder": "Select booking",
+    "organization": "Organization:",
+    "artist": "Artist:",
+    "style": "Style:",
+    "placement": "Placement:",
+    "step2Title": "2) Medical and treatment questions",
+    "step2Description": "Do you suffer from or are you: Yes / No",
+    "yes": "Yes",
+    "no": "No",
+    "step3Title": "3) Your details",
+    "step3Description": "Fields are saved with your submission.",
+    "organizationStudio": "Organization / studio",
+    "artistPractitioner": "Artist / practitioner",
+    "fullLegalName": "Full legal name *",
+    "phone": "Phone",
+    "optional": "optional",
+    "email": "Email",
+    "address": "Address",
+    "dateOfBirth": "Date of birth",
+    "treatmentLocationLabel": "Treatment location / description",
+    "treatmentLocationPlaceholder": "e.g. Forearm or Lobe",
+    "guardianName": "Parent / legal guardian print name",
+    "step4Title": "4) Signature",
+    "step4Description": "Draw your signature below.",
+    "clearSignature": "Clear signature",
+    "step5Title": "5) Consent declarations",
+    "step5Description": "Please read these statements carefully before signing.",
+    "submitting": "Submitting…",
+    "submitButton": "Submit signed consent"
+  },
+  "legal": {
+    "layout": {
+      "lastUpdated": "Last updated:",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "cookies": "Cookies",
+      "home": "Home",
+      "documentation": "Documentation",
+      "studioLogin": "Studio login"
+    },
+    "privacy": {
+      "title": "Privacy Notice (UK/EU GDPR)",
+      "lastUpdated": "29 May 2026",
+      "sections": {
+        "general": {
+          "title": "General statement",
+          "p1": "{{shopLegalName}} is committed to protecting your privacy and takes its responsibilities regarding the security of customer information seriously. This notice explains how we use personal data and how we protect your privacy when you interact with our shop, website, and services.",
+          "contactLead": "If you have questions, contact us at",
+          "contactDpo": "For CCTV or data protection complaints, you may contact our DPO at"
+        },
+        "dataCollect": {
+          "title": "Data we collect",
+          "p1": "Depending on your interaction with us, we may collect: name, gender, date of birth, address, email, phone number, booking history, service notes, complaint/feedback records, payment details, cookie/device and technical usage data, social media handle (if you message us), and CCTV images captured at premises.",
+          "p2": "Where legally required to verify age for tattooing, we may request and retain a copy of photo identification with your consent documentation."
+        },
+        "whenCollect": {
+          "title": "When we collect data",
+          "p1": "We collect data when you use our website or account, make a booking or purchase, contact us, enter promotions, complete surveys, leave reviews, engage on social media, or otherwise interact with our business."
+        },
+        "lawfulBases": {
+          "title": "Lawful bases (UK GDPR / EU GDPR)",
+          "p1": "We rely on consent, contractual necessity, legal obligation, legitimate interests, and vital interests depending on context.",
+          "consent": "Consent:",
+          "consentDesc": "e.g. newsletter opt-in and optional cookie categories.",
+          "contract": "Contract:",
+          "contractDesc": "to provide booked services and process payments/deposits.",
+          "legal": "Legal obligation:",
+          "legalDesc": "where required to share data for fraud/crime prevention or legal process.",
+          "legitimate": "Legitimate interests:",
+          "legitimateDesc": "business operations, communications, service updates, and quality improvement.",
+          "vital": "Vital interests:",
+          "vitalDesc": "where needed to protect life/health in emergencies."
+        },
+        "howUse": {
+          "title": "How and why we use data",
+          "p1": "We use personal data to provide services, manage bookings and deposits, send required service communications, process complaints and feedback, improve products and systems, administer surveys and competitions, protect security, and meet legal obligations.",
+          "p2": "{{shopLegalName}} does not share marketing data with third-party organizations for their own marketing. We do share data with payment and service providers where necessary to run transactions and operations securely."
+        },
+        "cookies": {
+          "title": "Cookies, pixels, and website technologies",
+          "p1": "Cookies and similar technologies help us run website features and remember preferences. Our cookies are not intended to contain direct personal identifiers. You can manage browser cookies and in-app cookie preferences.",
+          "p2": "We may use email tracking pixels to understand whether emails were opened and whether your client can render text or HTML content."
+        },
+        "security": {
+          "title": "Security and retention",
+          "p1": "We use encryption, secure processing standards, and access controls to protect data. No internet transmission is entirely risk free, but we apply reasonable technical and organizational safeguards.",
+          "p2": "Standard retention is at least 5 years from last visit/transaction, or longer where legal/insurance claims require this. For insurance and damages claims we may retain relevant data up to 21 years."
+        },
+        "cctv": {
+          "title": "CCTV policy summary",
+          "p1": "Our premises are monitored by CCTV 24/7 for prevention/detection of crime, safety, and asset protection. Cameras are placed in prominent areas and not in sensitive spaces. Access is restricted to authorized trained personnel.",
+          "p2": "CCTV data is processed lawfully, fairly, transparently, and securely. Footage is generally stored for a minimum of 14 days and no longer than 1 year unless required for investigations, disciplinary proceedings, or legal evidence."
+        },
+        "rights": {
+          "title": "Your rights",
+          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. You can also ask us to stop direct marketing. You can request a copy of your data by emailing",
+          "orWriteTo": "or writing to:",
+          "p2": "If we refuse a request, we will explain why. You also have the right to complain to the UK Information Commissioner's Office (ICO) or your local EU supervisory authority."
+        },
+        "updates": {
+          "title": "Policy updates",
+          "p1": "We may update this notice periodically. Material changes will be posted here so you remain aware of what data we collect, how we use it, and when it may be disclosed."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms and Conditions of Use",
+      "lastUpdated": "29 May 2026",
+      "sections": {
+        "scope": {
+          "title": "1. Scope",
+          "p1": "These Terms govern access to and use of the {{platformName}} web application (the \"Service\") by staff and customers in the UK and EU. By using the Service, you agree to these Terms."
+        },
+        "eligibility": {
+          "title": "2. Eligibility and account security",
+          "p1": "You must provide accurate information, keep credentials confidential, and notify us promptly of unauthorized account access. You are responsible for activity carried out under your account unless caused by our fault."
+        },
+        "acceptableUse": {
+          "title": "3. Acceptable use",
+          "p1": "You must not misuse the Service, interfere with security controls, upload unlawful content, or use the Service in a way that breaches applicable law, including UK GDPR, EU GDPR, and consumer protection rules."
+        },
+        "bookings": {
+          "title": "4. Booking and deposit workflows",
+          "p1": "The Service supports booking management and deposit reminders. Payment handling is provided by integrated third-party providers. You are responsible for ensuring booking and payment information entered is correct before sending notifications.",
+          "p2": "Additional studio terms apply to booked tattoo services: once tattooing services are provided, the agreed price is payable in full and no credit is offered; deposits are collected via online payment provider integration; deposits are refundable only where formal cancellation is made by email at least 24 hours before the appointment; and dissatisfaction with style preference changes after service does not create a refund entitlement."
+        },
+        "ip": {
+          "title": "5. Intellectual property",
+          "p1": "The Service design, software, and content are protected by intellectual property rights. You may use the Service only for internal business or personal booking purposes and not for unauthorized copying, resale, or reverse engineering."
+        },
+        "data": {
+          "title": "6. Data protection",
+          "p1": "Personal data is processed in line with our Privacy Notice and applicable UK/EU data protection law. Where required, we rely on consent, contract, legal obligation, or legitimate interests as a lawful basis."
+        },
+        "availability": {
+          "title": "7. Service availability",
+          "p1": "We aim for reliable operation but do not guarantee uninterrupted availability. Planned maintenance, updates, and third-party outages may affect access."
+        },
+        "liability": {
+          "title": "8. Liability",
+          "p1": "Nothing in these Terms limits liability that cannot be limited under law (including fraud or death/personal injury caused by negligence). Subject to mandatory law, we exclude indirect losses and limit liability to foreseeable direct losses arising from breach."
+        },
+        "changes": {
+          "title": "9. Changes and termination",
+          "p1": "We may update these Terms where required by law, security, or product changes. Material changes are published in-app with a revised date. We may suspend or terminate access where terms are breached or misuse is detected."
+        },
+        "governingLaw": {
+          "title": "10. Governing law",
+          "p1": "These Terms are governed by the laws of England and Wales, unless mandatory consumer law in your country of residence provides otherwise."
+        }
+      }
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "lastUpdated": "04 May 2026",
+      "sections": {
+        "what": {
+          "title": "1. What cookies are",
+          "p1": "Cookies are small text files stored on your device. We also use similar technologies (such as local storage) where needed for application functionality and user preferences."
+        },
+        "categories": {
+          "title": "2. Cookie categories we use",
+          "p1": "Strictly necessary: required for authentication, security, session handling, and core features. Preferences: store UI and usability choices. Analytics: help us understand performance and usage trends. Marketing: support campaign effectiveness and tailored promotion."
+        },
+        "consent": {
+          "title": "3. Consent model",
+          "p1": "Strictly necessary technologies are always active. Optional categories (preferences, analytics, marketing) are activated only after your consent and can be changed any time from the cookie preferences interface."
+        },
+        "thirdParty": {
+          "title": "4. Third-party services",
+          "p1": "Some integrated providers may set their own cookies or similar identifiers when their functionality is used. Their privacy/cookie terms apply in addition to this policy."
+        },
+        "pixels": {
+          "title": "Email pixels",
+          "p1": "We may include tracking pixels in certain emails to understand engagement (for example, whether an email was opened) and content rendering capability (text vs HTML). This helps us improve communication quality and relevance."
+        },
+        "manage": {
+          "title": "5. How to manage cookies",
+          "p1": "You can accept all, reject non-essential, or set granular choices in-app. You can also configure your browser to block cookies, but this may impact core features such as sign-in or secure session handling."
+        },
+        "updates": {
+          "title": "6. Updates",
+          "p1": "We may update this policy to reflect legal, technical, or product changes. The latest version and update date are always published here."
+        }
+      }
+    }
+  },
+  "depositCheckout": {
+    "title": "Checkout",
+    "subtitle": "Pay your deposit to secure your booking",
+    "depositTitle": "Deposit",
+    "depositDesc": "Fixed deposit amount",
+    "loadingBooking": "Loading booking…",
+    "bookingNotFound": "Booking not found.",
+    "amount": "Amount:",
+    "alreadyPaid": "Deposit already marked as paid.",
+    "redirecting": "Redirecting to Stripe...",
+    "payDeposit": "Pay {{amount}} deposit",
+    "backToDeposits": "Back to deposit payment",
+    "missingBookingId": "Missing booking id",
+    "loadBookingFailed": "Could not load booking",
+    "checkoutFailed": "Could not start Stripe checkout",
+    "vipExempt": "Because you are a VIP customer, you are not required to pay a deposit. Please let us know if anything changes."
+  },
+  "artistProfile": {
+    "title": "Artist Profile Settings",
+    "subtitle": "Set your public profile details shown to customers on consent/account pages.",
+    "revisitHint": "You can revisit and update this anytime from Settings.",
+    "basicsTitle": "Profile Basics",
+    "basicsDesc": "Picture, name and bio",
+    "uploading": "Uploading...",
+    "uploadPicture": "Upload profile picture",
+    "name": "Name",
+    "description": "Description",
+    "contactTitle": "Contact Details",
+    "contactEmail": "Contact Email",
+    "contactPhone": "Contact Phone",
+    "instagram": "Instagram",
+    "instagramPlaceholder": "@artist",
+    "securityTitle": "Security",
+    "securityDesc": "Set or change your password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordPlaceholder": "At least 6 characters",
+    "confirmPlaceholder": "Re-enter password",
+    "updating": "Updating...",
+    "savePassword": "Save password",
+    "themeTitle": "Profile Theme",
+    "themeDesc": "Background image and color scheme for your staff app and customer pages",
+    "themeLockedDesc": "Your shop uses one shared dashboard look set by the admin. Contact your studio admin to change colors or background.",
+    "presetThemes": "Preset themes",
+    "customColor": "Custom color (optional)",
+    "backgroundImage": "Background image",
+    "uploadBackground": "Upload background image",
+    "save": "Save",
+    "saving": "Saving...",
+    "saveContinue": "Save and continue",
+    "loadFailed": "Could not load profile",
+    "uploadSuccess": "Profile picture uploaded",
+    "bgUploadSuccess": "Background image uploaded",
+    "uploadFailed": "Upload failed",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordUpdated": "Password updated",
+    "passwordUpdateFailed": "Could not update password",
+    "profileSaved": "Profile saved",
+    "profileCompleted": "Profile completed",
+    "saveFailed": "Could not save profile"
+  },
+  "routeError": {
+    "defaultLabel": "This page",
+    "failedToLoad": "{{label}} failed to load",
+    "somethingWrong": "Something went wrong",
+    "refresh": "Refresh page"
+  },
+  "adminConsents": {
+    "title": "Consent submissions",
+    "desc": "All signed tattoo and piercing consent forms with PDF download.",
+    "refresh": "Refresh",
+    "clientLink": "Client consent link:",
+    "loading": "Loading consents…",
+    "empty": "No consent submissions yet.",
+    "noMatch": "No consents match your filters.",
+    "showing": "Showing {{filtered}} of {{total}} submission",
+    "showingPlural": "Showing {{filtered}} of {{total}} submissions",
+    "searchPlaceholder": "Search name, email, phone, artist…",
+    "typePlaceholder": "Type",
+    "allTypes": "All types",
+    "tattoo": "Tattoo",
+    "piercing": "Piercing",
+    "client": "Client",
+    "type": "Type",
+    "artist": "Artist",
+    "appointment": "Appointment",
+    "submitted": "Submitted",
+    "pdf": "PDF",
+    "pending": "Pending",
+    "viewPdf": "View PDF",
+    "downloadPdf": "Download PDF",
+    "printPdf": "Print PDF",
+    "downloadStarted": "Download started",
+    "loadFailed": "Could not load consents"
+  },
+  "errors": {
+    "sectionLoadFailed": "This section could not load right now.",
+    "adminPageFailed": "Admin page failed to load",
+    "adminDataFailed": "Could not load admin data",
+    "adminSectionFailed": "This section could not load. Try refreshing the page."
   }
 }

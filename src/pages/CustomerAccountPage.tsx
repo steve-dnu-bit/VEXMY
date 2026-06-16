@@ -10,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
-import { fetchHasStaffAccess } from "@/hooks/useUserRoles";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Calendar, MessageSquare, Receipt, Star, User, Moon, Sun } from "lucide-react";
@@ -315,7 +313,7 @@ const CustomerAccountPage = () => {
                   </div>
                   {b.vip_client ? (
                     <p className="text-xs text-muted-foreground sm:max-w-[min(100%,280px)] sm:text-right leading-relaxed border border-yellow-500/20 bg-yellow-500/5 rounded-md p-2">
-                      {VIP_DEPOSIT_EXEMPT_MESSAGE}
+                      {t("depositCheckout.vipExempt")}
                     </p>
                   ) : (
                     <Button

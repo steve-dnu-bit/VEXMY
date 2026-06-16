@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { resolvePostLoginPath } from "@/hooks/useUserRoles";
 
 /** After login: customers → /account, staff → /schedule */
 const AuthHomeRedirect = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [path, setPath] = useState<string | null>(null);
@@ -23,7 +25,7 @@ const AuthHomeRedirect = () => {
   if (!path) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       </div>
     );
   }

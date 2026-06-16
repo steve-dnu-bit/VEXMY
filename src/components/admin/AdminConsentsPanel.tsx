@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { safeFormatDate } from "@/lib/safeDateFormat";
 import { Download, Eye, FileSignature, Loader2, Printer, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,9 +37,10 @@ function consentTypeFromBooking(booking?: {
 }
 
 function ConsentPdfActions({ url, basename }: { url: string; basename: string }) {
+  const { t } = useTranslation();
   return (
     <div className="flex justify-end gap-1">
-      <Button size="icon" variant="outline" className="h-8 w-8" asChild title="View PDF">
+      <Button size="icon" variant="outline" className="h-8 w-8" asChild title={t("adminConsents.viewPdf")}>
         <a href={url} target="_blank" rel="noreferrer">
           <Eye className="h-4 w-4" />
         </a>
@@ -47,16 +49,16 @@ function ConsentPdfActions({ url, basename }: { url: string; basename: string })
         size="icon"
         variant="outline"
         className="h-8 w-8"
-        title="Download PDF"
+        title={t("adminConsents.downloadPdf")}
         onClick={() => {
           void downloadConsentPdf(url, basename).then((ok) => {
-            if (ok) toast.success("Download started");
+            if (ok) toast.success(t("adminConsents.downloadStarted"));
           });
         }}
       >
         <Download className="h-4 w-4" />
       </Button>
-      <Button size="icon" variant="outline" className="h-8 w-8" title="Print PDF" onClick={() => printConsentPdf(url)}>
+      <Button size="icon" variant="outline" className="h-8 w-8" title={t("adminConsents.printPdf")} onClick={() => printConsentPdf(url)}>
         <Printer className="h-4 w-4" />
       </Button>
     </div>
@@ -91,7 +93,7 @@ function ConsentTableRow({ row: r }: { row: ConsentRow }) {
         {r.consent_pdf_url ? (
           <ConsentPdfActions url={r.consent_pdf_url} basename={basename} />
         ) : (
-          <span className="text-xs text-muted-foreground">Pending</span>
+          <span className="text-xs text-muted-foreground">{t("adminConsents.pending")}</span>
         )}
       </TableCell>
     </TableRow>
@@ -99,6 +101,7 @@ function ConsentTableRow({ row: r }: { row: ConsentRow }) {
 }
 
 const AdminConsentsPanel = () => {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<ConsentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -112,7 +115,7 @@ const AdminConsentsPanel = () => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast.error(error.message || "Could not load consents");
+      toast.error(error.message || t("adminConsents.loadFailed"));
       setRows([]);
       setLoading(false);
       return;
@@ -187,12 +190,12 @@ const AdminConsentsPanel = () => {
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <FileSignature className="h-5 w-5 text-teal-500" />
-              Consent submissions
+              {t("adminConsents.title")}
             </CardTitle>
-            <CardDescription>All signed tattoo and piercing consent forms with PDF download.</CardDescription>
+            <CardDescription>{t("adminConsents.desc")}</CardDescription>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={() => void loadConsents()} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("adminConsents.refresh")}
           </Button>
         </div>
       </CardHeader>
@@ -200,7 +203,7 @@ const AdminConsentsPanel = () => {
         <ConsentFilters search={search} setSearch={setSearch} typeFilter={typeFilter} setTypeFilter={setTypeFilter} />
 
         <p className="text-xs text-muted-foreground">
-          Client consent link:{" "}
+          {t("adminConsents.clientLink")}{" "}
           <a href={consentUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
             {consentUrl}
           </a>
@@ -209,23 +212,23 @@ const AdminConsentsPanel = () => {
         {loading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
             <Loader2 className="h-5 w-5 animate-spin" />
-            Loading consents…
+            {t("adminConsents.loading")}
           </div>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">
-            {rows.length === 0 ? "No consent submissions yet." : "No consents match your filters."}
+            {rows.length === 0 ? t("adminConsents.empty") : t("adminConsents.noMatch")}
           </p>
         ) : (
           <div className="rounded-lg border border-border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Artist</TableHead>
-                  <TableHead>Appointment</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">PDF</TableHead>
+                  <TableHead>{t("adminConsents.client")}</TableHead>
+                  <TableHead>{t("adminConsents.type")}</TableHead>
+                  <TableHead>{t("adminConsents.artist")}</TableHead>
+                  <TableHead>{t("adminConsents.appointment")}</TableHead>
+                  <TableHead>{t("adminConsents.submitted")}</TableHead>
+                  <TableHead className="text-right">{t("adminConsents.pdf")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -239,7 +242,10 @@ const AdminConsentsPanel = () => {
 
         {!loading && filtered.length > 0 ? (
           <p className="text-xs text-muted-foreground">
-            Showing {filtered.length} of {rows.length} submission{rows.length === 1 ? "" : "s"}
+            {t(rows.length === 1 ? "adminConsents.showing" : "adminConsents.showingPlural", {
+              filtered: filtered.length,
+              total: rows.length,
+            })}
           </p>
         ) : null}
       </CardContent>
@@ -258,6 +264,7 @@ function ConsentFilters({
   typeFilter: "all" | "tattoo" | "piercing";
   setTypeFilter: (v: "all" | "tattoo" | "piercing") => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       <div className="relative flex-1">
@@ -265,18 +272,18 @@ function ConsentFilters({
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, email, phone, artist…"
+          placeholder={t("adminConsents.searchPlaceholder")}
           className="pl-9"
         />
       </div>
       <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
         <SelectTrigger className="w-full sm:w-[160px] bg-secondary">
-          <SelectValue placeholder="Type" />
+          <SelectValue placeholder={t("adminConsents.typePlaceholder")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All types</SelectItem>
-          <SelectItem value="tattoo">Tattoo</SelectItem>
-          <SelectItem value="piercing">Piercing</SelectItem>
+          <SelectItem value="all">{t("adminConsents.allTypes")}</SelectItem>
+          <SelectItem value="tattoo">{t("adminConsents.tattoo")}</SelectItem>
+          <SelectItem value="piercing">{t("adminConsents.piercing")}</SelectItem>
         </SelectContent>
       </Select>
     </div>

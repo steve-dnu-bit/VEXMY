@@ -257,7 +257,7 @@ const ClientsPage = () => {
   const deleteAllClients = async () => {
     const orgId = await getUserOrganizationId();
     if (!orgId) {
-      toast({ title: t("clients.failedDeleteClients"), description: "Organization not found", variant: "destructive" });
+      toast({ title: t("clients.failedDeleteClients"), description: t("common.organizationNotFound"), variant: "destructive" });
       return;
     }
 
@@ -408,7 +408,7 @@ const ClientsPage = () => {
       }
       const orgId = await getUserOrganizationId();
       if (!orgId) {
-        toast({ title: t("clients.mustBeLoggedInImport"), description: "Organization not found", variant: "destructive" });
+        toast({ title: t("clients.mustBeLoggedInImport"), description: t("common.organizationNotFound"), variant: "destructive" });
         return;
       }
 
@@ -468,7 +468,7 @@ const ClientsPage = () => {
 
         const orgId = await getUserOrganizationId();
         if (!orgId) {
-          toast({ title: t("clients.mustBeLoggedInImport"), description: "Organization not found", variant: "destructive" });
+          toast({ title: t("clients.mustBeLoggedInImport"), description: t("common.organizationNotFound"), variant: "destructive" });
           return;
         }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/AppLayout";
@@ -14,6 +15,7 @@ import { THEME_PRESETS } from "@/lib/themePresets";
 import { canArtistCustomizeDashboardTheme, notifyPortalThemeUpdated } from "@/lib/shopDashboardTheme";
 
 const ArtistProfileSettingsPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -54,7 +56,7 @@ const ArtistProfileSettingsPage = () => {
         .maybeSingle();
 
       if (error) {
-        toast.error(error.message || "Could not load profile");
+        toast.error(error.message || t("artistProfile.loadFailed"));
         setLoading(false);
         return;
       }
@@ -90,9 +92,9 @@ const ArtistProfileSettingsPage = () => {
     try {
       const url = await uploadAsset(file, "avatars");
       if (url) setAvatarUrl(url);
-      toast.success("Profile picture uploaded");
+      toast.success(t("artistProfile.uploadSuccess"));
     } catch (e: any) {
-      toast.error(e?.message || "Upload failed");
+      toast.error(e?.message || t("artistProfile.uploadFailed"));
     } finally {
       setUploadingAvatar(false);
     }
@@ -104,9 +106,9 @@ const ArtistProfileSettingsPage = () => {
     try {
       const url = await uploadAsset(file, "artist_portal_bg");
       if (url) setBgImageUrl(url);
-      toast.success("Background image uploaded");
+      toast.success(t("artistProfile.bgUploadSuccess"));
     } catch (e: any) {
-      toast.error(e?.message || "Upload failed");
+      toast.error(e?.message || t("artistProfile.uploadFailed"));
     } finally {
       setUploadingBg(false);
     }
@@ -134,22 +136,22 @@ const ArtistProfileSettingsPage = () => {
     const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "user_id" });
     setSaving(false);
     if (error) {
-      toast.error(error.message || "Could not save profile");
+      toast.error(error.message || t("artistProfile.saveFailed"));
       return;
     }
 
-    toast.success(markCompleted ? "Profile completed" : "Profile saved");
+    toast.success(markCompleted ? t("artistProfile.profileCompleted") : t("artistProfile.profileSaved"));
     if (canCustomizeTheme) notifyPortalThemeUpdated();
     if (markCompleted) navigate("/schedule");
   };
 
   const updatePassword = async () => {
     if (!newPassword || newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("artistProfile.passwordTooShort"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("artistProfile.passwordMismatch"));
       return;
     }
 
@@ -158,19 +160,19 @@ const ArtistProfileSettingsPage = () => {
     setUpdatingPassword(false);
 
     if (error) {
-      toast.error(error.message || "Could not update password");
+      toast.error(error.message || t("artistProfile.passwordUpdateFailed"));
       return;
     }
 
     setNewPassword("");
     setConfirmPassword("");
-    toast.success("Password updated");
+    toast.success(t("artistProfile.passwordUpdated"));
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       </div>
     );
   }
@@ -179,19 +181,15 @@ const ArtistProfileSettingsPage = () => {
     <AppLayout>
       <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
         <div>
-          <h1 className="font-display text-2xl font-bold">Artist Profile Settings</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Set your public profile details shown to customers on consent/account pages.
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            You can revisit and update this anytime from Settings.
-          </p>
+          <h1 className="font-display text-2xl font-bold">{t("artistProfile.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("artistProfile.subtitle")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("artistProfile.revisitHint")}</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Profile Basics</CardTitle>
-            <CardDescription>Picture, name and bio</CardDescription>
+            <CardTitle className="text-base">{t("artistProfile.basicsTitle")}</CardTitle>
+            <CardDescription>{t("artistProfile.basicsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
@@ -201,7 +199,7 @@ const ArtistProfileSettingsPage = () => {
               </Avatar>
               <div className="space-y-2">
                 <Button variant="outline" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}>
-                  {uploadingAvatar ? "Uploading..." : "Upload profile picture"}
+                  {uploadingAvatar ? t("artistProfile.uploading") : t("artistProfile.uploadPicture")}
                 </Button>
                 <input
                   ref={avatarInputRef}
@@ -214,11 +212,11 @@ const ArtistProfileSettingsPage = () => {
             </div>
 
             <div>
-              <Label>Name</Label>
+              <Label>{t("artistProfile.name")}</Label>
               <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label>Description</Label>
+              <Label>{t("artistProfile.description")}</Label>
               <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} className="mt-1" />
             </div>
           </CardContent>
@@ -226,54 +224,54 @@ const ArtistProfileSettingsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Contact Details</CardTitle>
+            <CardTitle className="text-base">{t("artistProfile.contactTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label>Contact Email</Label>
+              <Label>{t("artistProfile.contactEmail")}</Label>
               <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label>Contact Phone</Label>
+              <Label>{t("artistProfile.contactPhone")}</Label>
               <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label>Instagram</Label>
-              <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} className="mt-1" placeholder="@artist" />
+              <Label>{t("artistProfile.instagram")}</Label>
+              <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} className="mt-1" placeholder={t("artistProfile.instagramPlaceholder")} />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Security</CardTitle>
-            <CardDescription>Set or change your password</CardDescription>
+            <CardTitle className="text-base">{t("artistProfile.securityTitle")}</CardTitle>
+            <CardDescription>{t("artistProfile.securityDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label>New password</Label>
+              <Label>{t("artistProfile.newPassword")}</Label>
               <Input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="mt-1"
                 minLength={6}
-                placeholder="At least 6 characters"
+                placeholder={t("artistProfile.passwordPlaceholder")}
               />
             </div>
             <div>
-              <Label>Confirm new password</Label>
+              <Label>{t("artistProfile.confirmPassword")}</Label>
               <Input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="mt-1"
                 minLength={6}
-                placeholder="Re-enter password"
+                placeholder={t("artistProfile.confirmPlaceholder")}
               />
             </div>
             <Button variant="outline" onClick={() => void updatePassword()} disabled={updatingPassword}>
-              {updatingPassword ? "Updating..." : "Save password"}
+              {updatingPassword ? t("artistProfile.updating") : t("artistProfile.savePassword")}
             </Button>
           </CardContent>
         </Card>
@@ -281,12 +279,12 @@ const ArtistProfileSettingsPage = () => {
         {canCustomizeTheme ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Profile Theme</CardTitle>
-            <CardDescription>Background image and color scheme for your staff app and customer pages</CardDescription>
+            <CardTitle className="text-base">{t("artistProfile.themeTitle")}</CardTitle>
+            <CardDescription>{t("artistProfile.themeDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label>Preset themes</Label>
+              <Label>{t("artistProfile.presetThemes")}</Label>
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {THEME_PRESETS.map((preset) => {
                   const active = bgColor.toLowerCase() === preset.bgColor.toLowerCase();
@@ -310,14 +308,14 @@ const ArtistProfileSettingsPage = () => {
               </div>
             </div>
             <div>
-              <Label>Custom color (optional)</Label>
+              <Label>{t("artistProfile.customColor")}</Label>
               <Input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="mt-1 h-10 w-24 p-1" />
             </div>
             <div>
-              <Label>Background image</Label>
+              <Label>{t("artistProfile.backgroundImage")}</Label>
               <div className="mt-1 flex items-center gap-2">
                 <Button variant="outline" onClick={() => bgInputRef.current?.click()} disabled={uploadingBg}>
-                  {uploadingBg ? "Uploading..." : "Upload background image"}
+                  {uploadingBg ? t("artistProfile.uploading") : t("artistProfile.uploadBackground")}
                 </Button>
                 <input
                   ref={bgInputRef}
@@ -335,19 +333,17 @@ const ArtistProfileSettingsPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Profile Theme</CardTitle>
-              <CardDescription>
-                Your shop uses one shared dashboard look set by the admin. Contact your studio admin to change colors or background.
-              </CardDescription>
+              <CardDescription>{t("artistProfile.themeLockedDesc")}</CardDescription>
             </CardHeader>
           </Card>
         )}
 
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => void saveProfile(false)} disabled={saving}>
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("artistProfile.saving") : t("artistProfile.save")}
           </Button>
           <Button onClick={() => void saveProfile(true)} disabled={saving}>
-            {saving ? "Saving..." : "Save and continue"}
+            {saving ? t("artistProfile.saving") : t("artistProfile.saveContinue")}
           </Button>
         </div>
       </div>

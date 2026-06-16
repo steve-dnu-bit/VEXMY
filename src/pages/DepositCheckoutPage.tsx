@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import CustomerLayout from "@/components/CustomerLayout";
@@ -7,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
-import { VIP_DEPOSIT_EXEMPT_MESSAGE } from "@/lib/vipDepositCopy";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { loadShopSettings } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
@@ -26,6 +26,7 @@ type BookingForCheckout = {
 };
 
 const DepositCheckoutPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -42,7 +43,7 @@ const DepositCheckoutPage = () => {
     (async () => {
       if (!user) return;
       if (!bookingId) {
-        toast.error("Missing booking id");
+        toast.error(t("depositCheckout.missingBookingId"));
         navigate("/deposit-payment", { replace: true });
         return;
       }
@@ -55,7 +56,7 @@ const DepositCheckoutPage = () => {
 
       if (cancelled) return;
       if (error) {
-        toast.error(error.message || "Could not load booking");
+        toast.error(error.message || t("depositCheckout.loadBookingFailed"));
         navigate("/deposit-payment", { replace: true });
         return;
       }
@@ -68,34 +69,37 @@ const DepositCheckoutPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [bookingId, navigate, user]);
+  }, [bookingId, navigate, user, t]);
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       </div>
     );
   }
+
+  const depositAmount = booking ? (booking.deposit_amount ?? defaultDeposit) : defaultDeposit;
+  const formattedDeposit = formatShopMoney(depositAmount, shopCurrency);
 
   return (
     <CustomerLayout>
       <div className="space-y-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gold">Checkout</h1>
-          <p className="text-sm text-muted-foreground mt-1">Pay your deposit to secure your booking</p>
+          <h1 className="font-display text-2xl font-bold text-gold">{t("depositCheckout.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("depositCheckout.subtitle")}</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Deposit</CardTitle>
-            <CardDescription>Fixed deposit amount</CardDescription>
+            <CardTitle className="text-base">{t("depositCheckout.depositTitle")}</CardTitle>
+            <CardDescription>{t("depositCheckout.depositDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading booking…</p>
+              <p className="text-sm text-muted-foreground">{t("depositCheckout.loadingBooking")}</p>
             ) : !booking ? (
-              <p className="text-sm text-muted-foreground">Booking not found.</p>
+              <p className="text-sm text-muted-foreground">{t("depositCheckout.bookingNotFound")}</p>
             ) : (
               <>
                 <div className="rounded-lg border border-border p-3 space-y-1">
@@ -105,18 +109,16 @@ const DepositCheckoutPage = () => {
                   </p>
                   {booking.vip_client && !booking.deposit_paid ? (
                     <p className="text-sm mt-3 leading-relaxed border border-yellow-500/25 bg-yellow-500/10 rounded-md p-3 text-foreground/90">
-                      {VIP_DEPOSIT_EXEMPT_MESSAGE}
+                      {t("depositCheckout.vipExempt")}
                     </p>
                   ) : (
                     <>
                       <p className="text-sm mt-2">
-                        Amount:{" "}
-                        <span className="font-semibold">
-                          {formatShopMoney(booking.deposit_amount ?? defaultDeposit, shopCurrency)}
-                        </span>
+                        {t("depositCheckout.amount")}{" "}
+                        <span className="font-semibold">{formattedDeposit}</span>
                       </p>
                       {booking.deposit_paid ? (
-                        <p className="text-xs text-primary mt-1">Deposit already marked as paid.</p>
+                        <p className="text-xs text-primary mt-1">{t("depositCheckout.alreadyPaid")}</p>
                       ) : null}
                     </>
                   )}
@@ -136,20 +138,20 @@ const DepositCheckoutPage = () => {
                       });
                       if (error || !(data as any)?.checkoutUrl) {
                         setRedirecting(false);
-                        toast.error((data as any)?.error || error?.message || "Could not start Stripe checkout");
+                        toast.error((data as any)?.error || error?.message || t("depositCheckout.checkoutFailed"));
                         return;
                       }
                       window.location.href = (data as any).checkoutUrl as string;
                     }}
                   >
                     {redirecting
-                      ? "Redirecting to Stripe..."
-                      : `Pay ${formatShopMoney(booking.deposit_amount ?? defaultDeposit, shopCurrency)} deposit`}
+                      ? t("depositCheckout.redirecting")
+                      : t("depositCheckout.payDeposit", { amount: formattedDeposit })}
                   </Button>
                 ) : null}
 
                 <Button variant="outline" className="w-full" onClick={() => navigate("/deposit-payment")}>
-                  Back to deposit payment
+                  {t("depositCheckout.backToDeposits")}
                 </Button>
               </>
             )}
@@ -161,4 +163,3 @@ const DepositCheckoutPage = () => {
 };
 
 export default DepositCheckoutPage;
-

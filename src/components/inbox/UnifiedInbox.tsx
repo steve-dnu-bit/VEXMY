@@ -140,7 +140,12 @@ export default function UnifiedInbox({ highlightSenderId }: UnifiedInboxProps) {
       return;
     }
 
-    const atCap = usage && usage.remaining <= 0 && !usage.inOverage && usage.overageRateGbp <= 0;
+    const atCap =
+      usage &&
+      usage.monthlyCap > 0 &&
+      usage.remaining <= 0 &&
+      !usage.inOverage &&
+      usage.overageRateGbp <= 0;
     if (atCap) {
       toast({ title: t("unifiedInbox.capReached"), variant: "destructive" });
       return;

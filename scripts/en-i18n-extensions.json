@@ -1,0 +1,253 @@
+{
+  "legal": {
+    "layout": {
+      "lastUpdated": "Last updated:",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "cookies": "Cookies",
+      "home": "Home",
+      "documentation": "Documentation",
+      "studioLogin": "Studio login"
+    },
+    "privacy": {
+      "title": "Privacy Notice (UK/EU GDPR)",
+      "lastUpdated": "29 May 2026",
+      "sections": {
+        "general": {
+          "title": "General statement",
+          "p1": "{{shopLegalName}} is committed to protecting your privacy and takes its responsibilities regarding the security of customer information seriously. This notice explains how we use personal data and how we protect your privacy when you interact with our shop, website, and services.",
+          "contactLead": "If you have questions, contact us at",
+          "contactDpo": "For CCTV or data protection complaints, you may contact our DPO at"
+        },
+        "dataCollect": {
+          "title": "Data we collect",
+          "p1": "Depending on your interaction with us, we may collect: name, gender, date of birth, address, email, phone number, booking history, service notes, complaint/feedback records, payment details, cookie/device and technical usage data, social media handle (if you message us), and CCTV images captured at premises.",
+          "p2": "Where legally required to verify age for tattooing, we may request and retain a copy of photo identification with your consent documentation."
+        },
+        "whenCollect": {
+          "title": "When we collect data",
+          "p1": "We collect data when you use our website or account, make a booking or purchase, contact us, enter promotions, complete surveys, leave reviews, engage on social media, or otherwise interact with our business."
+        },
+        "lawfulBases": {
+          "title": "Lawful bases (UK GDPR / EU GDPR)",
+          "p1": "We rely on consent, contractual necessity, legal obligation, legitimate interests, and vital interests depending on context.",
+          "consent": "Consent:",
+          "consentDesc": "e.g. newsletter opt-in and optional cookie categories.",
+          "contract": "Contract:",
+          "contractDesc": "to provide booked services and process payments/deposits.",
+          "legal": "Legal obligation:",
+          "legalDesc": "where required to share data for fraud/crime prevention or legal process.",
+          "legitimate": "Legitimate interests:",
+          "legitimateDesc": "business operations, communications, service updates, and quality improvement.",
+          "vital": "Vital interests:",
+          "vitalDesc": "where needed to protect life/health in emergencies."
+        },
+        "howUse": {
+          "title": "How and why we use data",
+          "p1": "We use personal data to provide services, manage bookings and deposits, send required service communications, process complaints and feedback, improve products and systems, administer surveys and competitions, protect security, and meet legal obligations.",
+          "p2": "{{shopLegalName}} does not share marketing data with third-party organizations for their own marketing. We do share data with payment and service providers where necessary to run transactions and operations securely."
+        },
+        "cookies": {
+          "title": "Cookies, pixels, and website technologies",
+          "p1": "Cookies and similar technologies help us run website features and remember preferences. Our cookies are not intended to contain direct personal identifiers. You can manage browser cookies and in-app cookie preferences.",
+          "p2": "We may use email tracking pixels to understand whether emails were opened and whether your client can render text or HTML content."
+        },
+        "security": {
+          "title": "Security and retention",
+          "p1": "We use encryption, secure processing standards, and access controls to protect data. No internet transmission is entirely risk free, but we apply reasonable technical and organizational safeguards.",
+          "p2": "Standard retention is at least 5 years from last visit/transaction, or longer where legal/insurance claims require this. For insurance and damages claims we may retain relevant data up to 21 years."
+        },
+        "cctv": {
+          "title": "CCTV policy summary",
+          "p1": "Our premises are monitored by CCTV 24/7 for prevention/detection of crime, safety, and asset protection. Cameras are placed in prominent areas and not in sensitive spaces. Access is restricted to authorized trained personnel.",
+          "p2": "CCTV data is processed lawfully, fairly, transparently, and securely. Footage is generally stored for a minimum of 14 days and no longer than 1 year unless required for investigations, disciplinary proceedings, or legal evidence."
+        },
+        "rights": {
+          "title": "Your rights",
+          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. You can also ask us to stop direct marketing. You can request a copy of your data by emailing",
+          "orWriteTo": "or writing to:",
+          "p2": "If we refuse a request, we will explain why. You also have the right to complain to the UK Information Commissioner's Office (ICO) or your local EU supervisory authority."
+        },
+        "updates": {
+          "title": "Policy updates",
+          "p1": "We may update this notice periodically. Material changes will be posted here so you remain aware of what data we collect, how we use it, and when it may be disclosed."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms and Conditions of Use",
+      "lastUpdated": "29 May 2026",
+      "sections": {
+        "scope": { "title": "1. Scope", "p1": "These Terms govern access to and use of the {{platformName}} web application (the \"Service\") by staff and customers in the UK and EU. By using the Service, you agree to these Terms." },
+        "eligibility": { "title": "2. Eligibility and account security", "p1": "You must provide accurate information, keep credentials confidential, and notify us promptly of unauthorized account access. You are responsible for activity carried out under your account unless caused by our fault." },
+        "acceptableUse": { "title": "3. Acceptable use", "p1": "You must not misuse the Service, interfere with security controls, upload unlawful content, or use the Service in a way that breaches applicable law, including UK GDPR, EU GDPR, and consumer protection rules." },
+        "bookings": { "title": "4. Booking and deposit workflows", "p1": "The Service supports booking management and deposit reminders. Payment handling is provided by integrated third-party providers. You are responsible for ensuring booking and payment information entered is correct before sending notifications.", "p2": "Additional studio terms apply to booked tattoo services: once tattooing services are provided, the agreed price is payable in full and no credit is offered; deposits are collected via online payment provider integration; deposits are refundable only where formal cancellation is made by email at least 24 hours before the appointment; and dissatisfaction with style preference changes after service does not create a refund entitlement." },
+        "ip": { "title": "5. Intellectual property", "p1": "The Service design, software, and content are protected by intellectual property rights. You may use the Service only for internal business or personal booking purposes and not for unauthorized copying, resale, or reverse engineering." },
+        "data": { "title": "6. Data protection", "p1": "Personal data is processed in line with our Privacy Notice and applicable UK/EU data protection law. Where required, we rely on consent, contract, legal obligation, or legitimate interests as a lawful basis." },
+        "availability": { "title": "7. Service availability", "p1": "We aim for reliable operation but do not guarantee uninterrupted availability. Planned maintenance, updates, and third-party outages may affect access." },
+        "liability": { "title": "8. Liability", "p1": "Nothing in these Terms limits liability that cannot be limited under law (including fraud or death/personal injury caused by negligence). Subject to mandatory law, we exclude indirect losses and limit liability to foreseeable direct losses arising from breach." },
+        "changes": { "title": "9. Changes and termination", "p1": "We may update these Terms where required by law, security, or product changes. Material changes are published in-app with a revised date. We may suspend or terminate access where terms are breached or misuse is detected." },
+        "governingLaw": { "title": "10. Governing law", "p1": "These Terms are governed by the laws of England and Wales, unless mandatory consumer law in your country of residence provides otherwise." }
+      }
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "lastUpdated": "04 May 2026",
+      "sections": {
+        "what": { "title": "1. What cookies are", "p1": "Cookies are small text files stored on your device. We also use similar technologies (such as local storage) where needed for application functionality and user preferences." },
+        "categories": { "title": "2. Cookie categories we use", "p1": "Strictly necessary: required for authentication, security, session handling, and core features. Preferences: store UI and usability choices. Analytics: help us understand performance and usage trends. Marketing: support campaign effectiveness and tailored promotion." },
+        "consent": { "title": "3. Consent model", "p1": "Strictly necessary technologies are always active. Optional categories (preferences, analytics, marketing) are activated only after your consent and can be changed any time from the cookie preferences interface." },
+        "thirdParty": { "title": "4. Third-party services", "p1": "Some integrated providers may set their own cookies or similar identifiers when their functionality is used. Their privacy/cookie terms apply in addition to this policy." },
+        "pixels": { "title": "Email pixels", "p1": "We may include tracking pixels in certain emails to understand engagement (for example, whether an email was opened) and content rendering capability (text vs HTML). This helps us improve communication quality and relevance." },
+        "manage": { "title": "5. How to manage cookies", "p1": "You can accept all, reject non-essential, or set granular choices in-app. You can also configure your browser to block cookies, but this may impact core features such as sign-in or secure session handling." },
+        "updates": { "title": "6. Updates", "p1": "We may update this policy to reflect legal, technical, or product changes. The latest version and update date are always published here." }
+      }
+    }
+  },
+  "depositCheckout": {
+    "title": "Checkout",
+    "subtitle": "Pay your deposit to secure your booking",
+    "depositTitle": "Deposit",
+    "depositDesc": "Fixed deposit amount",
+    "loadingBooking": "Loading booking…",
+    "bookingNotFound": "Booking not found.",
+    "amount": "Amount:",
+    "alreadyPaid": "Deposit already marked as paid.",
+    "redirecting": "Redirecting to Stripe...",
+    "payDeposit": "Pay {{amount}} deposit",
+    "backToDeposits": "Back to deposit payment",
+    "missingBookingId": "Missing booking id",
+    "loadBookingFailed": "Could not load booking",
+    "checkoutFailed": "Could not start Stripe checkout",
+    "vipExempt": "Because you are a VIP customer, you are not required to pay a deposit. Please let us know if anything changes."
+  },
+  "artistProfile": {
+    "title": "Artist Profile Settings",
+    "subtitle": "Set your public profile details shown to customers on consent/account pages.",
+    "revisitHint": "You can revisit and update this anytime from Settings.",
+    "basicsTitle": "Profile Basics",
+    "basicsDesc": "Picture, name and bio",
+    "uploading": "Uploading...",
+    "uploadPicture": "Upload profile picture",
+    "name": "Name",
+    "description": "Description",
+    "contactTitle": "Contact Details",
+    "contactEmail": "Contact Email",
+    "contactPhone": "Contact Phone",
+    "instagram": "Instagram",
+    "instagramPlaceholder": "@artist",
+    "securityTitle": "Security",
+    "securityDesc": "Set or change your password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordPlaceholder": "At least 6 characters",
+    "confirmPlaceholder": "Re-enter password",
+    "updating": "Updating...",
+    "savePassword": "Save password",
+    "themeTitle": "Profile Theme",
+    "themeDesc": "Background image and color scheme for your staff app and customer pages",
+    "themeLockedDesc": "Your shop uses one shared dashboard look set by the admin. Contact your studio admin to change colors or background.",
+    "presetThemes": "Preset themes",
+    "customColor": "Custom color (optional)",
+    "backgroundImage": "Background image",
+    "uploadBackground": "Upload background image",
+    "save": "Save",
+    "saving": "Saving...",
+    "saveContinue": "Save and continue",
+    "loadFailed": "Could not load profile",
+    "uploadSuccess": "Profile picture uploaded",
+    "bgUploadSuccess": "Background image uploaded",
+    "uploadFailed": "Upload failed",
+    "bgUploadSuccess": "Background image uploaded",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordUpdated": "Password updated",
+    "passwordUpdateFailed": "Could not update password",
+    "profileSaved": "Profile saved",
+    "profileCompleted": "Profile completed",
+    "saveFailed": "Could not save profile"
+  },
+  "routeError": {
+    "defaultLabel": "This page",
+    "failedToLoad": "{{label}} failed to load",
+    "somethingWrong": "Something went wrong",
+    "refresh": "Refresh page"
+  },
+  "adminConsents": {
+    "title": "Consent submissions",
+    "desc": "All signed tattoo and piercing consent forms with PDF download.",
+    "refresh": "Refresh",
+    "clientLink": "Client consent link:",
+    "loading": "Loading consents…",
+    "empty": "No consent submissions yet.",
+    "noMatch": "No consents match your filters.",
+    "showing": "Showing {{filtered}} of {{total}} submission",
+    "showingPlural": "Showing {{filtered}} of {{total}} submissions",
+    "searchPlaceholder": "Search name, email, phone, artist…",
+    "typePlaceholder": "Type",
+    "allTypes": "All types",
+    "tattoo": "Tattoo",
+    "piercing": "Piercing",
+    "client": "Client",
+    "type": "Type",
+    "artist": "Artist",
+    "appointment": "Appointment",
+    "submitted": "Submitted",
+    "pdf": "PDF",
+    "pending": "Pending",
+    "viewPdf": "View PDF",
+    "downloadPdf": "Download PDF",
+    "printPdf": "Print PDF",
+    "downloadStarted": "Download started",
+    "loadFailed": "Could not load consents"
+  },
+  "errors": {
+    "sectionLoadFailed": "This section could not load right now.",
+    "adminPageFailed": "Admin page failed to load",
+    "adminDataFailed": "Could not load admin data",
+    "adminSectionFailed": "This section could not load. Try refreshing the page."
+  },
+  "messaging": {
+    "facebook": "Facebook"
+  },
+  "marketing": {
+    "landingMocks": {
+      "scheduleTitle": "velbok.com/schedule",
+      "scheduleLabel": "Schedule",
+      "scheduleDay": "Wednesday · week view",
+      "newBooking": "+ New booking",
+      "confirmed": "Confirmed",
+      "bookingFullSleeve": "Full sleeve consult",
+      "bookingPortrait": "Portrait session",
+      "bookingTouchUp": "Touch-up",
+      "bookingConsult": "Consultation",
+      "depositsTitle": "velbok.com/deposits",
+      "depositsLabel": "Deposits",
+      "depositsSubtitle": "Payment links & tracking",
+      "inWindow": "In window",
+      "paid": "Paid",
+      "pending": "Pending",
+      "sendLink": "Send link",
+      "stencilTitle": "velbok.com/stencil",
+      "stencilLabel": "AI Stencil",
+      "stencilSubtitle": "Design prep workspace",
+      "generate": "Generate",
+      "reference": "Reference",
+      "stencilOutput": "Stencil output",
+      "contrast": "Contrast +12",
+      "lineWeight": "Line weight",
+      "exportPng": "Export PNG",
+      "consentTitle": "velbok.com/consent",
+      "consentLabel": "Digital consent",
+      "consentFormTitle": "Tattoo consent form",
+      "clientDetails": "Client details",
+      "healthQuestionnaire": "Health questionnaire",
+      "aftercareAck": "Aftercare acknowledgement",
+      "signature": "Signature"
+    }
+  },
+  "admin": {
+    "featureMyBookings": "My bookings / profile",
+    "featureConsentLink": "Consent form link"
+  }
+}

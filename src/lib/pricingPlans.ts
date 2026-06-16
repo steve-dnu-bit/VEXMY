@@ -193,7 +193,6 @@ export const COMPARISON_ROWS: { label: string; starter: string; studio: string; 
   { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
   { label: "Client contact centre", starter: "✓", studio: "✓", enterprise: "✓" },
   { label: "Unified inbox", starter: "—", studio: "Email + 1 channel", enterprise: "All channels" },
-  { label: "API messages / month", starter: "—", studio: "300", enterprise: "500" },
 ];
 
 export function getPlanById(id: string | null): PricingPlan | undefined {

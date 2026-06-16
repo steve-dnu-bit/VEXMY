@@ -83,12 +83,6 @@ export function useComparisonRowsI18n() {
         studio: t("pricing.comparison.inboxStudio"),
         enterprise: t("pricing.comparison.inboxEnterprise"),
       },
-      {
-        label: t("pricing.comparison.apiMessages"),
-        starter: dash,
-        studio: "300",
-        enterprise: "500",
-      },
     ],
     [t, dash, currency, prices],
   );

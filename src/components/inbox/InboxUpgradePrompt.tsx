@@ -10,7 +10,7 @@ type InboxUpgradePromptProps = {
 
 export default function InboxUpgradePrompt({ compact = false }: InboxUpgradePromptProps) {
   const { t } = useTranslation();
-  const studioPerks = ["feed", "channels", "quota", "history"] as const;
+  const studioPerks = ["feed", "channels", "replies", "history"] as const;
 
   if (compact) {
     return (

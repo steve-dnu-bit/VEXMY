@@ -1,10 +1,11 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { translate } from "@vitalets/google-translate-api";
+import { translate } from "google-translate-api-x";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const localesDir = join(__dirname, "../src/i18n/locales");
+const BATCH_SIZE = 45;
 
 const TARGETS = {
   de: "de",
@@ -116,33 +117,43 @@ function sleep(ms) {
 
 function isRateLimitError(err) {
   const msg = String(err?.message ?? err);
-  return msg.includes("Too Many Requests") || msg.includes("429");
+  return msg.includes("Too Many Requests") || msg.includes("429") || msg.includes("503");
 }
 
-async function translateText(text, langCode) {
-  if (!text || typeof text !== "string") return text;
-  if (KEEP_AS_EN.has(text.trim())) return text;
+function prepareItem(enVal) {
+  const { protectedText, tokens } = protectInterpolation(protectBrands(enVal));
+  return { protectedText, tokens };
+}
 
-  const { protectedText, tokens } = protectInterpolation(protectBrands(text));
-  for (let attempt = 0; attempt < 8; attempt++) {
+function finalizeItem(resultText, tokens) {
+  return restoreInterpolation(restoreBrands(resultText), tokens);
+}
+
+async function translateBatch(items, langCode) {
+  if (!items.length) return [];
+  const texts = items.map((i) => i.protectedText);
+
+  for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      await sleep(5000 + attempt * 2000);
-      const { text: result } = await translate(protectedText, { from: "en", to: TARGETS[langCode] });
-      return restoreInterpolation(restoreBrands(result), tokens);
+      if (attempt > 0) await sleep(3000 + attempt * 2000);
+      const results = await translate(texts, {
+        from: "en",
+        to: TARGETS[langCode],
+        forceBatch: true,
+      });
+      const arr = Array.isArray(results) ? results : [results];
+      return arr.map((r, idx) => finalizeItem(r.text, items[idx].tokens));
     } catch (e) {
       if (isRateLimitError(e)) {
-        const waitMs = 45000 + attempt * 15000;
+        const waitMs = 20000 + attempt * 10000;
         console.warn(`  Rate limited [${langCode}], waiting ${Math.round(waitMs / 1000)}s…`);
         await sleep(waitMs);
         continue;
       }
-      if (attempt === 7) {
-        console.warn(`  FAIL [${langCode}]: ${text.slice(0, 50)} (${e.message})`);
-        return text;
-      }
+      if (attempt === 5) throw e;
     }
   }
-  return text;
+  return items.map((i) => finalizeItem(i.protectedText, i.tokens));
 }
 
 async function main() {
@@ -167,7 +178,10 @@ async function main() {
 
     const todo = Object.keys(enFlat).filter((k) => {
       if (!(k in locFlat)) return true;
-      if (retranslate && locFlat[k] === enFlat[k]) return true;
+      const enVal = enFlat[k];
+      const locVal = locFlat[k];
+      if (retranslate && locVal === enVal) return true;
+      if (!retranslate && locVal === enVal && !KEEP_AS_EN.has(String(enVal).trim())) return true;
       return false;
     });
 
@@ -178,23 +192,58 @@ async function main() {
 
     console.log(`${lang}: translating ${todo.length} keys...`);
     let translated = 0;
+    const pending = [];
 
-    for (let i = 0; i < todo.length; i++) {
-      const key = todo[i];
+    for (const key of todo) {
       const enVal = enFlat[key];
-      const cacheKey = `${lang}::${enVal}`;
-      let val = cache[cacheKey];
+      if (!enVal || typeof enVal !== "string") {
+        setByPath(locale, key, enVal);
+        continue;
+      }
+      if (KEEP_AS_EN.has(enVal.trim())) {
+        setByPath(locale, key, enVal);
+        continue;
+      }
 
-      if (!val || val === enVal || retranslate) {
-        val = await translateText(enVal, lang);
-        cache[cacheKey] = val;
-        if (val !== enVal) translated++;
-        if ((i + 1) % 20 === 0) {
-          writeFileSync(cachePath, JSON.stringify(cache, null, 2));
+      const cacheKey = `${lang}::${enVal}`;
+      const cached = cache[cacheKey];
+      if (cached && cached !== enVal && !retranslate) {
+        setByPath(locale, key, cached);
+        continue;
+      }
+
+      pending.push({ key, enVal, ...prepareItem(enVal) });
+    }
+
+    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+      const chunk = pending.slice(i, i + BATCH_SIZE);
+      let results;
+      try {
+        results = await translateBatch(chunk, lang);
+      } catch (e) {
+        console.warn(`  Batch failed [${lang}], falling back per key: ${e.message}`);
+        results = [];
+        for (const item of chunk) {
+          try {
+            const single = await translateBatch([item], lang);
+            results.push(single[0]);
+          } catch {
+            results.push(item.enVal);
+          }
         }
       }
 
-      setByPath(locale, key, val);
+      chunk.forEach((item, idx) => {
+        const val = results[idx] ?? item.enVal;
+        cache[`${lang}::${item.enVal}`] = val;
+        setByPath(locale, item.key, val);
+        if (val !== item.enVal) translated++;
+      });
+
+      writeFileSync(localePath, JSON.stringify(locale, null, 2) + "\n", "utf8");
+      writeFileSync(cachePath, JSON.stringify(cache, null, 2));
+      console.log(`  ${lang}: ${Math.min(i + BATCH_SIZE, pending.length)}/${pending.length}`);
+      await sleep(800);
     }
 
     writeFileSync(localePath, JSON.stringify(locale, null, 2) + "\n", "utf8");

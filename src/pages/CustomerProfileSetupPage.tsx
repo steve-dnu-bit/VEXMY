@@ -83,7 +83,7 @@ const CustomerProfileSetupPage = () => {
     }
     if (!fullName.trim() || !phone.trim()) {
       toast({
-        title: "Complete all required fields",
+        title: t("customer.completeRequiredFields"),
         description: t("customer.requiredFieldsDesc"),
         variant: "destructive",
       });
