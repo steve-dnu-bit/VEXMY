@@ -11,6 +11,7 @@ async function organizationExists(admin: SupabaseClient, organizationId: string)
   return !!data?.id;
 }
 
+/** User's org from membership (or single-org deployment fallback via SQL RPC only). */
 export async function resolveOrganizationForUser(
   admin: SupabaseClient,
   userId: string,
@@ -19,32 +20,7 @@ export async function resolveOrganizationForUser(
   if (resolvedOrgId && (await organizationExists(admin, resolvedOrgId as string))) {
     return resolvedOrgId as string;
   }
-
-  const { data: memberOrgId } = await admin.rpc("get_user_organization_id", { _user_id: userId });
-  if (memberOrgId && (await organizationExists(admin, memberOrgId as string))) {
-    return memberOrgId as string;
-  }
-
-  const { data: shop } = await admin
-    .from("shop_settings")
-    .select("organization_id")
-    .not("organization_id", "is", null)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (shop?.organization_id && (await organizationExists(admin, shop.organization_id))) {
-    return shop.organization_id;
-  }
-
-  const { data: soleOrg } = await admin
-    .from("organizations")
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  return soleOrg?.id ?? null;
+  return null;
 }
 
 export async function canManageOrganizationBilling(
@@ -52,17 +28,14 @@ export async function canManageOrganizationBilling(
   userId: string,
   organizationId: string,
 ): Promise<boolean> {
-  const { data: isPlatformAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
+  const { data: isPlatformAdmin } = await admin.rpc("is_platform_admin", { _user_id: userId });
   if (isPlatformAdmin) return true;
 
-  const { data: membership } = await admin
-    .from("organization_members")
-    .select("role")
-    .eq("organization_id", organizationId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  return !!membership && ["owner", "admin"].includes(membership.role);
+  const { data: isOrgAdmin } = await admin.rpc("is_org_admin", {
+    _org_id: organizationId,
+    _user_id: userId,
+  });
+  return !!isOrgAdmin;
 }
 
 export async function loadOrganizationRecord(

@@ -33,7 +33,7 @@ const SubscribePage = () => {
   const selfServePlan = pricingPlans.find((p) => p.id === planId) ?? pricingPlans.find((p) => p.id === "studio")!;
 
   const { user, loading: authLoading } = useAuth();
-  const { data: orgSub, isLoading: subLoading } = useSubscription();
+  const { data: orgSub, isLoading: subLoading, canManageBilling } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,9 +78,11 @@ const SubscribePage = () => {
     }
   }, [authLoading, subLoading, user, orgSub?.subscription, navigate]);
 
-  const startCheckout = async (organizationId?: string) => {
+  const startCheckout = async () => {
     setSubmitting(true);
     try {
+      const organizationId =
+        canManageBilling && orgSub?.organizationId ? orgSub.organizationId : undefined;
       const { data, error } = await invokeEdgeFunctionJson<{
         checkoutUrl?: string;
         error?: string;
@@ -159,7 +161,7 @@ const SubscribePage = () => {
         throw new Error(t("common.studioName"));
       }
 
-      await startCheckout(orgSub?.organizationId);
+      await startCheckout();
     } catch (e) {
       toast({
         title: t("common.error"),
@@ -175,7 +177,13 @@ const SubscribePage = () => {
       toast({ title: t("common.studioName"), variant: "destructive" });
       return;
     }
-    await startCheckout(orgSub?.organizationId);
+    await startCheckout();
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setStudioName("");
+    navigate("/subscribe?plan=" + selfServePlan.id, { replace: true });
   };
 
   if (authLoading || subLoading) {
@@ -265,6 +273,9 @@ const SubscribePage = () => {
                   ) : (
                     t("subscribe.continueCheckout")
                   )}
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => void handleSignOut()}>
+                  {t("common.signOut")}
                 </Button>
                 <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate("/pricing")}>
                   {t("common.comparePlans")}

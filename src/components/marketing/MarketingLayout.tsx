@@ -7,10 +7,18 @@ import { BRANDING } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import VelbokBrand from "@/components/brand/VelbokBrand";
 import VelbokLogo from "@/components/brand/VelbokLogo";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setMobileOpen(false);
+  };
 
   const navLinks = [
     { label: t("landing.navProductTour"), href: "/#product-tour" },
@@ -42,12 +50,25 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
 
           <div className="hidden items-center gap-3 md:flex">
             <LanguageSelector compact />
-            <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-              <Link to="/auth">{t("common.signIn")}</Link>
-            </Button>
-            <Button variant="gold" asChild>
-              <Link to="/subscribe">{t("common.startFreeTrial")}</Link>
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
+                  <Link to="/subscribe">{t("common.startFreeTrial")}</Link>
+                </Button>
+                <Button variant="ghost" onClick={() => void handleSignOut()} className="text-muted-foreground hover:text-foreground">
+                  {t("common.signOut")}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
+                  <Link to="/auth">{t("common.signIn")}</Link>
+                </Button>
+                <Button variant="gold" asChild>
+                  <Link to="/subscribe">{t("common.startFreeTrial")}</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           <button
@@ -74,9 +95,19 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
                 </Link>
               ))}
               <LanguageSelector compact className="w-full" />
-              <Link to="/auth" className="text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
-                {t("common.signIn")}
-              </Link>
+              {user ? (
+                <button
+                  type="button"
+                  className="text-left text-sm text-muted-foreground"
+                  onClick={() => void handleSignOut()}
+                >
+                  {t("common.signOut")}
+                </button>
+              ) : (
+                <Link to="/auth" className="text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                  {t("common.signIn")}
+                </Link>
+              )}
             </div>
           </div>
         ) : null}
