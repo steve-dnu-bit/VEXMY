@@ -41,7 +41,8 @@
     "collapseMenu": "Згорнути меню",
     "and": "та",
     "refresh": "Refresh",
-    "organizationNotFound": "Organization not found"
+    "organizationNotFound": "Organization not found",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Розклад",

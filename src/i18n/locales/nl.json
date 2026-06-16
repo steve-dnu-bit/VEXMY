@@ -41,7 +41,8 @@
     "collapseMenu": "Menu inklappen",
     "and": "en",
     "refresh": "Vernieuwen",
-    "organizationNotFound": "Organisatie niet gevonden"
+    "organizationNotFound": "Organisatie niet gevonden",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Planning",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Standaardwaarden gelden wanneer iemand een uitnodiging accepteert als Klant of Artiest. Bestaande gebruikers blijven ongewijzigd.",
     "customerDefaults": "Klantstandaarden",
     "artistDefaults": "Artieststandaarden",
-    "customerNav": "navigatie",
+    "customerNav": "klantenmenu",
     "staffFeatureAccess": "Toegang personeelsfuncties",
     "staffFeatureAccessDesc": "Artiesten en admins — geen klant-only accounts",
     "user": "Gebruiker",

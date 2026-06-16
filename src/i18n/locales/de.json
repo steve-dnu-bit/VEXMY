@@ -41,7 +41,8 @@
     "collapseMenu": "Menü einklappen",
     "and": "und",
     "refresh": "Aktualisieren",
-    "organizationNotFound": "Organisation nicht gefunden"
+    "organizationNotFound": "Organisation nicht gefunden",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Terminplan",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Es gelten die Standardeinstellungen, wenn jemand eine Einladung als Kunde oder Künstler annimmt.Bestehende Benutzer bleiben unverändert.",
     "customerDefaults": "Kundenvorgaben",
     "artistDefaults": "Künstlervorgaben",
-    "customerNav": "Navigation",
+    "customerNav": "Kundenmenü",
     "staffFeatureAccess": "Zugriff auf Mitarbeiterfunktionen",
     "staffFeatureAccessDesc": "Künstler und Administratoren – keine reinen Kundenkonten",
     "user": "Benutzer",

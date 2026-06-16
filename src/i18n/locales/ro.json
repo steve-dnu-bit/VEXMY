@@ -41,7 +41,8 @@
     "collapseMenu": "Restrânge meniul",
     "and": "și",
     "refresh": "Reîmprospătare",
-    "organizationNotFound": "Organizația nu a fost găsită"
+    "organizationNotFound": "Organizația nu a fost găsită",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Program",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Valorile prestabilite se aplică atunci când cineva acceptă o invitație ca client sau artist.Utilizatorii existenți sunt neschimbați.",
     "customerDefaults": "Valori implicite ale clientului",
     "artistDefaults": "Valori implicite pentru artist",
-    "customerNav": "VAN",
+    "customerNav": "meniu client",
     "staffFeatureAccess": "Personalul oferă acces",
     "staffFeatureAccessDesc": "Artiști și administratori - nu conturi doar pentru clienți",
     "user": "Utilizator",

@@ -41,7 +41,8 @@
     "collapseMenu": "Réduire le menu",
     "and": "et",
     "refresh": "Actualiser",
-    "organizationNotFound": "Organisation introuvable"
+    "organizationNotFound": "Organisation introuvable",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Planning",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Les valeurs par défaut s'appliquent lorsqu'une personne accepte une invitation en tant que client ou artiste.Les utilisateurs existants restent inchangés.",
     "customerDefaults": "Valeurs par défaut du client",
     "artistDefaults": "Valeurs par défaut de l'artiste",
-    "customerNav": "navigation",
+    "customerNav": "menu client",
     "staffFeatureAccess": "Accès aux fonctionnalités du personnel",
     "staffFeatureAccessDesc": "Artistes et administrateurs – comptes non réservés aux clients",
     "user": "Utilisatrice",

@@ -41,7 +41,8 @@
     "collapseMenu": "Fäll ihop meny",
     "and": "och",
     "refresh": "Uppdatera",
-    "organizationNotFound": "Organisationen hittades inte"
+    "organizationNotFound": "Organisationen hittades inte",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Schema",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Standardvärden gäller när någon accepterar en inbjudan som kund eller artist. Befintliga användare är oförändrade.",
     "customerDefaults": "Kundens standardinställningar",
     "artistDefaults": "Standardinställningar för artist",
-    "customerNav": "navigering",
+    "customerNav": "kundmeny",
     "staffFeatureAccess": "Personalen har tillgång",
     "staffFeatureAccessDesc": "Artister och administratörer – inte endast kundkonton",
     "user": "Användare",

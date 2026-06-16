@@ -206,7 +206,7 @@ const AdminPage = () => {
         setIsAdmin(!!adminRes.data || !!adminPermRes.data || platformAdminFlag);
       } catch (e) {
         if (!cancelled) {
-          setLoadError(e instanceof Error ? e.message : "Failed to load admin data");
+          setLoadError(e instanceof Error ? e.message : i18n.t("errors.adminDataFailed"));
         }
       } finally {
         if (!cancelled) setLoading(false);

@@ -80,6 +80,11 @@ const PageFallback = () => {
   );
 };
 
+const AppErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
+  return <RouteErrorBoundary label={t("common.appName")}>{children}</RouteErrorBoundary>;
+};
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return <PageFallback />;
@@ -112,7 +117,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <RouteErrorBoundary label="App">
+            <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 {isNativeApp() ? (
                   <MobileAppRoutes />
@@ -161,7 +166,7 @@ const App = () => (
               </Routes>
                 )}
               </Suspense>
-            </RouteErrorBoundary>
+            </AppErrorBoundary>
             {!isNativeApp() ? <CookieConsentBanner /> : null}
           </BrowserRouter>
         </TooltipProvider>

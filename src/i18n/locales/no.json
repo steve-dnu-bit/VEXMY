@@ -41,7 +41,8 @@
     "collapseMenu": "Skjul meny",
     "and": "og",
     "refresh": "Oppdater",
-    "organizationNotFound": "Finner ikke organisasjonen"
+    "organizationNotFound": "Finner ikke organisasjonen",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Timeplan",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Standarder gjelder når noen godtar en invitasjon som Kunde eller Artist. Eksisterende brukere er uendret.",
     "customerDefaults": "Kundestandarder",
     "artistDefaults": "Artiststandarder",
-    "customerNav": "navigasjon",
+    "customerNav": "kundemeny",
     "staffFeatureAccess": "Tilgang til personalfunksjoner",
     "staffFeatureAccessDesc": "Artists and admins - not customer-only accounts",
     "user": "Bruker",

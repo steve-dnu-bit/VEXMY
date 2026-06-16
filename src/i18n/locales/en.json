@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading…",
+    "appName": "Velbok",
     "refresh": "Refresh",
     "save": "Save",
     "cancel": "Cancel",
@@ -862,7 +863,7 @@
     "defaultsApplyNote": "Defaults apply when someone accepts an invite as Customer or Artist. Existing users are unchanged.",
     "customerDefaults": "Customer defaults",
     "artistDefaults": "Artist defaults",
-    "customerNav": "nav",
+    "customerNav": "customer menu",
     "staffFeatureAccess": "Staff feature access",
     "staffFeatureAccessDesc": "Artists and admins — remove artists from the shop to free a seat. Past bookings stay on the schedule.",
     "remove": "Remove",

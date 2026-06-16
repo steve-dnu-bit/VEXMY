@@ -41,7 +41,8 @@
     "collapseMenu": "Contraer menú",
     "and": "y",
     "refresh": "Actualizar",
-    "organizationNotFound": "Organización no encontrada"
+    "organizationNotFound": "Organización no encontrada",
+    "appName": "Velbok"
   },
   "nav": {
     "schedule": "Agenda",
@@ -440,7 +441,7 @@
     "defaultsApplyNote": "Los valores predeterminados se aplican cuando alguien acepta una invitación como Cliente o Artista. Los usuarios existentes no han cambiado.",
     "customerDefaults": "Valores predeterminados del cliente",
     "artistDefaults": "Valores predeterminados del artista",
-    "customerNav": "navegación",
+    "customerNav": "menú del cliente",
     "staffFeatureAccess": "Acceso a las funciones del personal",
     "staffFeatureAccessDesc": "Artistas y administradores: no cuentas exclusivas para clientes",
     "user": "Usuario",
