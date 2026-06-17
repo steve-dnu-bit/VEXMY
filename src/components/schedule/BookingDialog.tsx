@@ -122,29 +122,6 @@ function diffBookingPayload(next: BookingSavePayload, baseline: BookingSavePaylo
   return patch;
 }
 
-type BookingNotificationPayload = {
-  id: string;
-  artist_id: string;
-  client_name: string;
-  client_email: string | null;
-  client_phone: string | null;
-  booking_type: string;
-  status: string;
-  starts_at: string;
-  ends_at: string;
-  notes: string | null;
-};
-
-type BookingNotificationResult = {
-  ok?: boolean;
-  sent?: number;
-  attempted?: number;
-  emailAttempted?: boolean;
-  failedCount?: number;
-  skipped?: string;
-  failed?: Array<{ email?: string; message?: string }>;
-};
-
 interface BookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -214,7 +191,6 @@ const BookingDialog = ({
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const suggestionsDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clientNameWrapRef = useRef<HTMLDivElement>(null);
-  const notificationCooldownRef = useRef<Map<string, number>>(new Map());
   const editBaselineRef = useRef<BookingSavePayload | null>(null);
   const skipAutoLinkFromEmailRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -613,86 +589,6 @@ const BookingDialog = ({
 
   const update = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
-  const sendBookingNotification = async (action: "created" | "updated" | "deleted", booking: BookingNotificationPayload) => {
-    const dedupeKey = `${action}:${booking.id}`;
-    const now = Date.now();
-    const lastSentAt = notificationCooldownRef.current.get(dedupeKey) ?? 0;
-    if (now - lastSentAt < 60_000) {
-      console.warn("Booking notification skipped: dedupe cooldown", { dedupeKey });
-      return;
-    }
-
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    const token = session?.access_token ?? null;
-    if (sessionError || !token) {
-      toast.warning(t("schedule.notifications.sessionExpired"));
-      return;
-    }
-
-    const { data, error } = await supabase.functions.invoke<BookingNotificationResult>("booking-notifications", {
-      body: {
-        action,
-        booking,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (error) {
-      const status = (error as any)?.context?.status ?? (error as any)?.status;
-      const errBody = (error as any)?.context?.body;
-      let errMsg = error.message;
-      if (typeof errBody === "string") {
-        try {
-          const parsed = JSON.parse(errBody);
-          if (parsed?.error) errMsg = parsed.error;
-          if (parsed?.hint) errMsg += ` — ${parsed.hint}`;
-        } catch { /* ignore */ }
-      }
-      if (status === 401) {
-        toast.warning(t("schedule.notifications.sessionExpired401"));
-        return;
-      }
-      if (status === 503) {
-        toast.warning(t("schedule.notifications.emailNotConfigured", { msg: errMsg }));
-        return;
-      }
-      console.error("Booking notification failed:", error);
-      toast.warning(t("schedule.notifications.emailFailed", { msg: errMsg }));
-      return;
-    }
-
-    if (data?.failed && data.failed.length > 0) {
-      const first = data.failed[0];
-      const details = first?.email ? `${first.email}: ${first.message || "send failed"}` : first?.message || "send failed";
-      toast.warning(t("schedule.notifications.someEmailsFailed", { details }));
-      return;
-    }
-
-    if (data?.skipped === "booking_confirmation_disabled") {
-      toast.warning(t("schedule.notifications.confirmationsOff"));
-      return;
-    }
-
-    if (data?.emailAttempted === false && (data.sent ?? 0) === 0) {
-      if (!booking.client_email?.trim()) {
-        toast.warning(t("schedule.notifications.noClientEmail"));
-      }
-      return;
-    }
-
-    if ((data?.sent ?? 0) > 0) {
-      toast.success(
-        t("schedule.notifications.emailSent", {
-          count: data.sent,
-          suffix: data.sent === 1 ? "" : "s",
-        }),
-      );
-    }
-
-    notificationCooldownRef.current.set(dedupeKey, now);
-  };
-
   const handleSave = async () => {
     if (isSaving || isDeleting) return;
     setIsSaving(true);
@@ -748,18 +644,6 @@ const BookingDialog = ({
           return;
         }
 
-        await sendBookingNotification("updated", {
-          id: updatedBooking.id,
-          artist_id: updatedBooking.artist_id,
-          client_name: updatedBooking.client_name,
-          client_email: updatedBooking.client_email,
-          client_phone: updatedBooking.client_phone,
-          booking_type: updatedBooking.booking_type,
-          status: updatedBooking.status,
-          starts_at: updatedBooking.starts_at,
-          ends_at: updatedBooking.ends_at,
-          notes: updatedBooking.notes,
-        });
       } else {
         const { data: createdBooking, error } = await supabase
           .rpc("staff_insert_booking", {
@@ -786,18 +670,6 @@ const BookingDialog = ({
           return;
         }
 
-        await sendBookingNotification("created", {
-          id: createdBooking.id,
-          artist_id: createdBooking.artist_id,
-          client_name: createdBooking.client_name,
-          client_email: createdBooking.client_email,
-          client_phone: createdBooking.client_phone,
-          booking_type: createdBooking.booking_type,
-          status: createdBooking.status,
-          starts_at: createdBooking.starts_at,
-          ends_at: createdBooking.ends_at,
-          notes: createdBooking.notes,
-        });
       }
 
       toast.success(bookingToEdit ? t("schedule.bookingUpdated") : t("schedule.bookingCreated"));
@@ -826,19 +698,6 @@ const BookingDialog = ({
         toast.error(error?.message || t("schedule.couldNotDelete"));
         return;
       }
-
-      await sendBookingNotification("deleted", {
-        id: bookingSnapshot.id,
-        artist_id: bookingSnapshot.artist_id,
-        client_name: bookingSnapshot.client_name,
-        client_email: bookingSnapshot.client_email,
-        client_phone: bookingSnapshot.client_phone,
-        booking_type: bookingSnapshot.booking_type,
-        status: bookingSnapshot.status,
-        starts_at: bookingSnapshot.starts_at,
-        ends_at: bookingSnapshot.ends_at,
-        notes: bookingSnapshot.notes,
-      });
 
       toast.success(t("schedule.bookingDeleted"));
       onOpenChange(false);
