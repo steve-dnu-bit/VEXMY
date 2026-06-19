@@ -25,8 +25,13 @@ function matchesInboundDomain(addresses: string[] | undefined): boolean {
 
 function forwardTarget(): string | null {
   const explicit = (Deno.env.get("RESEND_INBOUND_FORWARD_TO") ?? "").trim();
-  if (explicit) return explicit;
-  return (Deno.env.get("SHOP_SUPPORT_EMAIL") ?? "").trim() || null;
+  const candidate = explicit || (Deno.env.get("SHOP_SUPPORT_EMAIL") ?? "").trim();
+  if (!candidate) return null;
+
+  const { email } = parseEmailAddress(candidate);
+  // support@velbok.com etc. are receive-only — forwarding there loops on the same MX.
+  if (email.endsWith(`@${inboundDomain()}`)) return null;
+  return email;
 }
 
 async function forwardInboundEmail(email: Awaited<ReturnType<typeof fetchReceivedEmail>>): Promise<void> {
@@ -166,39 +171,39 @@ serve(async (req) => {
     }
 
     const email = await fetchReceivedEmail(emailId);
-    const admin = createClient(supabaseUrl, serviceKey);
 
-    const organizationId = await resolveInboundOrganizationId(admin);
-    if (!organizationId) {
-      return new Response(JSON.stringify({ received: true, ignored: "no_organization" }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const emailAllowed = await isInboxChannelAllowedForOrg(admin, organizationId, "email");
-    if (!emailAllowed) {
-      return new Response(JSON.stringify({ received: true, ignored: "plan_no_inbox_email" }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const quota = await claimInboxMessageQuota(admin, organizationId, "inbound");
-    if (!quota.allowed) {
-      return new Response(JSON.stringify({ received: true, ignored: "monthly_cap_reached", quota }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const stored = await storeInboundMessage(admin, organizationId, event, email);
-
+    // Always forward platform addresses (support@, privacy@, …) to a real inbox when configured.
     let forwarded = false;
+    let forwardError: string | undefined;
     if (forwardTarget()) {
       try {
         await forwardInboundEmail(email);
         forwarded = true;
       } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        console.error("Inbound email forward failed:", message);
+        forwardError = e instanceof Error ? e.message : String(e);
+        console.error("Inbound email forward failed:", forwardError);
+      }
+    }
+
+    const admin = createClient(supabaseUrl, serviceKey);
+    const organizationId = await resolveInboundOrganizationId(admin);
+
+    let stored: { stored: boolean; messageId?: string } = { stored: false };
+    let inboxSkipped: string | undefined;
+
+    if (!organizationId) {
+      inboxSkipped = "no_organization";
+    } else {
+      const emailAllowed = await isInboxChannelAllowedForOrg(admin, organizationId, "email");
+      if (!emailAllowed) {
+        inboxSkipped = "plan_no_inbox_email";
+      } else {
+        const quota = await claimInboxMessageQuota(admin, organizationId, "inbound");
+        if (!quota.allowed) {
+          inboxSkipped = "monthly_cap_reached";
+        } else {
+          stored = await storeInboundMessage(admin, organizationId, event, email);
+        }
       }
     }
 
@@ -209,6 +214,8 @@ serve(async (req) => {
         stored: stored.stored,
         message_id: stored.messageId,
         forwarded,
+        forward_error: forwardError,
+        inbox_skipped: inboxSkipped,
       }),
       { headers: { "Content-Type": "application/json" } },
     );

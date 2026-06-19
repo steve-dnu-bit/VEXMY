@@ -298,7 +298,11 @@
     "planActive": "Din {{plan}}-plan är aktiv{{trial}}.",
     "withTrial": " med gratis provperiod",
     "goToSchedule": "Gå till ditt schema",
-    "signInStudio": "Logga in på din studio"
+    "signInStudio": "Logga in på din studio",
+    "termsCheckboxLead": "Jag har läst och godkänner",
+    "termsCheckboxBody": "Jag bekräftar att jag är behörig att prenumerera för min studios räkning och att Inkaholics Limited (Velbok) kan debitera den valda planen (även efter eventuell gratis provperiod) via Stripe.",
+    "termsVersionLabel": "version {{version}}",
+    "termsRequired": "Godkänn villkoren och integritetspolicyn för att fortsätta."
   },
   "subscription": {
     "title": "Prenumeration",
@@ -1606,7 +1610,7 @@
     "statusReady": "Ansluten",
     "statusIncomplete": "Åtgärd krävs",
     "statusNotStarted": "Ej ansluten",
-    "stripeHostedNote": "Ni fyller i ett kort Stripe-formulär för bank- och identitetskontroller. Ingen separat Stripe-registrering behövs.",
+    "stripeHostedNote": "Stripe kan visa Velbok som plattform — det är normalt. Ange din studios juridiska enhet (t.ex. Inkaholics Limited) och bankkonto i formuläret. Utbetalningar går till din studio, inte till Velbok.",
     "returnToast": "Utbetalningskonfiguration uppdaterad — kontrollerar status…",
     "refreshToast": "Fortsätt utbetalningskonfigurationen där ni slutade.",
     "loadFailed": "Kunde inte ladda utbetalningsstatus",
@@ -2054,155 +2058,218 @@
     "layout": {
       "lastUpdated": "Senast uppdaterad:",
       "terms": "Villkor",
-      "privacy": "Privatliv",
-      "cookies": "Småkakor",
+      "privacy": "Integritet",
+      "cookies": "Cookies",
       "home": "Hem",
       "documentation": "Dokumentation",
-      "studioLogin": "Studio login"
+      "studioLogin": "Studioinloggning"
     },
     "privacy": {
-      "title": "Sekretessmeddelande (UK/EU GDPR)",
-      "lastUpdated": "29 maj 2026",
+      "title": "Integritetspolicy (UK/EU GDPR)",
+      "lastUpdated": "18 juni 2026",
       "sections": {
         "general": {
-          "title": "Allmänt uttalande",
-          "p1": "{{shopLegalName}} är engagerad i att skydda din integritet och tar sitt ansvar angående säkerheten för kundinformation på allvar. Detta meddelande förklarar hur vi använder personuppgifter och hur vi skyddar din integritet när du interagerar med vår butik, webbplats och tjänster.",
-          "contactLead": "Om du har frågor, kontakta oss på",
-          "contactDpo": "För CCTV- eller dataskyddsklagomål kan du kontakta vår DPO på"
+          "title": "Vilka vi är",
+          "p1": "{{shopLegalName}} (som handlar under namnet {{platformName}}) driver Velbok-plattformen på velbok.com och Velboks mobilappar. Vi är personuppgiftsansvariga för studiokontodata, plattformsfakturering och vår egen verksamhet. Tatueringsstudior som använder Velbok är separata personuppgiftsansvariga för sina kunders boknings-, samtyckes- och CRM-data.",
+          "contactLead": "För frågor om plattformens integritet, kontakta",
+          "contactDpo": "För dataskyddsfrågor eller klagomål, kontakta vår DPO på"
+        },
+        "roles": {
+          "title": "Plattformens och studions ansvar",
+          "p1": "När du registrerar en studio på Velbok behandlar vi dina affärskontaktuppgifter, prenumerationsfakturering och personalkonton som personuppgiftsansvarig. När din studio registrerar kundbokningar, samtyckesformulär, meddelanden eller fakturor är du personuppgiftsansvarig och Velbok agerar som personuppgiftsbiträde enligt dina instruktioner.",
+          "p2": "Studior måste tillhandahålla egen kundinriktad integritetsinformation för tjänster i studion (inklusive eventuell CCTV i fysiska lokaler). Denna policy omfattar Velbok-programvaran och webbplatsen."
         },
         "dataCollect": {
           "title": "Data vi samlar in",
-          "p1": "Beroende på din interaktion med oss ​​kan vi samla in: namn, kön, födelsedatum, adress, e-post, telefonnummer, bokningshistorik, serviceanteckningar, klagomåls-/återkopplingsuppgifter, betalningsinformation, cookie-/enhets- och tekniska användningsdata, hantering av sociala medier (om du skickar ett meddelande till oss) och CCTV-bilder som tagits på plats.",
-          "p2": "Där det krävs enligt lag för att verifiera ålder för tatuering, kan vi begära och behålla en kopia av fotolegitimation med ditt samtycke."
+          "p1": "Beroende på din roll och interaktion kan vi samla in: namn, e-post, telefon, företagsadress, kontouppgifter, boknings- och fakturaposter, meddelanden, uppladdade bilder (referenser, avatarer, signaturer), betalningsmetadata, cookie-/enhetsdata och — där studior använder digitalt samtycke — hälsoinformation som krävs för tatuerings- eller piercing-säkerhet.",
+          "p2": "Kortnummer anges direkt i Stripe (onlinekassa, fakturor och Terminal / Tap to Pay på plats). Velbok lagrar inte fullständiga kortnummer på våra servrar."
+        },
+        "healthData": {
+          "title": "Hälso- och samtyckesdata",
+          "p1": "Digitala samtyckesformulär kan samla in svar om medicinsk historik (till exempel allergier, hjärtsjukdomar, graviditet eller blodförtunnande medel) och en ritad signatur. Detta är särskilda kategorier av personuppgifter enligt UK/EU GDPR. Studior samlar in det med uttryckligt samtycke från kunden för säkerhets-, juridiska, medicinska och försäkringsändamål.",
+          "p2": "Velbok lagrar samtyckessvar och genererade PDF-filer säkert för studions räkning. Lagring följer studions professionella och försäkringskrav, vanligtvis flera år."
         },
         "whenCollect": {
           "title": "När vi samlar in data",
-          "p1": "Vi samlar in data när du använder vår webbplats eller vårt konto, gör en bokning eller köper, kontaktar oss, deltar i kampanjer, fyller i undersökningar, lämnar recensioner, engagerar dig i sociala medier eller på annat sätt interagerar med vår verksamhet."
+          "p1": "Vi samlar in data när du skapar ett konto, prenumererar på Velbok, konfigurerar en studio, hanterar bokningar eller fakturering, fyller i samtyckesformulär, använder meddelanden i appen, kontaktar support eller använder betalningsfunktioner på webb eller mobil."
+        },
+        "mobile": {
+          "title": "Mobilapp (Android / iOS)",
+          "p1": "Velbok-appen kan begära enhetsbehörigheter för betalningar på plats: exakt plats och Bluetooth (kortläsare och Stripe Tap to Pay) samt NFC för kontaktlös Tap to Pay. Plats krävs enligt betalningsregler och för bedrägeriförebyggande — den används inte för att spåra dig för reklam.",
+          "p2": "Den inbyggda appen visar inte webbplatsens cookie-banner; vi använder endast strikt nödvändig lokal lagring för inloggning och inställningar. Valfria marknadsförings-/analyscookies gäller endast på webbplatsen."
+        },
+        "subprocessors": {
+          "title": "Tjänsteleverantörer (underbiträden)",
+          "p1": "Vi använder betrodda leverantörer för att driva Velbok, inklusive: Supabase (autentisering, databas, fillagring, edge functions), Stripe (betalningar, Connect-utbetalningar, Terminal / Tap to Pay), Resend (transaktionsmejl), Twilio (valfritt WhatsApp/SMS per studio) och Netlify (webbhosting). Varje leverantör behandlar data enligt avtal och sina egna integritetsvillkor.",
+          "p2": "Vi säljer inte personuppgifter. Vi delar data endast när det behövs för att tillhandahålla tjänsten, följa lagen eller förebygga bedrägerier."
+        },
+        "transfers": {
+          "title": "Internationella överföringar",
+          "p1": "Vissa leverantörer kan behandla data utanför Storbritannien/EES (till exempel USA). Där det krävs förlitar vi oss på lämpliga skyddsåtgärder som standardavtalsklausuler och leverantörers efterlevnadsprogram."
         },
         "lawfulBases": {
-          "title": "Lagliga grunder (UK GDPR / EU GDPR)",
-          "p1": "Vi förlitar oss på samtycke, avtalsenlig nödvändighet, juridiska skyldigheter, legitima intressen och vitala intressen beroende på sammanhang.",
+          "title": "Rättsliga grunder (UK GDPR / EU GDPR)",
+          "p1": "Vi förlitar oss på samtycke, avtalsnödvändighet, rättslig förpliktelse och berättigade intressen beroende på sammanhang.",
           "consent": "Samtycke:",
-          "consentDesc": "till exempel opt-in för nyhetsbrev och valfria cookiekategorier.",
-          "contract": "Kontrakt:",
-          "contractDesc": "att tillhandahålla bokade tjänster och behandla betalningar/insättningar.",
-          "legal": "Laglig skyldighet:",
-          "legalDesc": "där det krävs för att dela data för bedrägeri/brottsförebyggande eller juridisk process.",
+          "consentDesc": "valfria cookies på webbplatsen, marknadsföringsopt-in och uttryckligt samtycke för hälsodata i studios samtyckesformulär.",
+          "contract": "Avtal:",
+          "contractDesc": "tillhandahållande av Velbok-tjänsten, studioprenumerationer, bokningar, depositioner och fakturor.",
+          "legal": "Rättslig förpliktelse:",
+          "legalDesc": "skatt, redovisning och lagliga begäranden från myndigheter.",
           "legitimate": "Berättigade intressen:",
-          "legitimateDesc": "affärsverksamhet, kommunikation, serviceuppdateringar och kvalitetsförbättring.",
+          "legitimateDesc": "säkerhet, bedrägeriförebyggande, produktförbättring och tjänstekommunikation.",
           "vital": "Vitala intressen:",
-          "vitalDesc": "där det behövs för att skydda liv/hälsa i nödsituationer."
+          "vitalDesc": "skydd av liv eller hälsa i en nödsituation."
         },
         "howUse": {
           "title": "Hur och varför vi använder data",
-          "p1": "Vi använder personuppgifter för att tillhandahålla tjänster, hantera bokningar och insättningar, skicka nödvändig servicekommunikation, behandla klagomål och feedback, förbättra produkter och system, administrera undersökningar och tävlingar, skydda säkerheten och uppfylla juridiska skyldigheter.",
-          "p2": "{{shopLegalName}} delar inte marknadsföringsdata med tredjepartsorganisationer för sin egen marknadsföring. Vi delar data med betalnings- och tjänsteleverantörer där det är nödvändigt för att genomföra transaktioner och operationer säkert."
+          "p1": "Vi använder personuppgifter för att driva Velbok, autentisera användare, behandla studioprenumerationer och kundbetalningar, leverera aviseringar, stödja studior, förbättra tillförlitlighet och uppfylla rättsliga skyldigheter.",
+          "p2": "{{shopLegalName}} säljer inte personuppgifter till tredje part för deras egen marknadsföring."
         },
         "cookies": {
-          "title": "Cookies, pixlar och webbplatsteknik",
-          "p1": "Cookies och liknande tekniker hjälper oss att köra webbplatsfunktioner och komma ihåg inställningar. Våra cookies är inte avsedda att innehålla direkta personliga identifierare. Du kan hantera webbläsarcookies och inställningar för cookies i appen.",
-          "p2": "Vi kan använda e-postspårningspixlar för att förstå om e-postmeddelanden har öppnats och om din klient kan återge text eller HTML-innehåll."
+          "title": "Cookies och liknande tekniker",
+          "p1": "Vår webbplats använder cookies och lokal lagring för inloggning, säkerhet, språkinställningar och valfria analys-/marknadsföringskategorier när du samtycker. Se vår cookiepolicy för detaljer.",
+          "p2": "Transaktionsmejl kan innehålla spårningspixlar för att mäta leverans och engagemang."
         },
         "security": {
-          "title": "Säkerhet och retention",
-          "p1": "Vi använder kryptering, säkra bearbetningsstandarder och åtkomstkontroller för att skydda data. Ingen internetöverföring är helt riskfri, men vi tillämpar rimliga tekniska och organisatoriska skyddsåtgärder.",
-          "p2": "Standardlagring är minst 5 år från senaste besök/transaktion, eller längre om rättsliga/försäkringskrav kräver detta. För försäkrings- och skadeståndsanspråk kan vi behålla relevanta uppgifter i upp till 21 år."
+          "title": "Säkerhet och lagring",
+          "p1": "Vi använder kryptering under transport (HTTPS/TLS), åtkomstkontroller och branschstandard hosting. Ingen internetöverföring är helt riskfri.",
+          "p2": "Vi behåller konto- och transaktionsposter så länge som behövs för tjänsten, rättsliga skyldigheter och tvistlösning — vanligtvis minst fem år för affärsregister, och längre där försäkring eller samtyckesdokumentation kräver det."
         },
-        "cctv": {
-          "title": "Sammanfattning av CCTV-policy",
-          "p1": "Våra lokaler övervakas av CCTV 24/7 för att förebygga/upptäcka brott, säkerhet och skydd av tillgångar. Kameror placeras i framträdande områden och inte i känsliga utrymmen. Tillgången är begränsad till behörig utbildad personal.",
-          "p2": "CCTV-data behandlas lagligt, rättvist, öppet och säkert. Filmer lagras vanligtvis i minst 14 dagar och inte längre än 1 år om det inte krävs för utredningar, disciplinära förfaranden eller juridiska bevis."
+        "children": {
+          "title": "Barn och minderåriga",
+          "p1": "Velbok är programvara för studiehantering och bokning — vi utför inte tatuerings- eller piercingtjänster. Minimiåldrar för sådana tjänster fastställs av varje studio och lagen där de verkar (inklusive piercing för minderåriga med förälder eller vårdnadshavare, där det är tillåtet).",
+          "p2": "Studioadministratörs- och personalkonton är affärskonton och riktas inte till barn under 13 år. När en studio registrerar en bokning eller samtyckesformulär för en minderårig kund är studion personuppgiftsansvarig och måste inhämta nödvändigt föräldra- eller vårdnadssamtycke."
+        },
+        "ccpa": {
+          "title": "Kaliforniens integritetsrättigheter (CCPA/CPRA)",
+          "p1": "Invånare i Kalifornien kan begära tillgång, rättelse eller radering av personuppgifter vi innehar som personuppgiftsansvarig. Vi säljer eller delar inte personuppgifter för beteendebaserad reklam över sammanhang. För att utöva rättigheter, mejla",
+          "p2": "Vi verifierar begäranden och svarar inom tillämpliga tidsfrister."
         },
         "rights": {
           "title": "Dina rättigheter",
-          "p1": "Du kan begära åtkomst, rättelse, radering (i förekommande fall), begränsning, invändning, portabilitet och återkallande av samtycke. Du kan också be oss att stoppa direktmarknadsföring. Du kan begära en kopia av dina uppgifter genom att maila",
-          "orWriteTo": "eller skriva till:",
-          "p2": "Om vi ​​avslår en begäran kommer vi att förklara varför. Du har också rätt att klaga till UK Information Commissioner's Office (ICO) eller din lokala EU-tillsynsmyndighet."
+          "p1": "Du kan begära tillgång, rättelse, radering (där tillämpligt), begränsning, invändning, portabilitet och återkallelse av samtycke. Mejla",
+          "orWriteTo": "eller skriv till:",
+          "p2": "Om vi avslår en begäran förklarar vi varför. Du kan klaga till UK ICO eller din lokala EU-tillsynsmyndighet."
         },
         "updates": {
           "title": "Policyuppdateringar",
-          "p1": "Vi kan komma att uppdatera detta meddelande med jämna mellanrum. Väsentliga ändringar kommer att publiceras här så att du förblir medveten om vilken data vi samlar in, hur vi använder den och när den kan komma att avslöjas."
+          "p1": "Vi kan uppdatera denna policy med jämna mellanrum. Väsentliga ändringar publiceras på velbok.com/privacy med ett reviderat datum."
         }
       }
     },
     "terms": {
       "title": "Användarvillkor",
-      "lastUpdated": "29 maj 2026",
+      "lastUpdated": "18 juni 2026",
       "sections": {
         "scope": {
-          "title": "1. Omfattning",
-          "p1": "Dessa villkor reglerar åtkomst till och användning av webbapplikationen {{platformName}} (\"Tjänsten\") av personal och kunder i Storbritannien och EU. Genom att använda tjänsten godkänner du dessa villkor."
+          "title": "1. Avtal",
+          "p1": "Dessa villkor utgör ett bindande avtal mellan dig (och studion du representerar) och Inkaholics Limited (bolag registrerat i England och Wales, som handlar under namnet {{platformName}}) för användning av tjänsten på velbok.com. Genom att skapa ett konto, prenumerera eller använda tjänsten godkänner du dessa villkor och vår integritetspolicy.",
+          "p2": "Om du prenumererar för en studios räkning intygar du att du har befogenhet att binda den studion till detta avtal."
         },
         "eligibility": {
           "title": "2. Behörighet och kontosäkerhet",
-          "p1": "Du måste tillhandahålla korrekt information, hålla dina uppgifter konfidentiella och omedelbart meddela oss om obehörig åtkomst till kontot. Du är ansvarig för aktivitet som utförs under ditt konto såvida det inte orsakas av vårt fel."
+          "p1": "Studiopersonal- och administratörskonton är för personer som är tillräckligt gamla för att ingå bindande avtal i sin jurisdiktion, eller som är auktoriserade av studieägaren att använda tjänsten för studions räkning. Du måste ange korrekt information, hålla inloggningsuppgifter konfidentiella och omedelbart meddela oss om obehörig åtkomst."
+        },
+        "children": {
+          "title": "3. Barn och minderåriga",
+          "p1": "Velbok är programvara som används av tatuerings- och piercingstudior — inte en studio i sig. Tjänsten riktas inte till barn under 13 år för att skapa plattformskonton. Kundportalfunktioner kan användas för bokningar och samtycke där en studio lagligt betjänar minderåriga kunder; studior ansvarar för åldersverifiering och vårdnadshavarsamtycke enligt lokal lag."
         },
         "acceptableUse": {
-          "title": "3. Acceptabel användning",
-          "p1": "Du får inte missbruka tjänsten, störa säkerhetskontroller, ladda upp olagligt innehåll eller använda tjänsten på ett sätt som bryter mot tillämplig lag, inklusive Storbritanniens GDPR, EU GDPR och konsumentskyddsregler."
+          "title": "4. Acceptabel användning",
+          "p1": "Du får inte missbruka tjänsten, störa säkerhetskontroller, ladda upp olagligt innehåll eller använda tjänsten på sätt som bryter mot tillämplig lag, inklusive UK GDPR, EU GDPR och konsumentskyddsregler."
         },
         "bookings": {
-          "title": "4. Arbetsflöden för bokning och insättning",
-          "p1": "Tjänsten stöder bokningshantering och insättningspåminnelser. Betalningshantering tillhandahålls av integrerade tredjepartsleverantörer. Du ansvarar för att se till att boknings- och betalningsinformationen är korrekt innan du skickar aviseringar.",
-          "p2": "Ytterligare studiovillkor gäller för bokade tatueringstjänster: när tatueringstjänster tillhandahålls, betalas det överenskomna priset i sin helhet och ingen kredit erbjuds; insättningar samlas in via integrering av betalningsleverantörer online; insättningar återbetalas endast om formell avbokning görs via e-post minst 24 timmar före mötet; och missnöje med ändringar av stilpreferenser efter service ger inte rätt till återbetalning."
+          "title": "5. Boknings- och betalningsflöden",
+          "p1": "Tjänsten stöder bokningshantering, depositioner, fakturering och kortbetalningar på plats via Stripe. Kortuppgifter behandlas av Stripe; Velbok lagrar inte fullständiga kortnummer. Du ansvarar för att boknings- och betalningsinformation är korrekt innan aviseringar skickas.",
+          "p2": "Studiospecifika regler för avbokning, återbetalning och åldersbehörighet för tatuering eller piercing är studions ansvar och måste kommuniceras separat till kunder. Velbok utför inte body art-tjänster."
+        },
+        "subscription": {
+          "title": "6. Plattformsprenumeration (studior)",
+          "p1": "Självbetjäningsplaner faktureras återkommande via Stripe för Inkaholics Limiteds räkning. Genom att starta en prenumeration eller gratis provperiod godkänner du att vi debiterar den betalningsmetod du anger till gällande pris för din valda plan, inklusive automatisk förnyelse tills du avslutar enligt dessa villkor.",
+          "p2": "Provperioder övergår till betalda prenumerationer om de inte avslutas före provperiodens slut. Avgifter återbetalas inte utom där tvingande lag kräver det. Vi kan ändra planfunktioner eller priser med skäligt varsel; fortsatt användning efter ikraftträdande innebär acceptans. Du kan avsluta via faktureringsinställningar eller Stripes kundportal där tillgängligt."
+        },
+        "studioObligations": {
+          "title": "7. Studios skyldigheter",
+          "p1": "Du är ensam ansvarig för tatuerings-, piercing- eller relaterade tjänster du tillhandahåller kunder, inklusive licenser, hygien, eftervård, åldersverifiering, vårdnadshavarsamtycke där lagen kräver det och efterlevnad av regler i din jurisdiktion.",
+          "p2": "Du får inte framställa Velbok som leverantör av body art-tjänster. Du ansvarar för riktigheten av data som du och din personal anger i tjänsten och för kommunikation till dina kunder."
+        },
+        "dataProcessing": {
+          "title": "8. Dataskyddsroller",
+          "p1": "För studiokonto- och faktureringsdata är Inkaholics Limited personuppgiftsansvarig. För kundbokningar, samtyckesformulär, meddelanden och CRM-data du anger om dina kunder är du personuppgiftsansvarig och Inkaholics Limited agerar som personuppgiftsbiträde enligt dina dokumenterade instruktioner, enligt vår integritetspolicy.",
+          "p2": "Du måste ha laglig grund och, där det krävs, lämpliga integritetspolicyer och samtycken för kunddata du behandlar via Velbok. Du får inte ladda upp olagligt innehåll eller särskilda kategorier av data utöver vad tjänsten är utformad för."
         },
         "ip": {
-          "title": "5. Immateriella rättigheter",
-          "p1": "Tjänstens design, programvara och innehåll skyddas av immateriella rättigheter. Du får endast använda Tjänsten för interna affärsändamål eller personliga bokningsändamål och inte för obehörig kopiering, återförsäljning eller reverse engineering."
+          "title": "9. Immateriella rättigheter",
+          "p1": "Tjänstens design, programvara och Velbok-varumärket ägs av eller är licensierade till Inkaholics Limited. Du får en begränsad, icke-exklusiv, icke-överlåtbar licens att använda tjänsten för din studios interna verksamhet så länge din prenumeration är aktiv och i gott skick.",
+          "p2": "Du behåller äganderätten till innehåll du laddar upp. Du ger oss licens att lagra, behandla och visa det innehållet enbart för att tillhandahålla tjänsten."
         },
         "data": {
-          "title": "6. Dataskydd",
-          "p1": "Personuppgifter behandlas i enlighet med vårt integritetsmeddelande och tillämplig dataskyddslagstiftning i Storbritannien/EU. Där så krävs förlitar vi oss på samtycke, kontrakt, juridiska skyldigheter eller legitima intressen som en laglig grund."
+          "title": "10. Integritet",
+          "p1": "Vår integritetspolicy förklarar hur Inkaholics Limited behandlar personuppgifter. Genom att använda tjänsten bekräftar du den policyn."
+        },
+        "thirdParty": {
+          "title": "11. Tredjepartstjänster",
+          "p1": "Tjänsten integrerar tredje parter som Stripe (betalningar), Supabase (hosting) och e-postleverantörer. Deras villkor och integritetspolicyer gäller för deras tjänster. Vi ansvarar inte för avbrott, fel eller tredjepartsleverantörers handlingar utöver vår rimliga kontroll."
+        },
+        "disclaimer": {
+          "title": "12. Ansvarsfriskrivningar",
+          "p1": "Tjänsten tillhandahålls \"i befintligt skick\" och \"som tillgänglig\". Vi garanterar inte oavbruten eller felfri drift. Velbok är endast programvara — vi ger inte juridisk, medicinsk, skatte- eller professionell rådgivning, och tjänsten garanterar inte din regelefterlevnad."
+        },
+        "indemnity": {
+          "title": "13. Skadeslöshet",
+          "p1": "Du ska ersätta och hålla Inkaholics Limited, dess styrelseledamöter och anställda skadeslösa från krav, böter, förluster och skäliga kostnader som uppstår från: (a) din studios tjänster eller kundinteraktioner; (b) ditt brott mot dessa villkor eller tillämplig lag; (c) kunddata du kontrollerar; eller (d) innehåll du eller din personal skickar via tjänsten, utom i den utsträckning det orsakas av vår uppsåtliga vårdslöshet eller oaktsamhet."
         },
         "availability": {
-          "title": "7. Servicetillgänglighet",
-          "p1": "Vi strävar efter tillförlitlig drift men garanterar inte oavbruten tillgänglighet. Planerat underhåll, uppdateringar och avbrott från tredje part kan påverka åtkomsten."
+          "title": "14. Tjänsttillgänglighet",
+          "p1": "Vi strävar efter tillförlitlig drift men garanterar inte oavbruten tillgänglighet. Planerat underhåll, uppdateringar och tredjepartsavbrott kan påverka åtkomsten."
         },
         "liability": {
-          "title": "8. Ansvar",
-          "p1": "Ingenting i dessa villkor begränsar ansvar som inte kan begränsas enligt lag (inklusive bedrägeri eller dödsfall/personskada orsakad av vårdslöshet). Med förbehåll för tvingande lag, utesluter vi indirekta förluster och begränsar ansvaret till förutsebara direkta förluster till följd av överträdelse."
+          "title": "15. Ansvarsbegränsning",
+          "p1": "Ingenting i dessa villkor begränsar ansvar som inte kan begränsas enligt lag (inklusive död eller personskada orsakad av vårdslöshet, eller bedrägeri). Med förbehåll för tvingande lag är Inkaholics Limited inte ansvarigt för indirekta, följd- eller straffskador, förlust av vinst, intäkter, data eller goodwill.",
+          "p2": "Med förbehåll för ovanstående är vårt totala samlade ansvar som uppstår från tjänsten under en tolvmånadersperiod begränsat till det högre av (a) plattformsprenumerationsavgifter du betalat till oss under den perioden, eller (b) etthundra pund sterling (£100)."
         },
         "changes": {
-          "title": "9. Ändringar och uppsägning",
-          "p1": "Vi kan uppdatera dessa villkor där det krävs enligt lag, säkerhet eller produktändringar. Materialändringar publiceras i appen med ett reviderat datum. Vi kan stänga av eller avsluta åtkomst där villkor bryts eller missbruk upptäcks."
+          "title": "16. Ändringar och uppsägning",
+          "p1": "Vi kan uppdatera dessa villkor när lag, säkerhet eller produktändringar kräver det. Väsentliga ändringar publiceras på velbok.com/terms med reviderat datum. Vi kan suspendera eller avsluta åtkomst vid brott mot villkoren, obetalda avgifter eller missbruk."
         },
         "governingLaw": {
-          "title": "10. Tillämplig lag",
-          "p1": "Dessa villkor styrs av lagarna i England och Wales, såvida inte tvingande konsumentlagstiftning i ditt hemland föreskriver annat."
+          "title": "17. Tillämplig lag",
+          "p1": "Dessa villkor regleras av lagarna i England och Wales. Domstolarna i England och Wales har exklusiv jurisdiktion, utom där tvingande konsumentskyddslag i ditt bosättningsland ger dig rätt att väcka talan någon annanstans."
         }
       }
     },
     "cookies": {
       "title": "Cookiepolicy",
-      "lastUpdated": "4 maj 2026",
+      "lastUpdated": "18 juni 2026",
       "sections": {
         "what": {
           "title": "1. Vad cookies är",
-          "p1": "Cookies är små textfiler som lagras på din enhet. Vi använder också liknande teknologier (som lokal lagring) där det behövs för applikationsfunktionalitet och användarpreferenser."
+          "p1": "Cookies är små textfiler som lagras på din enhet. Vi använder också lokal lagring där det behövs för inloggning, språk och gränssnittsinställningar."
         },
         "categories": {
           "title": "2. Cookiekategorier vi använder",
-          "p1": "Strikt nödvändigt: krävs för autentisering, säkerhet, sessionshantering och kärnfunktioner. Inställningar: lagra UI och val av användbarhet. Analytics: hjälp oss att förstå prestanda och användningstrender. Marknadsföring: stödja kampanjens effektivitet och skräddarsydd marknadsföring."
+          "p1": "Strikt nödvändiga: autentisering, säkerhet och kärnfunktioner (alltid aktiva). Inställningar: språk och gränssnittsval (med ditt samtycke på webbplatsen). Analys och marknadsföring: valfria kategorier — vi laddar för närvarande inte tredjepartsanalys eller annonsspårare; dessa kategorier är reserverade för framtida bruk och förblir avstängda om du inte samtycker och vi aktiverar dem."
         },
         "consent": {
           "title": "3. Samtyckesmodell",
-          "p1": "Strängt nödvändiga tekniker är alltid aktiva. Valfria kategorier (preferenser, analys, marknadsföring) aktiveras först efter ditt samtycke och kan ändras när som helst från gränssnittet för cookiepreferenser."
+          "p1": "Strikt nödvändiga tekniker är alltid aktiva. Valfria kategorier (inställningar, analys, marknadsföring) aktiveras endast efter ditt samtycke och kan ändras när som helst via cookieinställningarna."
         },
         "thirdParty": {
           "title": "4. Tredjepartstjänster",
-          "p1": "Vissa integrerade leverantörer kan ställa in sina egna cookies eller liknande identifierare när deras funktionalitet används. Deras sekretess-/cookiesvillkor gäller utöver denna policy."
+          "p1": "Vissa integrerade leverantörer kan sätta egna cookies eller liknande identifierare när deras funktionalitet används. Deras integritets-/cookievillkor gäller utöver denna policy."
         },
         "pixels": {
           "title": "E-postpixlar",
-          "p1": "Vi kan inkludera spårningspixlar i vissa e-postmeddelanden för att förstå engagemang (till exempel om ett e-postmeddelande har öppnats) och förmåga att återge innehåll (text vs HTML). Detta hjälper oss att förbättra kommunikationens kvalitet och relevans."
+          "p1": "Vi kan inkludera spårningspixlar i vissa e-postmeddelanden för att förstå engagemang (till exempel om ett mejl öppnades) och renderingskapacitet (text kontra HTML). Detta hjälper oss förbättra kommunikationskvalitet och relevans."
         },
         "manage": {
-          "title": "5. Hur man hanterar cookies",
-          "p1": "Du kan acceptera alla, avvisa icke väsentliga eller ställa in detaljerade val i appen. Du kan också konfigurera din webbläsare för att blockera cookies, men detta kan påverka kärnfunktioner som inloggning eller säker sessionshantering."
+          "title": "5. Så hanterar du cookies",
+          "p1": "Du kan acceptera alla, avvisa icke-nödvändiga eller göra granulära val i appen. Du kan också konfigurera webbläsaren att blockera cookies, men det kan påverka kärnfunktioner som inloggning eller säker sessionshantering."
         },
         "updates": {
           "title": "6. Uppdateringar",
-          "p1": "Vi kan uppdatera denna policy för att återspegla juridiska, tekniska eller produktändringar. Den senaste versionen och uppdateringsdatum publiceras alltid här."
+          "p1": "Vi kan uppdatera denna policy för att återspegla juridiska, tekniska eller produktrelaterade ändringar. Den senaste versionen och uppdateringsdatum publiceras alltid här."
         }
       }
     }

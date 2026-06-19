@@ -1,0 +1,231 @@
+{
+  "legal": {
+    "layout": {
+      "lastUpdated": "Ultima actualizare:",
+      "terms": "Termeni",
+      "privacy": "Confidențialitate",
+      "cookies": "Cookie-uri",
+      "home": "Acasă",
+      "documentation": "Documentație",
+      "studioLogin": "Autentificare studio"
+    },
+    "privacy": {
+      "title": "Notificare de confidențialitate (UK/EU GDPR)",
+      "lastUpdated": "18 iunie 2026",
+      "sections": {
+        "general": {
+          "title": "Cine suntem",
+          "p1": "{{shopLegalName}} (operează sub denumirea {{platformName}}) administrează platforma Velbok la velbok.com și aplicațiile mobile Velbok. Suntem operatorul de date pentru datele contului studio, facturarea platformei și operațiunile noastre proprii. Studiourile de tatuaj care folosesc Velbok sunt operatori separați pentru datele de rezervare, consimțământ și CRM ale clienților lor.",
+          "contactLead": "Pentru întrebări privind confidențialitatea platformei, contactați",
+          "contactDpo": "Pentru solicitări sau plângeri privind protecția datelor, contactați DPO-ul nostru la"
+        },
+        "roles": {
+          "title": "Responsabilități platformă vs. studio",
+          "p1": "Când înregistrați un studio pe Velbok, procesăm datele dvs. de contact comercial, facturarea abonamentului și conturile personalului ca operator. Când studio-ul dvs. introduce rezervări ale clienților, formulare de consimțământ, mesaje sau facturi, sunteți operatorul, iar Velbok acționează ca împuternicit conform instrucțiunilor dvs.",
+          "p2": "Studiourile trebuie să furnizeze propriile informații de confidențialitate pentru clienți privind serviciile în studio (inclusiv orice supraveghere video la sediul fizic). Această notificare acoperă software-ul și site-ul web Velbok."
+        },
+        "dataCollect": {
+          "title": "Date pe care le colectăm",
+          "p1": "În funcție de rolul și interacțiunea dvs., putem colecta: nume, e-mail, telefon, adresă comercială, credențiale de cont, înregistrări de rezervări și facturi, mesaje, imagini încărcate (referințe, avatare, semnături), metadate de plată, date cookie/dispozitiv și — acolo unde studiourile folosesc consimțământ digital — informații de sănătate necesare pentru siguranța tatuajului sau piercingului.",
+          "p2": "Numerele de card sunt introduse direct în Stripe (checkout online, facturi și Terminal / Tap to Pay în persoană). Velbok nu stochează numere complete de card pe serverele noastre."
+        },
+        "healthData": {
+          "title": "Date de sănătate și consimțământ",
+          "p1": "Formularele de consimțământ digital pot colecta răspunsuri privind istoricul medical (de exemplu alergii, afecțiuni cardiace, sarcină sau anticoagulante) și o semnătură desenată. Acestea sunt date din categorii speciale conform UK/EU GDPR. Studiourile le colectează cu consimțământ explicit al clientului în scopuri de siguranță, juridice, medicale și de asigurare.",
+          "p2": "Velbok stochează răspunsurile de consimțământ și PDF-urile generate în mod securizat în numele studio-ului. Păstrarea urmează cerințele profesionale și de asigurare ale studio-ului, de obicei câțiva ani."
+        },
+        "whenCollect": {
+          "title": "Când colectăm date",
+          "p1": "Colectăm date când creați un cont, vă abonați la Velbok, configurați un studio, gestionați rezervări sau facturare, completați formulare de consimțământ, folosiți mesageria din aplicație, contactați suportul sau utilizați funcții de plată pe web sau mobil."
+        },
+        "mobile": {
+          "title": "Aplicație mobilă (Android / iOS)",
+          "p1": "Aplicația Velbok poate solicita permisiuni ale dispozitivului pentru plăți în persoană: locație precisă și Bluetooth (cititoare de card și Stripe Tap to Pay) și NFC pentru Tap to Pay contactless. Locația este necesară conform reglementărilor de plată și pentru prevenirea fraudei — nu este folosită pentru a vă urmări în scop publicitar.",
+          "p2": "Aplicația nativă nu afișează bannerul de cookie-uri web; folosim doar stocare locală strict necesară pentru autentificare și preferințe. Cookie-urile opționale de marketing/analiză se aplică doar pe site-ul web."
+        },
+        "subprocessors": {
+          "title": "Furnizori de servicii (sub-împuterniciți)",
+          "p1": "Folosim furnizori de încredere pentru a opera Velbok, inclusiv: Supabase (autentificare, bază de date, stocare fișiere, edge functions), Stripe (plăți, plăți Connect, Terminal / Tap to Pay), Resend (e-mail tranzacțional), Twilio (WhatsApp/SMS opțional per studio) și Netlify (găzduire site web). Fiecare furnizor procesează datele în baza unui contract și a propriilor termeni de confidențialitate.",
+          "p2": "Nu vindem date personale. Partajăm date doar acolo unde este necesar pentru a furniza serviciul, a respecta legea sau a preveni fraudele."
+        },
+        "transfers": {
+          "title": "Transferuri internaționale",
+          "p1": "Unii furnizori pot procesa date în afara UK/SEE (de exemplu Statele Unite). Acolo unde este necesar, ne bazăm pe garanții adecvate, cum ar fi Clauzele Contractuale Standard și programele de conformitate ale furnizorilor."
+        },
+        "lawfulBases": {
+          "title": "Temeiuri legale (UK GDPR / EU GDPR)",
+          "p1": "Ne bazăm pe consimțământ, necesitate contractuală, obligație legală și interese legitime, în funcție de context.",
+          "consent": "Consimțământ:",
+          "consentDesc": "cookie-uri opționale pe site, opt-in-uri de marketing și consimțământ explicit pentru date de sănătate în formularele de consimțământ ale studio-ului.",
+          "contract": "Contract:",
+          "contractDesc": "furnizarea serviciului Velbok, abonamente studio, rezervări, avansuri și facturi.",
+          "legal": "Obligație legală:",
+          "legalDesc": "fiscalitate, contabilitate și solicitări legale de la autorități.",
+          "legitimate": "Interese legitime:",
+          "legitimateDesc": "securitate, prevenirea fraudei, îmbunătățirea produsului și comunicări de serviciu.",
+          "vital": "Interese vitale:",
+          "vitalDesc": "protejarea vieții sau sănătății în caz de urgență."
+        },
+        "howUse": {
+          "title": "Cum și de ce folosim datele",
+          "p1": "Folosim date personale pentru a opera Velbok, a autentifica utilizatorii, a procesa abonamentele studio și plățile clienților, a livra notificări, a sprijini studiourile, a îmbunătăți fiabilitatea și a respecta obligațiile legale.",
+          "p2": "{{shopLegalName}} nu vinde date personale către terți pentru marketingul acestora."
+        },
+        "cookies": {
+          "title": "Cookie-uri și tehnologii similare",
+          "p1": "Site-ul nostru web folosește cookie-uri și stocare locală pentru autentificare, securitate, preferințe de limbă și categorii opționale de analiză/marketing când consimțiți. Consultați Politica noastră de cookie-uri pentru detalii.",
+          "p2": "E-mailurile tranzacționale pot include pixeli de urmărire pentru a măsura livrarea și implicarea."
+        },
+        "security": {
+          "title": "Securitate și păstrare",
+          "p1": "Folosim criptare în tranzit (HTTPS/TLS), controale de acces și găzduire conform standardelor industriei. Nicio transmisie pe internet nu este complet lipsită de risc.",
+          "p2": "Păstrăm înregistrările de cont și tranzacții atât timp cât este necesar pentru serviciu, obligații legale și soluționarea disputelor — de obicei cel puțin cinci ani pentru înregistrările comerciale și mai mult acolo unde asigurarea sau documentația de consimțământ o impune."
+        },
+        "children": {
+          "title": "Copii și minori",
+          "p1": "Velbok este software de gestionare și rezervare pentru studiouri — nu prestăm servicii de tatuaj sau piercing. Vârstele minime pentru aceste servicii sunt stabilite de fiecare studio și de legea din jurisdicția în care operează (inclusiv piercinguri pentru minori cu părinte sau tutore, acolo unde este permis).",
+          "p2": "Conturile de administrator și personal studio sunt conturi de afaceri și nu sunt destinate copiilor sub 13 ani. Când un studio înregistrează o rezervare sau un formular de consimțământ pentru un client minor, studio-ul este operatorul de date și trebuie să obțină consimțământul parental sau al tutorelui, acolo unde este necesar."
+        },
+        "ccpa": {
+          "title": "Drepturi de confidențialitate în California (CCPA/CPRA)",
+          "p1": "Rezidenții din California pot solicita acces, rectificare sau ștergerea informațiilor personale pe care le deținem ca operator. Nu vindem și nu partajăm informații personale pentru publicitate comportamentală inter-context. Pentru a vă exercita drepturile, trimiteți un e-mail la",
+          "p2": "Vom verifica solicitările și vom răspunde în termenele aplicabile."
+        },
+        "rights": {
+          "title": "Drepturile dvs.",
+          "p1": "Puteți solicita acces, rectificare, ștergere (acolo unde se aplică), restricționare, opoziție, portabilitate și retragerea consimțământului. Trimiteți un e-mail la",
+          "orWriteTo": "sau scrieți la:",
+          "p2": "Dacă refuzăm o solicitare, vom explica motivele. Puteți depune o plângere la UK ICO sau la autoritatea de supraveghere locală din UE."
+        },
+        "updates": {
+          "title": "Actualizări ale politicii",
+          "p1": "Putem actualiza periodic această notificare. Modificările materiale vor fi publicate la velbok.com/privacy cu o dată revizuită."
+        }
+      }
+    },
+    "terms": {
+      "title": "Termeni și condiții de utilizare",
+      "lastUpdated": "18 iunie 2026",
+      "sections": {
+        "scope": {
+          "title": "1. Acord",
+          "p1": "Acești Termeni formează un acord obligatoriu între dvs. (și studio-ul pe care îl reprezentați) și Inkaholics Limited (societate înregistrată în Anglia și Țara Galilor, operează sub denumirea {{platformName}}) pentru utilizarea Serviciului la velbok.com. Prin crearea unui cont, abonare sau utilizarea Serviciului, acceptați acești Termeni și Notificarea noastră de confidențialitate.",
+          "p2": "Dacă vă abonați în numele unui studio, confirmați că aveți autoritatea de a obliga acel studio la acest acord."
+        },
+        "eligibility": {
+          "title": "2. Eligibilitate și securitatea contului",
+          "p1": "Conturile de personal și administrator studio sunt destinate persoanelor suficient de mature pentru a încheia un contract obligatoriu în jurisdicția lor sau autorizate de proprietarul studio-ului să folosească Serviciul în numele studio-ului. Trebuie să furnizați informații exacte, să păstrați credențialele confidențiale și să ne notificați prompt despre accesul neautorizat."
+        },
+        "children": {
+          "title": "3. Copii și minori",
+          "p1": "Velbok este software folosit de studiouri de tatuaj și piercing — nu un studio în sine. Serviciul nu este destinat copiilor sub 13 ani pentru crearea de conturi pe platformă. Funcțiile portalului pentru clienți pot fi folosite pentru rezervări și consimțământ acolo unde un studio deservește legal clienți minori; studiourile sunt responsabile pentru verificarea vârstei și consimțământul tutorelui conform legii locale."
+        },
+        "acceptableUse": {
+          "title": "4. Utilizare acceptabilă",
+          "p1": "Nu trebuie să utilizați abuziv Serviciul, să interferați cu controalele de securitate, să încărcați conținut ilegal sau să folosiți Serviciul într-un mod care încalcă legea aplicabilă, inclusiv UK GDPR, EU GDPR și regulile de protecție a consumatorilor."
+        },
+        "bookings": {
+          "title": "5. Fluxuri de rezervare și plată",
+          "p1": "Serviciul suportă gestionarea rezervărilor, avansuri, facturare și plăți cu card în persoană prin Stripe. Detaliile cardului sunt procesate de Stripe; Velbok nu stochează numere complete de card. Sunteți responsabil să vă asigurați că informațiile de rezervare și plată sunt corecte înainte de a trimite notificări.",
+          "p2": "Regulile specifice studio-ului privind anularea, rambursarea și eligibilitatea de vârstă pentru servicii de tatuaj sau piercing rămân responsabilitatea studio-ului și trebuie comunicate clienților separat. Velbok nu prestează servicii de body art."
+        },
+        "subscription": {
+          "title": "6. Abonament platformă (studiouri)",
+          "p1": "Planurile self-service sunt facturate recurent prin Stripe în numele Inkaholics Limited. Prin începerea unui abonament sau a unei perioade de probă gratuite, ne autorizați să debităm metoda de plată pe care o furnizați la prețul curent pentru planul selectat, inclusiv reînnoirea automată până când anulați conform acestor Termeni.",
+          "p2": "Perioadele de probă se transformă în abonamente plătite dacă nu sunt anulate înainte de expirare. Taxele nu sunt rambursabile, exceptând cazurile impuse de legea imperativă. Putem modifica caracteristicile sau prețurile planurilor cu un preaviz rezonabil; utilizarea continuă după data intrării în vigoare constituie acceptare. Puteți anula prin setările de facturare sau portalul clienților Stripe, acolo unde este disponibil."
+        },
+        "studioObligations": {
+          "title": "7. Obligațiile studio-ului",
+          "p1": "Sunteți singurul responsabil pentru serviciile de tatuaj, piercing sau conexe pe care le prestați clienților, inclusiv licențe, igienă, îngrijire post-procedură, verificarea vârstei, consimțământul tutorelui acolo unde legea o impune și conformitatea cu reglementările din jurisdicția dvs.",
+          "p2": "Nu trebuie să reprezentați Velbok ca prestator de servicii de body art. Sunteți responsabil pentru exactitatea datelor pe care dvs. și personalul dvs. le introduceți în Serviciu și pentru comunicările trimise clienților dvs."
+        },
+        "dataProcessing": {
+          "title": "8. Roluri în protecția datelor",
+          "p1": "Pentru datele de cont studio și facturare, Inkaholics Limited este operatorul de date. Pentru rezervările clienților, formularele de consimțământ, mesajele și datele CRM pe care le introduceți despre clienții dvs., sunteți operatorul, iar Inkaholics Limited acționează ca împuternicit conform instrucțiunilor dvs. documentate, conform Notificării noastre de confidențialitate.",
+          "p2": "Trebuie să aveți un temei legal și, acolo unde este necesar, notificări de confidențialitate și consimțăminte adecvate pentru datele clienților pe care le procesați prin Velbok. Nu trebuie să încărcați conținut ilegal sau date din categorii speciale dincolo de ceea ce Serviciul este conceput să suporte."
+        },
+        "ip": {
+          "title": "9. Proprietate intelectuală",
+          "p1": "Designul, software-ul și brandingul Velbok al Serviciului aparțin sau sunt licențiate către Inkaholics Limited. Primiți o licență limitată, neexclusivă, netransferabilă pentru a utiliza Serviciul în activitatea internă a studio-ului dvs. cât timp abonamentul este activ și în regulă.",
+          "p2": "Păstrați proprietatea asupra conținutului pe care îl încărcați. Ne acordați o licență pentru a găzdui, procesa și afișa acel conținut exclusiv pentru a furniza Serviciul."
+        },
+        "data": {
+          "title": "10. Confidențialitate",
+          "p1": "Notificarea noastră de confidențialitate explică modul în care Inkaholics Limited procesează datele personale. Prin utilizarea Serviciului recunoașteți această notificare."
+        },
+        "thirdParty": {
+          "title": "11. Servicii terțe",
+          "p1": "Serviciul integrează terți precum Stripe (plăți), Supabase (găzduire) și furnizori de e-mail. Termenii și politicile lor de confidențialitate se aplică serviciilor lor. Nu răspundem pentru întreruperi, erori sau acțiuni ale furnizorilor terți dincolo de controlul nostru rezonabil."
+        },
+        "disclaimer": {
+          "title": "12. Declinări de responsabilitate",
+          "p1": "Serviciul este furnizat „ca atare” și „după disponibilitate”. Nu garantăm funcționare neîntreruptă sau fără erori. Velbok este doar software — nu oferim consultanță juridică, medicală, fiscală sau profesională, iar Serviciul nu garantează conformitatea dvs. reglementară."
+        },
+        "indemnity": {
+          "title": "13. Despăgubire",
+          "p1": "Veți despăgubi și veți exonera Inkaholics Limited, directorii și angajații săi de reclamații, amenzi, pierderi și costuri rezonabile rezultate din: (a) serviciile studio-ului dvs. sau interacțiunile cu clienții; (b) încălcarea acestor Termeni sau a legii aplicabile; (c) datele clienților pe care le controlați; sau (d) conținutul pe care dvs. sau personalul dvs. îl trimite prin Serviciu, exceptând în măsura cauzată de comportamentul nostru intenționat sau neglijența noastră."
+        },
+        "availability": {
+          "title": "14. Disponibilitatea serviciului",
+          "p1": "Ne propunem o funcționare fiabilă, dar nu garantăm disponibilitate neîntreruptă. Mentenanța planificată, actualizările și întreruperile terților pot afecta accesul."
+        },
+        "liability": {
+          "title": "15. Limitarea răspunderii",
+          "p1": "Nimic în acești Termeni nu limitează răspunderea care nu poate fi limitată prin lege (inclusiv deces sau vătămare corporală cauzată de neglijență sau fraudă). Sub rezerva legii imperativă, Inkaholics Limited nu răspunde pentru pierderi indirecte, consecințiale sau punitive, pierdere de profit, venituri, date sau goodwill.",
+          "p2": "Sub rezerva celor de mai sus, răspunderea noastră totală agregată rezultată din sau legată de Serviciu în orice perioadă de doisprezece luni este limitată la valoarea cea mai mare dintre (a) taxele de abonament platformă plătite nouă în acea perioadă sau (b) o sută de lire sterline (£100)."
+        },
+        "changes": {
+          "title": "16. Modificări și încetare",
+          "p1": "Putem actualiza acești Termeni acolo unde legea, securitatea sau schimbările de produs o impun. Modificările materiale sunt publicate la velbok.com/terms cu o dată revizuită. Putem suspenda sau înceta accesul acolo unde termenii sunt încălcați, taxele sunt neplătite sau se detectează utilizare abuzivă."
+        },
+        "governingLaw": {
+          "title": "17. Legea aplicabilă",
+          "p1": "Acești Termeni sunt guvernați de legile Angliei și Țării Galilor. Instanțele din Anglia și Țara Galilor au jurisdicție exclusivă, exceptând cazurile în care legea imperativă de protecție a consumatorilor din țara dvs. de reședință vă dă dreptul de a intenta proceduri în altă parte."
+        }
+      }
+    },
+    "cookies": {
+      "title": "Politica de cookie-uri",
+      "lastUpdated": "18 iunie 2026",
+      "sections": {
+        "what": {
+          "title": "1. Ce sunt cookie-urile",
+          "p1": "Cookie-urile sunt fișiere text mici stocate pe dispozitivul dvs. Folosim și stocare locală acolo unde este necesar pentru autentificare, limbă și preferințe de interfață."
+        },
+        "categories": {
+          "title": "2. Categorii de cookie-uri pe care le folosim",
+          "p1": "Strict necesare: autentificare, securitate și funcții esențiale (întotdeauna active). Preferințe: limbă și alegeri de interfață (cu consimțământul dvs. pe site). Analiză și marketing: categorii opționale — nu încărcăm în prezent instrumente terțe de analiză sau publicitate; aceste categorii sunt rezervate pentru utilizare viitoare și rămân dezactivate dacă nu consimțiți și noi le activăm."
+        },
+        "consent": {
+          "title": "3. Model de consimțământ",
+          "p1": "Tehnologiile strict necesare sunt întotdeauna active. Categoriile opționale (preferințe, analiză, marketing) sunt activate doar după consimțământul dvs. și pot fi modificate oricând din interfața de preferințe cookie."
+        },
+        "thirdParty": {
+          "title": "4. Servicii terțe",
+          "p1": "Unii furnizori integrați pot seta propriile cookie-uri sau identificatori similari când funcționalitatea lor este utilizată. Termenii lor de confidențialitate/cookie se aplică în plus față de această politică."
+        },
+        "pixels": {
+          "title": "Pixeli e-mail",
+          "p1": "Putem include pixeli de urmărire în anumite e-mailuri pentru a înțelege implicarea (de exemplu, dacă un e-mail a fost deschis) și capacitatea de redare (text vs HTML). Acest lucru ne ajută să îmbunătățim calitatea și relevanța comunicărilor."
+        },
+        "manage": {
+          "title": "5. Cum gestionați cookie-urile",
+          "p1": "Puteți accepta tot, respinge pe cele neesențiale sau face alegeri granulare în aplicație. Puteți configura și browserul să blocheze cookie-urile, dar acest lucru poate afecta funcții esențiale precum autentificarea sau gestionarea securizată a sesiunii."
+        },
+        "updates": {
+          "title": "6. Actualizări",
+          "p1": "Putem actualiza această politică pentru a reflecta schimbări juridice, tehnice sau de produs. Ultima versiune și data actualizării sunt publicate întotdeauna aici."
+        }
+      }
+    }
+  },
+  "subscribe": {
+    "termsCheckboxLead": "Am citit și sunt de acord cu",
+    "termsCheckboxBody": "Confirm că sunt autorizat să mă abonez în numele studio-ului meu și că Inkaholics Limited (Velbok) poate debita planul selectat (inclusiv după o perioadă de probă gratuită) prin Stripe.",
+    "termsVersionLabel": "versiunea {{version}}",
+    "termsRequired": "Vă rugăm să acceptați Termenii și Notificarea de confidențialitate pentru a continua."
+  },
+  "stripeConnect": {
+    "stripeHostedNote": "Stripe poate afișa Velbok ca platformă — este normal. Introduceți entitatea juridică a studio-ului (de ex. Inkaholics Limited) și contul bancar în formular. Plățile sunt virate către studio-ul dvs., nu către Velbok."
+  }
+}

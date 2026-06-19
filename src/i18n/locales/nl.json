@@ -298,7 +298,11 @@
     "planActive": "Je {{plan}}-plan is actief{{trial}}.",
     "withTrial": " met gratis proefperiode",
     "goToSchedule": "Ga naar je planning",
-    "signInStudio": "Inloggen bij je studio"
+    "signInStudio": "Inloggen bij je studio",
+    "termsCheckboxLead": "Ik heb gelezen en ga akkoord met de",
+    "termsCheckboxBody": "Ik bevestig dat ik bevoegd ben om namens mijn studio te abonneren en dat Inkaholics Limited (Velbok) het geselecteerde abonnement (inclusief na een eventuele gratis proefperiode) via Stripe mag belasten.",
+    "termsVersionLabel": "versie {{version}}",
+    "termsRequired": "Accepteer de Voorwaarden en Privacyverklaring om door te gaan."
   },
   "subscription": {
     "title": "Abonnement",
@@ -1606,7 +1610,7 @@
     "statusReady": "Gekoppeld",
     "statusIncomplete": "Actie vereist",
     "statusNotStarted": "Niet gekoppeld",
-    "stripeHostedNote": "U vult een kort Stripe-formulier in voor bank- en identiteitscontroles. Geen aparte Stripe-registratie nodig.",
+    "stripeHostedNote": "Stripe kan Velbok als het platform tonen — dat is normaal. Voer tijdens het formulier de juridische entiteit van uw studio in (bijv. Inkaholics Limited) en uw bankrekening. Uitbetalingen gaan naar uw studio, niet naar Velbok.",
     "returnToast": "Uitbetalingssetup bijgewerkt — status controleren…",
     "refreshToast": "Ga verder met de uitbetalingssetup waar u gebleven was.",
     "loadFailed": "Kon uitbetalingsstatus niet laden",
@@ -2055,154 +2059,217 @@
       "lastUpdated": "Laatst bijgewerkt:",
       "terms": "Voorwaarden",
       "privacy": "Privacy",
-      "cookies": "Koekjes",
-      "home": "Thuis",
+      "cookies": "Cookies",
+      "home": "Home",
       "documentation": "Documentatie",
-      "studioLogin": "Studio-login"
+      "studioLogin": "Studio-inloggen"
     },
     "privacy": {
-      "title": "Privacyverklaring (VK/EU AVG)",
-      "lastUpdated": "29 mei 2026",
+      "title": "Privacyverklaring (UK/EU GDPR)",
+      "lastUpdated": "18 juni 2026",
       "sections": {
         "general": {
-          "title": "Algemene verklaring",
-          "p1": "{{shopLegalName}} doet er alles aan om uw privacy te beschermen en neemt zijn verantwoordelijkheden met betrekking tot de beveiliging van klantinformatie serieus. In deze verklaring wordt uitgelegd hoe we persoonlijke gegevens gebruiken en hoe we uw privacy beschermen wanneer u communiceert met onze winkel, website en diensten.",
-          "contactLead": "Als u vragen heeft, kunt u contact met ons opnemen via",
-          "contactDpo": "Voor klachten over cameratoezicht of gegevensbescherming kunt u contact opnemen met onze DPO via"
+          "title": "Wie wij zijn",
+          "p1": "{{shopLegalName}} (handelend onder de naam {{platformName}}) exploiteert het Velbok-platform op velbok.com en de Velbok-mobiele apps. Wij zijn de verwerkingsverantwoordelijke voor studiogegevens, platformfacturering en onze eigen bedrijfsvoering. Tattoostudio's die Velbok gebruiken, zijn afzonderlijke verwerkingsverantwoordelijken voor de boekings-, toestemmings- en CRM-gegevens van hun klanten.",
+          "contactLead": "Voor privacyvragen over het platform, neem contact op met",
+          "contactDpo": "Voor vragen of klachten over gegevensbescherming, neem contact op met onze functionaris voor gegevensbescherming (DPO) via"
+        },
+        "roles": {
+          "title": "Platform vs. studioverantwoordelijkheden",
+          "p1": "Wanneer u een studio registreert op Velbok, verwerken wij uw zakelijke contactgegevens, abonnementsfacturering en personeelsaccounts als verwerkingsverantwoordelijke. Wanneer uw studio klantboekingen, toestemmingsformulieren, berichten of facturen invoert, bent u de verwerkingsverantwoordelijke en treedt Velbok op als verwerker volgens uw instructies.",
+          "p2": "Studio's moeten hun eigen privacy-informatie verstrekken aan klanten voor diensten in het studio (inclusief eventuele CCTV op fysieke locaties). Deze verklaring betreft de Velbok-software en de website."
         },
         "dataCollect": {
-          "title": "Gegevens die we verzamelen",
-          "p1": "Afhankelijk van uw interactie met ons kunnen we het volgende verzamelen: naam, geslacht, geboortedatum, adres, e-mailadres, telefoonnummer, boekingsgeschiedenis, servicenotities, klachten-/feedbackgegevens, betalingsgegevens, cookie-/apparaat- en technische gebruiksgegevens, sociale-mediagegevens (als u ons een bericht stuurt) en CCTV-beelden die ter plaatse zijn vastgelegd.",
-          "p2": "Indien wettelijk vereist om de leeftijd voor het tatoeëren te verifiëren, kunnen we een kopie van een identiteitsbewijs met foto vragen en bewaren, samen met uw toestemmingsdocumentatie."
+          "title": "Gegevens die wij verzamelen",
+          "p1": "Afhankelijk van uw rol en interactie kunnen wij verzamelen: naam, e-mail, telefoon, zakelijk adres, accountgegevens, boekings- en factuurgegevens, berichten, geüploade afbeeldingen (referenties, avatars, handtekeningen), betalingsmetadata, cookie-/apparaatgegevens, en — waar studio's digitale toestemming gebruiken — gezondheidsinformatie die vereist is voor de veiligheid van tatoeages of piercings.",
+          "p2": "Kaartnummers worden rechtstreeks ingevoerd bij Stripe (online checkout, facturen en fysieke Terminal / Tap to Pay). Velbok slaat geen volledige kaartnummers op op onze servers."
+        },
+        "healthData": {
+          "title": "Gezondheids- en toestemmingsgegevens",
+          "p1": "Digitale toestemmingsformulieren kunnen antwoorden over medische geschiedenis verzamelen (bijvoorbeeld allergieën, hartaandoeningen, zwangerschap of bloedverdunners) en een getekende handtekening. Dit zijn bijzondere categorieën persoonsgegevens onder UK/EU GDPR. Studio's verzamelen deze gegevens met uitdrukkelijke toestemming van de klant voor veiligheids-, juridische, medische en verzekeringsdoeleinden.",
+          "p2": "Velbok slaat toestemmingsantwoorden en gegenereerde PDF's veilig op namens het studio. Bewaring volgt de professionele en verzekeringseisen van het studio, doorgaans meerdere jaren."
         },
         "whenCollect": {
-          "title": "Wanneer we gegevens verzamelen",
-          "p1": "We verzamelen gegevens wanneer u onze website of account gebruikt, een boeking of aankoop doet, contact met ons opneemt, deelneemt aan promoties, enquêtes invult, beoordelingen achterlaat, deelneemt aan sociale media of op andere wijze interactie heeft met ons bedrijf."
+          "title": "Wanneer wij gegevens verzamelen",
+          "p1": "Wij verzamelen gegevens wanneer u een account aanmaakt, zich abonneert op Velbok, een studio configureert, boekingen of facturering beheert, toestemmingsformulieren invult, in-app berichten gebruikt, support contacteert of betalingsfuncties gebruikt op web of mobiel."
+        },
+        "mobile": {
+          "title": "Mobiele app (Android / iOS)",
+          "p1": "De Velbok-app kan apparaattoestemmingen aanvragen ter ondersteuning van betalingen ter plaatse: precieze locatie en Bluetooth (kaartlezers en Stripe Tap to Pay), en NFC voor contactloos Tap to Pay. Locatie is vereist door betalingsregelgeving en fraudepreventie — deze wordt niet gebruikt om u te volgen voor advertenties.",
+          "p2": "De native app toont geen web cookiebanner; wij gebruiken strikt noodzakelijke lokale opslag alleen voor aanmelding en voorkeuren. Optionele marketing-/analytische cookies gelden alleen op de website."
+        },
+        "subprocessors": {
+          "title": "Dienstverleners (subverwerkers)",
+          "p1": "Wij gebruiken betrouwbare leveranciers om Velbok te runnen, waaronder: Supabase (authenticatie, database, bestandsopslag, edge-functies), Stripe (betalingen, Connect-uitbetalingen, Terminal / Tap to Pay), Resend (transactionele e-mail), Twilio (optionele WhatsApp/SMS per studio) en Netlify (websitehosting). Elke leverancier verwerkt gegevens onder contract en hun eigen privacyvoorwaarden.",
+          "p2": "Wij verkopen geen persoonsgegevens. Wij delen gegevens alleen waar nodig om de dienst te leveren, aan de wet te voldoen of fraude te voorkomen."
+        },
+        "transfers": {
+          "title": "Internationale doorgiften",
+          "p1": "Sommige leveranciers kunnen gegevens verwerken buiten het VK/de EER (bijvoorbeeld de Verenigde Staten). Waar vereist, vertrouwen wij op passende waarborgen zoals standaardcontractbepalingen en nalevingsprogramma's van leveranciers."
         },
         "lawfulBases": {
-          "title": "Wettelijke grondslagen (VK AVG / EU AVG)",
-          "p1": "We vertrouwen op toestemming, contractuele noodzaak, wettelijke verplichting, legitieme belangen en vitale belangen, afhankelijk van de context.",
+          "title": "Rechtmatige grondslagen (UK GDPR / EU GDPR)",
+          "p1": "Wij vertrouwen op toestemming, contractuele noodzaak, wettelijke verplichting en gerechtvaardigde belangen afhankelijk van de context.",
           "consent": "Toestemming:",
-          "consentDesc": "bijv. nieuwsbrief opt-in en optionele cookie-categorieën.",
+          "consentDesc": "optionele cookies op de website, marketingopt-ins en uitdrukkelijke toestemming voor gezondheidsgegevens in studiottoestemmingsformulieren.",
           "contract": "Contract:",
-          "contractDesc": "om geboekte diensten te verlenen en betalingen/aanbetalingen te verwerken.",
+          "contractDesc": "levering van de Velbok-dienst, studio-abonnementen, boekingen, aanbetalingen en facturen.",
           "legal": "Wettelijke verplichting:",
-          "legalDesc": "waar nodig om gegevens te delen voor fraude-/misdaadpreventie of juridische procedures.",
+          "legalDesc": "belasting, boekhouding en rechtmatige verzoeken van autoriteiten.",
           "legitimate": "Gerechtvaardigde belangen:",
-          "legitimateDesc": "bedrijfsvoering, communicatie, service-updates en kwaliteitsverbetering.",
+          "legitimateDesc": "beveiliging, fraudepreventie, productverbetering en dienstcommunicatie.",
           "vital": "Vitale belangen:",
-          "vitalDesc": "waar nodig om het leven/de gezondheid in noodsituaties te beschermen."
+          "vitalDesc": "bescherming van leven of gezondheid in een noodsituatie."
         },
         "howUse": {
-          "title": "Hoe en waarom we gegevens gebruiken",
-          "p1": "We gebruiken persoonlijke gegevens om diensten te verlenen, boekingen en aanbetalingen te beheren, vereiste servicecommunicatie te verzenden, klachten en feedback te verwerken, producten en systemen te verbeteren, enquêtes en wedstrijden uit te voeren, de veiligheid te beschermen en aan wettelijke verplichtingen te voldoen.",
-          "p2": "{{shopLegalName}} deelt geen marketinggegevens met externe organisaties voor hun eigen marketing. We delen waar nodig gegevens met betalings- en dienstverleners om transacties en bewerkingen veilig uit te voeren."
+          "title": "Hoe en waarom wij gegevens gebruiken",
+          "p1": "Wij gebruiken persoonsgegevens om Velbok te exploiteren, gebruikers te authenticeren, studio-abonnementen en klantbetalingen te verwerken, meldingen te leveren, studio's te ondersteunen, betrouwbaarheid te verbeteren en aan wettelijke verplichtingen te voldoen.",
+          "p2": "{{shopLegalName}} verkoopt geen persoonsgegevens aan derden voor hun eigen marketing."
         },
         "cookies": {
-          "title": "Cookies, pixels en websitetechnologieën",
-          "p1": "Cookies en soortgelijke technologieën helpen ons websitefuncties uit te voeren en voorkeuren te onthouden. Onze cookies zijn niet bedoeld om directe persoonlijke identificatiegegevens te bevatten. U kunt browsercookies en in-app-cookievoorkeuren beheren.",
-          "p2": "We kunnen e-mailtrackingpixels gebruiken om te begrijpen of e-mails zijn geopend en of uw klant tekst- of HTML-inhoud kan weergeven."
+          "title": "Cookies en vergelijkbare technologieën",
+          "p1": "Onze website gebruikt cookies en lokale opslag voor aanmelding, beveiliging, taalvoorkeuren en optionele analyse-/marketingcategorieën wanneer u toestemming geeft. Zie ons Cookiebeleid voor details.",
+          "p2": "Transactionele e-mails kunnen trackingpixels bevatten om levering en betrokkenheid te meten."
         },
         "security": {
-          "title": "Beveiliging en retentie",
-          "p1": "We gebruiken encryptie, veilige verwerkingsstandaarden en toegangscontroles om gegevens te beschermen. Geen enkele transmissie via internet is volledig risicovrij, maar we passen redelijke technische en organisatorische veiligheidsmaatregelen toe.",
-          "p2": "De standaardbewaring bedraagt ​​minimaal 5 jaar vanaf het laatste bezoek/transactie, of langer wanneer juridische claims/verzekeringsclaims dit vereisen. Voor verzekerings- en schadeclaims kunnen wij relevante gegevens maximaal 21 jaar bewaren."
+          "title": "Beveiliging en bewaring",
+          "p1": "Wij gebruiken versleuteling tijdens overdracht (HTTPS/TLS), toegangscontroles en hosting volgens industriestandaard. Geen internetoverdracht is volledig risicovrij.",
+          "p2": "Wij bewaren account- en transactiegegevens zolang nodig voor de dienst, wettelijke verplichtingen en geschillenbeslechting — doorgaans minstens vijf jaar voor zakelijke gegevens, en langer waar verzekering of toestemmingsdocumentatie dit vereist."
         },
-        "cctv": {
-          "title": "Samenvatting van het CCTV-beleid",
-          "p1": "Onze gebouwen worden 24/7 bewaakt door CCTV voor preventie/detectie van misdaad, veiligheid en bescherming van activa. Camera's worden op prominente plekken geplaatst en niet in gevoelige ruimtes. De toegang is beperkt tot bevoegd opgeleid personeel.",
-          "p2": "CCTV-gegevens worden rechtmatig, eerlijk, transparant en veilig verwerkt. Beeldmateriaal wordt doorgaans minimaal 14 dagen en niet langer dan 1 jaar bewaard, tenzij dit nodig is voor onderzoeken, disciplinaire procedures of juridisch bewijsmateriaal."
+        "children": {
+          "title": "Kinderen en minderjarigen",
+          "p1": "Velbok is software voor studiobeheer en boekingen — wij verlenen geen tatoeage- of piercingdiensten. Minimumleeftijden voor dergelijke diensten worden vastgesteld door elk studio en de wet waar zij actief zijn (inclusief piercings voor minderjarigen met ouder of voogd, waar toegestaan).",
+          "p2": "Studio-administrator- en personeelsaccounts zijn zakelijke accounts en zijn niet gericht op kinderen onder de 13 jaar. Wanneer een studio een boeking of toestemmingsformulier registreert voor een minderjarige klant, is het studio de verwerkingsverantwoordelijke en moet het de vereiste ouderlijke of voogdstoestemming verkrijgen."
+        },
+        "ccpa": {
+          "title": "Privacyrechten Californië (CCPA/CPRA)",
+          "p1": "Inwoners van Californië kunnen inzage, correctie of verwijdering verzoeken van persoonsgegevens die wij als verwerkingsverantwoordelijke bewaren. Wij verkopen of delen geen persoonsgegevens voor cross-context gedragsadvertenties. Om rechten uit te oefenen, stuur een e-mail naar",
+          "p2": "Wij zullen verzoeken verifiëren en binnen de toepasselijke termijnen reageren."
         },
         "rights": {
-          "title": "Jouw rechten",
-          "p1": "U kunt verzoeken om toegang, correctie, verwijdering (indien van toepassing), beperking, bezwaar, overdraagbaarheid en intrekking van uw toestemming. U kunt ons ook vragen om te stoppen met direct marketing. U kunt een kopie van uw gegevens opvragen door een e-mail te sturen",
-          "orWriteTo": "of schrijven naar:",
-          "p2": "Als wij een verzoek weigeren, leggen wij uit waarom. U heeft ook het recht om een ​​klacht in te dienen bij de Britse Information Commissioner's Office (ICO) of uw lokale toezichthoudende autoriteit in de EU."
+          "title": "Uw rechten",
+          "p1": "U kunt inzage, correctie, verwijdering (waar van toepassing), beperking, bezwaar, overdraagbaarheid en intrekking van toestemming verzoeken. Stuur een e-mail naar",
+          "orWriteTo": "of schrijf naar:",
+          "p2": "Als wij een verzoek weigeren, zullen wij uitleggen waarom. U kunt een klacht indienen bij de UK ICO of uw lokale toezichthoudende autoriteit in de EU."
         },
         "updates": {
-          "title": "Beleidsupdates",
-          "p1": "We kunnen deze verklaring periodiek bijwerken. Belangrijke wijzigingen zullen hier worden geplaatst, zodat u op de hoogte blijft van welke gegevens we verzamelen, hoe we deze gebruiken en wanneer deze openbaar kunnen worden gemaakt."
+          "title": "Updates van de verklaring",
+          "p1": "Wij kunnen deze verklaring periodiek bijwerken. Materiële wijzigingen worden gepubliceerd op velbok.com/privacy met een herziene datum."
         }
       }
     },
     "terms": {
-      "title": "Algemene gebruiksvoorwaarden",
-      "lastUpdated": "29 mei 2026",
+      "title": "Gebruiksvoorwaarden",
+      "lastUpdated": "18 juni 2026",
       "sections": {
         "scope": {
-          "title": "1. Reikwijdte",
-          "p1": "Deze Voorwaarden regelen de toegang tot en het gebruik van de {{platformName}}-webapplicatie (de \"Service\") door personeel en klanten in het Verenigd Koninkrijk en de EU. Door de Dienst te gebruiken, gaat u akkoord met deze Voorwaarden."
+          "title": "1. Overeenkomst",
+          "p1": "Deze Voorwaarden vormen een bindende overeenkomst tussen u (en het studio dat u vertegenwoordigt) en Inkaholics Limited (vennootschap geregistreerd in Engeland en Wales, handelend onder de naam {{platformName}}) voor het gebruik van de Dienst op velbok.com. Door een account aan te maken, u te abonneren of de Dienst te gebruiken, gaat u akkoord met deze Voorwaarden en onze Privacyverklaring.",
+          "p2": "Als u zich abonneert namens een studio, verklaart u dat u bevoegd bent om dat studio aan deze overeenkomst te binden."
         },
         "eligibility": {
           "title": "2. Geschiktheid en accountbeveiliging",
-          "p1": "U moet nauwkeurige informatie verstrekken, de inloggegevens vertrouwelijk houden en ons onmiddellijk op de hoogte stellen van ongeautoriseerde toegang tot uw account. U bent verantwoordelijk voor activiteiten die onder uw account worden uitgevoerd, tenzij deze door onze schuld zijn veroorzaakt."
+          "p1": "Studio-personeels- en beheerdersaccounts zijn voor personen die oud genoeg zijn om een bindend contract aan te gaan in hun rechtsgebied, of die door de studio-eigenaar zijn gemachtigd om de Dienst namens het studio te gebruiken. U moet accurate informatie verstrekken, inloggegevens vertrouwelijk houden en ons onmiddellijk informeren bij ongeautoriseerde toegang."
+        },
+        "children": {
+          "title": "3. Kinderen en minderjarigen",
+          "p1": "Velbok is software die wordt gebruikt door tatoeage- en piercingstudio's — geen studio zelf. De Dienst is niet gericht op kinderen onder de 13 jaar voor het aanmaken van platformaccounts. Klantportalfuncties kunnen worden gebruikt voor boekingen en toestemming waar een studio wettelijk minderjarige klanten bedient; studio's zijn verantwoordelijk voor leeftijdsverificatie en voogdtoestemming volgens de lokale wet."
         },
         "acceptableUse": {
-          "title": "3. Acceptabel gebruik",
-          "p1": "U mag de Service niet misbruiken, de beveiligingscontroles niet verstoren, onwettige inhoud uploaden of de Service gebruiken op een manier die in strijd is met de toepasselijke wetgeving, waaronder de Britse AVG, de EU AVG en de regels voor consumentenbescherming."
+          "title": "4. Aanvaardbaar gebruik",
+          "p1": "U mag de Dienst niet misbruiken, beveiligingscontroles verstoren, onwettige inhoud uploaden of de Dienst gebruiken op een manier die in strijd is met toepasselijk recht, inclusief UK GDPR, EU GDPR en consumentenbeschermingsregels."
         },
         "bookings": {
-          "title": "4. Workflows voor boekingen en stortingen",
-          "p1": "De Service ondersteunt boekingsbeheer en aanbetalingsherinneringen. De betalingsafhandeling wordt verzorgd door geïntegreerde externe providers. U bent ervoor verantwoordelijk dat de ingevoerde boekings- en betalingsgegevens correct zijn voordat u meldingen verzendt.",
-          "p2": "Voor geboekte tattoo-diensten zijn aanvullende studiovoorwaarden van toepassing: zodra de tattoo-diensten zijn verleend, is de overeengekomen prijs volledig verschuldigd en wordt er geen krediet aangeboden; stortingen worden geïnd via de integratie van online betalingsproviders; aanbetalingen worden alleen gerestitueerd als er ten minste 24 uur vóór de afspraak formeel wordt geannuleerd per e-mail; en ontevredenheid over veranderingen in stijlvoorkeur na service geeft geen recht op restitutie."
+          "title": "5. Boekings- en betalingsworkflows",
+          "p1": "De Dienst ondersteunt boekingsbeheer, aanbetalingen, facturering en fysieke kaartbetalingen via Stripe. Kaartgegevens worden verwerkt door Stripe; Velbok slaat geen volledige kaartnummers op. U bent verantwoordelijk voor het waarborgen dat boekings- en betalingsinformatie correct is voordat u meldingen verstuurt.",
+          "p2": "Studiospecifieke regels voor annulering, terugbetaling en leeftijdsgeschiktheid voor tatoeage- of piercingdiensten blijven de verantwoordelijkheid van het studio en moeten apart aan klanten worden gecommuniceerd. Velbok verleent geen body art-diensten."
+        },
+        "subscription": {
+          "title": "6. Platformabonnement (studio's)",
+          "p1": "Selfservice-abonnementen worden terugkerend gefactureerd via Stripe namens Inkaholics Limited. Door een abonnement of gratis proefperiode te starten, machtigt u ons om de door u opgegeven betaalmethode te belasten tegen de dan geldende prijs voor uw geselecteerde abonnement, inclusief automatische verlenging totdat u opzegt in overeenstemming met deze Voorwaarden.",
+          "p2": "Proefperiodes worden omgezet in betaalde abonnementen tenzij ze vóór het einde van de proefperiode worden opgezegd. Kosten zijn niet terugbetaalbaar, behalve waar verplicht recht dit vereist. Wij kunnen abonnementsfuncties of prijzen wijzigen met redelijke kennisgeving; voortgezet gebruik na de ingangsdatum geldt als acceptatie. U kunt opzeggen via de factureringsinstellingen of het Stripe-klantenportaal waar beschikbaar."
+        },
+        "studioObligations": {
+          "title": "7. Studioverplichtingen",
+          "p1": "U bent uitsluitend verantwoordelijk voor tatoeage-, piercing- of gerelateerde diensten die u aan klanten levert, inclusief vergunningen, hygiëne, nazorg, leeftijdsverificatie, voogdtoestemming waar de wet dit vereist, en naleving van regelgeving in uw rechtsgebied.",
+          "p2": "U mag Velbok niet presenteren als aanbieder van body art-diensten. U bent verantwoordelijk voor de nauwkeurigheid van gegevens die u en uw personeel in de Dienst invoeren en voor communicatie die naar uw klanten wordt verzonden."
+        },
+        "dataProcessing": {
+          "title": "8. Gegevensbeschermingsrollen",
+          "p1": "Voor studiogegevens en factureringsgegevens is Inkaholics Limited de verwerkingsverantwoordelijke. Voor klantboekingen, toestemmingsformulieren, berichten en CRM-gegevens die u over uw klanten invoert, bent u de verwerkingsverantwoordelijke en treedt Inkaholics Limited op als verwerker volgens uw gedocumenteerde instructies, zoals beschreven in onze Privacyverklaring.",
+          "p2": "U moet een rechtmatige grondslag hebben en, waar vereist, passende privacyverklaringen en toestemmingen voor klantgegevens die u via Velbok verwerkt. U mag geen onwettige inhoud of bijzondere categorieën gegevens uploaden buiten wat de Dienst is ontworpen om te ondersteunen."
         },
         "ip": {
-          "title": "5. Intellectueel eigendom",
-          "p1": "Het ontwerp, de software en de inhoud van de Dienst zijn beschermd door intellectuele eigendomsrechten. U mag de Dienst alleen gebruiken voor interne zakelijke of persoonlijke boekingsdoeleinden en niet voor ongeoorloofd kopiëren, wederverkoop of reverse engineering."
+          "title": "9. Intellectueel eigendom",
+          "p1": "Het ontwerp, de software en het Velbok-merk van de Dienst zijn eigendom van of in licentie bij Inkaholics Limited. U ontvangt een beperkte, niet-exclusieve, niet-overdraagbare licentie om de Dienst te gebruiken voor de interne bedrijfsvoering van uw studio zolang uw abonnement actief is en in goede staat verkeert.",
+          "p2": "U behoudt het eigendom van inhoud die u uploadt. U verleent ons een licentie om die inhoud te hosten, verwerken en weergeven uitsluitend om de Dienst te leveren."
         },
         "data": {
-          "title": "6. Gegevensbescherming",
-          "p1": "Persoonlijke gegevens worden verwerkt in overeenstemming met onze Privacyverklaring en de toepasselijke Britse/EU-wetgeving inzake gegevensbescherming. Waar nodig vertrouwen wij op toestemming, contract, wettelijke verplichting of legitieme belangen als rechtsgrondslag."
+          "title": "10. Privacy",
+          "p1": "Onze Privacyverklaring legt uit hoe Inkaholics Limited persoonsgegevens verwerkt. Door de Dienst te gebruiken erkent u die verklaring."
+        },
+        "thirdParty": {
+          "title": "11. Diensten van derden",
+          "p1": "De Dienst integreert derden zoals Stripe (betalingen), Supabase (hosting) en e-mailproviders. Hun voorwaarden en privacybeleid zijn van toepassing op hun diensten. Wij zijn niet aansprakelijk voor uitval, fouten of handelingen van derde aanbieders buiten onze redelijke controle."
+        },
+        "disclaimer": {
+          "title": "12. Disclaimers",
+          "p1": "De Dienst wordt geleverd \"zoals deze is\" en \"zoals beschikbaar\". Wij garanderen geen ononderbroken of foutloze werking. Velbok is alleen software — wij verlenen geen juridisch, medisch, fiscaal of professioneel advies, en de Dienst garandeert niet uw naleving van regelgeving."
+        },
+        "indemnity": {
+          "title": "13. Vrijwaring",
+          "p1": "U vrijwaart Inkaholics Limited, haar directeuren en werknemers tegen claims, boetes, verliezen en redelijke kosten voortvloeiend uit: (a) uw studiodiensten of klantinteracties; (b) uw schending van deze Voorwaarden of toepasselijk recht; (c) klantgegevens die u beheert; of (d) inhoud die u of uw personeel via de Dienst indient, behalve voor zover veroorzaakt door ons opzettelijk wangedrag of nalatigheid."
         },
         "availability": {
-          "title": "7. Beschikbaarheid van diensten",
-          "p1": "Wij streven naar een betrouwbare werking, maar garanderen geen ononderbroken beschikbaarheid. Gepland onderhoud, updates en uitval door derden kunnen de toegang beïnvloeden."
+          "title": "14. Beschikbaarheid van de dienst",
+          "p1": "Wij streven naar betrouwbare werking maar garanderen geen ononderbroken beschikbaarheid. Gepland onderhoud, updates en uitval bij derden kunnen de toegang beïnvloeden."
         },
         "liability": {
-          "title": "8. Aansprakelijkheid",
-          "p1": "Niets in deze Voorwaarden beperkt de aansprakelijkheid die niet op grond van de wet kan worden beperkt (inclusief fraude of overlijden/persoonlijk letsel veroorzaakt door nalatigheid). Met inachtneming van het dwingend recht sluiten wij indirecte verliezen uit en beperken wij de aansprakelijkheid tot voorzienbare directe verliezen als gevolg van schending."
+          "title": "15. Beperking van aansprakelijkheid",
+          "p1": "Niets in deze Voorwaarden beperkt aansprakelijkheid die wettelijk niet kan worden beperkt (inclusief overlijden of persoonlijk letsel veroorzaakt door nalatigheid, of fraude). Onder voorbehoud van dwingend recht is Inkaholics Limited niet aansprakelijk voor indirecte, gevolgschade of punitieve schade, verlies van winst, omzet, gegevens of goodwill.",
+          "p2": "Onder voorbehoud van het bovenstaande is onze totale geaggregeerde aansprakelijkheid voortvloeiend uit of gerelateerd aan de Dienst in een periode van twaalf maanden beperkt tot het hoogste van (a) de platformabonnementskosten die u in die periode aan ons heeft betaald, of (b) honderd Britse ponden (£100)."
         },
         "changes": {
-          "title": "9. Wijzigingen en beëindiging",
-          "p1": "We kunnen deze Voorwaarden bijwerken indien dit vereist is door de wet, de beveiliging of productwijzigingen. Materiële wijzigingen worden in de app gepubliceerd met een herziene datum. We kunnen de toegang opschorten of beëindigen wanneer de voorwaarden worden geschonden of misbruik wordt gedetecteerd."
+          "title": "16. Wijzigingen en beëindiging",
+          "p1": "Wij kunnen deze Voorwaarden bijwerken waar vereist door wet, beveiliging of productwijzigingen. Materiële wijzigingen worden gepubliceerd op velbok.com/terms met een herziene datum. Wij kunnen de toegang opschorten of beëindigen wanneer voorwaarden worden geschonden, kosten onbetaald blijven of misbruik wordt gedetecteerd."
         },
         "governingLaw": {
-          "title": "10. Toepasselijk recht",
-          "p1": "Op deze Voorwaarden is de wetgeving van Engeland en Wales van toepassing, tenzij de dwingende consumentenwetgeving in het land waar u woont anders bepaalt."
+          "title": "17. Toepasselijk recht",
+          "p1": "Deze Voorwaarden worden beheerst door de wetten van Engeland en Wales. De rechtbanken van Engeland en Wales hebben exclusieve jurisdictie, behalve waar dwingend consumentenbeschermingsrecht in uw land van verblijf u het recht geeft om procedures elders aan te spannen."
         }
       }
     },
     "cookies": {
       "title": "Cookiebeleid",
-      "lastUpdated": "04 mei 2026",
+      "lastUpdated": "18 juni 2026",
       "sections": {
         "what": {
           "title": "1. Wat cookies zijn",
-          "p1": "Cookies zijn kleine tekstbestanden die op uw apparaat worden opgeslagen. We gebruiken ook vergelijkbare technologieën (zoals lokale opslag) waar nodig voor applicatiefunctionaliteit en gebruikersvoorkeuren."
+          "p1": "Cookies zijn kleine tekstbestanden die op uw apparaat worden opgeslagen. Wij gebruiken ook lokale opslag waar nodig voor aanmelding, taal en UI-voorkeuren."
         },
         "categories": {
-          "title": "2. Cookiecategorieën die we gebruiken",
-          "p1": "Strikt noodzakelijk: vereist voor authenticatie, beveiliging, sessieafhandeling en kernfuncties. Voorkeuren: sla gebruikersinterface- en bruikbaarheidskeuzes op. Analytics: help ons prestatie- en gebruikstrends te begrijpen. Marketing: ondersteuning van de effectiviteit van campagnes en promotie op maat."
+          "title": "2. Cookiecategorieën die wij gebruiken",
+          "p1": "Strikt noodzakelijk: authenticatie, beveiliging en kernfuncties (altijd actief). Voorkeuren: taal- en UI-keuzes (met uw toestemming op de website). Analyse en marketing: optionele categorieën — wij laden momenteel geen analytische of advertentietrackers van derden; deze categorieën zijn gereserveerd voor toekomstig gebruik en blijven uit tenzij u toestemming geeft en wij ze inschakelen."
         },
         "consent": {
           "title": "3. Toestemmingsmodel",
-          "p1": "Strikt noodzakelijke technologieën zijn altijd actief. Optionele categorieën (voorkeuren, analyses, marketing) worden alleen geactiveerd na uw toestemming en kunnen op elk moment worden gewijzigd via de interface voor cookievoorkeuren."
+          "p1": "Strikt noodzakelijke technologieën zijn altijd actief. Optionele categorieën (voorkeuren, analyse, marketing) worden alleen geactiveerd na uw toestemming en kunnen op elk moment worden gewijzigd via de interface voor cookievoorkeuren."
         },
         "thirdParty": {
           "title": "4. Diensten van derden",
-          "p1": "Sommige geïntegreerde providers kunnen hun eigen cookies of soortgelijke identificatiemiddelen instellen wanneer hun functionaliteit wordt gebruikt. In aanvulling op dit beleid zijn hun privacy-/cookievoorwaarden van toepassing."
+          "p1": "Sommige geïntegreerde providers kunnen hun eigen cookies of vergelijkbare identificatoren plaatsen wanneer hun functionaliteit wordt gebruikt. Hun privacy-/cookievoorwaarden zijn van toepassing naast dit beleid."
         },
         "pixels": {
           "title": "E-mailpixels",
-          "p1": "We kunnen trackingpixels in bepaalde e-mails opnemen om inzicht te krijgen in de betrokkenheid (bijvoorbeeld of een e-mail is geopend) en de mogelijkheid om inhoud weer te geven (tekst versus HTML). Dit helpt ons de kwaliteit en relevantie van de communicatie te verbeteren."
+          "p1": "Wij kunnen trackingpixels opnemen in bepaalde e-mails om betrokkenheid te begrijpen (bijvoorbeeld of een e-mail is geopend) en weergavecapaciteit van inhoud (tekst vs. HTML). Dit helpt ons de kwaliteit en relevantie van communicatie te verbeteren."
         },
         "manage": {
-          "title": "5. Hoe u cookies beheert",
-          "p1": "U kunt alles accepteren, niet-essentiële zaken afwijzen of gedetailleerde keuzes in de app instellen. U kunt uw browser ook configureren om cookies te blokkeren, maar dit kan van invloed zijn op kernfuncties zoals inloggen of het veilig afhandelen van sessies."
+          "title": "5. Cookies beheren",
+          "p1": "U kunt alles accepteren, niet-essentiële weigeren of gedetailleerde keuzes instellen in de app. U kunt uw browser ook configureren om cookies te blokkeren, maar dit kan kernfuncties zoals aanmelding of veilige sessiebehandeling beïnvloeden."
         },
         "updates": {
           "title": "6. Updates",
-          "p1": "We kunnen dit beleid bijwerken om juridische, technische of productwijzigingen weer te geven. Hier worden altijd de laatste versie en updatedatum gepubliceerd."
+          "p1": "Wij kunnen dit beleid bijwerken om juridische, technische of productwijzigingen weer te geven. De nieuwste versie en updatedatum worden altijd hier gepubliceerd."
         }
       }
     }

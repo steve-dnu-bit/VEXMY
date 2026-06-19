@@ -298,7 +298,11 @@
     "planActive": "Il tuo piano {{plan}} è attivo{{trial}}.",
     "withTrial": " con prova gratuita",
     "goToSchedule": "Vai alla tua agenda",
-    "signInStudio": "Accedi al tuo studio"
+    "signInStudio": "Accedi al tuo studio",
+    "termsCheckboxLead": "Ho letto e accetto i",
+    "termsCheckboxBody": "Confermo di essere autorizzato ad abbonarmi per conto del mio studio e che Inkaholics Limited (Velbok) può addebitare il piano selezionato (anche dopo eventuale prova gratuita) tramite Stripe.",
+    "termsVersionLabel": "versione {{version}}",
+    "termsRequired": "Accetta i Termini e l'Informativa sulla privacy per continuare."
   },
   "subscription": {
     "title": "Abbonamento",
@@ -1606,7 +1610,7 @@
     "statusReady": "Collegato",
     "statusIncomplete": "Azione richiesta",
     "statusNotStarted": "Non collegato",
-    "stripeHostedNote": "Completerete un breve modulo Stripe per controlli bancari e identità. Non serve registrarsi separatamente su Stripe.",
+    "stripeHostedNote": "Stripe può mostrare Velbok come piattaforma — è normale. Inserisci la persona giuridica del tuo studio (es. Inkaholics Limited) e il conto bancario durante il modulo. I payout vanno al tuo studio, non a Velbok.",
     "returnToast": "Configurazione accrediti aggiornata — verifica stato…",
     "refreshToast": "Riprendete la configurazione accrediti da dove l'avete lasciata.",
     "loadFailed": "Impossibile caricare lo stato accrediti",
@@ -2055,154 +2059,217 @@
       "lastUpdated": "Ultimo aggiornamento:",
       "terms": "Termini",
       "privacy": "Privacy",
-      "cookies": "Biscotti",
-      "home": "Casa",
+      "cookies": "Cookie",
+      "home": "Home",
       "documentation": "Documentazione",
-      "studioLogin": "Accesso allo studio"
+      "studioLogin": "Accesso studio"
     },
     "privacy": {
-      "title": "Informativa sulla privacy (GDPR Regno Unito/UE)",
-      "lastUpdated": "29 maggio 2026",
+      "title": "Informativa sulla privacy (UK/EU GDPR)",
+      "lastUpdated": "18 giugno 2026",
       "sections": {
         "general": {
-          "title": "Dichiarazione generale",
-          "p1": "{{shopLegalName}} si impegna a proteggere la tua privacy e prende sul serio le proprie responsabilità in merito alla sicurezza delle informazioni sui clienti. Questo avviso spiega come utilizziamo i dati personali e come proteggiamo la tua privacy quando interagisci con il nostro negozio, sito web e servizi.",
-          "contactLead": "Se hai domande, contattaci a",
-          "contactDpo": "Per reclami relativi a CCTV o protezione dei dati, è possibile contattare il nostro DPO all'indirizzo"
+          "title": "Chi siamo",
+          "p1": "{{shopLegalName}} (con il marchio {{platformName}}) gestisce la piattaforma Velbok su velbok.com e le app mobili Velbok. Siamo il titolare del trattamento per i dati dell'account studio, la fatturazione della piattaforma e le nostre operazioni. Gli studi di tatuaggio che utilizzano Velbok sono titolari autonomi per i dati di prenotazione, consenso e CRM dei propri clienti.",
+          "contactLead": "Per domande sulla privacy della piattaforma, contattare",
+          "contactDpo": "Per richieste o reclami in materia di protezione dei dati, contattare il nostro DPO all'indirizzo"
+        },
+        "roles": {
+          "title": "Responsabilità della piattaforma e dello studio",
+          "p1": "Quando registri uno studio su Velbok, trattiamo i dati di contatto aziendali, la fatturazione dell'abbonamento e gli account del personale in qualità di titolare. Quando il tuo studio inserisce prenotazioni clienti, moduli di consenso, messaggi o fatture, sei tu il titolare e Velbok agisce come responsabile del trattamento secondo le tue istruzioni.",
+          "p2": "Gli studi devono fornire la propria informativa sulla privacy rivolta ai clienti per i servizi in studio (inclusa eventuale videosorveglianza nei locali fisici). La presente informativa riguarda il software Velbok e il sito web."
         },
         "dataCollect": {
           "title": "Dati che raccogliamo",
-          "p1": "A seconda della tua interazione con noi, potremmo raccogliere: nome, sesso, data di nascita, indirizzo, e-mail, numero di telefono, cronologia delle prenotazioni, note di servizio, record di reclami/feedback, dettagli di pagamento, cookie/dispositivo e dati di utilizzo tecnico, gestione dei social media (se ci invii messaggi) e immagini CCTV catturate nei locali.",
-          "p2": "Laddove richiesto dalla legge per verificare l'età per il tatuaggio, potremmo richiedere e conservare una copia del documento d'identità con foto insieme alla documentazione del tuo consenso."
+          "p1": "A seconda del tuo ruolo e della tua interazione, possiamo raccogliere: nome, email, telefono, indirizzo aziendale, credenziali dell'account, registri di prenotazioni e fatture, messaggi, immagini caricate (riferimenti, avatar, firme), metadati di pagamento, dati di cookie/dispositivo e — ove gli studi utilizzino il consenso digitale — informazioni sanitarie necessarie per la sicurezza di tatuaggi o piercing.",
+          "p2": "I numeri di carta vengono inseriti direttamente in Stripe (checkout online, fatture e Terminal / Tap to Pay in presenza). Velbok non memorizza i numeri completi di carta sui nostri server."
+        },
+        "healthData": {
+          "title": "Dati sanitari e di consenso",
+          "p1": "I moduli di consenso digitale possono raccogliere risposte sulla storia medica (ad esempio allergie, patologie cardiache, gravidanza o anticoagulanti) e una firma disegnata. Si tratta di dati di categoria particolare ai sensi del GDPR UK/UE. Gli studi li raccolgono con il consenso esplicito del cliente per finalità di sicurezza, legali, mediche e assicurative.",
+          "p2": "Velbok conserva le risposte al consenso e i PDF generati in modo sicuro per conto dello studio. La conservazione segue i requisiti professionali e assicurativi dello studio, in genere per diversi anni."
         },
         "whenCollect": {
-          "title": "Quando raccogliamo dati",
-          "p1": "Raccogliamo dati quando utilizzi il nostro sito Web o account, effettui una prenotazione o un acquisto, ci contatti, partecipi a promozioni, completi sondaggi, lasci recensioni, interagisci sui social media o interagisci in altro modo con la nostra attività."
+          "title": "Quando raccogliamo i dati",
+          "p1": "Raccogliamo dati quando crei un account, ti abboni a Velbok, configuri uno studio, gestisci prenotazioni o fatturazione, compili moduli di consenso, utilizzi la messaggistica in-app, contatti l'assistenza o usi le funzioni di pagamento su web o mobile."
+        },
+        "mobile": {
+          "title": "App mobile (Android / iOS)",
+          "p1": "L'app Velbok può richiedere autorizzazioni del dispositivo per supportare i pagamenti in presenza: posizione precisa e Bluetooth (lettori di carte e Stripe Tap to Pay) e NFC per Tap to Pay contactless. La posizione è richiesta dalla normativa sui pagamenti e per la prevenzione delle frodi — non viene utilizzata per tracciarti a fini pubblicitari.",
+          "p2": "L'app nativa non mostra il banner cookie del sito web; utilizziamo solo archiviazione locale strettamente necessaria per l'accesso e le preferenze. I cookie facoltativi di marketing/analisi si applicano solo sul sito web."
+        },
+        "subprocessors": {
+          "title": "Fornitori di servizi (sub-responsabili)",
+          "p1": "Utilizziamo fornitori affidabili per gestire Velbok, tra cui: Supabase (autenticazione, database, archiviazione file, edge functions), Stripe (pagamenti, payout Connect, Terminal / Tap to Pay), Resend (email transazionali), Twilio (WhatsApp/SMS facoltativi per studio) e Netlify (hosting del sito web). Ogni fornitore tratta i dati in base a contratto e alle proprie condizioni sulla privacy.",
+          "p2": "Non vendiamo dati personali. Condividiamo i dati solo quando necessario per fornire il servizio, rispettare la legge o prevenire le frodi."
+        },
+        "transfers": {
+          "title": "Trasferimenti internazionali",
+          "p1": "Alcuni fornitori possono trattare dati al di fuori del Regno Unito/SEE (ad esempio negli Stati Uniti). Ove richiesto, ci basiamo su garanzie appropriate come le Clausole Contrattuali Standard e i programmi di conformità dei fornitori."
         },
         "lawfulBases": {
-          "title": "Basi giuridiche (GDPR del Regno Unito / GDPR dell'UE)",
-          "p1": "Facciamo affidamento sul consenso, sulla necessità contrattuale, sull'obbligo legale, sugli interessi legittimi e sugli interessi vitali a seconda del contesto.",
+          "title": "Basi giuridiche (UK GDPR / EU GDPR)",
+          "p1": "Ci basiamo su consenso, necessità contrattuale, obbligo legale e interessi legittimi a seconda del contesto.",
           "consent": "Consenso:",
-          "consentDesc": "per esempio. attivazione newsletter e categorie di cookie facoltativi.",
-          "contract": "Contrarre:",
-          "contractDesc": "per fornire i servizi prenotati ed elaborare pagamenti/depositi.",
+          "consentDesc": "cookie facoltativi sul sito web, opt-in di marketing e consenso esplicito per i dati sanitari nei moduli di consenso dello studio.",
+          "contract": "Contratto:",
+          "contractDesc": "fornitura del servizio Velbok, abbonamenti studio, prenotazioni, depositi e fatture.",
           "legal": "Obbligo legale:",
-          "legalDesc": "ove richiesto, condividere i dati per la prevenzione di frodi/crimini o procedimenti legali.",
+          "legalDesc": "fiscale, contabile e richieste legittime delle autorità.",
           "legitimate": "Interessi legittimi:",
-          "legitimateDesc": "operazioni aziendali, comunicazioni, aggiornamenti del servizio e miglioramento della qualità.",
+          "legitimateDesc": "sicurezza, prevenzione delle frodi, miglioramento del prodotto e comunicazioni di servizio.",
           "vital": "Interessi vitali:",
-          "vitalDesc": "ove necessario per proteggere la vita/salute in caso di emergenza."
+          "vitalDesc": "protezione della vita o della salute in caso di emergenza."
         },
         "howUse": {
           "title": "Come e perché utilizziamo i dati",
-          "p1": "Utilizziamo i dati personali per fornire servizi, gestire prenotazioni e depositi, inviare comunicazioni di servizio richieste, elaborare reclami e feedback, migliorare prodotti e sistemi, amministrare sondaggi e concorsi, proteggere la sicurezza e soddisfare obblighi legali.",
-          "p2": "{{shopLegalName}} non condivide i dati di marketing con organizzazioni terze per il proprio marketing. Condividiamo i dati con fornitori di servizi e pagamenti ove necessario per eseguire transazioni e operazioni in modo sicuro."
+          "p1": "Utilizziamo i dati personali per gestire Velbok, autenticare gli utenti, elaborare abbonamenti studio e pagamenti clienti, inviare notifiche, supportare gli studi, migliorare l'affidabilità e adempiere agli obblighi legali.",
+          "p2": "{{shopLegalName}} non vende dati personali a terzi per il loro marketing."
         },
         "cookies": {
-          "title": "Cookie, pixel e tecnologie del sito web",
-          "p1": "I cookie e tecnologie simili ci aiutano a gestire le funzionalità del sito web e a ricordare le preferenze. I nostri cookie non sono destinati a contenere identificatori personali diretti. Puoi gestire i cookie del browser e le preferenze dei cookie in-app.",
-          "p2": "Potremmo utilizzare i pixel di tracciamento delle e-mail per capire se le e-mail sono state aperte e se il tuo client può eseguire il rendering di testo o contenuto HTML."
+          "title": "Cookie e tecnologie simili",
+          "p1": "Il nostro sito web utilizza cookie e archiviazione locale per l'accesso, la sicurezza, le preferenze linguistiche e categorie facoltative di analisi/marketing quando acconsenti. Consulta la nostra Cookie Policy per i dettagli.",
+          "p2": "Le email transazionali possono includere pixel di tracciamento per misurare consegna e coinvolgimento."
         },
         "security": {
           "title": "Sicurezza e conservazione",
-          "p1": "Utilizziamo crittografia, standard di elaborazione sicuri e controlli di accesso per proteggere i dati. Nessuna trasmissione via Internet è del tutto esente da rischi, ma applichiamo ragionevoli garanzie tecniche e organizzative.",
-          "p2": "La conservazione standard è di almeno 5 anni dall'ultima visita/transazione o più a lungo laddove ciò sia richiesto da richieste legali/assicurative. Per richieste di risarcimento danni e assicurazioni potremmo conservare i dati rilevanti fino a 21 anni."
+          "p1": "Utilizziamo crittografia in transito (HTTPS/TLS), controlli di accesso e hosting conforme agli standard di settore. Nessuna trasmissione via Internet è del tutto priva di rischi.",
+          "p2": "Conserviamo registri di account e transazioni per il tempo necessario al servizio, agli obblighi legali e alla risoluzione delle controversie — in genere almeno cinque anni per i documenti aziendali, e più a lungo ove richiesto da assicurazione o documentazione di consenso."
         },
-        "cctv": {
-          "title": "Sintesi della politica CCTV",
-          "p1": "I nostri locali sono monitorati da CCTV 24 ore su 24, 7 giorni su 7 per la prevenzione/individuazione di crimini, sicurezza e protezione dei beni. Le telecamere sono posizionate in aree prominenti e non in spazi sensibili. L'accesso è riservato al personale addestrato autorizzato.",
-          "p2": "I dati CCTV sono trattati in modo lecito, equo, trasparente e sicuro. I filmati vengono generalmente archiviati per un minimo di 14 giorni e non più di 1 anno, a meno che non sia necessario per indagini, procedimenti disciplinari o prove legali."
+        "children": {
+          "title": "Minori",
+          "p1": "Velbok è un software di gestione e prenotazione per studi — non eroghiamo servizi di tatuaggio o piercing. Le età minime per tali servizi sono stabilite da ciascuno studio e dalla legge del luogo in cui operano (inclusi i piercing per minori con un genitore o tutore, ove consentito).",
+          "p2": "Gli account amministratore e del personale dello studio sono account aziendali e non sono destinati a minori di 13 anni. Quando uno studio registra una prenotazione o un modulo di consenso per un cliente minore, lo studio è il titolare del trattamento e deve ottenere ogni consenso genitoriale o del tutore richiesto."
+        },
+        "ccpa": {
+          "title": "Diritti sulla privacy in California (CCPA/CPRA)",
+          "p1": "I residenti in California possono richiedere accesso, rettifica o cancellazione delle informazioni personali in nostro possesso in qualità di titolare. Non vendiamo né condividiamo informazioni personali per pubblicità comportamentale cross-context. Per esercitare i diritti, inviare un'email a",
+          "p2": "Verificheremo le richieste e risponderemo entro i termini applicabili."
         },
         "rights": {
           "title": "I tuoi diritti",
-          "p1": "L'utente potrà richiedere l'accesso, la correzione, la cancellazione (ove applicabile), la limitazione, l'opposizione, la portabilità e la revoca del consenso. Puoi anche chiederci di interrompere il marketing diretto. Puoi richiedere una copia dei tuoi dati inviando un'e-mail",
-          "orWriteTo": "oppure scrivendo a:",
-          "p2": "Se rifiutiamo una richiesta, spiegheremo il motivo. Hai anche il diritto di presentare un reclamo all'Ufficio del Commissario per l'informazione del Regno Unito (ICO) o all'autorità di vigilanza locale dell'UE."
+          "p1": "Puoi richiedere accesso, rettifica, cancellazione (ove applicabile), limitazione, opposizione, portabilità e revoca del consenso. Invia un'email a",
+          "orWriteTo": "oppure scrivi a:",
+          "p2": "Se rifiutiamo una richiesta, ne spiegheremo il motivo. Puoi presentare un reclamo all'ICO del Regno Unito o all'autorità di controllo locale dell'UE."
         },
         "updates": {
-          "title": "Aggiornamenti politici",
-          "p1": "Potremmo aggiornare periodicamente questo avviso. Le modifiche sostanziali verranno pubblicate qui in modo che tu sia sempre consapevole di quali dati raccogliamo, come li utilizziamo e quando potrebbero essere divulgati."
+          "title": "Aggiornamenti dell'informativa",
+          "p1": "Possiamo aggiornare periodicamente la presente informativa. Le modifiche sostanziali saranno pubblicate su velbok.com/privacy con una data aggiornata."
         }
       }
     },
     "terms": {
       "title": "Termini e condizioni d'uso",
-      "lastUpdated": "29 maggio 2026",
+      "lastUpdated": "18 giugno 2026",
       "sections": {
         "scope": {
-          "title": "1. Ambito",
-          "p1": "I presenti Termini regolano l'accesso e l'utilizzo dell'applicazione web {{platformName}} (il \"Servizio\") da parte del personale e dei clienti nel Regno Unito e nell'UE. Utilizzando il Servizio, accetti questi Termini."
+          "title": "1. Accordo",
+          "p1": "I presenti Termini costituiscono un accordo vincolante tra te (e lo studio che rappresenti) e Inkaholics Limited (società registrata in Inghilterra e Galles, con il marchio {{platformName}}) per l'uso del Servizio su velbok.com. Creando un account, sottoscrivendo un abbonamento o utilizzando il Servizio, accetti i presenti Termini e la nostra Informativa sulla privacy.",
+          "p2": "Se ti abboni per conto di uno studio, dichiari di avere l'autorità per vincolare tale studio al presente accordo."
         },
         "eligibility": {
           "title": "2. Idoneità e sicurezza dell'account",
-          "p1": "È necessario fornire informazioni accurate, mantenere riservate le credenziali e avvisarci tempestivamente di accessi non autorizzati all'account. Sei responsabile delle attività svolte con il tuo account a meno che non siano causate da nostra colpa."
+          "p1": "Gli account del personale e degli amministratori dello studio sono destinati a persone con età sufficiente per stipulare un contratto vincolante nella propria giurisdizione, o autorizzate dal titolare dello studio a utilizzare il Servizio per conto dello studio. Devi fornire informazioni accurate, mantenere riservate le credenziali e informarci tempestivamente di accessi non autorizzati."
+        },
+        "children": {
+          "title": "3. Minori",
+          "p1": "Velbok è un software utilizzato da studi di tatuaggio e piercing — non è uno studio. Il Servizio non è destinato a minori di 13 anni per la creazione di account sulla piattaforma. Le funzioni del portale clienti possono essere utilizzate per prenotazioni e consenso ove uno studio serva legalmente clienti minori; gli studi sono responsabili della verifica dell'età e del consenso del tutore secondo la legge locale."
         },
         "acceptableUse": {
-          "title": "3. Uso accettabile",
-          "p1": "Non devi utilizzare in modo improprio il Servizio, interferire con i controlli di sicurezza, caricare contenuti illegali o utilizzare il Servizio in modo tale da violare la legge applicabile, incluso il GDPR del Regno Unito, il GDPR dell'UE e le norme sulla protezione dei consumatori."
+          "title": "4. Uso accettabile",
+          "p1": "Non devi utilizzare impropriamente il Servizio, interferire con i controlli di sicurezza, caricare contenuti illeciti o utilizzare il Servizio in modo che violi la legge applicabile, inclusi UK GDPR, EU GDPR e le norme sulla protezione dei consumatori."
         },
         "bookings": {
-          "title": "4. Flussi di prenotazione e deposito",
-          "p1": "Il Servizio supporta la gestione delle prenotazioni e i promemoria dei depositi. La gestione dei pagamenti è fornita da fornitori di terze parti integrati. Sei responsabile di garantire che le informazioni di prenotazione e pagamento inserite siano corrette prima di inviare notifiche.",
-          "p2": "Per i servizi di tatuaggio prenotati si applicano condizioni aggiuntive dello studio: una volta forniti i servizi di tatuaggio, il prezzo concordato è pagabile per intero e non viene offerto alcun credito; i depositi vengono raccolti tramite l'integrazione del fornitore di pagamenti online; le caparre sono rimborsabili solo nel caso in cui la disdetta formale venga effettuata tramite email almeno 24 ore prima dell'appuntamento; e l'insoddisfazione per le modifiche alle preferenze di stile dopo il servizio non crea diritto al rimborso."
+          "title": "5. Flussi di prenotazione e pagamento",
+          "p1": "Il Servizio supporta la gestione delle prenotazioni, depositi, fatturazione e pagamenti con carta in presenza tramite Stripe. I dati della carta sono elaborati da Stripe; Velbok non memorizza i numeri completi di carta. Sei responsabile di garantire che le informazioni di prenotazione e pagamento siano corrette prima di inviare notifiche.",
+          "p2": "Le regole specifiche dello studio su cancellazione, rimborso ed elegibilità per tatuaggi o piercing restano responsabilità dello studio e devono essere comunicate separatamente ai clienti. Velbok non eroga servizi di body art."
+        },
+        "subscription": {
+          "title": "6. Abbonamento alla piattaforma (studi)",
+          "p1": "I piani self-service sono fatturati ricorrentemente tramite Stripe per conto di Inkaholics Limited. Avviando un abbonamento o una prova gratuita, ci autorizzi ad addebitare sul metodo di pagamento fornito il prezzo vigente per il piano selezionato, incluso il rinnovo automatico fino alla cancellazione conformemente ai presenti Termini.",
+          "p2": "Le prove si convertono in abbonamenti a pagamento salvo cancellazione prima della scadenza. I costi non sono rimborsabili salvo ove richiesto dalla legge imperativa. Possiamo modificare funzionalità o prezzi dei piani con preavviso ragionevole; l'uso continuato dopo la data di efficacia costituisce accettazione. Puoi cancellare dalle impostazioni di fatturazione o dal portale clienti Stripe ove disponibile."
+        },
+        "studioObligations": {
+          "title": "7. Obblighi dello studio",
+          "p1": "Sei l'unico responsabile dei servizi di tatuaggio, piercing o correlati che fornisci ai clienti, incluse licenze, igiene, aftercare, verifica dell'età, consenso del tutore ove richiesto dalla legge e conformità alle normative della tua giurisdizione.",
+          "p2": "Non devi rappresentare Velbok come fornitore di servizi di body art. Sei responsabile dell'accuratezza dei dati inseriti da te e dal tuo personale nel Servizio e delle comunicazioni inviate ai tuoi clienti."
+        },
+        "dataProcessing": {
+          "title": "8. Ruoli nella protezione dei dati",
+          "p1": "Per i dati dell'account studio e di fatturazione, Inkaholics Limited è il titolare del trattamento. Per prenotazioni clienti, moduli di consenso, messaggi e dati CRM che inserisci sui tuoi clienti, sei tu il titolare e Inkaholics Limited agisce come responsabile del trattamento secondo le tue istruzioni documentate, come descritto nella nostra Informativa sulla privacy.",
+          "p2": "Devi disporre di una base giuridica e, ove richiesto, di informative sulla privacy e consensi appropriati per i dati clienti trattati tramite Velbok. Non devi caricare contenuti illeciti o dati di categoria particolare oltre quanto previsto dal Servizio."
         },
         "ip": {
-          "title": "5. Proprietà intellettuale",
-          "p1": "La progettazione, il software e i contenuti del Servizio sono protetti dai diritti di proprietà intellettuale. È possibile utilizzare il Servizio solo per scopi aziendali interni o di prenotazione personale e non per copie non autorizzate, rivendita o reverse engineering."
+          "title": "9. Proprietà intellettuale",
+          "p1": "Il design del Servizio, il software e il marchio Velbok sono di proprietà di o concessi in licenza a Inkaholics Limited. Ricevi una licenza limitata, non esclusiva e non trasferibile per utilizzare il Servizio per l'attività interna del tuo studio finché l'abbonamento è attivo e in regola.",
+          "p2": "Conservi la proprietà dei contenuti che carichi. Ci concedi una licenza per ospitare, elaborare e visualizzare tali contenuti esclusivamente per fornire il Servizio."
         },
         "data": {
-          "title": "6. Protezione dei dati",
-          "p1": "I dati personali vengono trattati in linea con la nostra Informativa sulla privacy e con la legge applicabile sulla protezione dei dati del Regno Unito/UE. Ove richiesto, facciamo affidamento sul consenso, sul contratto, sull'obbligo legale o sugli interessi legittimi come base legale."
+          "title": "10. Privacy",
+          "p1": "La nostra Informativa sulla privacy spiega come Inkaholics Limited tratta i dati personali. Utilizzando il Servizio riconosci tale informativa."
+        },
+        "thirdParty": {
+          "title": "11. Servizi di terze parti",
+          "p1": "Il Servizio integra terze parti come Stripe (pagamenti), Supabase (hosting) e provider email. I loro termini e le loro informative sulla privacy si applicano ai rispettivi servizi. Non siamo responsabili per interruzioni, errori o atti di fornitori terzi oltre il nostro ragionevole controllo."
+        },
+        "disclaimer": {
+          "title": "12. Esclusioni di garanzia",
+          "p1": "Il Servizio è fornito \"così com'è\" e \"come disponibile\". Non garantiamo un funzionamento ininterrotto o privo di errori. Velbok è solo software — non forniamo consulenza legale, medica, fiscale o professionale, e il Servizio non garantisce la tua conformità normativa."
+        },
+        "indemnity": {
+          "title": "13. Manleva",
+          "p1": "Manterrai indenne Inkaholics Limited, i suoi amministratori e dipendenti da reclami, sanzioni, perdite e costi ragionevoli derivanti da: (a) i servizi del tuo studio o le interazioni con i clienti; (b) la tua violazione dei presenti Termini o della legge applicabile; (c) i dati clienti di cui sei titolare; o (d) contenuti inviati da te o dal tuo personale tramite il Servizio, salvo nella misura causata da nostra condotta dolosa o negligenza."
         },
         "availability": {
-          "title": "7. Disponibilità del servizio",
-          "p1": "Puntiamo a un funzionamento affidabile ma non garantiamo una disponibilità ininterrotta. La manutenzione programmata, gli aggiornamenti e le interruzioni dovute a terze parti potrebbero influire sull'accesso."
+          "title": "14. Disponibilità del servizio",
+          "p1": "Puntiamo a un funzionamento affidabile ma non garantiamo disponibilità ininterrotta. Manutenzione programmata, aggiornamenti e interruzioni di terze parti possono influire sull'accesso."
         },
         "liability": {
-          "title": "8. Responsabilità",
-          "p1": "Niente nei presenti Termini limita la responsabilità che non può essere limitata dalla legge (inclusa frode o morte/lesioni personali causate da negligenza). Fatta salva la legge imperativa, escludiamo le perdite indirette e limitiamo la responsabilità alle perdite dirette prevedibili derivanti dalla violazione."
+          "title": "15. Limitazione di responsabilità",
+          "p1": "Nulla nei presenti Termini limita la responsabilità che non può essere limitata per legge (inclusa morte o lesioni personali causate da negligenza, o frode). Fatto salvo il diritto imperativo, Inkaholics Limited non è responsabile per perdite indirette, consequenziali o punitive, perdita di profitto, ricavi, dati o avviamento.",
+          "p2": "Fatto salvo quanto sopra, la nostra responsabilità totale aggregata derivante dal Servizio in qualsiasi periodo di dodici mesi è limitata al maggiore tra (a) le commissioni di abbonamento alla piattaforma pagate a noi in tale periodo, o (b) cento sterline (£100)."
         },
         "changes": {
-          "title": "9. Modifiche e risoluzione",
-          "p1": "Potremmo aggiornare i presenti Termini ove richiesto dalla legge, dalla sicurezza o da modifiche del prodotto. Le modifiche sostanziali vengono pubblicate in-app con una data modificata. Potremmo sospendere o interrompere l'accesso qualora i termini vengano violati o venga rilevato un uso improprio."
+          "title": "16. Modifiche e risoluzione",
+          "p1": "Possiamo aggiornare i presenti Termini ove richiesto da legge, sicurezza o modifiche del prodotto. Le modifiche sostanziali sono pubblicate su velbok.com/terms con una data aggiornata. Possiamo sospendere o terminare l'accesso in caso di violazione dei termini, mancato pagamento o uso improprio."
         },
         "governingLaw": {
-          "title": "10. Legge applicabile",
-          "p1": "Le presenti Condizioni sono regolate dalle leggi dell'Inghilterra e del Galles, a meno che la legge obbligatoria sui consumatori nel tuo Paese di residenza non preveda diversamente."
+          "title": "17. Legge applicabile",
+          "p1": "I presenti Termini sono regolati dalle leggi dell'Inghilterra e del Galles. I tribunali dell'Inghilterra e del Galles hanno giurisdizione esclusiva, salvo ove la legge imperativa sulla protezione dei consumatori nel tuo Paese di residenza ti conferisca il diritto di adire un foro diverso."
         }
       }
     },
     "cookies": {
-      "title": "Politica sui cookie",
-      "lastUpdated": "04 maggio 2026",
+      "title": "Cookie Policy",
+      "lastUpdated": "18 giugno 2026",
       "sections": {
         "what": {
           "title": "1. Cosa sono i cookie",
-          "p1": "I cookie sono piccoli file di testo memorizzati sul tuo dispositivo. Utilizziamo anche tecnologie simili (come l'archiviazione locale) laddove necessario per la funzionalità dell'applicazione e le preferenze dell'utente."
+          "p1": "I cookie sono piccoli file di testo memorizzati sul tuo dispositivo. Utilizziamo anche l'archiviazione locale ove necessario per l'accesso, la lingua e le preferenze dell'interfaccia."
         },
         "categories": {
           "title": "2. Categorie di cookie che utilizziamo",
-          "p1": "Strettamente necessario: richiesto per l'autenticazione, la sicurezza, la gestione della sessione e le funzionalità principali. Preferenze: memorizza le scelte dell'interfaccia utente e dell'usabilità. Analisi: aiutaci a comprendere le tendenze delle prestazioni e dell'utilizzo. Marketing: supportare l'efficacia della campagna e la promozione su misura."
+          "p1": "Strettamente necessari: autenticazione, sicurezza e funzionalità principali (sempre attivi). Preferenze: lingua e scelte dell'interfaccia (con il tuo consenso sul sito web). Analisi e marketing: categorie facoltative — attualmente non carichiamo analisi o tracker pubblicitari di terze parti; queste categorie sono riservate per uso futuro e restano disattivate salvo consenso e abilitazione da parte nostra."
         },
         "consent": {
           "title": "3. Modello di consenso",
-          "p1": "Le tecnologie strettamente necessarie sono sempre attive. Le categorie facoltative (preferenze, analisi, marketing) vengono attivate solo previo tuo consenso e possono essere modificate in qualsiasi momento dall'interfaccia delle preferenze dei cookie."
+          "p1": "Le tecnologie strettamente necessarie sono sempre attive. Le categorie facoltative (preferenze, analisi, marketing) si attivano solo dopo il tuo consenso e possono essere modificate in qualsiasi momento dall'interfaccia delle preferenze cookie."
         },
         "thirdParty": {
           "title": "4. Servizi di terze parti",
-          "p1": "Alcuni fornitori integrati potrebbero impostare i propri cookie o identificatori simili quando viene utilizzata la loro funzionalità. I loro termini sulla privacy/cookie si applicano in aggiunta a questa politica."
+          "p1": "Alcuni fornitori integrati possono impostare propri cookie o identificatori simili quando viene utilizzata la loro funzionalità. I loro termini privacy/cookie si applicano in aggiunta alla presente policy."
         },
         "pixels": {
-          "title": "Pixel di posta elettronica",
-          "p1": "Potremmo includere pixel di tracciamento in alcune e-mail per comprendere il coinvolgimento (ad esempio, se un'e-mail è stata aperta) e la capacità di rendering del contenuto (testo rispetto a HTML). Questo ci aiuta a migliorare la qualità e la pertinenza della comunicazione."
+          "title": "Pixel email",
+          "p1": "Possiamo includere pixel di tracciamento in alcune email per comprendere il coinvolgimento (ad esempio, se un'email è stata aperta) e la capacità di rendering del contenuto (testo vs HTML). Questo ci aiuta a migliorare qualità e pertinenza delle comunicazioni."
         },
         "manage": {
           "title": "5. Come gestire i cookie",
-          "p1": "Puoi accettare tutto, rifiutare quelli non essenziali o impostare scelte granulari nell'app. Puoi anche configurare il tuo browser per bloccare i cookie, ma ciò potrebbe influire sulle funzionalità principali come l'accesso o la gestione sicura delle sessioni."
+          "p1": "Puoi accettare tutto, rifiutare i non essenziali o impostare scelte granulari nell'app. Puoi anche configurare il browser per bloccare i cookie, ma ciò può influire su funzionalità principali come l'accesso o la gestione sicura della sessione."
         },
         "updates": {
           "title": "6. Aggiornamenti",
-          "p1": "Potremmo aggiornare questa politica per riflettere modifiche legali, tecniche o di prodotto. La versione più recente e la data di aggiornamento sono sempre pubblicate qui."
+          "p1": "Possiamo aggiornare la presente policy per riflettere modifiche legali, tecniche o di prodotto. L'ultima versione e la data di aggiornamento sono sempre pubblicate qui."
         }
       }
     }

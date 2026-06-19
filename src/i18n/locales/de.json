@@ -298,7 +298,11 @@
     "planActive": "Ihr {{plan}}-Tarif ist aktiv{{trial}}.",
     "withTrial": " mit kostenloser Testphase",
     "goToSchedule": "Zum Terminplan",
-    "signInStudio": "Im Studio anmelden"
+    "signInStudio": "Im Studio anmelden",
+    "termsCheckboxLead": "Ich habe gelesen und stimme zu:",
+    "termsCheckboxBody": "Ich bestätige, dass ich befugt bin, im Namen meines Studios zu abonnieren, und dass Inkaholics Limited (Velbok) den gewählten Tarif (einschließlich nach einer kostenlosen Testphase) über Stripe belasten darf.",
+    "termsVersionLabel": "Version {{version}}",
+    "termsRequired": "Bitte akzeptieren Sie die AGB und den Datenschutzhinweis, um fortzufahren."
   },
   "subscription": {
     "title": "Abonnement",
@@ -1633,7 +1637,7 @@
     "statusReady": "Verbunden",
     "statusIncomplete": "Aktion erforderlich",
     "statusNotStarted": "Nicht verbunden",
-    "stripeHostedNote": "You'll complete a short Stripe form for bank and identity checks. No separate Stripe account signup is needed.",
+    "stripeHostedNote": "Stripe kann Velbok als Plattform anzeigen — das ist normal. Geben Sie im Formular Ihre juristische Studio-Entität (z. B. Inkaholics Limited) und Ihr Bankkonto ein. Auszahlungen gehen an Ihr Studio, nicht an Velbok.",
     "returnToast": "Auszahlungseinrichtung aktualisiert – Status wird überprüft…",
     "refreshToast": "Setzen Sie die Auszahlungseinrichtung dort fort, wo Sie aufgehört haben.",
     "loadFailed": "Der Auszahlungsstatus konnte nicht geladen werden",
@@ -2052,157 +2056,220 @@
   },
   "legal": {
     "layout": {
-      "lastUpdated": "Letzte Aktualisierung:",
-      "terms": "Bedingungen",
-      "privacy": "Privatsphäre",
-      "cookies": "Kekse",
-      "home": "Heim",
+      "lastUpdated": "Zuletzt aktualisiert:",
+      "terms": "AGB",
+      "privacy": "Datenschutz",
+      "cookies": "Cookies",
+      "home": "Startseite",
       "documentation": "Dokumentation",
-      "studioLogin": "Studio-Login"
+      "studioLogin": "Studio-Anmeldung"
     },
     "privacy": {
-      "title": "Datenschutzerklärung (UK/EU DSGVO)",
-      "lastUpdated": "29. Mai 2026",
+      "title": "Datenschutzhinweis (UK/EU GDPR)",
+      "lastUpdated": "18. Juni 2026",
       "sections": {
         "general": {
-          "title": "Allgemeine Aussage",
-          "p1": "{{shopLegalName}} verpflichtet sich zum Schutz Ihrer Privatsphäre und nimmt seine Verantwortung hinsichtlich der Sicherheit von Kundeninformationen ernst. In diesem Hinweis wird erläutert, wie wir personenbezogene Daten verwenden und wie wir Ihre Privatsphäre schützen, wenn Sie mit unserem Shop, unserer Website und unseren Diensten interagieren.",
-          "contactLead": "Wenn Sie Fragen haben, kontaktieren Sie uns unter",
-          "contactDpo": "Bei CCTV- oder Datenschutzbeschwerden können Sie sich an unseren Datenschutzbeauftragten unter wenden"
+          "title": "Wer wir sind",
+          "p1": "{{shopLegalName}} (handelnd als {{platformName}}) betreibt die Velbok-Plattform unter velbok.com und die Velbok-Mobil-Apps. Wir sind der Verantwortliche für Studio-Kontodaten, Plattform-Abrechnung und unsere eigenen Betriebsabläufe. Tattoo-Studios, die Velbok nutzen, sind separate Verantwortliche für die Buchungs-, Einwilligungs- und CRM-Daten ihrer Kunden.",
+          "contactLead": "Bei Fragen zum Datenschutz der Plattform wenden Sie sich an",
+          "contactDpo": "Für Datenschutzanfragen oder Beschwerden wenden Sie sich an unseren DSB unter"
+        },
+        "roles": {
+          "title": "Verantwortlichkeiten: Plattform vs. Studio",
+          "p1": "Wenn Sie ein Studio bei Velbok registrieren, verarbeiten wir als Verantwortlicher Ihre geschäftlichen Kontaktdaten, Abonnement-Abrechnung und Mitarbeiterkonten. Wenn Ihr Studio Kundenbuchungen, Einwilligungsformulare, Nachrichten oder Rechnungen erfasst, sind Sie der Verantwortliche und Velbok handelt als Auftragsverarbeiter gemäß Ihren Weisungen.",
+          "p2": "Studios müssen eigene datenschutzrechtliche Informationen für kundenorientierte Leistungen bereitstellen (einschließlich etwaiger Videoüberwachung in physischen Räumlichkeiten). Dieser Hinweis betrifft die Velbok-Software und -Website."
         },
         "dataCollect": {
-          "title": "Daten, die wir sammeln",
-          "p1": "Abhängig von Ihrer Interaktion mit uns können wir Folgendes erfassen: Name, Geschlecht, Geburtsdatum, Adresse, E-Mail, Telefonnummer, Buchungsverlauf, Servicenotizen, Beschwerde-/Feedback-Datensätze, Zahlungsdetails, Cookie-/Geräte- und technische Nutzungsdaten, Social-Media-Handle (wenn Sie uns eine Nachricht senden) und vor Ort aufgenommene CCTV-Bilder.",
-          "p2": "Sofern gesetzlich vorgeschrieben, um das Alter für das Tätowieren zu überprüfen, können wir eine Kopie Ihres Lichtbildausweises zusammen mit Ihrer Einwilligungsdokumentation anfordern und aufbewahren."
+          "title": "Welche Daten wir erheben",
+          "p1": "Je nach Ihrer Rolle und Interaktion können wir erheben: Name, E-Mail, Telefon, Geschäftsadresse, Zugangsdaten, Buchungs- und Rechnungsdaten, Nachrichten, hochgeladene Bilder (Referenzen, Avatare, Unterschriften), Zahlungsmetadaten, Cookie-/Gerätedaten sowie — sofern Studios digitale Einwilligungen nutzen — Gesundheitsinformationen, die für die Sicherheit bei Tattoo oder Piercing erforderlich sind.",
+          "p2": "Kartennummern werden direkt bei Stripe eingegeben (Online-Checkout, Rechnungen und persönliche Terminal- / Tap-to-Pay-Zahlungen). Velbok speichert keine vollständigen Kartennummern auf unseren Servern."
+        },
+        "healthData": {
+          "title": "Gesundheits- und Einwilligungsdaten",
+          "p1": "Digitale Einwilligungsformulare können medizinische Anamnese-Angaben erfassen (z. B. Allergien, Herzleiden, Schwangerschaft oder Blutverdünner) sowie eine gezeichnete Unterschrift. Dies sind besondere Kategorien personenbezogener Daten nach UK/EU GDPR. Studios erheben diese mit ausdrücklicher Einwilligung des Kunden zu Sicherheits-, Rechts-, medizinischen und Versicherungszwecken.",
+          "p2": "Velbok speichert Einwilligungsantworten und erzeugte PDFs sicher im Auftrag des Studios. Die Aufbewahrung richtet sich nach den beruflichen und versicherungsrechtlichen Anforderungen des Studios, in der Regel mehrere Jahre."
         },
         "whenCollect": {
-          "title": "Wenn wir Daten sammeln",
-          "p1": "Wir erfassen Daten, wenn Sie unsere Website oder unser Konto nutzen, eine Buchung oder einen Kauf tätigen, mit uns Kontakt aufnehmen, an Werbeaktionen teilnehmen, an Umfragen teilnehmen, Bewertungen abgeben, sich in sozialen Medien engagieren oder auf andere Weise mit unserem Unternehmen interagieren."
+          "title": "Wann wir Daten erheben",
+          "p1": "Wir erheben Daten, wenn Sie ein Konto erstellen, Velbok abonnieren, ein Studio konfigurieren, Buchungen oder Abrechnungen verwalten, Einwilligungsformulare ausfüllen, In-App-Nachrichten nutzen, den Support kontaktieren oder Zahlungsfunktionen im Web oder in der App verwenden."
+        },
+        "mobile": {
+          "title": "Mobil-App (Android / iOS)",
+          "p1": "Die Velbok-App kann Geräteberechtigungen anfordern, um persönliche Zahlungen zu unterstützen: präziser Standort und Bluetooth (Kartenleser und Stripe Tap to Pay) sowie NFC für kontaktloses Tap to Pay. Der Standort ist gemäß Zahlungsvorschriften und zur Betrugsprävention erforderlich — er wird nicht zur Werbeverfolgung genutzt.",
+          "p2": "Die native App zeigt kein Web-Cookie-Banner; wir verwenden ausschließlich unbedingt erforderlichen lokalen Speicher für Anmeldung und Einstellungen. Optionale Marketing-/Analyse-Cookies gelten nur auf der Website."
+        },
+        "subprocessors": {
+          "title": "Dienstleister (Unterauftragsverarbeiter)",
+          "p1": "Wir nutzen vertrauenswürdige Anbieter zum Betrieb von Velbok, darunter: Supabase (Authentifizierung, Datenbank, Dateispeicher, Edge Functions), Stripe (Zahlungen, Connect-Auszahlungen, Terminal / Tap to Pay), Resend (Transaktions-E-Mails), Twilio (optionales WhatsApp/SMS pro Studio) und Netlify (Website-Hosting). Jeder Anbieter verarbeitet Daten vertraglich und gemäß seinen eigenen Datenschutzbedingungen.",
+          "p2": "Wir verkaufen keine personenbezogenen Daten. Wir teilen Daten nur, soweit dies zur Erbringung des Dienstes, zur Einhaltung gesetzlicher Vorschriften oder zur Betrugsprävention erforderlich ist."
+        },
+        "transfers": {
+          "title": "Internationale Übermittlungen",
+          "p1": "Einige Anbieter können Daten außerhalb des UK/EWR verarbeiten (z. B. in den Vereinigten Staaten). Soweit erforderlich, stützen wir uns auf geeignete Garantien wie Standardvertragsklauseln und Compliance-Programme der Anbieter."
         },
         "lawfulBases": {
-          "title": "Rechtsgrundlagen (UK DSGVO / EU DSGVO)",
-          "p1": "Wir stützen uns je nach Kontext auf Einwilligung, vertragliche Notwendigkeit, rechtliche Verpflichtung, berechtigte Interessen und lebenswichtige Interessen.",
-          "consent": "Zustimmung:",
-          "consentDesc": "z.B. Newsletter-Opt-in und optionale Cookie-Kategorien.",
+          "title": "Rechtsgrundlagen (UK GDPR / EU GDPR)",
+          "p1": "Wir stützen uns je nach Kontext auf Einwilligung, vertragliche Erforderlichkeit, rechtliche Verpflichtung und berechtigte Interessen.",
+          "consent": "Einwilligung:",
+          "consentDesc": "optionale Cookies auf der Website, Marketing-Opt-ins und ausdrückliche Einwilligung für Gesundheitsdaten in Studio-Einwilligungsformularen.",
           "contract": "Vertrag:",
-          "contractDesc": "zur Erbringung gebuchter Leistungen und zur Abwicklung von Zahlungen/Anzahlungen.",
-          "legal": "Gesetzliche Verpflichtung:",
-          "legalDesc": "wenn die Weitergabe von Daten zur Betrugs-/Kriminalitätsprävention oder zur Rechtsverfolgung erforderlich ist.",
+          "contractDesc": "Bereitstellung des Velbok-Dienstes, Studio-Abonnements, Buchungen, Anzahlungen und Rechnungen.",
+          "legal": "Rechtliche Verpflichtung:",
+          "legalDesc": "Steuern, Buchhaltung und rechtmäßige Anfragen von Behörden.",
           "legitimate": "Berechtigte Interessen:",
-          "legitimateDesc": "Geschäftsabläufe, Kommunikation, Serviceaktualisierungen und Qualitätsverbesserung.",
+          "legitimateDesc": "Sicherheit, Betrugsprävention, Produktverbesserung und Service-Kommunikation.",
           "vital": "Lebenswichtige Interessen:",
-          "vitalDesc": "dort, wo es zum Schutz von Leben/Gesundheit in Notfällen erforderlich ist."
+          "vitalDesc": "Schutz von Leben oder Gesundheit in einem Notfall."
         },
         "howUse": {
-          "title": "Wie und warum wir Daten verwenden",
-          "p1": "Wir verwenden personenbezogene Daten, um Dienstleistungen bereitzustellen, Buchungen und Anzahlungen zu verwalten, erforderliche Servicemitteilungen zu versenden, Beschwerden und Feedback zu bearbeiten, Produkte und Systeme zu verbessern, Umfragen und Wettbewerbe zu verwalten, die Sicherheit zu gewährleisten und rechtliche Verpflichtungen zu erfüllen.",
-          "p2": "{{shopLegalName}} gibt keine Marketingdaten an Drittorganisationen für deren eigenes Marketing weiter. Wir geben Daten an Zahlungs- und Dienstanbieter weiter, sofern dies für die sichere Durchführung von Transaktionen und Vorgängen erforderlich ist."
+          "title": "Wie und warum wir Daten nutzen",
+          "p1": "Wir nutzen personenbezogene Daten, um Velbok zu betreiben, Nutzer zu authentifizieren, Studio-Abonnements und Kundenzahlungen zu verarbeiten, Benachrichtigungen zu senden, Studios zu unterstützen, die Zuverlässigkeit zu verbessern und gesetzliche Pflichten zu erfüllen.",
+          "p2": "{{shopLegalName}} verkauft keine personenbezogenen Daten an Dritte für deren eigenes Marketing."
         },
         "cookies": {
-          "title": "Cookies, Pixel und Website-Technologien",
-          "p1": "Cookies und ähnliche Technologien helfen uns, Website-Funktionen auszuführen und Präferenzen zu speichern. Unsere Cookies sollen keine direkten persönlichen Identifikatoren enthalten. Sie können Browser-Cookies und In-App-Cookie-Einstellungen verwalten.",
-          "p2": "Wir verwenden möglicherweise E-Mail-Tracking-Pixel, um zu verstehen, ob E-Mails geöffnet wurden und ob Ihr Client Text- oder HTML-Inhalte rendern kann."
+          "title": "Cookies und ähnliche Technologien",
+          "p1": "Unsere Website verwendet Cookies und lokalen Speicher für Anmeldung, Sicherheit, Spracheinstellungen und optionale Analyse-/Marketing-Kategorien, sofern Sie einwilligen. Details finden Sie in unserer Cookie-Richtlinie.",
+          "p2": "Transaktions-E-Mails können Tracking-Pixel enthalten, um Zustellung und Engagement zu messen."
         },
         "security": {
           "title": "Sicherheit und Aufbewahrung",
-          "p1": "Zum Schutz der Daten nutzen wir Verschlüsselung, sichere Verarbeitungsstandards und Zugriffskontrollen. Keine Internetübertragung ist völlig risikofrei, wir wenden jedoch angemessene technische und organisatorische Sicherheitsmaßnahmen an.",
-          "p2": "Die Standardaufbewahrung beträgt mindestens 5 Jahre ab dem letzten Besuch/der letzten Transaktion oder länger, wenn gesetzliche/versicherungsrechtliche Ansprüche dies erfordern. Für Versicherungs- und Schadensersatzansprüche können wir relevante Daten bis zu 21 Jahre aufbewahren."
+          "p1": "Wir verwenden Verschlüsselung bei der Übertragung (HTTPS/TLS), Zugriffskontrollen und branchenübliches Hosting. Keine Internetübertragung ist völlig risikofrei.",
+          "p2": "Wir bewahren Konto- und Transaktionsdaten so lange auf, wie für den Dienst, gesetzliche Pflichten und Streitbeilegung erforderlich — in der Regel mindestens fünf Jahre für Geschäftsunterlagen und länger, wenn Versicherungs- oder Einwilligungsdokumentation dies erfordert."
         },
-        "cctv": {
-          "title": "Zusammenfassung der CCTV-Richtlinien",
-          "p1": "Unsere Räumlichkeiten werden rund um die Uhr videoüberwacht, um Straftaten vorzubeugen/aufzudecken, Sicherheit zu gewährleisten und Vermögenswerte zu schützen. Kameras werden an prominenten Stellen und nicht an sensiblen Stellen angebracht. Der Zugang ist auf autorisiertes Fachpersonal beschränkt.",
-          "p2": "CCTV-Daten werden rechtmäßig, fair, transparent und sicher verarbeitet. Das Filmmaterial wird im Allgemeinen mindestens 14 Tage und höchstens ein Jahr lang gespeichert, es sei denn, es wird für Ermittlungen, Disziplinarverfahren oder rechtliche Beweise benötigt."
+        "children": {
+          "title": "Kinder und Minderjährige",
+          "p1": "Velbok ist Software zur Studioverwaltung und Buchung — wir erbringen keine Tattoo- oder Piercing-Dienstleistungen. Mindestalter für diese Leistungen legt jedes Studio und das Recht des jeweiligen Standorts fest (einschließlich Piercings für Minderjährige mit Elternteil oder Erziehungsberechtigtem, sofern zulässig).",
+          "p2": "Studio-Administrator- und Mitarbeiterkonten sind Geschäftskonten und richten sich nicht an Kinder unter 13 Jahren. Wenn ein Studio eine Buchung oder ein Einwilligungsformular für einen minderjährigen Kunden erfasst, ist das Studio der Verantwortliche und muss die erforderliche elterliche oder gesetzliche Einwilligung einholen."
+        },
+        "ccpa": {
+          "title": "Datenschutzrechte in Kalifornien (CCPA/CPRA)",
+          "p1": "Einwohner Kaliforniens können Auskunft, Berichtigung oder Löschung personenbezogener Informationen verlangen, die wir als Verantwortlicher speichern. Wir verkaufen oder teilen keine personenbezogenen Informationen für kontextübergreifende Verhaltenswerbung. Zur Ausübung Ihrer Rechte senden Sie eine E-Mail an",
+          "p2": "Wir prüfen Anfragen und antworten innerhalb der geltenden Fristen."
         },
         "rights": {
           "title": "Ihre Rechte",
-          "p1": "Sie können Zugriff, Berichtigung, Löschung (sofern zutreffend), Einschränkung, Widerspruch, Übertragbarkeit und Widerruf der Einwilligung verlangen. Sie können uns auch bitten, das Direktmarketing einzustellen. Sie können eine Kopie Ihrer Daten per E-Mail anfordern",
+          "p1": "Sie können Auskunft, Berichtigung, Löschung (sofern anwendbar), Einschränkung, Widerspruch, Datenübertragbarkeit und Widerruf der Einwilligung verlangen. Senden Sie eine E-Mail an",
           "orWriteTo": "oder schreiben Sie an:",
-          "p2": "Wenn wir eine Anfrage ablehnen, erklären wir Ihnen den Grund dafür. Sie haben außerdem das Recht, sich beim britischen Information Commissioner's Office (ICO) oder bei Ihrer örtlichen EU-Aufsichtsbehörde zu beschweren."
+          "p2": "Lehnen wir eine Anfrage ab, erklären wir die Gründe. Sie können sich beim UK ICO oder Ihrer lokalen EU-Aufsichtsbehörde beschweren."
         },
         "updates": {
-          "title": "Richtlinienaktualisierungen",
-          "p1": "Wir können diese Mitteilung regelmäßig aktualisieren. Wesentliche Änderungen werden hier veröffentlicht, damit Sie darüber informiert bleiben, welche Daten wir erfassen, wie wir sie verwenden und wann sie möglicherweise offengelegt werden."
+          "title": "Aktualisierungen der Richtlinie",
+          "p1": "Wir können diesen Hinweis regelmäßig aktualisieren. Wesentliche Änderungen werden unter velbok.com/privacy mit einem überarbeiteten Datum veröffentlicht."
         }
       }
     },
     "terms": {
-      "title": "Nutzungsbedingungen",
-      "lastUpdated": "29. Mai 2026",
+      "title": "Allgemeine Geschäftsbedingungen",
+      "lastUpdated": "18. Juni 2026",
       "sections": {
         "scope": {
-          "title": "1. Geltungsbereich",
-          "p1": "Diese Bedingungen regeln den Zugriff auf und die Nutzung der {{platformName}}-Webanwendung (der „Dienst“) durch Mitarbeiter und Kunden im Vereinigten Königreich und in der EU. Durch die Nutzung des Dienstes stimmen Sie diesen Bedingungen zu."
+          "title": "1. Vertrag",
+          "p1": "Diese AGB bilden eine verbindliche Vereinbarung zwischen Ihnen (und dem Studio, das Sie vertreten) und Inkaholics Limited (in England und Wales registriertes Unternehmen, handelnd als {{platformName}}) für die Nutzung des Dienstes unter velbok.com. Mit der Kontoerstellung, dem Abonnement oder der Nutzung des Dienstes stimmen Sie diesen AGB und unserem Datenschutzhinweis zu.",
+          "p2": "Wenn Sie im Namen eines Studios abonnieren, bestätigen Sie, dass Sie befugt sind, dieses Studio an diese Vereinbarung zu binden."
         },
         "eligibility": {
-          "title": "2. Teilnahmeberechtigung und Kontosicherheit",
-          "p1": "Sie müssen genaue Angaben machen, Ihre Zugangsdaten vertraulich behandeln und uns unverzüglich über unbefugten Kontozugriff informieren. Sie sind für die unter Ihrem Konto durchgeführten Aktivitäten verantwortlich, sofern diese nicht auf unser Verschulden zurückzuführen sind."
+          "title": "2. Berechtigung und Kontosicherheit",
+          "p1": "Studio-Mitarbeiter- und Administrator-Konten sind für Personen bestimmt, die in ihrer Rechtsordnung alt genug sind, einen verbindlichen Vertrag abzuschließen, oder vom Studioinhaber autorisiert sind, den Dienst im Namen des Studios zu nutzen. Sie müssen korrekte Angaben machen, Zugangsdaten vertraulich behandeln und uns unverzüglich über unbefugten Zugriff informieren."
+        },
+        "children": {
+          "title": "3. Kinder und Minderjährige",
+          "p1": "Velbok ist Software für Tattoo- und Piercing-Studios — kein Studio selbst. Der Dienst richtet sich nicht an Kinder unter 13 Jahren zur Erstellung von Plattformkonten. Kundenportal-Funktionen können für Buchungen und Einwilligungen genutzt werden, wenn ein Studio minderjährige Kunden rechtmäßig bedient; Studios sind für Altersverifikation und elterliche Einwilligung nach lokalem Recht verantwortlich."
         },
         "acceptableUse": {
-          "title": "3. Akzeptable Verwendung",
-          "p1": "Sie dürfen den Dienst nicht missbrauchen, Sicherheitskontrollen beeinträchtigen, rechtswidrige Inhalte hochladen oder den Dienst auf eine Weise nutzen, die gegen geltendes Recht verstößt, einschließlich der DSGVO des Vereinigten Königreichs, der EU-DSGVO und der Verbraucherschutzbestimmungen."
+          "title": "4. Zulässige Nutzung",
+          "p1": "Sie dürfen den Dienst nicht missbrauchen, Sicherheitskontrollen beeinträchtigen, rechtswidrige Inhalte hochladen oder den Dienst in einer Weise nutzen, die geltendes Recht verletzt, einschließlich UK GDPR, EU GDPR und Verbraucherschutzvorschriften."
         },
         "bookings": {
-          "title": "4. Buchungs- und Anzahlungsabläufe",
-          "p1": "Der Service unterstützt die Buchungsverwaltung und Anzahlungserinnerungen. Die Zahlungsabwicklung erfolgt über integrierte Drittanbieter. Sie sind dafür verantwortlich, sicherzustellen, dass die eingegebenen Buchungs- und Zahlungsinformationen korrekt sind, bevor Sie Benachrichtigungen senden.",
-          "p2": "Für gebuchte Tattoo-Leistungen gelten zusätzliche Studiobedingungen: Bei Erbringung der Tattoo-Leistungen ist der vereinbarte Preis in voller Höhe zu zahlen und es erfolgt keine Gutschrift; Einzahlungen werden über die Integration eines Online-Zahlungsanbieters eingezogen; Anzahlungen werden nur dann zurückerstattet, wenn eine formelle Stornierung per E-Mail mindestens 24 Stunden vor dem Termin erfolgt; und Unzufriedenheit mit Änderungen der Stilpräferenzen nach der Wartung begründen keinen Anspruch auf Rückerstattung."
+          "title": "5. Buchungs- und Zahlungsabläufe",
+          "p1": "Der Dienst unterstützt Buchungsverwaltung, Anzahlungen, Rechnungsstellung und persönliche Kartenzahlungen über Stripe. Kartendaten werden von Stripe verarbeitet; Velbok speichert keine vollständigen Kartennummern. Sie sind dafür verantwortlich, dass Buchungs- und Zahlungsinformationen korrekt sind, bevor Benachrichtigungen versendet werden.",
+          "p2": "Studiospezifische Stornierungs-, Erstattungs- und Altersregeln für Tattoo- oder Piercing-Dienstleistungen bleiben in der Verantwortung des Studios und müssen Kunden separat mitgeteilt werden. Velbok erbringt keine Körperkunst-Dienstleistungen."
+        },
+        "subscription": {
+          "title": "6. Plattform-Abonnement (Studios)",
+          "p1": "Self-Service-Tarife werden wiederkehrend über Stripe im Namen von Inkaholics Limited abgerechnet. Mit dem Start eines Abonnements oder einer kostenlosen Testphase autorisieren Sie uns, die von Ihnen angegebene Zahlungsmethode zum jeweils gültigen Preis für Ihren gewählten Tarif zu belasten, einschließlich automatischer Verlängerung, bis Sie gemäß diesen AGB kündigen.",
+          "p2": "Testphasen werden zu kostenpflichtigen Abonnements, sofern nicht vor Ablauf der Testphase gekündigt wird. Gebühren sind nicht erstattungsfähig, außer wenn zwingendes Recht dies vorschreibt. Wir können Tarifmerkmale oder Preise mit angemessener Vorankündigung ändern; die fortgesetzte Nutzung nach dem Wirksamkeitsdatum gilt als Zustimmung. Sie können über die Abrechnungseinstellungen oder das Stripe-Kundenportal kündigen, sofern verfügbar."
+        },
+        "studioObligations": {
+          "title": "7. Pflichten des Studios",
+          "p1": "Sie sind allein verantwortlich für Tattoo-, Piercing- oder damit verbundene Dienstleistungen, die Sie Kunden erbringen, einschließlich Lizenzen, Hygiene, Nachsorge, Altersverifikation, elterlicher Einwilligung, sofern gesetzlich erforderlich, und Einhaltung der Vorschriften in Ihrer Rechtsordnung.",
+          "p2": "Sie dürfen Velbok nicht als Anbieter von Körperkunst-Dienstleistungen darstellen. Sie sind für die Richtigkeit der Daten verantwortlich, die Sie und Ihre Mitarbeiter in den Dienst eingeben, sowie für an Ihre Kunden gesendete Mitteilungen."
+        },
+        "dataProcessing": {
+          "title": "8. Rollen beim Datenschutz",
+          "p1": "Für Studio-Konto- und Abrechnungsdaten ist Inkaholics Limited der Verantwortliche. Für Kundenbuchungen, Einwilligungsformulare, Nachrichten und CRM-Daten, die Sie über Ihre Kunden eingeben, sind Sie der Verantwortliche und Inkaholics Limited handelt als Auftragsverarbeiter gemäß Ihren dokumentierten Weisungen, wie in unserem Datenschutzhinweis beschrieben.",
+          "p2": "Sie müssen eine Rechtsgrundlage und, wo erforderlich, angemessene Datenschutzhinweise und Einwilligungen für Kundendaten haben, die Sie über Velbok verarbeiten. Sie dürfen keine rechtswidrigen Inhalte oder besondere Kategorien personenbezogener Daten über das hinaus hochladen, wofür der Dienst ausgelegt ist."
         },
         "ip": {
-          "title": "5. Geistiges Eigentum",
-          "p1": "Das Design, die Software und der Inhalt des Dienstes sind durch geistige Eigentumsrechte geschützt. Sie dürfen den Service nur für interne geschäftliche oder persönliche Buchungszwecke nutzen und nicht für unbefugtes Kopieren, Weiterverkaufen oder Reverse Engineering."
+          "title": "9. Geistiges Eigentum",
+          "p1": "Das Design, die Software und das Velbok-Branding des Dienstes gehören Inkaholics Limited oder sind von dieser lizenziert. Sie erhalten eine beschränkte, nicht ausschließliche, nicht übertragbare Lizenz zur Nutzung des Dienstes für das interne Geschäft Ihres Studios, solange Ihr Abonnement aktiv und in gutem Stand ist.",
+          "p2": "Sie behalten das Eigentum an hochgeladenen Inhalten. Sie gewähren uns eine Lizenz, diese Inhalte ausschließlich zur Bereitstellung des Dienstes zu hosten, zu verarbeiten und anzuzeigen."
         },
         "data": {
-          "title": "6. Datenschutz",
-          "p1": "Personenbezogene Daten werden im Einklang mit unserer Datenschutzerklärung und den geltenden Datenschutzgesetzen des Vereinigten Königreichs und der EU verarbeitet. Wo erforderlich, stützen wir uns auf eine Einwilligung, einen Vertrag, eine rechtliche Verpflichtung oder berechtigte Interessen als Rechtsgrundlage."
+          "title": "10. Datenschutz",
+          "p1": "Unser Datenschutzhinweis erläutert, wie Inkaholics Limited personenbezogene Daten verarbeitet. Mit der Nutzung des Dienstes erkennen Sie diesen Hinweis an."
+        },
+        "thirdParty": {
+          "title": "11. Drittanbieter-Dienste",
+          "p1": "Der Dienst integriert Drittanbieter wie Stripe (Zahlungen), Supabase (Hosting) und E-Mail-Anbieter. Deren AGB und Datenschutzrichtlinien gelten für deren Dienste. Wir haften nicht für Ausfälle, Fehler oder Handlungen von Drittanbietern außerhalb unserer angemessenen Kontrolle."
+        },
+        "disclaimer": {
+          "title": "12. Haftungsausschlüsse",
+          "p1": "Der Dienst wird „wie besehen“ und „wie verfügbar“ bereitgestellt. Wir garantieren keinen unterbrechungsfreien oder fehlerfreien Betrieb. Velbok ist ausschließlich Software — wir erteilen keine Rechts-, Medizin-, Steuer- oder Fachberatung, und der Dienst garantiert nicht Ihre regulatorische Compliance."
+        },
+        "indemnity": {
+          "title": "13. Freistellung",
+          "p1": "Sie stellen Inkaholics Limited, deren Geschäftsführer und Mitarbeiter von Ansprüchen, Bußgeldern, Verlusten und angemessenen Kosten frei, die entstehen aus: (a) Ihren Studio-Dienstleistungen oder Kundeninteraktionen; (b) Ihrer Verletzung dieser AGB oder geltenden Rechts; (c) Kundendaten, die Sie kontrollieren; oder (d) Inhalten, die Sie oder Ihre Mitarbeiter über den Dienst einreichen, außer soweit durch unser vorsätzliches Fehlverhalten oder unsere Fahrlässigkeit verursacht."
         },
         "availability": {
-          "title": "7. Serviceverfügbarkeit",
-          "p1": "Wir streben einen zuverlässigen Betrieb an, garantieren jedoch keine unterbrechungsfreie Verfügbarkeit. Geplante Wartungsarbeiten, Updates und Ausfälle Dritter können den Zugriff beeinträchtigen."
+          "title": "14. Verfügbarkeit des Dienstes",
+          "p1": "Wir streben einen zuverlässigen Betrieb an, garantieren aber keine unterbrechungsfreie Verfügbarkeit. Geplante Wartung, Updates und Ausfälle bei Drittanbietern können den Zugriff beeinträchtigen."
         },
         "liability": {
-          "title": "8. Haftung",
-          "p1": "Nichts in diesen Bedingungen schränkt die Haftung ein, die gesetzlich nicht eingeschränkt werden kann (einschließlich Betrug oder durch Fahrlässigkeit verursachter Tod/Personenschaden). Vorbehaltlich zwingender Rechtsvorschriften schließen wir indirekte Schäden aus und beschränken die Haftung auf vorhersehbare direkte Schäden, die aus einer Verletzung entstehen."
+          "title": "15. Haftungsbeschränkung",
+          "p1": "Nichts in diesen AGB beschränkt eine Haftung, die gesetzlich nicht beschränkt werden kann (einschließlich Tod oder Körperverletzung durch Fahrlässigkeit oder Betrug). Vorbehaltlich zwingenden Rechts haftet Inkaholics Limited nicht für indirekte, Folge- oder Strafschäden, entgangenen Gewinn, Umsatz, Daten oder Goodwill.",
+          "p2": "Vorbehaltlich des Obigen ist unsere gesamte aggregierte Haftung aus oder im Zusammenhang mit dem Dienst in jedem Zwölfmonatszeitraum auf den höheren der folgenden Beträge begrenzt: (a) die Plattform-Abonnementgebühren, die Sie uns in diesem Zeitraum gezahlt haben, oder (b) einhundert Pfund Sterling (£100)."
         },
         "changes": {
-          "title": "9. Änderungen und Kündigung",
-          "p1": "Wir können diese Bedingungen aktualisieren, wenn dies gesetzlich, aus Sicherheitsgründen oder aufgrund von Produktänderungen erforderlich ist. Wesentliche Änderungen werden in der App mit einem überarbeiteten Datum veröffentlicht. Wir können den Zugriff sperren oder beenden, wenn gegen die Nutzungsbedingungen verstoßen wird oder ein Missbrauch festgestellt wird."
+          "title": "16. Änderungen und Kündigung",
+          "p1": "Wir können diese AGB bei rechtlichen, sicherheits- oder produktbezogenen Änderungen aktualisieren. Wesentliche Änderungen werden unter velbok.com/terms mit überarbeitetem Datum veröffentlicht. Wir können den Zugang sperren oder beenden, wenn AGB verletzt werden, Gebühren unbezahlt sind oder Missbrauch festgestellt wird."
         },
         "governingLaw": {
-          "title": "10. Anwendbares Recht",
-          "p1": "Diese Bedingungen unterliegen den Gesetzen von England und Wales, sofern das zwingende Verbraucherrecht in Ihrem Wohnsitzland nichts anderes vorsieht."
+          "title": "17. Anwendbares Recht",
+          "p1": "Diese AGB unterliegen dem Recht von England und Wales. Die Gerichte von England und Wales haben ausschließliche Zuständigkeit, außer wenn zwingendes Verbraucherschutzrecht in Ihrem Wohnsitzland Ihnen das Recht gibt, Verfahren anderswo anzustrengen."
         }
       }
     },
     "cookies": {
       "title": "Cookie-Richtlinie",
-      "lastUpdated": "04. Mai 2026",
+      "lastUpdated": "18. Juni 2026",
       "sections": {
         "what": {
           "title": "1. Was Cookies sind",
-          "p1": "Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden. Wir verwenden auch ähnliche Technologien (z. B. lokale Speicherung), wenn dies für die Anwendungsfunktionalität und Benutzerpräferenzen erforderlich ist."
+          "p1": "Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden. Wir verwenden auch lokalen Speicher, wo für Anmeldung, Sprache und UI-Einstellungen erforderlich."
         },
         "categories": {
           "title": "2. Von uns verwendete Cookie-Kategorien",
-          "p1": "Unbedingt erforderlich: erforderlich für Authentifizierung, Sicherheit, Sitzungsverwaltung und Kernfunktionen. Einstellungen: Speichern Sie die Optionen für die Benutzeroberfläche und die Benutzerfreundlichkeit. Analysen: helfen uns, Leistungs- und Nutzungstrends zu verstehen. Marketing: Unterstützung der Wirksamkeit von Kampagnen und maßgeschneiderter Werbung."
+          "p1": "Unbedingt erforderlich: Authentifizierung, Sicherheit und Kernfunktionen (immer aktiv). Präferenzen: Sprache und UI-Auswahl (mit Ihrer Einwilligung auf der Website). Analyse und Marketing: optionale Kategorien — wir laden derzeit keine Drittanbieter-Analyse- oder Werbe-Tracker; diese Kategorien sind für die zukünftige Nutzung reserviert und bleiben deaktiviert, sofern Sie nicht einwilligen und wir sie aktivieren."
         },
         "consent": {
           "title": "3. Einwilligungsmodell",
-          "p1": "Unbedingt notwendige Technologien sind immer aktiv. Optionale Kategorien (Präferenzen, Analysen, Marketing) werden erst nach Ihrer Zustimmung aktiviert und können jederzeit über die Benutzeroberfläche für Cookie-Einstellungen geändert werden."
+          "p1": "Unbedingt erforderliche Technologien sind immer aktiv. Optionale Kategorien (Präferenzen, Analyse, Marketing) werden erst nach Ihrer Einwilligung aktiviert und können jederzeit über die Cookie-Einstellungen geändert werden."
         },
         "thirdParty": {
-          "title": "4. Dienste Dritter",
-          "p1": "Einige integrierte Anbieter können bei der Nutzung ihrer Funktionalität eigene Cookies oder ähnliche Kennungen setzen. Zusätzlich zu dieser Richtlinie gelten deren Datenschutz-/Cookie-Bedingungen."
+          "title": "4. Drittanbieter-Dienste",
+          "p1": "Einige integrierte Anbieter können eigene Cookies oder ähnliche Kennungen setzen, wenn deren Funktionen genutzt werden. Deren Datenschutz-/Cookie-Bedingungen gelten zusätzlich zu dieser Richtlinie."
         },
         "pixels": {
           "title": "E-Mail-Pixel",
-          "p1": "Wir können Tracking-Pixel in bestimmte E-Mails integrieren, um das Engagement (z. B. ob eine E-Mail geöffnet wurde) und die Fähigkeit zur Inhaltswiedergabe (Text vs. HTML) zu verstehen. Dies hilft uns, die Qualität und Relevanz der Kommunikation zu verbessern."
+          "p1": "Wir können Tracking-Pixel in bestimmten E-Mails einbinden, um Engagement zu verstehen (z. B. ob eine E-Mail geöffnet wurde) und Darstellungsfähigkeit (Text vs. HTML). Dies hilft uns, Kommunikationsqualität und Relevanz zu verbessern."
         },
         "manage": {
-          "title": "5. So verwalten Sie Cookies",
-          "p1": "Sie können in der App alles akzeptieren, Unwesentliches ablehnen oder detaillierte Entscheidungen treffen. Sie können Ihren Browser auch so konfigurieren, dass Cookies blockiert werden. Dies kann jedoch Auswirkungen auf Kernfunktionen wie die Anmeldung oder die sichere Sitzungsverwaltung haben."
+          "title": "5. Cookies verwalten",
+          "p1": "Sie können alle akzeptieren, Nicht-Essenzielles ablehnen oder granulare Auswahlen in der App treffen. Sie können Ihren Browser auch so konfigurieren, dass Cookies blockiert werden, dies kann jedoch Kernfunktionen wie Anmeldung oder sichere Sitzungsverwaltung beeinträchtigen."
         },
         "updates": {
           "title": "6. Aktualisierungen",
-          "p1": "Wir können diese Richtlinie aktualisieren, um rechtlichen, technischen oder Produktänderungen Rechnung zu tragen. Hier werden immer die aktuellste Version und das Update-Datum veröffentlicht."
+          "p1": "Wir können diese Richtlinie aktualisieren, um rechtliche, technische oder produktbezogene Änderungen widerzuspiegeln. Die aktuelle Version und das Aktualisierungsdatum werden stets hier veröffentlicht."
         }
       }
     }

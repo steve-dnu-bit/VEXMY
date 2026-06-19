@@ -1,0 +1,231 @@
+{
+  "legal": {
+    "layout": {
+      "lastUpdated": "Sist oppdatert:",
+      "terms": "Vilkår",
+      "privacy": "Personvern",
+      "cookies": "Informasjonskapsler",
+      "home": "Hjem",
+      "documentation": "Dokumentasjon",
+      "studioLogin": "Studioinnlogging"
+    },
+    "privacy": {
+      "title": "Personvernerklæring (UK/EU GDPR)",
+      "lastUpdated": "18. juni 2026",
+      "sections": {
+        "general": {
+          "title": "Hvem vi er",
+          "p1": "{{shopLegalName}} (som driver under navnet {{platformName}}) driver Velbok-plattformen på velbok.com og Velbok-mobilappene. Vi er behandlingsansvarlig for studiokontodata, plattformfakturering og vår egen drift. Tatoveringsstudioer som bruker Velbok, er separate behandlingsansvarlige for sine kunders booking-, samtykke- og CRM-data.",
+          "contactLead": "For spørsmål om personvern på plattformen, kontakt",
+          "contactDpo": "For henvendelser eller klager om databeskyttelse, kontakt vår personvernombud (DPO) på"
+        },
+        "roles": {
+          "title": "Plattform vs. studioansvar",
+          "p1": "Når du registrerer et studio på Velbok, behandler vi dine forretningskontaktopplysninger, abonnementsfakturering og ansattkontoer som behandlingsansvarlig. Når studioet ditt registrerer kundebookinger, samtykkeskjemaer, meldinger eller fakturaer, er du behandlingsansvarlig og Velbok fungerer som databehandler etter dine instruksjoner.",
+          "p2": "Studioer må gi egne personvernopplysninger til kunder for tjenester i studioet (inkludert eventuell videoovervåking på fysiske lokaler). Denne erklæringen gjelder Velbok-programvaren og nettstedet."
+        },
+        "dataCollect": {
+          "title": "Data vi samler inn",
+          "p1": "Avhengig av din rolle og interaksjon kan vi samle inn: navn, e-post, telefon, forretningsadresse, kontopåloggingsdetaljer, booking- og fakturaposter, meldinger, opplastede bilder (referanser, avatarer, signaturer), betalingsmetadata, informasjonskapsel-/enhetsdata, og — der studioer bruker digitalt samtykke — helseinformasjon som kreves for sikkerhet ved tatovering eller piercing.",
+          "p2": "Kortnumre oppgis direkte til Stripe (nettkasse, fakturaer og fysiske Terminal / Tap to Pay). Velbok lagrer ikke fullstendige kortnumre på våre servere."
+        },
+        "healthData": {
+          "title": "Helse- og samtykkedata",
+          "p1": "Digitale samtykkeskjemaer kan samle inn svar om medisinsk historikk (for eksempel allergier, hjertesykdommer, graviditet eller blodfortynnende medisiner) og en tegnet signatur. Dette er særlige kategorier av personopplysninger etter UK/EU GDPR. Studioer samler dette inn med uttrykkelig samtykke fra kunden for sikkerhets-, juridiske, medisinske og forsikringsmessige formål.",
+          "p2": "Velbok lagrer samtykkesvar og genererte PDF-er sikkert på vegne av studioet. Oppbevaring følger studioets faglige og forsikringsmessige krav, typisk i flere år."
+        },
+        "whenCollect": {
+          "title": "Når vi samler inn data",
+          "p1": "Vi samler inn data når du oppretter en konto, abonnerer på Velbok, konfigurerer et studio, administrerer bookinger eller fakturering, fyller ut samtykkeskjemaer, bruker meldinger i appen, kontakter support eller bruker betalingsfunksjoner på web eller mobil."
+        },
+        "mobile": {
+          "title": "Mobilapp (Android / iOS)",
+          "p1": "Velbok-appen kan be om enhetstillatelser for å støtte betalinger på stedet: presis posisjon og Bluetooth (kortlesere og Stripe Tap to Pay), samt NFC for kontaktløs Tap to Pay. Posisjon kreves av betalingsregelverk og svindelforebygging — den brukes ikke til å spore deg for reklame.",
+          "p2": "Den native appen viser ikke nettstedets informasjonskapselbanner; vi bruker strengt nødvendig lokal lagring kun for innlogging og preferanser. Valgfrie markedsførings-/analyseinformasjonskapsler gjelder kun på nettstedet."
+        },
+        "subprocessors": {
+          "title": "Tjenesteleverandører (underdatabehandlere)",
+          "p1": "Vi bruker pålitelige leverandører for å drive Velbok, inkludert: Supabase (autentisering, database, fillagring, edge-funksjoner), Stripe (betalinger, Connect-utbetalinger, Terminal / Tap to Pay), Resend (transaksjonell e-post), Twilio (valgfri WhatsApp/SMS per studio) og Netlify (nettstedshosting). Hver leverandør behandler data under kontrakt og sine egne personvernvilkår.",
+          "p2": "Vi selger ikke personopplysninger. Vi deler data kun der det er nødvendig for å levere tjenesten, overholde loven eller forebygge svindel."
+        },
+        "transfers": {
+          "title": "Internasjonale overføringer",
+          "p1": "Noen leverandører kan behandle data utenfor Storbritannia/EØS (for eksempel USA). Der det kreves, støtter vi oss på passende sikkerhetstiltak som standard kontraktsklausuler og leverandørenes samsvarsprogrammer."
+        },
+        "lawfulBases": {
+          "title": "Rettslig grunnlag (UK GDPR / EU GDPR)",
+          "p1": "Vi støtter oss på samtykke, kontraktsnødvendighet, rettslig forpliktelse og berettigede interesser avhengig av kontekst.",
+          "consent": "Samtykke:",
+          "consentDesc": "valgfrie informasjonskapsler på nettstedet, markedsføringsopt-in og uttrykkelig samtykke for helsedata i studiosamtykkeskjemaer.",
+          "contract": "Kontrakt:",
+          "contractDesc": "levering av Velbok-tjenesten, studioabonnementer, bookinger, depositum og fakturaer.",
+          "legal": "Rettslig forpliktelse:",
+          "legalDesc": "skatt, regnskap og lovlige forespørsler fra myndigheter.",
+          "legitimate": "Berettigede interesser:",
+          "legitimateDesc": "sikkerhet, svindelforebygging, produktforbedring og tjenestekommunikasjon.",
+          "vital": "Vital interesse:",
+          "vitalDesc": "beskyttelse av liv eller helse i en nødsituasjon."
+        },
+        "howUse": {
+          "title": "Hvordan og hvorfor vi bruker data",
+          "p1": "Vi bruker personopplysninger til å drive Velbok, autentisere brukere, behandle studioabonnementer og kundebetalinger, levere varsler, støtte studioer, forbedre pålitelighet og oppfylle rettslige forpliktelser.",
+          "p2": "{{shopLegalName}} selger ikke personopplysninger til tredjeparter for deres egen markedsføring."
+        },
+        "cookies": {
+          "title": "Informasjonskapsler og lignende teknologier",
+          "p1": "Nettstedet vårt bruker informasjonskapsler og lokal lagring for innlogging, sikkerhet, språkpreferanser og valgfrie analyse-/markedsføringskategorier når du samtykker. Se vår informasjonskapselpolicy for detaljer.",
+          "p2": "Transaksjonelle e-poster kan inneholde sporingspiksler for å måle levering og engasjement."
+        },
+        "security": {
+          "title": "Sikkerhet og oppbevaring",
+          "p1": "Vi bruker kryptering under overføring (HTTPS/TLS), tilgangskontroller og bransjestandard hosting. Ingen internettoverføring er helt risikofri.",
+          "p2": "Vi oppbevarer konto- og transaksjonsposter så lenge det er nødvendig for tjenesten, rettslige forpliktelser og tvisteløsning — typisk minst fem år for forretningsposter, og lenger der forsikring eller samtykkedokumentasjon krever det."
+        },
+        "children": {
+          "title": "Barn og mindreårige",
+          "p1": "Velbok er programvare for studiostyring og booking — vi utfører ikke tatoverings- eller piercingtjenester. Minimumsalder for slike tjenester fastsettes av hvert studio og loven der de opererer (inkludert piercing for mindreårige med forelder eller verge, der det er tillatt).",
+          "p2": "Studioadministrator- og ansattkontoer er forretningskontoer og er ikke rettet mot barn under 13 år. Når et studio registrerer en booking eller samtykkeskjema for en mindreårig kunde, er studioet behandlingsansvarlig og må innhente nødvendig samtykke fra forelder eller verge."
+        },
+        "ccpa": {
+          "title": "Personvernrettigheter i California (CCPA/CPRA)",
+          "p1": "Innbyggere i California kan be om innsyn, retting eller sletting av personopplysninger vi beholder som behandlingsansvarlig. Vi selger eller deler ikke personopplysninger for tverrkontekstuell atferdsbasert reklame. For å utøve rettigheter, send e-post til",
+          "p2": "Vi vil verifisere forespørsler og svare innen gjeldende frister."
+        },
+        "rights": {
+          "title": "Dine rettigheter",
+          "p1": "Du kan be om innsyn, retting, sletting (der det gjelder), begrensning, innsigelse, dataportabilitet og tilbaketrekking av samtykke. Send e-post til",
+          "orWriteTo": "eller skriv til:",
+          "p2": "Hvis vi avslår en forespørsel, vil vi forklare hvorfor. Du kan klage til UK ICO eller din lokale tilsynsmyndighet i EU."
+        },
+        "updates": {
+          "title": "Oppdateringer av erklæringen",
+          "p1": "Vi kan oppdatere denne erklæringen med jevne mellomrom. Vesentlige endringer publiseres på velbok.com/privacy med revidert dato."
+        }
+      }
+    },
+    "terms": {
+      "title": "Vilkår for bruk",
+      "lastUpdated": "18. juni 2026",
+      "sections": {
+        "scope": {
+          "title": "1. Avtale",
+          "p1": "Disse vilkårene utgjør en bindende avtale mellom deg (og studioet du representerer) og Inkaholics Limited (selskap registrert i England og Wales, som driver under navnet {{platformName}}) for bruk av Tjenesten på velbok.com. Ved å opprette en konto, abonnere eller bruke Tjenesten godtar du disse vilkårene og vår personvernerklæring.",
+          "p2": "Hvis du abonnerer på vegne av et studio, bekrefter du at du har fullmakt til å binde det studioet til denne avtalen."
+        },
+        "eligibility": {
+          "title": "2. Kvalifikasjon og kontosikkerhet",
+          "p1": "Studioansatt- og administratorkontoer er for personer som er gamle nok til å inngå en bindende avtale i sin jurisdiksjon, eller som er autorisert av studioeieren til å bruke Tjenesten på studioets vegne. Du må oppgi korrekt informasjon, holde påloggingsdetaljer konfidensielle og varsle oss umiddelbart ved uautorisert tilgang."
+        },
+        "children": {
+          "title": "3. Barn og mindreårige",
+          "p1": "Velbok er programvare brukt av tatoverings- og piercingstudioer — ikke et studio i seg selv. Tjenesten er ikke rettet mot barn under 13 år for opprettelse av plattformkontoer. Kundeportalfunksjoner kan brukes til bookinger og samtykke der et studio lovlig betjener mindreårige kunder; studioer er ansvarlige for aldersverifisering og vergesamtykke i henhold til lokal lov."
+        },
+        "acceptableUse": {
+          "title": "4. Akseptabel bruk",
+          "p1": "Du må ikke misbruke Tjenesten, forstyrre sikkerhetskontroller, laste opp ulovlig innhold eller bruke Tjenesten på en måte som bryter gjeldende lov, inkludert UK GDPR, EU GDPR og forbrukerbeskyttelsesregler."
+        },
+        "bookings": {
+          "title": "5. Booking- og betalingsarbeidsflyt",
+          "p1": "Tjenesten støtter bookingadministrasjon, depositum, fakturering og fysiske kortbetalinger via Stripe. Kortdetaljer behandles av Stripe; Velbok lagrer ikke fullstendige kortnumre. Du er ansvarlig for å sikre at booking- og betalingsinformasjon er korrekt før du sender varsler.",
+          "p2": "Studiospesifikke regler for avbestilling, refusjon og alderskrav for tatoverings- eller piercingtjenester forblir studioets ansvar og må kommuniseres til kunder separat. Velbok utfører ikke kroppskunsttjenester."
+        },
+        "subscription": {
+          "title": "6. Plattformabonnement (studioer)",
+          "p1": "Selvbetjente abonnementer faktureres gjentakende via Stripe på vegne av Inkaholics Limited. Ved å starte et abonnement eller en gratis prøveperiode autoriserer du oss til å belaste betalingsmetoden du oppgir til gjeldende pris for valgt abonnement, inkludert automatisk fornyelse til du sier opp i samsvar med disse vilkårene.",
+          "p2": "Prøveperioder overgår til betalte abonnementer med mindre de sies opp før prøveperioden utløper. Avgifter refunderes ikke, unntatt der obligatorisk lov krever det. Vi kan endre abonnementsfunksjoner eller priser med rimelig varsel; fortsatt bruk etter ikrafttredelsesdato utgjør aksept. Du kan si opp via faktureringsinnstillinger eller Stripe-kundeportalen der det er tilgjengelig."
+        },
+        "studioObligations": {
+          "title": "7. Studioforpliktelser",
+          "p1": "Du er alene ansvarlig for tatoverings-, piercing- eller relaterte tjenester du leverer til kunder, inkludert lisenser, hygiene, etterbehandling, aldersverifisering, vergesamtykke der loven krever det, og samsvar med regelverk i din jurisdiksjon.",
+          "p2": "Du må ikke fremstille Velbok som leverandør av kroppskunsttjenester. Du er ansvarlig for nøyaktigheten av data du og dine ansatte legger inn i Tjenesten og for kommunikasjon sendt til dine kunder."
+        },
+        "dataProcessing": {
+          "title": "8. Databeskyttelsesroller",
+          "p1": "For studiokonto- og faktureringsdata er Inkaholics Limited behandlingsansvarlig. For kundebookinger, samtykkeskjemaer, meldinger og CRM-data du legger inn om dine kunder, er du behandlingsansvarlig og Inkaholics Limited fungerer som databehandler etter dine dokumenterte instruksjoner, som beskrevet i vår personvernerklæring.",
+          "p2": "Du må ha et rettslig grunnlag og, der det kreves, passende personvernerklæringer og samtykker for kundedata du behandler gjennom Velbok. Du må ikke laste opp ulovlig innhold eller særlige kategorier av data utover det Tjenesten er utformet for å støtte."
+        },
+        "ip": {
+          "title": "9. Immaterielle rettigheter",
+          "p1": "Tjenestens design, programvare og Velbok-merkevare eies av eller er lisensiert til Inkaholics Limited. Du får en begrenset, ikke-eksklusiv, ikke-overførbar lisens til å bruke Tjenesten for studioets interne forretningsdrift mens abonnementet ditt er aktivt og i god standing.",
+          "p2": "Du beholder eierskap til innhold du laster opp. Du gir oss en lisens til å hoste, behandle og vise det innholdet utelukkende for å levere Tjenesten."
+        },
+        "data": {
+          "title": "10. Personvern",
+          "p1": "Vår personvernerklæring forklarer hvordan Inkaholics Limited behandler personopplysninger. Ved å bruke Tjenesten bekrefter du at du har lest denne erklæringen."
+        },
+        "thirdParty": {
+          "title": "11. Tredjepartstjenester",
+          "p1": "Tjenesten integrerer tredjeparter som Stripe (betalinger), Supabase (hosting) og e-postleverandører. Deres vilkår og personvernerklæringer gjelder for deres tjenester. Vi er ikke ansvarlige for nedetid, feil eller handlinger fra tredjepartsleverandører utover vår rimelige kontroll."
+        },
+        "disclaimer": {
+          "title": "12. Ansvarsfraskrivelser",
+          "p1": "Tjenesten leveres «som den er» og «som tilgjengelig». Vi garanterer ikke uavbrutt eller feilfri drift. Velbok er kun programvare — vi gir ikke juridisk, medisinsk, skattemessig eller profesjonell rådgivning, og Tjenesten garanterer ikke din regulatoriske samsvar."
+        },
+        "indemnity": {
+          "title": "13. Skadesløsholdelse",
+          "p1": "Du skal holde Inkaholics Limited, dets direktører og ansatte skadesløse mot krav, bøter, tap og rimelige kostnader som oppstår fra: (a) dine studiotjenester eller kundeinteraksjoner; (b) ditt brudd på disse vilkårene eller gjeldende lov; (c) kundedata du kontrollerer; eller (d) innhold du eller dine ansatte sender inn gjennom Tjenesten, unntatt i den grad det skyldes vår forsettlige mislighold eller uaktsomhet."
+        },
+        "availability": {
+          "title": "14. Tjenestetilgjengelighet",
+          "p1": "Vi sikter mot pålitelig drift, men garanterer ikke uavbrutt tilgjengelighet. Planlagt vedlikehold, oppdateringer og tredjepartsnedetid kan påvirke tilgangen."
+        },
+        "liability": {
+          "title": "15. Ansvarsbegrensning",
+          "p1": "Ingenting i disse vilkårene begrenser ansvar som ikke kan begrenses etter loven (inkludert død eller personskade forårsaket av uaktsomhet, eller svindel). Med forbehold om obligatorisk lov skal Inkaholics Limited ikke være ansvarlig for indirekte, følgeskader eller straffeskader, tap av fortjeneste, inntekter, data eller goodwill.",
+          "p2": "Med forbehold for det ovennevnte er vårt samlede ansvar som oppstår fra eller er knyttet til Tjenesten i en tolvmånedersperiode begrenset til det høyeste av (a) plattformabonnementsavgiftene du betalte til oss i den perioden, eller (b) ett hundre britiske pund (£100)."
+        },
+        "changes": {
+          "title": "16. Endringer og oppsigelse",
+          "p1": "Vi kan oppdatere disse vilkårene der det kreves av lov, sikkerhet eller produktendringer. Vesentlige endringer publiseres på velbok.com/terms med revidert dato. Vi kan suspendere eller avslutte tilgang der vilkår brytes, avgifter ikke betales eller misbruk oppdages."
+        },
+        "governingLaw": {
+          "title": "17. Lovvalg",
+          "p1": "Disse vilkårene er underlagt lovene i England og Wales. Domstolene i England og Wales har eksklusiv jurisdiksjon, unntatt der obligatorisk forbrukerbeskyttelseslov i ditt bostedsland gir deg rett til å anlegge sak et annet sted."
+        }
+      }
+    },
+    "cookies": {
+      "title": "Informasjonskapselpolicy",
+      "lastUpdated": "18. juni 2026",
+      "sections": {
+        "what": {
+          "title": "1. Hva informasjonskapsler er",
+          "p1": "Informasjonskapsler er små tekstfiler lagret på enheten din. Vi bruker også lokal lagring der det trengs for innlogging, språk og brukergrensesnittpreferanser."
+        },
+        "categories": {
+          "title": "2. Informasjonskapselkategorier vi bruker",
+          "p1": "Strengt nødvendige: autentisering, sikkerhet og kjernefunksjoner (alltid aktive). Preferanser: språk- og brukergrensesnittvalg (med ditt samtykke på nettstedet). Analyse og markedsføring: valgfrie kategorier — vi laster for øyeblikket ikke inn tredjeparts analyse- eller annonsesporere; disse kategoriene er reservert for fremtidig bruk og forblir avslått med mindre du samtykker og vi aktiverer dem."
+        },
+        "consent": {
+          "title": "3. Samtykkemodell",
+          "p1": "Strengt nødvendige teknologier er alltid aktive. Valgfrie kategorier (preferanser, analyse, markedsføring) aktiveres kun etter ditt samtykke og kan endres når som helst fra grensesnittet for informasjonskapselpreferanser."
+        },
+        "thirdParty": {
+          "title": "4. Tredjepartstjenester",
+          "p1": "Noen integrerte leverandører kan sette egne informasjonskapsler eller lignende identifikatorer når deres funksjonalitet brukes. Deres personvern-/informasjonskapselvilkår gjelder i tillegg til denne policyen."
+        },
+        "pixels": {
+          "title": "E-postpiksler",
+          "p1": "Vi kan inkludere sporingspiksler i visse e-poster for å forstå engasjement (for eksempel om en e-post ble åpnet) og innholdsgjengivelse (tekst vs. HTML). Dette hjelper oss å forbedre kommunikasjonskvalitet og relevans."
+        },
+        "manage": {
+          "title": "5. Hvordan administrere informasjonskapsler",
+          "p1": "Du kan godta alle, avvise ikke-nødvendige eller sette detaljerte valg i appen. Du kan også konfigurere nettleseren til å blokkere informasjonskapsler, men dette kan påvirke kjernefunksjoner som innlogging eller sikker økthåndtering."
+        },
+        "updates": {
+          "title": "6. Oppdateringer",
+          "p1": "Vi kan oppdatere denne policyen for å gjenspeile juridiske, tekniske eller produktmessige endringer. Den nyeste versjonen og oppdateringsdatoen publiseres alltid her."
+        }
+      }
+    }
+  },
+  "subscribe": {
+    "termsCheckboxLead": "Jeg har lest og godtar",
+    "termsCheckboxBody": "Jeg bekrefter at jeg er autorisert til å abonnere på vegne av mitt studio og at Inkaholics Limited (Velbok) kan belaste valgt abonnement (inkludert etter eventuell gratis prøveperiode) via Stripe.",
+    "termsVersionLabel": "versjon {{version}}",
+    "termsRequired": "Vennligst godta vilkårene og personvernerklæringen for å fortsette."
+  },
+  "stripeConnect": {
+    "stripeHostedNote": "Stripe kan vise Velbok som plattformen — det er normalt. Oppgi studioets juridiske enhet (f.eks. Inkaholics Limited) og bankkonto under skjemaet. Utbetalinger går til studioet ditt, ikke til Velbok."
+  }
+}
