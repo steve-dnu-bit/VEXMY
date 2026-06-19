@@ -13,6 +13,7 @@ import { STORAGE_PREFIX } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import VelbokBrand from "@/components/brand/VelbokBrand";
 import { PORTAL_THEME_UPDATED_EVENT, resolveStaffPortalTheme } from "@/lib/shopDashboardTheme";
+import { resolveUploadUrl } from "@/lib/uploadStorage";
 
 const allNavItems: Array<{
   labelKey: string;
@@ -138,8 +139,12 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     const cached = readCachedPortalTheme(user.id);
     if (!cached) return;
     setPortalBgColor(cached.color);
-    setPortalBgImageUrl(cached.image);
-    applyPortalTheme(cached.color, cached.image);
+    setPortalBgImageUrl(null);
+    applyPortalTheme(cached.color, null);
+    void resolveUploadUrl(cached.imageRef).then((image) => {
+      setPortalBgImageUrl(image);
+      applyPortalTheme(cached.color, image);
+    });
   }, [user?.id]);
 
   useEffect(() => {
@@ -156,7 +161,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       setPortalBgColor(color);
       setPortalBgImageUrl(image);
       applyPortalTheme(color, image);
-      writeCachedPortalTheme(user.id, { color, image });
+      writeCachedPortalTheme(user.id, { color, imageRef: theme.imageRef });
     };
 
     void fetchAndApplyTheme();

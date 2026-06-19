@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useCustomerShop } from "@/hooks/useCustomerShop";
 import CustomerShopSelector from "@/components/customer/CustomerShopSelector";
 import VelbokBrand from "@/components/brand/VelbokBrand";
+import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 
 export interface PortalBrandProfile {
   display_name?: string | null;
@@ -36,6 +37,8 @@ const CustomerLayoutInner = ({
   const { t } = useTranslation();
   const { selectedShop, hasMultipleShops } = useCustomerShop();
   const [open, setOpen] = useState(false);
+  const portalBgImageUrl = useResolvedUploadUrl(portalBrand?.portal_bg_image_url);
+  const portalAvatarUrl = useResolvedUploadUrl(portalBrand?.avatar_url);
 
   const items = [
     hasPermission("my_bookings") && { label: t("customer.myBookings"), path: "/account", icon: Calendar },
@@ -52,9 +55,9 @@ const CustomerLayoutInner = ({
 
   const shellStyle = {
     backgroundColor: portalBrand?.portal_bg_color || undefined,
-    backgroundImage: portalBrand?.portal_bg_image_url ? `url(${portalBrand.portal_bg_image_url})` : undefined,
-    backgroundSize: portalBrand?.portal_bg_image_url ? "cover" : undefined,
-    backgroundPosition: portalBrand?.portal_bg_image_url ? "center" : undefined,
+    backgroundImage: portalBgImageUrl ? `url(${portalBgImageUrl})` : undefined,
+    backgroundSize: portalBgImageUrl ? "cover" : undefined,
+    backgroundPosition: portalBgImageUrl ? "center" : undefined,
   } as CSSProperties;
 
   const headerTitle = hasMultipleShops && selectedShop ? selectedShop.shopName : BRANDING.platformName.toUpperCase();
@@ -129,8 +132,8 @@ const CustomerLayoutInner = ({
         {portalBrand?.display_name || portalBrand?.portal_public_bio ? (
           <div className="mb-4 rounded-lg border border-border bg-card/90 p-3">
             <div className="flex items-start gap-3">
-              {portalBrand.avatar_url ? (
-                <img src={portalBrand.avatar_url} alt={t("schedule.artist")} loading="lazy" className="h-12 w-12 rounded-full object-cover border border-border" />
+              {portalAvatarUrl ? (
+                <img src={portalAvatarUrl} alt={t("schedule.artist")} loading="lazy" className="h-12 w-12 rounded-full object-cover border border-border" />
               ) : null}
               <div className="min-w-0">
                 {portalBrand.display_name ? <p className="font-medium">{portalBrand.display_name}</p> : null}

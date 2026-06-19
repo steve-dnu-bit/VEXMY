@@ -106,17 +106,23 @@ export function writeScheduleArtistColors(
   return map;
 }
 
-export type CachedPortalTheme = { color: string | null; image: string | null };
+export type CachedPortalTheme = { color: string | null; imageRef: string | null };
 
 export function readCachedPortalTheme(userId: string): CachedPortalTheme | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(`${PORTAL_THEME_KEY_PREFIX}${userId}`);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as CachedPortalTheme;
+    const parsed = JSON.parse(raw) as { color?: unknown; imageRef?: unknown; image?: unknown };
+    const imageRef =
+      typeof parsed?.imageRef === "string"
+        ? parsed.imageRef
+        : typeof parsed?.image === "string"
+          ? parsed.image
+          : null;
     return {
       color: typeof parsed?.color === "string" ? parsed.color : null,
-      image: typeof parsed?.image === "string" ? parsed.image : null,
+      imageRef,
     };
   } catch {
     return null;

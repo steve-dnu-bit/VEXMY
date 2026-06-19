@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { loadShopSettings } from "@/lib/shopSettings";
+import { resolveUploadUrl } from "@/lib/uploadStorage";
 
 export type DashboardThemeMode = "per_artist" | "shop";
 
@@ -70,29 +71,32 @@ export async function saveShopDashboardThemeSettings(
 
 export async function resolveStaffPortalTheme(userId: string): Promise<{
   color: string | null;
+  imageRef: string | null;
   image: string | null;
   mode: DashboardThemeMode;
 }> {
   const shop = await loadShopDashboardThemeSettings();
+  let color: string | null;
+  let imageRef: string | null;
+  let mode: DashboardThemeMode;
+
   if (shop.mode === "shop") {
-    return {
-      color: shop.portalBgColor,
-      image: shop.portalBgImageUrl,
-      mode: "shop",
-    };
+    color = shop.portalBgColor;
+    imageRef = shop.portalBgImageUrl;
+    mode = "shop";
+  } else {
+    const { data } = await supabase
+      .from("profiles")
+      .select("portal_bg_color, portal_bg_image_url")
+      .eq("user_id", userId)
+      .maybeSingle();
+    color = data?.portal_bg_color ?? null;
+    imageRef = data?.portal_bg_image_url ?? null;
+    mode = "per_artist";
   }
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("portal_bg_color, portal_bg_image_url")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  return {
-    color: data?.portal_bg_color ?? null,
-    image: data?.portal_bg_image_url ?? null,
-    mode: "per_artist",
-  };
+  const image = await resolveUploadUrl(imageRef);
+  return { color, imageRef, image, mode };
 }
 
 export async function canArtistCustomizeDashboardTheme(): Promise<boolean> {

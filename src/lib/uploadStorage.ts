@@ -17,15 +17,32 @@ export function uploadsPathFromRef(ref: string): string {
   return ref.startsWith(UPLOADS_STORAGE_REF_PREFIX) ? ref.slice(UPLOADS_STORAGE_REF_PREFIX.length) : ref;
 }
 
+/** Storage object path from uploads: ref or legacy Supabase public/sign URL. */
+export function uploadsStoragePathFromStored(stored: string): string | null {
+  if (isUploadsStorageRef(stored)) return uploadsPathFromRef(stored);
+  try {
+    const pathname = new URL(stored).pathname;
+    const marker = "/uploads/";
+    const idx = pathname.indexOf(marker);
+    if (idx === -1) return null;
+    return decodeURIComponent(pathname.slice(idx + marker.length));
+  } catch {
+    return null;
+  }
+}
+
 /** Resolve a legacy public URL or storage ref to a fetchable URL (signed when bucket is private). */
 export async function resolveUploadUrl(stored: string | null | undefined): Promise<string | null> {
   if (!stored?.trim()) return null;
   const value = stored.trim();
+  const path = uploadsStoragePathFromStored(value);
+  if (path) {
+    const { data, error } = await supabase.storage.from("uploads").createSignedUrl(path, SIGNED_URL_TTL_SEC);
+    if (error || !data?.signedUrl) return null;
+    return data.signedUrl;
+  }
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  const path = uploadsPathFromRef(value);
-  const { data, error } = await supabase.storage.from("uploads").createSignedUrl(path, SIGNED_URL_TTL_SEC);
-  if (error || !data?.signedUrl) return null;
-  return data.signedUrl;
+  return null;
 }
 
 export async function uploadFileToUploads(path: string, file: File | Blob): Promise<string> {
