@@ -18,6 +18,7 @@ import {
   type ShopDashboardThemeSettings,
 } from "@/lib/shopDashboardTheme";
 import { uploadFileToUploads } from "@/lib/uploadStorage";
+import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 
 const AdminDashboardThemePanel = () => {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ const AdminDashboardThemePanel = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const bgInputRef = useRef<HTMLInputElement | null>(null);
+  const resolvedBgPreview = useResolvedUploadUrl(settings.portalBgImageUrl);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,8 +191,10 @@ const AdminDashboardThemePanel = () => {
                   }}
                 />
               </div>
-              {settings.portalBgImageUrl ? (
-                <p className="text-xs text-muted-foreground mt-2 break-all">{settings.portalBgImageUrl}</p>
+              {resolvedBgPreview ? (
+                <div className="mt-3 overflow-hidden rounded-lg border border-border h-24 bg-cover bg-center" style={{ backgroundImage: `url(${resolvedBgPreview})` }} />
+              ) : settings.portalBgImageUrl ? (
+                <p className="text-xs text-muted-foreground mt-2">{t("admin.dashboardThemeImageUploaded")}</p>
               ) : null}
             </div>
           </div>

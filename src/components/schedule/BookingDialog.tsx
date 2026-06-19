@@ -25,6 +25,8 @@ import {
   loadShopDefaultDepositAmount,
   parseDepositInput,
 } from "@/lib/shopDepositSettings";
+import { searchOrganizationClients } from "@/lib/clientSearch";
+import { resolveDepositForService } from "@/lib/serviceDeposit";
 
 /** Escape user text for PostgREST ilike patterns */
 function escapeIlike(s: string) {
@@ -201,6 +203,7 @@ const BookingDialog = ({
   const [bookingConsentLoading, setBookingConsentLoading] = useState(false);
   const [consentDownloadBusy, setConsentDownloadBusy] = useState(false);
   const [shopCurrency, setShopCurrency] = useState("gbp");
+  const [shopDefaultDeposit, setShopDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
 
   const maxDeposit = maxDepositAmountForCurrency(shopCurrency);
 
@@ -225,8 +228,10 @@ const BookingDialog = ({
     void (async () => {
       const shop = await loadShopSettings();
       const currency = currencyForShopCountry(shop?.country);
+      const defaultAmount = await loadShopDefaultDepositAmount();
       if (cancelled) return;
       setShopCurrency(currency);
+      setShopDefaultDeposit(defaultAmount);
 
       if (bookingToEdit) {
         setArtistId(bookingToEdit.artist_id || userId);
@@ -282,6 +287,7 @@ const BookingDialog = ({
             : "10:00";
         const defaultAmount = await loadShopDefaultDepositAmount();
         if (cancelled) return;
+        setShopDefaultDeposit(defaultAmount);
         setForm((f) => ({
           ...f,
           date: format(prefillDate || new Date(), "yyyy-MM-dd"),
@@ -382,72 +388,9 @@ const BookingDialog = ({
       setClientSuggestions([]);
       return;
     }
-    const pattern = `%${escapeIlike(q)}%`;
     setSuggestionsLoading(true);
     try {
-      const [byName, byEmail, profs, importedContacts] = await Promise.all([
-        supabase
-          .from("bookings")
-          .select("client_name, client_email, client_phone, client_user_id")
-          .ilike("client_name", pattern)
-          .order("starts_at", { ascending: false })
-          .limit(45),
-        supabase
-          .from("bookings")
-          .select("client_name, client_email, client_phone, client_user_id")
-          .ilike("client_email", pattern)
-          .order("starts_at", { ascending: false })
-          .limit(45),
-        supabase.from("profiles").select("user_id, display_name, phone").ilike("display_name", pattern).limit(20),
-        // Optional contacts import table used for bulk-imported customer records.
-        // Keep this resilient: if the table doesn't exist in an environment, we simply ignore it.
-        supabase
-          .from("contacts_import" as any)
-          .select("name, email, phone")
-          .or(`name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern}`)
-          .limit(60),
-      ]);
-
-      const dedupeKey = (c: ClientPick) =>
-        `${c.client_name.trim().toLowerCase()}|${(c.client_email || "").toLowerCase()}|${(c.client_phone || "").replace(/\s/g, "")}|${c.client_user_id || ""}`;
-
-      const map = new Map<string, ClientPick>();
-      const add = (c: ClientPick) => {
-        if (!c.client_name.trim()) return;
-        const k = dedupeKey(c);
-        if (!map.has(k)) map.set(k, c);
-      };
-
-      for (const r of [...(byName.data ?? []), ...(byEmail.data ?? [])]) {
-        add({
-          client_name: r.client_name,
-          client_email: r.client_email,
-          client_phone: r.client_phone,
-          client_user_id: r.client_user_id ?? null,
-        });
-      }
-      for (const p of profs.data ?? []) {
-        const name = (p.display_name || "").trim();
-        if (!name) continue;
-        add({
-          client_name: name,
-          client_email: null,
-          client_phone: p.phone ?? null,
-          client_user_id: p.user_id,
-        });
-      }
-      for (const c of (importedContacts as any)?.data ?? []) {
-        const name = String(c?.name || "").trim();
-        if (!name) continue;
-        add({
-          client_name: name,
-          client_email: c?.email ? String(c.email).trim().toLowerCase() : null,
-          client_phone: c?.phone ? String(c.phone).trim() : null,
-          client_user_id: null,
-        });
-      }
-
-      setClientSuggestions([...map.values()].slice(0, 28));
+      setClientSuggestions(await searchOrganizationClients(q));
     } finally {
       setSuggestionsLoading(false);
     }
@@ -601,11 +544,17 @@ const BookingDialog = ({
       }
       const starts_at = startsAtLocal.toISOString();
       const ends_at = endsAtLocal.toISOString();
-      const depositAmount = parseDepositInput(String(form.deposit_amount), shopCurrency);
-      if (depositAmount == null) {
-        toast.error(t("schedule.depositAmountInvalid", { max: formatShopMoney(maxDeposit, shopCurrency) }));
-        return;
-      }
+      const depositAmount = bookingToEdit
+        ? (() => {
+            const parsed = parseDepositInput(String(form.deposit_amount), shopCurrency);
+            if (parsed == null) {
+              toast.error(t("schedule.depositAmountInvalid", { max: formatShopMoney(maxDeposit, shopCurrency) }));
+              return null;
+            }
+            return parsed;
+          })()
+        : resolveDepositForService(selectedService, shopDefaultDeposit, shopCurrency);
+      if (depositAmount == null) return;
 
       const nextPayload: BookingSavePayload = {
         artist_id: artistId || userId,
@@ -830,38 +779,54 @@ const BookingDialog = ({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
-              <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
-                <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
-                  <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {bookingToEdit ? (
+              <div>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
+                <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
+                  <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
+                    <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
           </div>
-          <div>
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositAmount")}</Label>
-            <Input
-              type="number"
-              min={0.3}
-              max={maxDeposit}
-              step={0.01}
-              value={form.deposit_amount}
-              onChange={(e) => {
-                const parsed = parseDepositInput(e.target.value, shopCurrency);
-                setForm((f) => ({
-                  ...f,
-                  deposit_amount: parsed ?? (Number(e.target.value) || 0),
-                }));
-              }}
-              className="mt-1 field-surface border-border"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {t("schedule.depositAmountHint", { max: formatShopMoney(maxDeposit, shopCurrency) })}
+          {!bookingToEdit && selectedService ? (
+            <p className="text-xs text-muted-foreground rounded-md border border-border/60 bg-secondary/20 px-3 py-2">
+              {selectedService.deposit_required
+                ? t("schedule.depositFromService", {
+                    amount: formatShopMoney(
+                      resolveDepositForService(selectedService, shopDefaultDeposit, shopCurrency),
+                      shopCurrency,
+                    ),
+                  })
+                : t("schedule.noDepositForService")}
             </p>
-          </div>
+          ) : null}
+          {bookingToEdit ? (
+            <div>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositAmount")}</Label>
+              <Input
+                type="number"
+                min={0.3}
+                max={maxDeposit}
+                step={0.01}
+                value={form.deposit_amount}
+                onChange={(e) => {
+                  const parsed = parseDepositInput(e.target.value, shopCurrency);
+                  setForm((f) => ({
+                    ...f,
+                    deposit_amount: parsed ?? (Number(e.target.value) || 0),
+                  }));
+                }}
+                className="mt-1 field-surface border-border"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("schedule.depositAmountHint", { max: formatShopMoney(maxDeposit, shopCurrency) })}
+              </p>
+            </div>
+          ) : null}
           <div className="text-xs text-muted-foreground">
             {t("schedule.durationEnds", { duration, endTime })}
           </div>

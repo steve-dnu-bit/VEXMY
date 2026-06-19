@@ -10,6 +10,8 @@ export interface Service {
   service_category: string;
   color: string;
   price: number | null;
+  deposit_required: boolean;
+  deposit_amount: number | null;
   is_active: boolean;
   sort_order: number;
 }

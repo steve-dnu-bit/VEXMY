@@ -15,6 +15,10 @@ import {
   defaultServiceCategoryForBookingType,
 } from "@/lib/bookingTypes";
 import { useTranslation } from "react-i18next";
+import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
+import { loadShopSettings } from "@/lib/shopSettings";
+import { maxDepositAmountForCurrency, minDepositAmountForCurrency } from "@/lib/depositLimits";
+import { parseDepositInput } from "@/lib/shopDepositSettings";
 
 interface Service {
   id: string;
@@ -24,6 +28,8 @@ interface Service {
   service_category: string;
   color: string;
   price: number | null;
+  deposit_required: boolean;
+  deposit_amount: number | null;
   is_active: boolean;
   sort_order: number;
   created_by: string;
@@ -49,6 +55,7 @@ const ServicesPage = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
   const [form, setForm] = useState({
     name: "",
     duration: "60",
@@ -56,8 +63,14 @@ const ServicesPage = () => {
     service_category: "tattoo",
     color: "blue",
     price: "",
+    deposit_required: false,
+    deposit_amount: "",
     is_active: true,
   });
+
+  useEffect(() => {
+    void loadShopSettings().then((shop) => setShopCurrency(currencyForShopCountry(shop?.country)));
+  }, []);
 
   useEffect(() => {
     fetchServices();
@@ -73,7 +86,17 @@ const ServicesPage = () => {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: "", duration: "60", booking_type: "session", service_category: "tattoo", color: "blue", price: "", is_active: true });
+    setForm({
+      name: "",
+      duration: "60",
+      booking_type: "session",
+      service_category: "tattoo",
+      color: "blue",
+      price: "",
+      deposit_required: false,
+      deposit_amount: "",
+      is_active: true,
+    });
     setDialogOpen(true);
   };
 
@@ -86,6 +109,8 @@ const ServicesPage = () => {
       service_category: s.service_category || "tattoo",
       color: s.color,
       price: s.price != null ? String(s.price) : "",
+      deposit_required: !!s.deposit_required,
+      deposit_amount: s.deposit_amount != null ? String(s.deposit_amount) : "",
       is_active: s.is_active,
     });
     setDialogOpen(true);
@@ -93,6 +118,24 @@ const ServicesPage = () => {
 
   const handleSave = async () => {
     if (!user || !form.name.trim()) return;
+    let depositAmount: number | null = null;
+    if (form.deposit_required) {
+      if (form.deposit_amount.trim()) {
+        depositAmount = parseDepositInput(form.deposit_amount, shopCurrency);
+        if (depositAmount == null) {
+          toast({
+            title: t("services.depositInvalid"),
+            description: t("services.depositInvalidDesc", {
+              min: formatShopMoney(minDepositAmountForCurrency(shopCurrency), shopCurrency),
+              max: formatShopMoney(maxDepositAmountForCurrency(shopCurrency), shopCurrency),
+            }),
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+    }
+
     const payload = {
       name: form.name.trim(),
       duration: parseInt(form.duration) || 60,
@@ -100,6 +143,8 @@ const ServicesPage = () => {
       service_category: form.service_category,
       color: form.color,
       price: form.price ? parseFloat(form.price) : null,
+      deposit_required: form.deposit_required,
+      deposit_amount: form.deposit_required ? depositAmount : null,
       is_active: form.is_active,
     };
 
@@ -138,7 +183,7 @@ const ServicesPage = () => {
 
   const update = (key: string, value: string | boolean) => {
     setForm((f) => {
-      const next = { ...f, [key]: value };
+      const next = { ...f, [key]: value } as typeof f;
       if (key === "booking_type" && typeof value === "string") {
         next.service_category = defaultServiceCategoryForBookingType(value);
       }
@@ -174,7 +219,15 @@ const ServicesPage = () => {
                 <p className="text-sm font-medium truncate">{s.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {s.duration}min · {s.booking_type} · {s.service_category || "tattoo"}
-                  {s.price != null && ` · £${s.price}`}
+                  {s.price != null && ` · ${formatShopMoney(s.price, shopCurrency)}`}
+                  {s.deposit_required
+                    ? ` · ${t("services.depositRequiredShort", {
+                        amount:
+                          s.deposit_amount != null
+                            ? formatShopMoney(s.deposit_amount, shopCurrency)
+                            : t("services.depositShopDefault"),
+                      })}`
+                    : ` · ${t("services.noDeposit")}`}
                   {!s.is_active && ` · ${t("services.inactive")}`}
                 </p>
               </div>
@@ -238,6 +291,31 @@ const ServicesPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="rounded-lg border border-border p-3 space-y-3 bg-secondary/20">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.depositRequiredLabel")}</Label>
+                  <p className="text-xs text-muted-foreground mt-1">{t("services.depositRequiredHint")}</p>
+                </div>
+                <Switch checked={form.deposit_required} onCheckedChange={(v) => update("deposit_required", v)} />
+              </div>
+              {form.deposit_required ? (
+                <div>
+                  <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("services.depositAmountLabel")}</Label>
+                  <Input
+                    type="number"
+                    min={minDepositAmountForCurrency(shopCurrency)}
+                    max={maxDepositAmountForCurrency(shopCurrency)}
+                    step={0.01}
+                    value={form.deposit_amount}
+                    onChange={(e) => update("deposit_amount", e.target.value)}
+                    className="mt-1 field-surface border-border"
+                    placeholder={t("services.depositAmountPlaceholder")}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">{t("services.depositAmountHint")}</p>
+                </div>
+              ) : null}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>

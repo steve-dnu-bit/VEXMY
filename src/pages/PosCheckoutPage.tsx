@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search, Smartphone } from "lucide-react";
+import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search, Settings2, ChevronDown } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
-import { WisePadSetupPanels } from "@/components/pos/WisePadSetupPanels";
-import { TapToPayReadinessAlert, useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
+import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
-import StripeConnectCard from "@/components/subscription/StripeConnectCard";
+import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
+import BookingClientSearch from "@/components/schedule/BookingClientSearch";
+import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,8 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,8 +120,27 @@ const PosCheckoutPage = () => {
     () => isNativeApp() && !isWisePadSetupGuideDismissed() && !hasWisePadFirmwareCompleted(),
   );
   const [testingStripeLink, setTestingStripeLink] = useState(false);
+  const [setupGuideOpen, setSetupGuideOpen] = useState(false);
+  const [recentSalesOpen, setRecentSalesOpen] = useState(false);
+  const [productsToolsOpen, setProductsToolsOpen] = useState(false);
+  const clientNameWrapRef = useRef<HTMLDivElement>(null);
+  const {
+    suggestions: clientSuggestions,
+    open: clientSuggestionsOpen,
+    setOpen: setClientSuggestionsOpen,
+    loading: clientSuggestionsLoading,
+  } = useClientNameSearch(clientName, posEnabled);
 
-  const canConnectReader = connectReady && !!locationId && (simulatedReader || isNativeApp());
+  const checkoutReady = connectReady && posEnabled && !!locationId;
+
+  useEffect(() => {
+    if (!clientSuggestionsOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!clientNameWrapRef.current?.contains(e.target as Node)) setClientSuggestionsOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [clientSuggestionsOpen, setClientSuggestionsOpen]);
   const connectBlockedReason = !connectReady
     ? t("pos.connectRequired")
     : !locationId
@@ -144,6 +164,7 @@ const PosCheckoutPage = () => {
   const readerFirmwareUpdating = terminal.firmwareUpdate.active;
   const usingTapToPay = isNativeApp() && !simulatedReader && readerMode === "tap_to_pay";
   const usingWisePad = isNativeApp() && !simulatedReader && readerMode === "bluetooth";
+  const canConnectReader = connectReady && !!locationId && (simulatedReader || isNativeApp());
   const tapToPayReady = useTapToPayReady();
 
   useEffect(() => {
@@ -640,7 +661,11 @@ const PosCheckoutPage = () => {
                 </Badge>
               ) : null}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => setSetupGuideOpen(true)}>
+                <Settings2 className="h-4 w-4" />
+                {t("pos.setupGuideButton")}
+              </Button>
               {terminal.status === "connected" ? (
                 <Badge variant="outline" className="gap-1 border-emerald-500/40 text-emerald-600">
                   <Wifi className="h-3 w-3" />
@@ -655,131 +680,16 @@ const PosCheckoutPage = () => {
             </div>
           </div>
 
-          {isNativeApp() && !simulatedReader ? (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("pos.readerModeTitle")}</CardTitle>
-                <CardDescription>{t("pos.readerModeDesc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <RadioGroup
-                  value={readerMode}
-                  onValueChange={(value) => handleReaderModeChange(value as TerminalReaderMode)}
-                  className="grid gap-3 sm:grid-cols-2"
-                >
-                  <label
-                    htmlFor="reader-mode-bluetooth"
-                    className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
-                      readerMode === "bluetooth" ? "border-primary bg-primary/5" : "border-border"
-                    }`}
-                  >
-                    <RadioGroupItem id="reader-mode-bluetooth" value="bluetooth" className="mt-0.5" />
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 font-medium">
-                        <Wifi className="h-4 w-4" />
-                        {t("pos.readerModeBluetooth")}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{t("pos.readerModeBluetoothHint")}</p>
-                    </div>
-                  </label>
-                  <label
-                    htmlFor="reader-mode-tap-to-pay"
-                    className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
-                      readerMode === "tap_to_pay" ? "border-primary bg-primary/5" : "border-border"
-                    }`}
-                  >
-                    <RadioGroupItem id="reader-mode-tap-to-pay" value="tap_to_pay" className="mt-0.5" />
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 font-medium">
-                        <Smartphone className="h-4 w-4" />
-                        {t("pos.readerModeTapToPay")}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{t("pos.readerModeTapToPayHint")}</p>
-                    </div>
-                  </label>
-                </RadioGroup>
-                {usingTapToPay ? (
-                  <>
-                    <TapToPayReadinessAlert />
-                    {locationId ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={testingStripeLink}
-                        onClick={() => void testStripeServerLink()}
-                      >
-                        {testingStripeLink ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
-                        {t("pos.tapToPayTestStripeLink")}
-                      </Button>
-                    ) : null}
-                    <Alert>
-                    <Smartphone className="h-4 w-4" />
-                    <AlertTitle>{t("pos.tapToPayInfoTitle")}</AlertTitle>
-                    <AlertDescription className="text-sm space-y-2">
-                      <p>{t("pos.tapToPayInfoBody")}</p>
-                      <ul className="list-disc pl-5 space-y-1">
-                        <li>{t("pos.tapToPayInfoAppleGoogle")}</li>
-                        {nativePlatform() === "android" ? (
-                          <li className="font-medium text-amber-800 dark:text-amber-300">{t("pos.tapToPayInfoAndroidDevOptions")}</li>
-                        ) : null}
-                        <li>{t("pos.tapToPayInfoAndroidRelease")}</li>
-                        <li>{t("pos.tapToPayInfoStripeEnable")}</li>
-                        {nativePlatform() === "ios" ? <li>{t("pos.tapToPayInfoAppleEntitlement")}</li> : null}
-                      </ul>
-                      {nativePlatform() === "ios" ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="bg-background/80"
-                          onClick={() => {
-                            void import("@/lib/terminal/tapToPayEducation").then(({ showTapToPayEducationIfAvailable }) =>
-                              showTapToPayEducationIfAvailable().then((shown) => {
-                                if (!shown) toast.message(t("pos.tapToPayHowToUnavailable"));
-                              }),
-                            );
-                          }}
-                        >
-                          {t("pos.tapToPayHowToTap")}
-                        </Button>
-                      ) : null}
-                    </AlertDescription>
-                    </Alert>
-                  </>
-                ) : (
-                  <p className="text-xs text-emerald-600">{t("pos.nativeBluetoothReady")}</p>
-                )}
-              </CardContent>
-            </Card>
-          ) : !simulatedReader ? (
-            <p className="text-xs text-muted-foreground rounded-lg border border-border bg-muted/30 p-3">{t("pos.mobileAppRequired")}</p>
-          ) : null}
-
-          {usingWisePad && connectReady && locationId ? (
-            <WisePadSetupPanels
-              terminal={terminal}
-              showFirstTimeGuide={showWisePadGuide}
-              onDismissGuide={() => {
-                dismissWisePadSetupGuide();
-                setShowWisePadGuide(false);
-              }}
-            />
-          ) : null}
-
-          {!connectReady || !locationId ? (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("pos.setupChecklist.finishSetupTitle")}</CardTitle>
-                <CardDescription>{t("pos.setupChecklist.finishSetupDesc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!connectReady ? (
-                  <StripeConnectCard compact returnPath="/checkout" refreshPath="/checkout" />
-                ) : null}
-                <OrgPosSetupChecklist hideAdminLink />
-              </CardContent>
-            </Card>
+          {!checkoutReady ? (
+            <Alert>
+              <AlertTitle className="text-sm">{t("pos.setupNeededTitle")}</AlertTitle>
+              <AlertDescription className="text-sm flex flex-wrap items-center gap-2 justify-between">
+                <span>{t("pos.setupNeededDesc")}</span>
+                <Button type="button" size="sm" variant="outline" onClick={() => setSetupGuideOpen(true)}>
+                  {t("pos.setupGuideButton")}
+                </Button>
+              </AlertDescription>
+            </Alert>
           ) : null}
 
           <div className="grid lg:grid-cols-5 gap-6">
@@ -841,35 +751,44 @@ const PosCheckoutPage = () => {
                       <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noProductsMatch")}</p>
                     ) : null}
                   </div>
-                  <div className="border-t border-border pt-4 space-y-3">
-                    <p className="text-xs text-muted-foreground leading-relaxed">{t("pos.productsCsvHint")}</p>
-                    <div className="flex flex-wrap gap-2">
-                      <input
-                        ref={productsCsvInputRef}
-                        type="file"
-                        accept=".csv"
-                        className="hidden"
-                        onChange={importProductsCsv}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={importingProducts}
-                        onClick={() => productsCsvInputRef.current?.click()}
-                      >
-                        {importingProducts ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <Upload className="h-4 w-4 mr-1" />
-                        )}
-                        {t("pos.importProductsCsv")}
-                      </Button>
-                      <Button type="button" variant="ghost" size="sm" onClick={downloadProductsCsvTemplate}>
-                        <Download className="h-4 w-4 mr-1" />
-                        {t("pos.downloadProductsTemplate")}
-                      </Button>
-                    </div>
+                  <div className="border-t border-border pt-3">
+                    <Collapsible open={productsToolsOpen} onOpenChange={setProductsToolsOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button type="button" variant="ghost" size="sm" className="w-full justify-between px-0 hover:bg-transparent">
+                          <span className="text-xs text-muted-foreground">{t("pos.productsTools")}</span>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${productsToolsOpen ? "rotate-180" : ""}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2 space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          <input
+                            ref={productsCsvInputRef}
+                            type="file"
+                            accept=".csv"
+                            className="hidden"
+                            onChange={importProductsCsv}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={importingProducts}
+                            onClick={() => productsCsvInputRef.current?.click()}
+                          >
+                            {importingProducts ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                            ) : (
+                              <Upload className="h-4 w-4 mr-1" />
+                            )}
+                            {t("pos.importProductsCsv")}
+                          </Button>
+                          <Button type="button" variant="ghost" size="sm" onClick={downloadProductsCsvTemplate}>
+                            <Download className="h-4 w-4 mr-1" />
+                            {t("pos.downloadProductsTemplate")}
+                          </Button>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
                 </CardContent>
               </Card>
@@ -898,13 +817,18 @@ const PosCheckoutPage = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="pos-client">{t("pos.clientName")}</Label>
-                    <Input
-                      id="pos-client"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      placeholder={t("pos.clientNamePlaceholder")}
-                      className="mt-1"
+                    <BookingClientSearch
+                      clientName={clientName}
+                      onClientNameChange={setClientName}
+                      clientSuggestions={clientSuggestions}
+                      suggestionsOpen={clientSuggestionsOpen}
+                      suggestionsLoading={clientSuggestionsLoading}
+                      setSuggestionsOpen={setClientSuggestionsOpen}
+                      applyClientPick={(c) => {
+                        setClientName(c.client_name);
+                        setClientSuggestionsOpen(false);
+                      }}
+                      clientNameWrapRef={clientNameWrapRef}
                     />
                   </div>
                 </CardContent>
@@ -1009,20 +933,24 @@ const PosCheckoutPage = () => {
                     ) : null}
                   </dl>
 
-                  <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
-                    <p className="font-medium text-sm">{t("pos.paymentSplit")}</p>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("pos.shopShare", { percent: activeSplit.shopPercent })}</span>
-                      <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.shopAmount, currency)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("pos.artistShare", { percent: activeSplit.artistPercent })}</span>
-                      <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.artistAmount, currency)}</span>
-                    </div>
-                    {depositCredit > 0 ? (
-                      <p className="text-[11px] text-muted-foreground pt-1">{t("pos.depositSplitHint")}</p>
-                    ) : null}
-                  </div>
+                  {cart.length > 0 ? (
+                    <details className="rounded-lg bg-muted/40 p-3 text-xs">
+                      <summary className="cursor-pointer font-medium text-sm">{t("pos.paymentSplit")}</summary>
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{t("pos.shopShare", { percent: activeSplit.shopPercent })}</span>
+                          <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.shopAmount, currency)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{t("pos.artistShare", { percent: activeSplit.artistPercent })}</span>
+                          <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.artistAmount, currency)}</span>
+                        </div>
+                        {depositCredit > 0 ? (
+                          <p className="text-[11px] text-muted-foreground pt-1">{t("pos.depositSplitHint")}</p>
+                        ) : null}
+                      </div>
+                    </details>
+                  ) : null}
 
                   <div className="space-y-2 pt-2">
                     {terminal.status !== "connected" ? (
@@ -1145,11 +1073,20 @@ const PosCheckoutPage = () => {
             </div>
           </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t("pos.recentSales")}</CardTitle>
-              <CardDescription>{t("pos.recentSalesHint")}</CardDescription>
-            </CardHeader>
+          <Collapsible open={recentSalesOpen} onOpenChange={setRecentSalesOpen}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="flex w-full items-start justify-between gap-3 text-left">
+                    <div>
+                      <CardTitle className="text-lg">{t("pos.recentSales")}</CardTitle>
+                      <CardDescription>{t("pos.recentSalesHint")}</CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${recentSalesOpen ? "rotate-180" : ""}`} />
+                  </button>
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
             <CardContent>
               {recentSales.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">{t("pos.noRecentSales")}</p>
@@ -1248,8 +1185,35 @@ const PosCheckoutPage = () => {
                 </>
               )}
             </CardContent>
-          </Card>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         </div>
+
+        <PosSetupGuideDialog
+          open={setupGuideOpen}
+          onOpenChange={setSetupGuideOpen}
+          connectReady={connectReady}
+          locationId={locationId}
+          simulatedReader={simulatedReader}
+          readerMode={readerMode}
+          onReaderModeChange={handleReaderModeChange}
+          terminal={terminal}
+          showWisePadGuide={showWisePadGuide}
+          onDismissWisePadGuide={() => {
+            dismissWisePadSetupGuide();
+            setShowWisePadGuide(false);
+          }}
+          testingStripeLink={testingStripeLink}
+          onTestStripeLink={() => void testStripeServerLink()}
+          onShowTapToPayEducation={() => {
+            void import("@/lib/terminal/tapToPayEducation").then(({ showTapToPayEducationIfAvailable }) =>
+              showTapToPayEducationIfAvailable().then((shown) => {
+                if (!shown) toast.message(t("pos.tapToPayHowToUnavailable"));
+              }),
+            );
+          }}
+        />
 
         <Dialog open={customOpen} onOpenChange={setCustomOpen}>
           <DialogContent className="max-w-sm">

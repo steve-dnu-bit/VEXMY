@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CountInput } from "@/components/ui/count-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -498,7 +499,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                   <Label className="text-[10px] text-muted-foreground">
                     {t("schedule.noShows", { count: noShowsCount, max: CLIENT_CONDUCT_THRESHOLDS.noShows })}
                   </Label>
-                  <Input type="number" min={0} value={noShowsCount} onChange={(e) => setNoShowsCount(Math.max(0, parseInt(e.target.value || "0", 10) || 0))} className="h-8 mt-1 text-xs" />
+                  <CountInput value={noShowsCount} onChange={setNoShowsCount} className="h-8 mt-1 text-xs" />
                 </div>
                 <div>
                   <Label className="text-[10px] text-muted-foreground">
@@ -507,13 +508,13 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                       max: CLIENT_CONDUCT_THRESHOLDS.lateCancellations,
                     })}
                   </Label>
-                  <Input type="number" min={0} value={lateCancellationsCount} onChange={(e) => setLateCancellationsCount(Math.max(0, parseInt(e.target.value || "0", 10) || 0))} className="h-8 mt-1 text-xs" />
+                  <CountInput value={lateCancellationsCount} onChange={setLateCancellationsCount} className="h-8 mt-1 text-xs" />
                 </div>
                 <div>
                   <Label className="text-[10px] text-muted-foreground">
                     {t("schedule.reschedules", { count: reschedulesCount, max: CLIENT_CONDUCT_THRESHOLDS.reschedules })}
                   </Label>
-                  <Input type="number" min={0} value={reschedulesCount} onChange={(e) => setReschedulesCount(Math.max(0, parseInt(e.target.value || "0", 10) || 0))} className="h-8 mt-1 text-xs" />
+                  <CountInput value={reschedulesCount} onChange={setReschedulesCount} className="h-8 mt-1 text-xs" />
                 </div>
                 <div className="flex items-center justify-between rounded-md border border-border p-2">
                   <Label htmlFor={`ban-${booking.id}`} className="text-xs">{t("schedule.banned")}</Label>

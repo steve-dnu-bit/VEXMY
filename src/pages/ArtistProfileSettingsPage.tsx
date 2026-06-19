@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { THEME_PRESETS } from "@/lib/themePresets";
 import { canArtistCustomizeDashboardTheme, notifyPortalThemeUpdated } from "@/lib/shopDashboardTheme";
 import { uploadFileToUploads } from "@/lib/uploadStorage";
+import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 
 const ArtistProfileSettingsPage = () => {
   const { t } = useTranslation();
@@ -40,6 +41,7 @@ const ArtistProfileSettingsPage = () => {
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const bgInputRef = useRef<HTMLInputElement | null>(null);
+  const resolvedBgPreview = useResolvedUploadUrl(bgImageUrl);
 
   useEffect(() => {
     void canArtistCustomizeDashboardTheme().then(setCanCustomizeTheme);
@@ -323,7 +325,11 @@ const ArtistProfileSettingsPage = () => {
                   onChange={(e) => void onBgFile(e.target.files?.[0])}
                 />
               </div>
-              {bgImageUrl ? <p className="text-xs text-muted-foreground mt-2 break-all">{bgImageUrl}</p> : null}
+              {resolvedBgPreview ? (
+                <div className="mt-3 overflow-hidden rounded-lg border border-border h-24 bg-cover bg-center" style={{ backgroundImage: `url(${resolvedBgPreview})` }} />
+              ) : bgImageUrl ? (
+                <p className="text-xs text-muted-foreground mt-2">{t("artistProfile.backgroundSet")}</p>
+              ) : null}
             </div>
           </CardContent>
         </Card>
