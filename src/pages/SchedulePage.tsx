@@ -38,6 +38,7 @@ interface Booking {
   ends_at: string;
   deposit_paid: boolean | null;
   deposit_amount?: number | null;
+  organization_id?: string | null;
 }
 
 interface Profile {

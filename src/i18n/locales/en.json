@@ -1798,6 +1798,7 @@
     "banReasonPlaceholder": "Why is this client banned?",
     "conductSavedByStaff": "Manual score saved by staff.",
     "saveConduct": "Save conduct",
+    "conductOrgMissing": "Could not determine your studio organization for this conduct record.",
     "addBanReason": "Add a ban reason",
     "conductSaveFailed": "Failed to save client conduct",
     "conductUpdated": "Client conduct updated",

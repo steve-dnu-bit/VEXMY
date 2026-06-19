@@ -25,6 +25,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
 import { loadPosSaleForBooking, type PosSaleRow } from "@/lib/posCheckout";
 import { formatShopMoney } from "@/lib/shopCurrency";
+import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
 
 interface Booking {
@@ -43,6 +44,7 @@ interface Booking {
   starts_at: string;
   ends_at: string;
   deposit_paid: boolean | null;
+  organization_id?: string | null;
 }
 
 interface BookingDetailPanelProps {
@@ -108,11 +110,13 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
     let cancelled = false;
     const loadConduct = async () => {
       setConductLoading(true);
-      const { data } = await supabase
+      const orgId = booking.organization_id ?? (await getUserOrganizationId());
+      let query = supabase
         .from("client_conduct" as any)
-        .select("id, client_key, client_user_id, client_name, client_email, client_phone, no_shows_count, late_cancellations_count, reschedules_count, is_banned, ban_reason")
-        .eq("client_key", conductKey)
-        .maybeSingle();
+        .select("id, organization_id, client_key, client_user_id, client_name, client_email, client_phone, no_shows_count, late_cancellations_count, reschedules_count, is_banned, ban_reason")
+        .eq("client_key", conductKey);
+      if (orgId) query = query.eq("organization_id", orgId);
+      const { data } = await query.maybeSingle();
       if (cancelled) return;
       const row = (data as ClientConductRow | null) || null;
       setConduct(row);
@@ -127,7 +131,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
     return () => {
       cancelled = true;
     };
-  }, [conductKey]);
+  }, [conductKey, booking.organization_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,7 +196,14 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
       return;
     }
     setSavingConduct(true);
+    const organizationId = booking.organization_id ?? (await getUserOrganizationId(user.id));
+    if (!organizationId) {
+      setSavingConduct(false);
+      toast.error(t("schedule.conductOrgMissing"));
+      return;
+    }
     const payload = {
+      organization_id: organizationId,
       client_key: conductKey,
       client_user_id: booking.client_user_id || null,
       client_name: booking.client_name,
@@ -205,11 +216,16 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
       ban_reason: isBanned ? banReason.trim() : null,
       updated_by: user.id,
     };
-    const { data, error } = await supabase
-      .from("client_conduct" as any)
-      .upsert(payload, { onConflict: "client_key" })
-      .select("id, client_key, client_user_id, client_name, client_email, client_phone, no_shows_count, late_cancellations_count, reschedules_count, is_banned, ban_reason")
-      .single();
+    const selectCols =
+      "id, organization_id, client_key, client_user_id, client_name, client_email, client_phone, no_shows_count, late_cancellations_count, reschedules_count, is_banned, ban_reason";
+    const { data, error } = conduct?.id
+      ? await supabase
+          .from("client_conduct" as any)
+          .update(payload)
+          .eq("id", conduct.id)
+          .select(selectCols)
+          .single()
+      : await supabase.from("client_conduct" as any).insert(payload).select(selectCols).single();
     setSavingConduct(false);
     if (error) {
       toast.error(error.message || t("schedule.conductSaveFailed"));
