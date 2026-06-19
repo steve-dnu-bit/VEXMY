@@ -24,6 +24,7 @@ const markerV1 = "// velbok: stripe-terminal android patch";
 const markerV2 = "// velbok: patch v2";
 const markerV3 = "// velbok: patch v3";
 const markerV4 = "// velbok: patch v4";
+const markerV5 = "// velbok: patch v5";
 const markerV6 = "// velbok: patch v6";
 
 function apply(label, from, to) {
