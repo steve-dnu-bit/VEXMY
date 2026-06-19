@@ -15,6 +15,7 @@ import {
   type PlatformPlanId,
 } from "../_shared/stripe-platform-billing.ts";
 import { getOrgBillingContext } from "../_shared/org-billing.ts";
+import { PLATFORM_PRIVACY_VERSION, PLATFORM_TERMS_VERSION } from "../_shared/legal-versions.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -73,6 +74,22 @@ serve(async (req) => {
     const planId = typeof body.planId === "string" ? body.planId.toLowerCase() : null;
     const studioName = typeof body.studioName === "string" ? body.studioName.trim() : null;
     const organizationId = typeof body.organizationId === "string" ? body.organizationId : null;
+    const acceptedTerms = body.acceptedTerms === true;
+    const termsVersion = typeof body.termsVersion === "string" ? body.termsVersion.trim() : "";
+    const privacyVersion = typeof body.privacyVersion === "string" ? body.privacyVersion.trim() : "";
+
+    if (!acceptedTerms || termsVersion !== PLATFORM_TERMS_VERSION || privacyVersion !== PLATFORM_PRIVACY_VERSION) {
+      return new Response(
+        JSON.stringify({
+          error: "You must accept the current Terms and Privacy Notice before subscribing.",
+          code: "terms_required",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
     if (!planId || !["starter", "studio", "enterprise"].includes(planId)) {
       return new Response(JSON.stringify({ error: "planId must be starter, studio, or enterprise" }), {
@@ -277,6 +294,23 @@ serve(async (req) => {
     }
 
     const trialDays = planRow?.trial_days ?? 14;
+
+    const { error: termsAuditError } = await admin.from("platform_terms_acceptances").insert({
+      user_id: user.id,
+      organization_id: orgId,
+      terms_version: termsVersion,
+      privacy_version: privacyVersion,
+      plan_id: planId,
+      source: "subscribe_checkout",
+      user_agent: req.headers.get("user-agent"),
+    });
+    if (termsAuditError) {
+      console.error("platform_terms_acceptances insert failed:", termsAuditError.message);
+      return new Response(JSON.stringify({ error: "Could not record terms acceptance" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: orgBillingRow } = await admin
       .from("organizations")

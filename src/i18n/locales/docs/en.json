@@ -149,6 +149,97 @@
         }
       ]
     },
+    "pos-checkout": {
+      "title": "POS checkout & Tap to Pay",
+      "description": "Take in-person card payments with your phone — no separate card reader required — or with a WisePad.",
+      "sections": [
+        {
+          "heading": "No separate card reader required",
+          "paragraphs": [
+            "Velbok supports Stripe Tap to Pay: your staff phone becomes the payment terminal. The customer holds a contactless card or their mobile wallet near the top of your device — the same way they would tap on a shop terminal.",
+            "You do not need to buy a WisePad or other Stripe hardware for this mode. Tap to Pay uses Stripe Terminal in the background (connection token and a Terminal location on your studio’s Stripe Connect account), but no physical reader is paired or registered in Stripe Dashboard.",
+            "Use the Velbok mobile app (Android or iPhone), open Checkout, choose Tap to Pay (this phone), tap Enable phone payments, then Charge as usual."
+          ]
+        },
+        {
+          "heading": "What customers can pay with",
+          "bullets": [
+            "Contactless debit and credit cards (tap)",
+            "Google Pay (Android)",
+            "Apple Pay (iPhone and many Android wallets)",
+            "Samsung Pay and other NFC mobile wallets",
+            "Visa, Mastercard, American Express, and Discover contactless (region-dependent)"
+          ],
+          "note": "Wallet payments usually do not need a PIN. Some high-value or regional card rules may require a PIN or a different payment method — Velbok will show Stripe’s on-screen prompt if that happens."
+        },
+        {
+          "heading": "Stripe setup (no hardware purchase)",
+          "bullets": [
+            "Finish Stripe Connect for your studio (Admin → POS checkout)",
+            "Create a Terminal location in Velbok — Admin → POS → Create Terminal location (Velbok saves this on your Connect account)",
+            "Enable POS checkout for staff",
+            "Install the release Velbok app on a compatible phone — not a debug build. Download from https://velbok.com/download",
+            "There is no separate “enable Tap to Pay” switch in Stripe for Velbok; you only need Connect + Terminal location",
+            "You only register a reader serial number in Stripe Dashboard if you use a physical device (e.g. WisePad 3)"
+          ]
+        },
+        {
+          "heading": "Supported Android phones (Tap to Pay)",
+          "paragraphs": [
+            "Stripe maintains the authoritative list; Velbok follows the same requirements. Phones must have NFC, Android 13+, Google Play Services, and Stripe’s security hardware (hardware keystore with ECDH). Developer options must be OFF for live payments."
+          ],
+          "bullets": [
+            "Google Pixel — Pixel 6 and newer (6, 6a, 6 Pro, 7 series, 8 series, 9 series, 10 series, Pixel Fold)",
+            "Samsung Galaxy S — S22, S22+, S22 Ultra, S23 series, S24 series, S25 series, S26 series",
+            "Samsung Galaxy Z — Z Flip4, Z Flip5, Z Flip6, Z Flip7, Z Flip7 FE, Z Fold4, Z Fold5, Z Fold6, Z Fold7, Z TriFold",
+            "Samsung Galaxy A / M / F — many recent models (e.g. A14 5G and newer A-series, A53 5G+, M14 5G+, F34 5G+) — see Stripe link below for the full list",
+            "Samsung — Tab Active5 series, XCover7, XCover7 Pro, Wide8",
+            "Motorola — edge series (2022+), razr / razr+ (2022+), many moto g models with NFC",
+            "OnePlus — 10 series and newer, Nord 3 5G+, Open",
+            "Xiaomi / Redmi — 12 series and newer, many Note 13+ / 14+ models, MIX Flip / MIX Fold",
+            "Honor, Oppo, Asus ROG/Zenfone, Infinix — numerous models listed by Stripe"
+          ],
+          "note": "Full official list (updated by Stripe): https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=android#device-types"
+        },
+        {
+          "heading": "Android phones that do NOT work",
+          "bullets": [
+            "Samsung Galaxy S21, S20, S10 and older S-series flagships — missing required security hardware (confirmed: S21 Ultra fails; use S22+ or WisePad)",
+            "Any phone without NFC or without hardware keystore ECDH (Stripe error TAP_TO_PAY_UNSUPPORTED_DEVICE)",
+            "Rooted phones, emulators, or phones without Google Play Services",
+            "Android 12 or older",
+            "Debug Velbok installs or phones with Developer options ON (for live Tap to Pay)"
+          ]
+        },
+        {
+          "heading": "iPhone (Tap to Pay on iPhone)",
+          "bullets": [
+            "Compatible iPhone with NFC — generally iPhone XS or later",
+            "iOS 16.4 or later",
+            "Velbok iOS app with Apple’s Tap to Pay on iPhone entitlement (studio owner requests this from Apple for the app)",
+            "Same customer payment types: contactless cards and Apple Pay",
+            "Stripe Connect + Terminal location in Velbok Admin → POS, same as Android"
+          ],
+          "note": "Apple Tap to Pay details: https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios"
+        },
+        {
+          "heading": "WisePad and other readers (optional)",
+          "paragraphs": [
+            "If your phone is not supported, or you prefer a dedicated device, use WisePad (Bluetooth) in Checkout. WisePOS E and Stripe Reader S700 work as Wi‑Fi/standalone readers. Register WisePad serial numbers in Stripe Dashboard → Terminal → Readers on your Connect account."
+          ]
+        },
+        {
+          "heading": "Troubleshooting",
+          "bullets": [
+            "Install the latest release APK from https://velbok.com/download — uninstall old Velbok first if needed.",
+            "Tap Test Stripe server link on Checkout to verify Connect + Terminal location before Enable",
+            "Allow Location permission for Velbok (required by Stripe Terminal on Android)",
+            "Turn Developer options OFF and restart the phone if Stripe reports an insecure environment",
+            "Galaxy S21 users: switch to WisePad mode or use a Galaxy S22+ / Z Flip7+ phone for Tap to Pay"
+          ]
+        }
+      ]
+    },
     "consent": {
       "title": "Consent forms",
       "description": "Digital tattoo and piercing consent with signatures and PDF export.",

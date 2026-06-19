@@ -34,6 +34,7 @@ import {
   type DashboardThemeMode,
   type ShopDashboardThemeSettings,
 } from "@/lib/shopDashboardTheme";
+import { uploadFileToUploads } from "@/lib/uploadStorage";
 import {
   SHOP_COUNTRIES,
   currencyForShopCountry,
@@ -148,10 +149,8 @@ const ShopSetupWizardPage = () => {
     try {
       const ext = file.name.split(".").pop() || "png";
       const path = `shop_logos/${user.id}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("uploads").upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from("uploads").getPublicUrl(path);
-      patchForm({ logo_url: `${data.publicUrl}?t=${Date.now()}` });
+      const storageRef = await uploadFileToUploads(path, file);
+      patchForm({ logo_url: storageRef });
       toast.success(t("setup.logoUploaded"));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("settings.uploadFailed"));

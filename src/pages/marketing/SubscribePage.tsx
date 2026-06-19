@@ -12,6 +12,10 @@ import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabaseConfigError, supabase } from "@/integrations/supabase/client";
+import SubscribeTermsAcceptance, {
+  PLATFORM_PRIVACY_VERSION,
+  PLATFORM_TERMS_VERSION,
+} from "@/components/marketing/SubscribeTermsAcceptance";
 import { GOOGLE_SIGN_IN_ENABLED } from "@/lib/authConfig";
 
 function getAuthSiteOrigin(): string {
@@ -44,6 +48,7 @@ const SubscribePage = () => {
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const configError = getSupabaseConfigError();
 
@@ -80,6 +85,10 @@ const SubscribePage = () => {
   }, [authLoading, subLoading, user, orgSub?.subscription, navigate]);
 
   const startCheckout = async () => {
+    if (!termsAccepted) {
+      toast({ title: t("subscribe.termsRequired"), variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const organizationId =
@@ -92,6 +101,9 @@ const SubscribePage = () => {
         planId: selfServePlan.id,
         studioName: organizationId ? undefined : studioName.trim(),
         organizationId,
+        acceptedTerms: true,
+        termsVersion: PLATFORM_TERMS_VERSION,
+        privacyVersion: PLATFORM_PRIVACY_VERSION,
       });
 
       if (error) {
@@ -114,6 +126,10 @@ const SubscribePage = () => {
 
   const handleGoogleSignIn = async () => {
     if (configError) return;
+    if (!termsAccepted) {
+      toast({ title: t("subscribe.termsRequired"), variant: "destructive" });
+      return;
+    }
     setGoogleLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -260,10 +276,16 @@ const SubscribePage = () => {
                     {t("subscribe.organization")}: <span className="text-foreground">{orgSub.organizationName}</span>
                   </p>
                 )}
+                <SubscribeTermsAcceptance
+                  id="subscribe-terms-logged-in"
+                  checked={termsAccepted}
+                  onCheckedChange={setTermsAccepted}
+                  disabled={submitting}
+                />
                 <Button
                   variant="gold"
                   className="w-full"
-                  disabled={submitting}
+                  disabled={submitting || !termsAccepted}
                   onClick={handleLoggedInCheckout}
                 >
                   {submitting ? (
@@ -297,13 +319,19 @@ const SubscribePage = () => {
                     </button>
                   </p>
                 </div>
+                <SubscribeTermsAcceptance
+                  id="subscribe-terms-guest"
+                  checked={termsAccepted}
+                  onCheckedChange={setTermsAccepted}
+                  disabled={submitting || googleLoading}
+                />
                 {GOOGLE_SIGN_IN_ENABLED ? (
                   <>
                     <Button
                       type="button"
                       variant="outline"
                       className="h-11 w-full border-border/80 bg-secondary/40 text-sm"
-                      disabled={submitting || googleLoading || !!configError}
+                      disabled={submitting || googleLoading || !!configError || !termsAccepted}
                       onClick={handleGoogleSignIn}
                     >
                       {googleLoading ? (
@@ -383,7 +411,7 @@ const SubscribePage = () => {
                     className="bg-secondary/80"
                   />
                 </div>
-                <Button variant="gold" type="submit" className="w-full" disabled={submitting}>
+                <Button variant="gold" type="submit" className="w-full" disabled={submitting || !termsAccepted}>
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -395,17 +423,6 @@ const SubscribePage = () => {
                     t("subscribe.signInContinue")
                   )}
                 </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  {t("subscribe.termsAgree")}{" "}
-                  <Link to="/terms" className="text-gold hover:underline">
-                    {t("common.terms")}
-                  </Link>{" "}
-                  and{" "}
-                  <Link to="/privacy" className="text-gold hover:underline">
-                    {t("common.privacy")}
-                  </Link>
-                  .
-                </p>
               </form>
               </div>
             )}

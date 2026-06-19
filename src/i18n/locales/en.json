@@ -17,6 +17,7 @@
     "signOut": "Sign out",
     "contact": "Contact",
     "documentation": "Documentation",
+    "downloadApp": "Download app",
     "features": "Features",
     "pricing": "Pricing",
     "terms": "Terms",
@@ -66,7 +67,7 @@
   "marketing": {
     "footerTagline": "The all-in-one platform for tattoo studios — scheduling, deposits, consent, billing, and client communication in one place.",
     "pricingTitle": "Plans that scale with your studio",
-    "pricingSubtitle": "Transparent monthly pricing. Core studio tools on every plan — unified inbox from Studio.",
+    "pricingSubtitle": "Transparent monthly pricing. Core studio tools on every plan — support tickets and WhatsApp links included.",
     "comparePlans": "Compare plans",
     "pricingFaq": "Pricing FAQ",
     "notSurePlan": "Not sure which plan fits?",
@@ -313,8 +314,8 @@
     "featureDepositsDesc": "Collect deposits at booking, send payment links, and reconcile paid status on the schedule.",
     "featureConsentTitle": "Digital consent",
     "featureConsentDesc": "Tattoo and piercing consent forms with e-signatures, PDF export, and audit trail.",
-    "featureInboxTitle": "Staff inbox",
-    "featureInboxDesc": "Centralised messaging with clients — threads, media, and email notifications when configured.",
+    "featureInboxTitle": "Enquiry tickets",
+    "featureInboxDesc": "Clients raise tickets from the portal — message an artist, share reference photos, and get email updates when the studio replies.",
     "featureBillingTitle": "Billing & invoices",
     "featureBillingDesc": "Create invoices, line-item templates, Stripe checkout, and company-level billing records.",
     "featureStockTitle": "Stock management",
@@ -325,9 +326,9 @@
     "step1Title": "Subscribe & launch",
     "step1Body": "Get your Velbok studio instance configured with your branding, artists, and services.",
     "step2Title": "Run your day",
-    "step2Body": "Book clients on the schedule, take deposits, send consent links, and message from one dashboard.",
+    "step2Body": "Book clients on the schedule, take deposits, send consent links, and reply to enquiry tickets from one dashboard.",
     "step3Title": "Clients self-serve",
-    "step3Body": "Customers view bookings, pay deposits, complete consent, and chat through their portal.",
+    "step3Body": "Customers view bookings, pay deposits, complete consent, and message the studio through their portal.",
     "audiencesTitle": "Built for everyone in the studio",
     "audienceOwnersTitle": "Studio owners",
     "audienceOwners1": "Full admin control",
@@ -349,7 +350,7 @@
     "faq1Q": "Is Velbok only for tattoo studios?",
     "faq1A": "Velbok is built for tattoo and piercing studios with consent workflows, multi-artist scheduling, and deposit handling — but any appointment-based creative studio can use the core platform.",
     "faq2Q": "Do my clients need an account?",
-    "faq2A": "Clients can receive links for deposits and consent without a full account. Optional customer accounts unlock the portal for bookings, messages, and invoices.",
+    "faq2A": "Clients can receive links for deposits and consent without a full account. Optional customer accounts unlock the portal for bookings, enquiry tickets, and invoices.",
     "faq3Q": "Can I use my own branding?",
     "faq3A": "Yes. Each studio deployment supports custom shop name, colours, contact details, and portal theming.",
     "faq4Q": "Where is my data stored?",
@@ -380,6 +381,21 @@
     "messageSentDesc": "We'll get back to you as soon as we can.",
     "couldNotSend": "Could not send",
     "couldNotSendDesc": "Please email us directly at {{email}}."
+  },
+  "download": {
+    "title": "Download Velbok",
+    "subtitle": "Install the Velbok mobile app on your studio phone for checkout, Tap to Pay, and WisePad Bluetooth payments.",
+    "androidTitle": "Android",
+    "androidDesc": "Release build for Tap to Pay and POS checkout. Uninstall any older Velbok install first if Android reports a signature conflict.",
+    "latestVersion": "Latest version",
+    "androidButton": "Download Velbok {{version}} for Android",
+    "apkUnavailable": "The Android APK is not on this server yet. Ask your admin or rebuild with releases/velbok-release.apk present.",
+    "installHint1": "On the phone: allow installs from this browser or Files app if Android asks.",
+    "installHint2": "Uninstall the old Velbok app first if you previously installed a debug build.",
+    "installHint3": "For Tap to Pay: use a supported phone (see docs), turn Developer options OFF, allow Location.",
+    "tapToPayDocs": "Supported phones and Tap to Pay setup:",
+    "tapToPayDocsLink": "POS checkout & Tap to Pay",
+    "iphoneNote": "iPhone: Velbok for iOS is distributed via TestFlight or App Store when available for your studio — not from this page."
   },
   "cookies": {
     "bannerText": "We use cookies and similar technologies for core functionality and, with your consent, to improve performance and marketing. You can change your choice at any time in Cookie Settings.",
@@ -468,6 +484,10 @@
     "createAndContinue": "Create account & continue",
     "signInContinue": "Sign in & continue",
     "termsAgree": "By subscribing you agree to our",
+    "termsCheckboxLead": "I have read and agree to the",
+    "termsCheckboxBody": "I confirm I am authorised to subscribe on behalf of my studio and that Inkaholics Limited (Velbok) may charge the selected plan (including after any free trial) via Stripe.",
+    "termsVersionLabel": "version {{version}}",
+    "termsRequired": "Please accept the Terms and Privacy Notice to continue.",
     "checkoutCanceled": "Checkout canceled",
     "checkoutCanceledDesc": "No charges were made. You can try again when ready.",
     "checkoutFailed": "Checkout failed",
@@ -496,7 +516,7 @@
     "stepPayoutsDesc": "Connect your bank account so deposit, invoice, and in-person card payments go to your studio.",
     "stepPayoutsSkipHint": "You can finish setup now and connect payouts later from Admin.",
     "stepPosOptionalTitle": "In-person checkout (optional)",
-    "stepPosOptionalDesc": "Take card payments at the desk with a Stripe Terminal reader. We recommend WisePad 3 for mobile checkout, or WisePOS E / Stripe Reader S700 for standalone setups. Each studio connects its own Stripe account.",
+    "stepPosOptionalDesc": "Take card payments at the desk with Tap to Pay on a compatible phone (no extra hardware), or with a Stripe Terminal reader such as WisePad 3. Each studio connects its own Stripe account.",
     "stepPosEnableHint": "Turn on the Checkout page for staff after Connect and Terminal are set up.",
     "stepHoursTitle": "Working hours",
     "stepHoursDesc": "Default open hours for your schedule grid.",
@@ -691,6 +711,8 @@
     "copy": "Copy",
     "open": "Open",
     "consentMigrationHint": "Run the latest Supabase migration if submissions fail. Recent signatures appear below.",
+    "legalTitle": "Legal",
+    "legalDesc": "Privacy, terms, and cookie information for Velbok.",
     "openPdf": "Open PDF",
     "noPdf": "No PDF",
     "noConsentYet": "No consent submissions yet.",
@@ -1810,11 +1832,11 @@
   },
   "pos": {
     "checkoutTitle": "Checkout",
-    "checkoutSubtitle": "Take payment at the desk with your Stripe WisePad reader.",
+    "checkoutSubtitle": "Take payment at the desk with a WisePad reader or Tap to Pay on this phone.",
     "linkedBooking": "Linked to this booking",
     "depositCredit": "Deposit paid",
     "amountDue": "Due today",
-    "depositSplitHint": "Split applies to the balance charged on the WisePad (deposit was collected separately).",
+    "depositSplitHint": "Split applies to the balance charged at checkout (deposit was collected separately).",
     "depositCoversBalance": "Session covered by deposit — no card charge needed.",
     "completeNoCharge": "Complete (deposit covers balance)",
     "notEnabledDesc": "Point-of-sale checkout is turned off. An admin can enable it and set split percentages under Admin → POS checkout.",
@@ -1840,10 +1862,54 @@
     "shopShare": "Shop ({{percent}}%)",
     "artistShare": "Artist ({{percent}}%)",
     "connectReader": "Connect WisePad",
+    "connectTapToPay": "Enable phone payments",
+    "connectTapToPayProgress": "Setting up phone payments…",
+    "connectReaderProgress": "Connecting to reader…",
+    "readerModeTitle": "How do you take card payments?",
+    "readerModeDesc": "Use this phone as the card reader (Google Pay, Apple Pay, contactless cards) — or connect a separate WisePad.",
+    "readerModeBluetooth": "WisePad (separate card reader)",
+    "readerModeBluetoothHint": "Stripe WisePad 3 — a Bluetooth device you hold out to the customer.",
+    "readerModeTapToPay": "This phone (Tap to Pay)",
+    "readerModeTapToPayHint": "Customer taps Google Pay, Apple Pay, or their card on your phone. No extra hardware.",
+    "tapToPayInfoTitle": "Use this phone to take payments",
+    "tapToPayInfoBody": "Tap Enable phone payments, then charge as usual. The customer holds their card or phone (Google Pay / Apple Pay) near the top of your device.",
+    "tapToPayInfoAndroidDevOptions": "Android: Developer options must be OFF (Settings → Developer options). Stripe blocks Tap to Pay while developer mode is on.",
+    "terminalTokenFailed": "Could not connect to Stripe Terminal. Check internet, sign in again, and confirm Admin → POS has Connect + Terminal location set up.",
+    "tapToPayInfoAppleGoogle": "Supports contactless cards, Apple Pay, Google Pay, and similar wallets.",
+    "tapToPayInfoAndroidRelease": "Android: use a release build of the Velbok app with developer options turned off.",
+    "tapToPayInfoStripeEnable": "Stripe Terminal is used in the background (connection token + location on your Connect account). You do not need to buy a separate card reader for Tap to Pay — Velbok creates the Terminal location in Admin → POS. There is no extra Tap to Pay toggle in Stripe for the Velbok app.",
+    "tapToPayInfoAppleEntitlement": "iPhone: the Apple Developer account holder must request Tap to Pay on iPhone from Apple and enable it on the com.velbok.app App ID before TestFlight or App Store builds will work.",
+    "tapToPayHowToTap": "Show How to Tap guide",
+    "tapToPayHowToUnavailable": "Apple's How to Tap guide requires iOS 18+ and Tap to Pay approval on your developer account.",
+    "tapToPayFailed": "Tap to Pay could not start",
+    "tapToPayCheckingPhone": "Checking this phone for Tap to Pay…",
+    "tapToPayPhoneReady": "This phone is ready for Tap to Pay",
+    "tapToPayPhoneReadyHint": "Velbok {{version}} · release build. Tap Enable phone payments — Stripe verifies security on the phone.",
+    "tapToPayPhoneBlocked": "Fix this on your phone before enabling payments",
+    "tapToPayPhoneBlockedHint": "After fixing, fully close Velbok (swipe away from recent apps) and reopen this screen.",
+    "tapToPayTestStripeLink": "Test Stripe server link",
+    "tapToPayTestStripeOk": "Stripe server link OK — connection token received.",
+    "tapToPayTestStripeFailed": "Stripe server link failed",
     "mobileAppRequired": "WisePad 3 requires the Velbok mobile app (Android or iPhone). Browser checkout supports Wi‑Fi/standalone readers such as WisePOS E or Stripe Reader S700.",
     "nativeBluetoothReady": "Bluetooth WisePad pairing is available in this app. Turn the reader on and tap Connect WisePad.",
     "disconnectReader": "Disconnect reader",
     "readerDisconnected": "Reader not connected",
+    "readerDisplayFailed": "Could not show total on WisePad",
+    "readerDisplayHint": "Add items to the cart first. The WisePad shows the total after connect, or when you tap Charge.",
+    "wisePadFirstTimeTitle": "First-time WisePad setup",
+    "wisePadFirstTimeIntro": "The first time you connect, Stripe may install a mandatory firmware update on the reader. This is normal and only happens once.",
+    "wisePadFirstTimeTipMobileData": "Use mobile data (4G/5G) instead of shop Wi‑Fi if the update keeps failing — some networks block Stripe.",
+    "wisePadFirstTimeTipStayOpen": "Keep Velbok open with the screen on. Do not switch apps or tap Connect again.",
+    "wisePadFirstTimeTipProximity": "Keep the WisePad powered on and within 2 metres of your phone.",
+    "wisePadFirstTimeTipBluetooth": "Do not pair the reader in Android Bluetooth settings — only connect through this app.",
+    "wisePadFirstTimeTipDuration": "The update can take 10–20 minutes. Payments are unavailable until it finishes.",
+    "wisePadFirstTimeGotIt": "Got it",
+    "wisePadFirmwareTitle": "Installing WisePad firmware… {{percent}}%",
+    "wisePadFirmwareBody": "Please wait — the reader is updating through your phone. Do not turn off the reader or close the app.",
+    "wisePadFirmwareTipPhone": "Leave this screen open and keep the phone awake.",
+    "wisePadFirmwareTipNetwork": "If progress stalls, turn off Wi‑Fi and use mobile data, then tap Connect once more.",
+    "wisePadFirmwareTokenNote": "Velbok pauses checkout actions during the update so the connection stays stable.",
+    "wisePadFirmwareComplete": "WisePad firmware update complete — you can take payments now.",
     "chargeCard": "Charge {{amount}}",
     "clearOrder": "Clear order",
     "addItemsFirst": "Add at least one item and select an artist.",
@@ -1853,7 +1919,7 @@
     "paymentSuccess": "Payment successful.",
     "lastPaymentRecorded": "Last payment recorded.",
     "adminTitle": "POS checkout",
-    "adminIntro": "Configure in-person card payments with Stripe Terminal (WisePad 3, WisePOS E, or Stripe Reader S700). Set default shop/artist split percentages and optional per-artist overrides.",
+    "adminIntro": "Configure in-person card payments with Stripe Terminal (WisePad 3, Tap to Pay on phone, WisePOS E, or Stripe Reader S700). Set default shop/artist split percentages and optional per-artist overrides.",
     "enableCheckout": "Enable checkout page",
     "enableCheckoutHint": "Shows Checkout in the staff menu for users with checkout or billing access.",
     "shopSplitPercent": "Shop share",
@@ -1862,14 +1928,22 @@
     "gratuityEnabled": "Allow gratuity",
     "gratuityEnabledHint": "Adds a percentage on top of the total before charging.",
     "terminalTitle": "Stripe Terminal readers",
-    "terminalIntro": "Register your shop location so Stripe Terminal readers can pair. We recommend WisePad 3 for Bluetooth mobile use, with WisePOS E or Stripe Reader S700 as compatible alternatives. Use simulated reader for testing without hardware.",
+    "terminalIntro": "Register your shop location so Stripe Terminal can connect. Tap to Pay lets you accept contactless cards, Google Pay, and Apple Pay on a compatible phone with no extra hardware. Or use WisePad 3 (Bluetooth), WisePOS E, or Stripe Reader S700. Simulated reader is for testing without hardware.",
     "readerLabel": "Reader label",
     "terminalLocation": "Terminal location ID",
     "notConfigured": "Not set up yet",
     "setupTerminal": "Create Terminal location",
     "simulatedReader": "Use simulated reader (testing)",
     "terminalSetupDone": "Terminal location ready.",
+    "terminalSetupRecreated": "Terminal location recreated on your connected account.",
+    "recreateTerminalLocation": "Recreate terminal location",
+    "terminalConnectAccount": "Stripe Connect account (register WisePad here)",
+    "terminalConnectAccountHint": "In Inkaholics Stripe: Connect → Accounts → this account → Terminal → Readers. Add your WisePad serial. Live reader for live keys only. Do not pair in phone Bluetooth settings.",
     "terminalSetupFailed": "Could not create Terminal location.",
+    "terminalDiagnose": "Diagnose Stripe Terminal",
+    "terminalDiagnoseOk": "Stripe Terminal looks OK (location + connection token).",
+    "terminalDiagnoseIssues": "Stripe Terminal has issues — see details below.",
+    "terminalDiagnoseFailed": "Could not run Terminal diagnostics.",
     "settingsSaved": "POS settings saved.",
     "artistOverridesTitle": "Per-artist splits",
     "artistOverridesIntro": "Leave shop share blank to use the default. Add a Stripe Connect account ID to auto-transfer the artist share after payment.",
@@ -1922,10 +1996,10 @@
       "enabledDone": "Staff can open Checkout from the menu.",
       "enabledPending": "Enable checkout under Admin → POS checkout.",
       "reader": "Pair a Stripe Terminal reader",
-      "readerHint": "WisePad 3 pairs over Bluetooth in the Velbok mobile app. WisePOS E and Stripe Reader S700 can be used as Wi‑Fi/standalone alternatives.",
+      "readerHint": "Tap to Pay: use a compatible phone as the reader (contactless cards, Google Pay, Apple Pay) — no WisePad required. Or pair WisePad 3 over Bluetooth, or use WisePOS E / Stripe Reader S700 on Wi‑Fi.",
       "ready": "Ready to take in-person payments.",
       "notReady": "Complete the steps above before charging cards at the desk.",
-      "stripeDashboardHint": "Stripe Terminal onboarding, account verification, hardware provisioning, and terminal support are provided by Stripe (not Velbok). Manage readers in Stripe Dashboard → Terminal."
+      "stripeDashboardHint": "Stripe provides Terminal onboarding, account verification, and support. For Tap to Pay you do not register a physical reader in Stripe Dashboard — only for WisePad or countertop readers. Manage hardware readers in Stripe Dashboard → Terminal."
     }
   },
   "staff": {
@@ -2019,127 +2093,190 @@
     },
     "privacy": {
       "title": "Privacy Notice (UK/EU GDPR)",
-      "lastUpdated": "29 May 2026",
+      "lastUpdated": "18 June 2026",
       "sections": {
         "general": {
-          "title": "General statement",
-          "p1": "{{shopLegalName}} is committed to protecting your privacy and takes its responsibilities regarding the security of customer information seriously. This notice explains how we use personal data and how we protect your privacy when you interact with our shop, website, and services.",
-          "contactLead": "If you have questions, contact us at",
-          "contactDpo": "For CCTV or data protection complaints, you may contact our DPO at"
+          "title": "Who we are",
+          "p1": "{{shopLegalName}} (trading as {{platformName}}) operates the Velbok platform at velbok.com and the Velbok mobile apps. We are the data controller for studio account data, platform billing, and our own operations. Tattoo studios using Velbok are separate controllers for their clients' booking, consent, and CRM data.",
+          "contactLead": "For platform privacy questions, contact",
+          "contactDpo": "For data protection enquiries or complaints, contact our DPO at"
+        },
+        "roles": {
+          "title": "Platform vs studio responsibilities",
+          "p1": "When you register a studio on Velbok, we process your business contact details, subscription billing, and staff accounts as controller. When your studio enters client bookings, consent forms, messages, or invoices, you are the controller and Velbok acts as processor on your instructions.",
+          "p2": "Studios must provide their own client-facing privacy information for in-studio services (including any CCTV at physical premises). This notice covers the Velbok software and website."
         },
         "dataCollect": {
           "title": "Data we collect",
-          "p1": "Depending on your interaction with us, we may collect: name, gender, date of birth, address, email, phone number, booking history, service notes, complaint/feedback records, payment details, cookie/device and technical usage data, social media handle (if you message us), and CCTV images captured at premises.",
-          "p2": "Where legally required to verify age for tattooing, we may request and retain a copy of photo identification with your consent documentation."
+          "p1": "Depending on your role and interaction, we may collect: name, email, phone, business address, account credentials, booking and invoice records, messages, uploaded images (references, avatars, signatures), payment metadata, cookie/device data, and — where studios use digital consent — health information required for tattoo or piercing safety.",
+          "p2": "Card numbers are entered directly into Stripe (online checkout, invoices, and in-person Terminal / Tap to Pay). Velbok does not store full card numbers on our servers."
+        },
+        "healthData": {
+          "title": "Health and consent data",
+          "p1": "Digital consent forms may collect medical history answers (for example allergies, heart conditions, pregnancy, or blood thinners) and a drawn signature. This is special category data under UK/EU GDPR. Studios collect it with explicit consent from the client for safety, legal, medical, and insurance purposes.",
+          "p2": "Velbok stores consent responses and generated PDFs securely on behalf of the studio. Retention follows the studio's professional and insurance requirements, typically several years."
         },
         "whenCollect": {
           "title": "When we collect data",
-          "p1": "We collect data when you use our website or account, make a booking or purchase, contact us, enter promotions, complete surveys, leave reviews, engage on social media, or otherwise interact with our business."
+          "p1": "We collect data when you create an account, subscribe to Velbok, configure a studio, manage bookings or billing, complete consent forms, use in-app messaging, contact support, or use payment features on web or mobile."
+        },
+        "mobile": {
+          "title": "Mobile app (Android / iOS)",
+          "p1": "The Velbok app may request device permissions to support in-person payments: precise location and Bluetooth (card readers and Stripe Tap to Pay), and NFC for contactless Tap to Pay. Location is required by payment regulations and fraud prevention — it is not used to track you for advertising.",
+          "p2": "The native app does not show the web cookie banner; we use strictly necessary local storage for sign-in and preferences only. Optional marketing/analytics cookies apply on the website only."
+        },
+        "subprocessors": {
+          "title": "Service providers (sub-processors)",
+          "p1": "We use trusted providers to run Velbok, including: Supabase (authentication, database, file storage, edge functions), Stripe (payments, Connect payouts, Terminal / Tap to Pay), Resend (transactional email), Twilio (optional WhatsApp/SMS per studio), and Netlify (website hosting). Each provider processes data under contract and their own privacy terms.",
+          "p2": "We do not sell personal data. We share data only where necessary to provide the service, comply with law, or prevent fraud."
+        },
+        "transfers": {
+          "title": "International transfers",
+          "p1": "Some providers may process data outside the UK/EEA (for example the United States). Where required, we rely on appropriate safeguards such as Standard Contractual Clauses and provider compliance programmes."
         },
         "lawfulBases": {
           "title": "Lawful bases (UK GDPR / EU GDPR)",
-          "p1": "We rely on consent, contractual necessity, legal obligation, legitimate interests, and vital interests depending on context.",
+          "p1": "We rely on consent, contractual necessity, legal obligation, and legitimate interests depending on context.",
           "consent": "Consent:",
-          "consentDesc": "e.g. newsletter opt-in and optional cookie categories.",
+          "consentDesc": "optional cookies on the website, marketing opt-ins, and explicit consent for health data in studio consent forms.",
           "contract": "Contract:",
-          "contractDesc": "to provide booked services and process payments/deposits.",
+          "contractDesc": "providing the Velbok service, studio subscriptions, bookings, deposits, and invoices.",
           "legal": "Legal obligation:",
-          "legalDesc": "where required to share data for fraud/crime prevention or legal process.",
+          "legalDesc": "tax, accounting, and lawful requests from authorities.",
           "legitimate": "Legitimate interests:",
-          "legitimateDesc": "business operations, communications, service updates, and quality improvement.",
+          "legitimateDesc": "security, fraud prevention, product improvement, and service communications.",
           "vital": "Vital interests:",
-          "vitalDesc": "where needed to protect life/health in emergencies."
+          "vitalDesc": "protecting life or health in an emergency."
         },
         "howUse": {
           "title": "How and why we use data",
-          "p1": "We use personal data to provide services, manage bookings and deposits, send required service communications, process complaints and feedback, improve products and systems, administer surveys and competitions, protect security, and meet legal obligations.",
-          "p2": "{{shopLegalName}} does not share marketing data with third-party organizations for their own marketing. We do share data with payment and service providers where necessary to run transactions and operations securely."
+          "p1": "We use personal data to operate Velbok, authenticate users, process studio subscriptions and client payments, deliver notifications, support studios, improve reliability, and meet legal obligations.",
+          "p2": "{{shopLegalName}} does not sell personal data to third parties for their own marketing."
         },
         "cookies": {
-          "title": "Cookies, pixels, and website technologies",
-          "p1": "Cookies and similar technologies help us run website features and remember preferences. Our cookies are not intended to contain direct personal identifiers. You can manage browser cookies and in-app cookie preferences.",
-          "p2": "We may use email tracking pixels to understand whether emails were opened and whether your client can render text or HTML content."
+          "title": "Cookies and similar technologies",
+          "p1": "Our website uses cookies and local storage for sign-in, security, language preferences, and optional analytics/marketing categories when you consent. See our Cookie Policy for details.",
+          "p2": "Transactional emails may include tracking pixels to measure delivery and engagement."
         },
         "security": {
           "title": "Security and retention",
-          "p1": "We use encryption, secure processing standards, and access controls to protect data. No internet transmission is entirely risk free, but we apply reasonable technical and organizational safeguards.",
-          "p2": "Standard retention is at least 5 years from last visit/transaction, or longer where legal/insurance claims require this. For insurance and damages claims we may retain relevant data up to 21 years."
+          "p1": "We use encryption in transit (HTTPS/TLS), access controls, and industry-standard hosting. No internet transmission is entirely risk-free.",
+          "p2": "We retain account and transaction records as long as needed for the service, legal obligations, and dispute resolution — typically at least five years for business records, and longer where insurance or consent documentation requires."
         },
-        "cctv": {
-          "title": "CCTV policy summary",
-          "p1": "Our premises are monitored by CCTV 24/7 for prevention/detection of crime, safety, and asset protection. Cameras are placed in prominent areas and not in sensitive spaces. Access is restricted to authorized trained personnel.",
-          "p2": "CCTV data is processed lawfully, fairly, transparently, and securely. Footage is generally stored for a minimum of 14 days and no longer than 1 year unless required for investigations, disciplinary proceedings, or legal evidence."
+        "children": {
+          "title": "Children and minors",
+          "p1": "Velbok is studio management and booking software — we do not perform tattoo or piercing services. Minimum ages for those services are set by each studio and the law where they operate (including piercings for minors with a parent or guardian, where permitted).",
+          "p2": "Studio administrator and staff accounts are business accounts and are not directed at children under 13. When a studio records a booking or consent form for a minor client, the studio is the data controller and must obtain any required parental or guardian consent."
+        },
+        "ccpa": {
+          "title": "California privacy rights (CCPA/CPRA)",
+          "p1": "California residents may request access, correction, or deletion of personal information we hold as controller. We do not sell or share personal information for cross-context behavioural advertising. To exercise rights, email",
+          "p2": "We will verify requests and respond within applicable timeframes."
         },
         "rights": {
           "title": "Your rights",
-          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. You can also ask us to stop direct marketing. You can request a copy of your data by emailing",
-          "orWriteTo": "or writing to:",
-          "p2": "If we refuse a request, we will explain why. You also have the right to complain to the UK Information Commissioner's Office (ICO) or your local EU supervisory authority."
+          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. Email",
+          "orWriteTo": "or write to:",
+          "p2": "If we refuse a request, we will explain why. You may complain to the UK ICO or your local EU supervisory authority."
         },
         "updates": {
           "title": "Policy updates",
-          "p1": "We may update this notice periodically. Material changes will be posted here so you remain aware of what data we collect, how we use it, and when it may be disclosed."
+          "p1": "We may update this notice periodically. Material changes will be posted at velbok.com/privacy with a revised date."
         }
       }
     },
     "terms": {
       "title": "Terms and Conditions of Use",
-      "lastUpdated": "29 May 2026",
+      "lastUpdated": "18 June 2026",
       "sections": {
         "scope": {
-          "title": "1. Scope",
-          "p1": "These Terms govern access to and use of the {{platformName}} web application (the \"Service\") by staff and customers in the UK and EU. By using the Service, you agree to these Terms."
+          "title": "1. Agreement",
+          "p1": "These Terms form a binding agreement between you (and the studio you represent) and Inkaholics Limited (company registered in England and Wales, trading as {{platformName}}) for use of the Service at velbok.com. By creating an account, subscribing, or using the Service, you agree to these Terms and our Privacy Notice.",
+          "p2": "If you subscribe on behalf of a studio, you represent that you have authority to bind that studio to this agreement."
         },
         "eligibility": {
           "title": "2. Eligibility and account security",
-          "p1": "You must provide accurate information, keep credentials confidential, and notify us promptly of unauthorized account access. You are responsible for activity carried out under your account unless caused by our fault."
+          "p1": "Studio staff and administrator accounts are for people old enough to enter a binding contract in their jurisdiction, or authorised by the studio owner to use the Service on the studio's behalf. You must provide accurate information, keep credentials confidential, and notify us promptly of unauthorized access."
+        },
+        "children": {
+          "title": "3. Children and minors",
+          "p1": "Velbok is software used by tattoo and piercing studios — not a studio itself. The Service is not directed at children under 13 for the purpose of creating platform accounts. Customer portal features may be used for bookings and consent where a studio lawfully serves minor clients; studios are responsible for age verification and guardian consent under local law."
         },
         "acceptableUse": {
-          "title": "3. Acceptable use",
+          "title": "4. Acceptable use",
           "p1": "You must not misuse the Service, interfere with security controls, upload unlawful content, or use the Service in a way that breaches applicable law, including UK GDPR, EU GDPR, and consumer protection rules."
         },
         "bookings": {
-          "title": "4. Booking and deposit workflows",
-          "p1": "The Service supports booking management and deposit reminders. Payment handling is provided by integrated third-party providers. You are responsible for ensuring booking and payment information entered is correct before sending notifications.",
-          "p2": "Additional studio terms apply to booked tattoo services: once tattooing services are provided, the agreed price is payable in full and no credit is offered; deposits are collected via online payment provider integration; deposits are refundable only where formal cancellation is made by email at least 24 hours before the appointment; and dissatisfaction with style preference changes after service does not create a refund entitlement."
+          "title": "5. Booking and payment workflows",
+          "p1": "The Service supports booking management, deposits, invoicing, and in-person card payments via Stripe. Card details are processed by Stripe; Velbok does not store full card numbers. You are responsible for ensuring booking and payment information is correct before sending notifications.",
+          "p2": "Studio-specific cancellation, refund, and age-eligibility rules for tattoo or piercing services remain the studio's responsibility and must be communicated to clients separately. Velbok does not perform body art services."
+        },
+        "subscription": {
+          "title": "6. Platform subscription (studios)",
+          "p1": "Self-serve plans are billed recurringly via Stripe on behalf of Inkaholics Limited. By starting a subscription or free trial, you authorise us to charge the payment method you provide at the then-current price for your selected plan, including automatic renewal until you cancel in accordance with these Terms.",
+          "p2": "Trials convert to paid subscriptions unless cancelled before the trial ends. Fees are non-refundable except where required by mandatory law. We may change plan features or pricing with reasonable notice; continued use after the effective date constitutes acceptance. You may cancel through the billing settings or Stripe customer portal where available."
+        },
+        "studioObligations": {
+          "title": "7. Studio obligations",
+          "p1": "You are solely responsible for tattoo, piercing, or related services you provide to clients, including licences, hygiene, aftercare, age verification, guardian consent where required by law, and compliance with regulations in your jurisdiction.",
+          "p2": "You must not represent Velbok as the provider of body art services. You are responsible for the accuracy of data you and your staff enter into the Service and for communications sent to your clients."
+        },
+        "dataProcessing": {
+          "title": "8. Data protection roles",
+          "p1": "For studio account and billing data, Inkaholics Limited is the data controller. For client bookings, consent forms, messages, and CRM data you enter about your clients, you are the data controller and Inkaholics Limited acts as data processor on your documented instructions, as described in our Privacy Notice.",
+          "p2": "You must have a lawful basis and, where required, appropriate privacy notices and consents for client data you process through Velbok. You must not upload unlawful content or special-category data beyond what the Service is designed to support."
         },
         "ip": {
-          "title": "5. Intellectual property",
-          "p1": "The Service design, software, and content are protected by intellectual property rights. You may use the Service only for internal business or personal booking purposes and not for unauthorized copying, resale, or reverse engineering."
+          "title": "9. Intellectual property",
+          "p1": "The Service design, software, and Velbok branding are owned by or licensed to Inkaholics Limited. You receive a limited, non-exclusive, non-transferable licence to use the Service for your studio's internal business while your subscription is active and in good standing.",
+          "p2": "You retain ownership of content you upload. You grant us a licence to host, process, and display that content solely to provide the Service."
         },
         "data": {
-          "title": "6. Data protection",
-          "p1": "Personal data is processed in line with our Privacy Notice and applicable UK/EU data protection law. Where required, we rely on consent, contract, legal obligation, or legitimate interests as a lawful basis."
+          "title": "10. Privacy",
+          "p1": "Our Privacy Notice explains how Inkaholics Limited processes personal data. By using the Service you acknowledge that notice."
+        },
+        "thirdParty": {
+          "title": "11. Third-party services",
+          "p1": "The Service integrates third parties such as Stripe (payments), Supabase (hosting), and email providers. Their terms and privacy policies apply to their services. We are not liable for outages, errors, or acts of third-party providers beyond our reasonable control."
+        },
+        "disclaimer": {
+          "title": "12. Disclaimers",
+          "p1": "The Service is provided \"as is\" and \"as available\". We do not warrant uninterrupted or error-free operation. Velbok is software only — we do not provide legal, medical, tax, or professional advice, and the Service does not guarantee your regulatory compliance."
+        },
+        "indemnity": {
+          "title": "13. Indemnity",
+          "p1": "You will indemnify and hold harmless Inkaholics Limited, its directors, and employees against claims, fines, losses, and reasonable costs arising from: (a) your studio services or client interactions; (b) your breach of these Terms or applicable law; (c) client data you control; or (d) content you or your staff submit through the Service, except to the extent caused by our intentional misconduct or negligence."
         },
         "availability": {
-          "title": "7. Service availability",
+          "title": "14. Service availability",
           "p1": "We aim for reliable operation but do not guarantee uninterrupted availability. Planned maintenance, updates, and third-party outages may affect access."
         },
         "liability": {
-          "title": "8. Liability",
-          "p1": "Nothing in these Terms limits liability that cannot be limited under law (including fraud or death/personal injury caused by negligence). Subject to mandatory law, we exclude indirect losses and limit liability to foreseeable direct losses arising from breach."
+          "title": "15. Limitation of liability",
+          "p1": "Nothing in these Terms limits liability that cannot be limited under law (including death or personal injury caused by negligence, or fraud). Subject to mandatory law, Inkaholics Limited shall not be liable for indirect, consequential, or punitive loss, loss of profit, revenue, data, or goodwill.",
+          "p2": "Subject to the above, our total aggregate liability arising out of or relating to the Service in any twelve-month period is limited to the greater of (a) the platform subscription fees you paid to us in that period, or (b) one hundred pounds sterling (£100)."
         },
         "changes": {
-          "title": "9. Changes and termination",
-          "p1": "We may update these Terms where required by law, security, or product changes. Material changes are published in-app with a revised date. We may suspend or terminate access where terms are breached or misuse is detected."
+          "title": "16. Changes and termination",
+          "p1": "We may update these Terms where required by law, security, or product changes. Material changes are published at velbok.com/terms with a revised date. We may suspend or terminate access where terms are breached, fees are unpaid, or misuse is detected."
         },
         "governingLaw": {
-          "title": "10. Governing law",
-          "p1": "These Terms are governed by the laws of England and Wales, unless mandatory consumer law in your country of residence provides otherwise."
+          "title": "17. Governing law",
+          "p1": "These Terms are governed by the laws of England and Wales. The courts of England and Wales have exclusive jurisdiction, except where mandatory consumer protection law in your country of residence gives you the right to bring proceedings elsewhere."
         }
       }
     },
     "cookies": {
       "title": "Cookie Policy",
-      "lastUpdated": "04 May 2026",
+      "lastUpdated": "18 June 2026",
       "sections": {
         "what": {
           "title": "1. What cookies are",
-          "p1": "Cookies are small text files stored on your device. We also use similar technologies (such as local storage) where needed for application functionality and user preferences."
+          "p1": "Cookies are small text files stored on your device. We also use local storage where needed for sign-in, language, and UI preferences."
         },
         "categories": {
           "title": "2. Cookie categories we use",
-          "p1": "Strictly necessary: required for authentication, security, session handling, and core features. Preferences: store UI and usability choices. Analytics: help us understand performance and usage trends. Marketing: support campaign effectiveness and tailored promotion."
+          "p1": "Strictly necessary: authentication, security, and core features (always active). Preferences: language and UI choices (with your consent on the website). Analytics and marketing: optional categories — we do not currently load third-party analytics or ad trackers; these categories are reserved for future use and stay off unless you consent and we enable them."
         },
         "consent": {
           "title": "3. Consent model",

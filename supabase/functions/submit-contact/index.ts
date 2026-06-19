@@ -48,6 +48,11 @@ serve(async (req) => {
       return jsonResponse({ ok: true });
     }
 
+    const formLoadedAt = Number(body.formLoadedAt);
+    if (Number.isFinite(formLoadedAt) && Date.now() - formLoadedAt < 2500) {
+      return jsonResponse({ ok: true });
+    }
+
     const name = trimField(body.name, MAX.name);
     const email = trimField(body.email, MAX.email);
     const studio = trimField(body.studio, MAX.studio);

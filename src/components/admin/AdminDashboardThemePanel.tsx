@@ -17,6 +17,7 @@ import {
   type DashboardThemeMode,
   type ShopDashboardThemeSettings,
 } from "@/lib/shopDashboardTheme";
+import { uploadFileToUploads } from "@/lib/uploadStorage";
 
 const AdminDashboardThemePanel = () => {
   const { user } = useAuth();
@@ -46,12 +47,10 @@ const AdminDashboardThemePanel = () => {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       const path = `shop_portal_bg/${user.id}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("uploads").upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from("uploads").getPublicUrl(path);
+      const storageRef = await uploadFileToUploads(path, file);
       setSettings((prev) => ({
         ...prev,
-        portalBgImageUrl: `${data.publicUrl}?t=${Date.now()}`,
+        portalBgImageUrl: storageRef,
       }));
       toast({ title: t("admin.dashboardThemeImageUploaded") });
     } catch (e) {

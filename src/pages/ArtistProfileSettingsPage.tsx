@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { THEME_PRESETS } from "@/lib/themePresets";
 import { canArtistCustomizeDashboardTheme, notifyPortalThemeUpdated } from "@/lib/shopDashboardTheme";
+import { uploadFileToUploads } from "@/lib/uploadStorage";
 
 const ArtistProfileSettingsPage = () => {
   const { t } = useTranslation();
@@ -80,10 +81,7 @@ const ArtistProfileSettingsPage = () => {
     if (!user) return null;
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${folder}/${user.id}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("uploads").upload(path, file);
-    if (error) throw error;
-    const { data } = supabase.storage.from("uploads").getPublicUrl(path);
-    return `${data.publicUrl}?t=${Date.now()}`;
+    return uploadFileToUploads(path, file);
   };
 
   const onAvatarFile = async (file?: File) => {

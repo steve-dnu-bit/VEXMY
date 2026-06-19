@@ -43,6 +43,7 @@ void i18n
     resources,
     ns: ["translation", "docs"],
     defaultNS: "translation",
+    lng: DEFAULT_LANGUAGE,
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
     interpolation: { escapeValue: false },

@@ -23,6 +23,7 @@ supabase/.temp/
 
 # Local database dumps (may contain PII; keep outside git)
 backups/*.sql
+backups/*.json
 
 # Local import dumps (PII; regenerate with scripts/merge_contacts_and_appointments_for_supabase_bookings.py)
 import-templates/merged-bookings-supabase.csv

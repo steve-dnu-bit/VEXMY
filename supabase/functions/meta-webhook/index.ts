@@ -4,6 +4,7 @@ import {
   resolveOrgFromChannelConnection,
   storeInboundChannelMessage,
 } from "../_shared/inbox-webhook.ts";
+import { verifyMetaWebhookSignature } from "../_shared/webhook-signatures.ts";
 
 type MetaMessagingEvent = {
   sender?: { id?: string };
@@ -36,13 +37,29 @@ serve(async (req) => {
   }
 
   try {
+    const appSecret = (Deno.env.get("META_APP_SECRET") ?? "").trim();
+    const rawBody = await req.text();
+    if (!appSecret) {
+      console.error("meta-webhook: META_APP_SECRET not configured");
+      return new Response("Server misconfigured", { status: 500 });
+    }
+
+    const signatureOk = await verifyMetaWebhookSignature(
+      rawBody,
+      req.headers.get("x-hub-signature-256"),
+      appSecret,
+    );
+    if (!signatureOk) {
+      return new Response("Invalid signature", { status: 401 });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     if (!supabaseUrl || !serviceKey) {
       return new Response("Server misconfigured", { status: 500 });
     }
 
-    const payload = await req.json();
+    const payload = JSON.parse(rawBody);
     const entries = (payload?.entry ?? []) as MetaEntry[];
     const admin = createClient(supabaseUrl, serviceKey);
     let storedCount = 0;

@@ -11,6 +11,7 @@ This folder mirrors the product documentation published at **[velbok.com/docs](h
 | Clients & CRM | [/docs/clients](https://velbok.com/docs/clients) |
 | Deposits & payments | [/docs/deposits](https://velbok.com/docs/deposits) |
 | Billing & invoices | [/docs/billing](https://velbok.com/docs/billing) |
+| **POS checkout & Tap to Pay** | [/docs/pos-checkout](https://velbok.com/docs/pos-checkout) |
 | Consent forms | [/docs/consent](https://velbok.com/docs/consent) |
 | Customer portal | [/docs/customer-portal](https://velbok.com/docs/customer-portal) |
 | Inbox & messaging | [/docs/inbox](https://velbok.com/docs/inbox) |
@@ -25,8 +26,9 @@ This folder mirrors the product documentation published at **[velbok.com/docs](h
 |-------|----------|
 | Studio instance setup | [/docs/setup](https://velbok.com/docs/setup) |
 | Production go-live checklist | [../Velbok-go-live-checklist.md](../Velbok-go-live-checklist.md) |
+| POS & Tap to Pay (supported phones) | [../pos-tap-to-pay.md](../pos-tap-to-pay.md) |
 | Developer README | [../../README.md](../../README.md) |
 
 ## Source of truth
 
-In-app documentation content lives in `src/lib/docsContent.ts`. Update that file when adding or changing product docs, then redeploy the site.
+In-app documentation content lives in `src/i18n/locales/docs/en.json` and page order in `src/lib/docsContent.ts`. Update those when adding or changing product docs, then redeploy the site. Repo copy: `docs/pos-tap-to-pay.md`.

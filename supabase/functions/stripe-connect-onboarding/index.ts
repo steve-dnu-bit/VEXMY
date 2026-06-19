@@ -5,20 +5,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { resolveOrganizationForUser } from "../_shared/organization.ts";
 
 import {
-
+  assertConnectPlatformReady,
   buildConnectExpressAccountParams,
-
   canManageStripeConnect,
-
   getConnectStatusForOrg,
-
   resolveConnectAccountId,
-
   syncConnectAccountFromStripe,
-
 } from "../_shared/stripe-connect.ts";
-
-import { createConnectStripe } from "../_shared/stripe-keys.ts";
+import { createConnectStripe, getConnectStripeSecret } from "../_shared/stripe-keys.ts";
 
 
 
@@ -82,7 +76,7 @@ serve(async (req) => {
 
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeSecret = getConnectStripeSecret();
 
     if (!supabaseUrl || !serviceKey || !stripeSecret) {
 
@@ -290,11 +284,13 @@ serve(async (req) => {
 
     } else {
 
+      await assertConnectPlatformReady(stripe);
+
       const account = await stripe.accounts.create(
 
         buildConnectExpressAccountParams(organizationId, org.name, shop, user.email),
 
-        { idempotencyKey: `velbok-connect-express-${organizationId}` },
+        { idempotencyKey: `velbok-connect-express-v2-${organizationId}` },
 
       );
 

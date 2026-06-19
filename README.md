@@ -11,8 +11,8 @@ Built with React, Vite, TypeScript, Tailwind, and Supabase.
 - Stripe deposit and invoice payments
 - Digital consent forms with PDF generation
 - Automated booking reminders and aftercare emails
-- Customer portal (bookings, deposits, messages, consent)
-- Staff inbox, billing, stock, AI stencil tools, admin panel
+- Customer portal (bookings, deposits, enquiry tickets, consent)
+- Enquiry tickets, billing, stock, AI stencil tools, admin panel
 
 ## Quick start
 
@@ -74,7 +74,8 @@ Each deployment can customize branding via environment variables (frontend `VITE
 
 - **Product docs (web):** `/docs` on your deployed site — source in `src/lib/docsContent.ts`
 - **User guide index:** [docs/user-guide/README.md](docs/user-guide/README.md)
-- **Go-live checklist:** [docs/Velbok-go-live-checklist.md](docs/Velbok-go-live-checklist.md)
+- **Go-live checklist:** [docs/velbok-go-live-checklist.md](docs/velbok-go-live-checklist.md)
+- **Google Play release:** [docs/google-play-release.md](docs/google-play-release.md)
 
 ## Marketing site
 

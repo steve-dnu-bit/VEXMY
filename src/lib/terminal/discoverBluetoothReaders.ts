@@ -4,23 +4,10 @@ import {
   TerminalEventsEnum,
   type ReaderInterface,
 } from "@capacitor-community/stripe-terminal";
+import { mergeDiscoveredReaders, sleep } from "@/lib/terminal/discoverReadersShared";
+import { isTerminalOperationAborted } from "@/lib/terminal/nativeTerminalState";
 
 const DISCOVERY_TIMEOUT_MS = 30_000;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-function mergeReaders(...groups: Array<ReaderInterface[] | undefined>): ReaderInterface[] {
-  const merged = new Map<string, ReaderInterface>();
-  for (const group of groups) {
-    for (const reader of group ?? []) {
-      const key = reader.serialNumber || reader.label || String(reader.id);
-      if (key) merged.set(key, reader);
-    }
-  }
-  return Array.from(merged.values());
-}
 
 /** Android BLE discovery streams readers via events; the promise can resolve before hardware appears. */
 export async function discoverBluetoothReaders(locationId: string): Promise<ReaderInterface[]> {
@@ -30,7 +17,7 @@ export async function discoverBluetoothReaders(locationId: string): Promise<Read
   const discoveredListener = await StripeTerminal.addListener(
     TerminalEventsEnum.DiscoveredReaders,
     ({ readers }) => {
-      const merged = mergeReaders(collected, readers);
+      const merged = mergeDiscoveredReaders(collected, readers);
       collected.splice(0, collected.length, ...merged);
     },
   );
@@ -45,15 +32,18 @@ export async function discoverBluetoothReaders(locationId: string): Promise<Read
       locationId,
     })
       .then((result) => {
-        const merged = mergeReaders(collected, result.readers);
+        const merged = mergeDiscoveredReaders(collected, result.readers);
         collected.splice(0, collected.length, ...merged);
       })
       .catch(() => undefined);
 
     const deadline = Date.now() + DISCOVERY_TIMEOUT_MS;
     while (Date.now() < deadline) {
+      if (isTerminalOperationAborted()) {
+        throw new Error("Terminal connection token failed — check internet and Stripe Connect setup.");
+      }
       if (collected.length > 0) {
-        return mergeReaders(collected);
+        return mergeDiscoveredReaders(collected);
       }
       await sleep(500);
     }
@@ -62,7 +52,7 @@ export async function discoverBluetoothReaders(locationId: string): Promise<Read
       throw new Error(failureMessage);
     }
 
-    return mergeReaders(collected);
+    return mergeDiscoveredReaders(collected);
   } finally {
     await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
     await discoveredListener.remove();

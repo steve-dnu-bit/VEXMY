@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toUploadsStorageRef } from "@/lib/uploadStorage";
 
 export type StencilSession = {
   id: string;
@@ -82,14 +83,11 @@ export async function persistStencilSession(
     throw new Error(stencilError.message);
   }
 
-  const { data: originalUrlData } = supabase.storage.from("uploads").getPublicUrl(originalPath);
-  const { data: stencilUrlData } = supabase.storage.from("uploads").getPublicUrl(stencilPath);
-
   const { error: dbError } = await supabase.from("stencils").insert({
     id,
     created_by: userId,
-    original_image_url: originalUrlData.publicUrl,
-    stencil_image_url: stencilUrlData.publicUrl,
+    original_image_url: toUploadsStorageRef(originalPath),
+    stencil_image_url: toUploadsStorageRef(stencilPath),
     status: "completed",
   });
 
@@ -102,8 +100,8 @@ export async function persistStencilSession(
     id,
     originalPath,
     stencilPath,
-    originalPublicUrl: originalUrlData.publicUrl,
-    stencilPublicUrl: stencilUrlData.publicUrl,
+    originalPublicUrl: toUploadsStorageRef(originalPath),
+    stencilPublicUrl: toUploadsStorageRef(stencilPath),
   };
 }
 

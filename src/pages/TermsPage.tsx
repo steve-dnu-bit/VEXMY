@@ -5,10 +5,17 @@ import { BRANDING } from "@/lib/branding";
 const TERMS_SECTIONS = [
   "scope",
   "eligibility",
+  "children",
   "acceptableUse",
   "bookings",
+  "subscription",
+  "studioObligations",
+  "dataProcessing",
   "ip",
   "data",
+  "thirdParty",
+  "disclaimer",
+  "indemnity",
   "availability",
   "liability",
   "changes",
@@ -17,7 +24,7 @@ const TERMS_SECTIONS = [
 
 const TermsPage = () => {
   const { t } = useTranslation();
-  const vars = { platformName: BRANDING.platformName };
+  const vars = { platformName: BRANDING.platformName, shopLegalName: BRANDING.shopLegalName };
 
   return (
     <LegalPageLayout title={t("legal.terms.title")} lastUpdated={t("legal.terms.lastUpdated")}>
@@ -26,7 +33,7 @@ const TermsPage = () => {
           <h2 className="font-semibold text-foreground">{t(`legal.terms.sections.${key}.title`)}</h2>
           <p>{t(`legal.terms.sections.${key}.p1`, vars)}</p>
           {t(`legal.terms.sections.${key}.p2`, { defaultValue: "" }) ? (
-            <p>{t(`legal.terms.sections.${key}.p2`)}</p>
+            <p>{t(`legal.terms.sections.${key}.p2`, vars)}</p>
           ) : null}
         </section>
       ))}

@@ -7,7 +7,7 @@
     "db:push": "npx supabase@latest db push",
     "db:link": "npx supabase@latest link --project-ref tkremoxfkgoiuwghtzwd",
     "dev": "vite",
-    "build": "node scripts/generate-sitemap.mjs && node scripts/build-logo-icon.mjs && vite build",
+    "build": "node scripts/generate-sitemap.mjs && node scripts/build-logo-icon.mjs && node scripts/copy-release-apk.mjs && vite build",
     "build:icons": "node scripts/build-logo-icon.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -17,12 +17,15 @@
     "deploy:prod": "npm run build && npx netlify-cli deploy --prod --dir=dist --site dc785d32-2796-486d-8a45-93f1ea0a41e3",
     "test": "vitest run",
     "test:watch": "vitest",
+    "postinstall": "node scripts/patch-stripe-terminal-android.mjs",
     "build:mobile": "vite build",
-    "cap:sync": "npm run build:mobile && npx cap sync",
+    "cap:sync": "node scripts/patch-stripe-terminal-android.mjs && npm run build:mobile && npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
     "cap:run:android": "npm run cap:sync && npx cap run android",
-    "cap:run:ios": "npm run cap:sync && npx cap run ios"
+    "cap:run:ios": "npm run cap:sync && npx cap run ios",
+    "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
+    "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"
   },
   "dependencies": {
     "@capacitor-community/stripe-terminal": "^8.1.1",

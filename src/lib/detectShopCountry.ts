@@ -24,11 +24,15 @@ export async function detectAppLanguageFromIp(): Promise<AppLanguage | null> {
 
 export async function detectShopCountryFromIp(): Promise<GeoCountryResult | null> {
   try {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 3000);
     const res = await fetch(GEO_COUNTRY_PATH, {
       method: "GET",
       credentials: "same-origin",
       cache: "no-store",
+      signal: controller.signal,
     });
+    window.clearTimeout(timeout);
     if (!res.ok) return null;
 
     const contentType = res.headers.get("content-type") || "";

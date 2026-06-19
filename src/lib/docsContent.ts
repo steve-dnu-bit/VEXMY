@@ -23,6 +23,7 @@ export const DOC_PAGE_ORDER: { slug: string; category: DocCategoryId }[] = [
   { slug: "clients", category: "staff" },
   { slug: "deposits", category: "ops" },
   { slug: "billing", category: "ops" },
+  { slug: "pos-checkout", category: "ops" },
   { slug: "consent", category: "clients" },
   { slug: "customer-portal", category: "clients" },
   { slug: "inbox", category: "staff" },

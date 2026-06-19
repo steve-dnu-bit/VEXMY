@@ -3,19 +3,20 @@ export const BRANDING = {
   platformName: import.meta.env.VITE_PLATFORM_NAME || "Velbok",
   platformTagline: import.meta.env.VITE_PLATFORM_TAGLINE || "Tattoo Studio Platform",
   shopName: import.meta.env.VITE_SHOP_NAME || import.meta.env.VITE_PLATFORM_NAME || "Velbok",
-  shopLegalName: import.meta.env.VITE_SHOP_LEGAL_NAME || "Your Studio Ltd",
-  shopTradingName: import.meta.env.VITE_SHOP_TRADING_NAME || import.meta.env.VITE_SHOP_NAME || "Your Tattoo Studio",
-  supportEmail: import.meta.env.VITE_SHOP_SUPPORT_EMAIL || "support@velbok.com",
+  shopLegalName: import.meta.env.VITE_SHOP_LEGAL_NAME || "Inkaholics Limited",
+  shopTradingName: import.meta.env.VITE_SHOP_TRADING_NAME || import.meta.env.VITE_SHOP_NAME || "Velbok",
+  supportEmail:
+    import.meta.env.VITE_SHOP_SUPPORT_EMAIL || "support@velbok.com",
   privacyEmail:
     import.meta.env.VITE_SHOP_PRIVACY_EMAIL ||
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL ||
-    "privacy@example.com",
+    "privacy@velbok.com",
   dpoEmail:
     import.meta.env.VITE_SHOP_DPO_EMAIL ||
     import.meta.env.VITE_SHOP_PRIVACY_EMAIL ||
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL ||
-    "dpo@example.com",
-  websiteUrl: import.meta.env.VITE_SHOP_WEBSITE_URL || "",
+    "privacy@velbok.com",
+  websiteUrl: import.meta.env.VITE_SHOP_WEBSITE_URL || import.meta.env.VITE_SITE_URL || "https://velbok.com",
   address: import.meta.env.VITE_SHOP_ADDRESS || "",
   accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "hsl(43, 34%, 54%)",
   /** V mark only — transparent PNG for in-app UI beside the wordmark text. */

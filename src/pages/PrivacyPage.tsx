@@ -1,10 +1,22 @@
+import React from "react";
 import { useTranslation } from "react-i18next";
 import LegalPageLayout from "@/components/LegalPageLayout";
 import { BRANDING } from "@/lib/branding";
 
 const PrivacyPage = () => {
   const { t } = useTranslation();
-  const vars = { shopLegalName: BRANDING.shopLegalName };
+  const vars = { shopLegalName: BRANDING.shopLegalName, platformName: BRANDING.platformName };
+
+  const section = (key: string, extra?: React.ReactNode) => (
+    <section key={key}>
+      <h2 className="font-semibold text-foreground">{t(`legal.privacy.sections.${key}.title`)}</h2>
+      <p>{t(`legal.privacy.sections.${key}.p1`, vars)}</p>
+      {t(`legal.privacy.sections.${key}.p2`, { defaultValue: "" }) ? (
+        <p>{t(`legal.privacy.sections.${key}.p2`, vars)}</p>
+      ) : null}
+      {extra}
+    </section>
+  );
 
   return (
     <LegalPageLayout title={t("legal.privacy.title")} lastUpdated={t("legal.privacy.lastUpdated")}>
@@ -24,16 +36,13 @@ const PrivacyPage = () => {
         </p>
       </section>
 
-      <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.dataCollect.title")}</h2>
-        <p>{t("legal.privacy.sections.dataCollect.p1")}</p>
-        <p>{t("legal.privacy.sections.dataCollect.p2")}</p>
-      </section>
-
-      <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.whenCollect.title")}</h2>
-        <p>{t("legal.privacy.sections.whenCollect.p1")}</p>
-      </section>
+      {section("roles")}
+      {section("dataCollect")}
+      {section("healthData")}
+      {section("whenCollect")}
+      {section("mobile")}
+      {section("subprocessors")}
+      {section("transfers")}
 
       <section>
         <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.lawfulBases.title")}</h2>
@@ -46,28 +55,21 @@ const PrivacyPage = () => {
         ))}
       </section>
 
-      <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.howUse.title")}</h2>
-        <p>{t("legal.privacy.sections.howUse.p1")}</p>
-        <p>{t("legal.privacy.sections.howUse.p2", vars)}</p>
-      </section>
+      {section("howUse")}
+      {section("cookies")}
+      {section("security")}
+      {section("children")}
 
       <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.cookies.title")}</h2>
-        <p>{t("legal.privacy.sections.cookies.p1")}</p>
-        <p>{t("legal.privacy.sections.cookies.p2")}</p>
-      </section>
-
-      <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.security.title")}</h2>
-        <p>{t("legal.privacy.sections.security.p1")}</p>
-        <p>{t("legal.privacy.sections.security.p2")}</p>
-      </section>
-
-      <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.cctv.title")}</h2>
-        <p>{t("legal.privacy.sections.cctv.p1")}</p>
-        <p>{t("legal.privacy.sections.cctv.p2")}</p>
+        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.ccpa.title")}</h2>
+        <p>
+          {t("legal.privacy.sections.ccpa.p1")}{" "}
+          <a href={`mailto:${BRANDING.privacyEmail}`} className="text-primary hover:underline">
+            {BRANDING.privacyEmail}
+          </a>
+          .
+        </p>
+        <p>{t("legal.privacy.sections.ccpa.p2")}</p>
       </section>
 
       <section>
@@ -86,10 +88,7 @@ const PrivacyPage = () => {
         <p>{t("legal.privacy.sections.rights.p2")}</p>
       </section>
 
-      <section>
-        <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.updates.title")}</h2>
-        <p>{t("legal.privacy.sections.updates.p1")}</p>
-      </section>
+      {section("updates")}
     </LegalPageLayout>
   );
 };

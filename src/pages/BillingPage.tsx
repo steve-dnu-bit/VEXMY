@@ -293,9 +293,9 @@ const BillingPage = () => {
             <FileText className="h-5 w-5 text-primary" /> {t("billing.invoicesTitle")}
           </h2>
           <p className="text-xs text-muted-foreground mb-3">{t("billing.invoicesSubtitle")}</p>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 mb-3">
             <Input
-              className="md:col-span-2"
+              className="sm:col-span-2 md:col-span-2"
               placeholder={t("billing.searchPlaceholder")}
               value={invoiceSearch}
               onChange={(e) => setInvoiceSearch(e.target.value)}
@@ -311,8 +311,10 @@ const BillingPage = () => {
                 <SelectItem value="paid">{t("billing.statusPaid")}</SelectItem>
               </SelectContent>
             </Select>
-            <Input type="date" value={invoiceFromDate} onChange={(e) => setInvoiceFromDate(e.target.value)} />
-            <Input type="date" value={invoiceToDate} onChange={(e) => setInvoiceToDate(e.target.value)} />
+            <div className="grid grid-cols-2 gap-2 sm:col-span-2 md:col-span-2 md:contents">
+              <Input type="date" value={invoiceFromDate} onChange={(e) => setInvoiceFromDate(e.target.value)} />
+              <Input type="date" value={invoiceToDate} onChange={(e) => setInvoiceToDate(e.target.value)} />
+            </div>
           </div>
           {filteredInvoices.length === 0 ? (
             <Card>
@@ -321,6 +323,8 @@ const BillingPage = () => {
               </CardContent>
             </Card>
           ) : (
+            <>
+            <div className="hidden md:block">
             <Card>
               <CardContent className="p-0 overflow-x-auto">
                 <Table className="min-w-[780px]">
@@ -393,6 +397,73 @@ const BillingPage = () => {
                 </Table>
               </CardContent>
             </Card>
+            </div>
+
+            <div className="md:hidden space-y-3">
+              {filteredInvoices.map((inv) => (
+                <Card key={inv.id}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-mono text-xs text-muted-foreground">{inv.invoice_number}</p>
+                        <p className="font-semibold truncate">{inv.client_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {companies.find(c => c.id === inv.company_id)?.name || "—"}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-semibold tabular-nums">{fmt(Number(inv.total), inv.currency)}</p>
+                        <Badge
+                          variant={inv.status === "paid" ? "default" : inv.status === "sent" ? "outline" : "secondary"}
+                          className="text-[10px] capitalize mt-1"
+                        >
+                          {inv.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div>
+                        <p className="uppercase tracking-wide text-[10px]">{t("billing.dueDate")}</p>
+                        <p className="text-foreground">{inv.due_date ? format(parseISO(inv.due_date), "d MMM yyyy") : "—"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase tracking-wide text-[10px]">{t("billing.created")}</p>
+                        <p className="text-foreground">{format(parseISO(inv.created_at), "d MMM yyyy")}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <EditInvoiceDialog
+                        invoice={inv}
+                        onSaved={fetchInvoices}
+                        trigger={<Button size="sm" variant="outline" className="h-9">{t("billing.edit")}</Button>}
+                      />
+                      <Button size="sm" variant="outline" className="h-9" onClick={() => handleDownloadInvoice(inv.id, inv.invoice_number)}>
+                        {t("billing.download")}
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-9" onClick={() => handleResendInvoice(inv.id)}>
+                        {t("billing.resend")}
+                      </Button>
+                      {inv.status !== "paid" && (
+                        <Button size="sm" variant="outline" className="h-9" onClick={() => handleCreateInvoicePayLink(inv.id)}>
+                          {t("billing.copyPayLink")}
+                        </Button>
+                      )}
+                      {inv.status === "draft" && (
+                        <Button size="sm" variant="outline" className="h-9" onClick={() => handleInvoiceStatus(inv.id, "sent")}>
+                          {t("billing.markSent")}
+                        </Button>
+                      )}
+                      {inv.status !== "paid" && (
+                        <Button size="sm" variant="default" className="h-9" onClick={() => handleInvoiceStatus(inv.id, "paid")}>
+                          {t("billing.markPaid")}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            </>
           )}
         </div>
 

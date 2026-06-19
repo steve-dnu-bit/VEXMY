@@ -4,6 +4,7 @@ import {
   resolveOrgFromChannelConnection,
   storeInboundChannelMessage,
 } from "../_shared/inbox-webhook.ts";
+import { verifyTwilioWebhookSignature } from "../_shared/webhook-signatures.ts";
 
 function parseTwilioForm(body: string): Record<string, string> {
   const params = new URLSearchParams(body);
@@ -16,20 +17,44 @@ function stripWhatsappPrefix(value: string): string {
   return value.replace(/^whatsapp:/i, "");
 }
 
+function twilioWebhookUrl(req: Request): string {
+  const configured = (Deno.env.get("TWILIO_WEBHOOK_URL") ?? "").trim();
+  if (configured) return configured.replace(/\/$/, "");
+  const url = new URL(req.url);
+  return `${url.origin}${url.pathname}`.replace(/\/$/, "");
+}
+
 serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
   try {
+    const authToken = (Deno.env.get("TWILIO_AUTH_TOKEN") ?? "").trim();
+    const rawBody = await req.text();
+    const form = parseTwilioForm(rawBody);
+
+    if (authToken) {
+      const signatureOk = await verifyTwilioWebhookSignature(
+        authToken,
+        req.headers.get("x-twilio-signature"),
+        twilioWebhookUrl(req),
+        form,
+      );
+      if (!signatureOk) {
+        return new Response("Invalid signature", { status: 401 });
+      }
+    } else {
+      console.error("whatsapp-webhook: TWILIO_AUTH_TOKEN not configured — rejecting unsigned request");
+      return new Response("Server misconfigured", { status: 500 });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     if (!supabaseUrl || !serviceKey) {
       return new Response("Server misconfigured", { status: 500 });
     }
 
-    const rawBody = await req.text();
-    const form = parseTwilioForm(rawBody);
     const from = stripWhatsappPrefix(form.From ?? "");
     const to = stripWhatsappPrefix(form.To ?? "");
     const text = (form.Body ?? "").trim();

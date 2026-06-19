@@ -695,8 +695,7 @@ serve(async (req) => {
           upsert: true,
         });
         if (!upErrUint) {
-          const { data: pub } = adminClient.storage.from(bucket).getPublicUrl(destPath);
-          consentPdfUrl = pub.publicUrl;
+          consentPdfUrl = `uploads:${destPath}`;
           pdfUploadError = null;
           break;
         }
@@ -706,8 +705,7 @@ serve(async (req) => {
           upsert: true,
         });
         if (!upErrBlob) {
-          const { data: pub } = adminClient.storage.from(bucket).getPublicUrl(destPath);
-          consentPdfUrl = pub.publicUrl;
+          consentPdfUrl = `uploads:${destPath}`;
           pdfUploadError = null;
           break;
         }

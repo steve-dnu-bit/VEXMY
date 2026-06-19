@@ -54,6 +54,7 @@ serve(async (req) => {
     const returnPath = typeof body.returnPath === "string" && body.returnPath.startsWith("/")
       ? body.returnPath
       : "/admin";
+    const syncOnly = body.syncOnly === true;
 
     const admin = createClient(supabaseUrl, serviceKey);
     const stripe = createConnectStripe();
@@ -92,10 +93,12 @@ serve(async (req) => {
             .update({ stripe_connect_account_id: resolvedAccountId })
             .eq("id", org.id);
         }
+      } else if (syncOnly) {
+        if (!accountId) continue;
       } else {
         const account = await stripe.accounts.create(
           buildConnectExpressAccountParams(org.id, org.name, shop),
-          { idempotencyKey: `velbok-connect-express-${org.id}` },
+          { idempotencyKey: `velbok-connect-express-v2-${org.id}` },
         );
         accountId = account.id;
         createdAccount = true;

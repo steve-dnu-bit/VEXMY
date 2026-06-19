@@ -66,6 +66,9 @@ serve(async (req) => {
       });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const skipDatabaseReset = body.skipDatabaseReset === true;
+
     const stripe = new Stripe(stripeSecret);
     const webhookUrl = resolveWebhookUrl();
 
@@ -84,27 +87,30 @@ serve(async (req) => {
       metadata: { velbok: "true" },
     });
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const admin = createClient(supabaseUrl, serviceKey);
+    let databaseReset = false;
+    if (!skipDatabaseReset) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+      const admin = createClient(supabaseUrl, serviceKey);
+      const zeroUuid = "00000000-0000-0000-0000-000000000000";
 
-    const zeroUuid = "00000000-0000-0000-0000-000000000000";
+      await admin.from("organizations").update({
+        stripe_customer_id: null,
+        stripe_connect_account_id: null,
+        stripe_connect_charges_enabled: false,
+        stripe_connect_payouts_enabled: false,
+        stripe_connect_details_submitted: false,
+        stripe_connect_onboarded_at: null,
+      }).neq("id", zeroUuid);
 
-    await admin.from("organizations").update({
-      stripe_customer_id: null,
-      stripe_connect_account_id: null,
-      stripe_connect_charges_enabled: false,
-      stripe_connect_payouts_enabled: false,
-      stripe_connect_details_submitted: false,
-      stripe_connect_onboarded_at: null,
-    }).neq("id", zeroUuid);
+      await admin.from("companies").update({
+        stripe_account_id: null,
+        updated_at: new Date().toISOString(),
+      }).not("stripe_account_id", "is", null);
 
-    await admin.from("companies").update({
-      stripe_account_id: null,
-      updated_at: new Date().toISOString(),
-    }).not("stripe_account_id", "is", null);
-
-    await admin.from("subscription_events").delete().neq("id", zeroUuid);
-    await admin.from("platform_subscriptions").delete().neq("organization_id", zeroUuid);
+      await admin.from("subscription_events").delete().neq("id", zeroUuid);
+      await admin.from("platform_subscriptions").delete().neq("organization_id", zeroUuid);
+      databaseReset = true;
+    }
 
     return new Response(
       JSON.stringify({
@@ -113,7 +119,7 @@ serve(async (req) => {
         webhookUrl,
         endpointId: endpoint.id,
         removedEndpointIds: removed,
-        databaseReset: true,
+        databaseReset,
         secrets: {
           STRIPE_WEBHOOK_SECRET: endpoint.secret,
         },

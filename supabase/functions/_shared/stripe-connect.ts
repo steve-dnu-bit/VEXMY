@@ -280,3 +280,33 @@ export function stripeRequestOptions(connectAccountId: string | null | undefined
   if (!connectAccountId) return undefined;
   return { stripeAccount: connectAccountId };
 }
+
+/** Throws with Stripe's message when the Connect platform cannot create Express accounts yet. */
+export async function assertConnectPlatformReady(stripe: Stripe): Promise<void> {
+  try {
+    const probe = await stripe.accounts.create({
+      type: "express",
+      country: "GB",
+      capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
+      metadata: { velbok_connect_probe: "delete_me" },
+    });
+    try {
+      await stripe.accounts.del(probe.id);
+    } catch {
+      /* best-effort */
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("platform-profile")) {
+      throw new Error(
+        "Stripe Connect platform profile is incomplete on your shop account. Open https://dashboard.stripe.com/settings/connect/platform-profile while logged into Inkaholics (acct_1TFFWdAxFvqjl4T2), review loss responsibilities, and save.",
+      );
+    }
+    if (msg.includes("signed up for Connect")) {
+      throw new Error(
+        "Stripe Connect is not fully enabled on your shop account. Open https://dashboard.stripe.com/connect while logged into Inkaholics (not Velbok), choose Platform + Express, and finish setup.",
+      );
+    }
+    throw e instanceof Error ? e : new Error(msg);
+  }
+}

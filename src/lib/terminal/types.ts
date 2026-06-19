@@ -1,3 +1,6 @@
+/** How the native app discovers a Stripe Terminal reader. */
+export type TerminalReaderMode = "bluetooth" | "tap_to_pay";
+
 export type TerminalReaderInfo = {
   id: string;
   label?: string;
@@ -24,10 +27,15 @@ export interface TerminalProvider {
   disconnect(): Promise<void>;
   collectAndProcess(clientSecret: string): Promise<TerminalCollectResult>;
   getConnectedReader(): TerminalReaderInfo | null;
+  updateReaderDisplay?(cart: import("@/lib/terminal/readerDisplay").ReaderDisplayCart): Promise<void>;
 }
 
 export type TerminalProviderOptions = {
   simulated: boolean;
+  readerMode: TerminalReaderMode;
   locationId?: string | null;
   onUnexpectedDisconnect?: () => void;
+  onConnectionTokenError?: (message: string) => void;
+  onReaderStatus?: (message: string) => void;
+  onFirmwareUpdateChange?: (state: { active: boolean; progress: number; completed?: boolean }) => void;
 };

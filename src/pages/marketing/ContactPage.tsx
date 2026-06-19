@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
@@ -26,6 +26,7 @@ const ContactPage = () => {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const formLoadedAt = useRef(Date.now());
 
   const selectedPlan = pricingPlans.find((p) => p.id === preselectedPlan);
 
@@ -43,6 +44,7 @@ const ContactPage = () => {
           plan: plan || "not-sure",
           message: message.trim(),
           honeypot: botField,
+          formLoadedAt: formLoadedAt.current,
         },
       );
       if (error) throw error;

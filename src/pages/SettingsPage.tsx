@@ -16,6 +16,8 @@ import { useThemePreference } from "@/components/theme/ThemeProvider";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { canArtistCustomizeDashboardTheme } from "@/lib/shopDashboardTheme";
+import { uploadFileToUploads } from "@/lib/uploadStorage";
+import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
@@ -47,7 +49,8 @@ const SettingsPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { theme, setTheme } = useThemePreference();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarStored, setAvatarStored] = useState<string | null>(null);
+  const avatarUrl = useResolvedUploadUrl(avatarStored);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [consentRows, setConsentRows] = useState<Array<{ id: string; full_name: string; email: string | null; created_at: string; consent_pdf_url: string | null }>>([]);
@@ -60,7 +63,7 @@ const SettingsPage = () => {
   useEffect(() => {
     if (user) {
       supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single().then(({ data }) => {
-        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data?.avatar_url) setAvatarStored(data.avatar_url);
       });
       (async () => {
         const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
@@ -89,13 +92,10 @@ const SettingsPage = () => {
     try {
       const ext = file.name.split(".").pop();
       const path = `avatars/${user.id}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("uploads").upload(path, file);
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(path);
-      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+      const storageRef = await uploadFileToUploads(path, file);
+      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: storageRef }).eq("user_id", user.id);
       if (updateError) throw updateError;
-      setAvatarUrl(publicUrl);
+      setAvatarStored(storageRef);
       toast({ title: t("settings.profileUpdated") });
     } catch (err: any) {
       toast({ title: t("settings.uploadFailed"), description: err.message, variant: "destructive" });
@@ -265,6 +265,18 @@ const SettingsPage = () => {
               ) : (
                 <p className="text-xs text-muted-foreground">{t("settings.noConsentYet")}</p>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{t("settings.legalTitle")}</CardTitle>
+              <CardDescription>{t("settings.legalDesc")}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3 text-sm">
+              <Link to="/privacy" className="text-primary hover:underline">{t("common.privacy")}</Link>
+              <Link to="/terms" className="text-primary hover:underline">{t("common.terms")}</Link>
+              <Link to="/cookies" className="text-primary hover:underline">{t("common.cookies")}</Link>
             </CardContent>
           </Card>
 

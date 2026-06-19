@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useArtistSeats, useSubscription } from "@/hooks/useSubscription";
+import { isNativeApp } from "@/lib/platform";
 
 /**
  * Blocks pages that require a paid platform subscription.
@@ -36,14 +37,16 @@ const SubscriptionGate = ({ children }: { children: React.ReactNode }) => {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3">
           <Button variant="gold" asChild>
-            <Link to="/subscribe?plan=enterprise">
+            <Link to={isNativeApp() ? "/billing" : "/subscribe?plan=enterprise"}>
               <Crown className="mr-2 h-4 w-4" />
               {t("common.subscribeNow")}
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/pricing">{t("common.comparePlans")}</Link>
-          </Button>
+          {!isNativeApp() ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/pricing">{t("common.comparePlans")}</Link>
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
     </div>

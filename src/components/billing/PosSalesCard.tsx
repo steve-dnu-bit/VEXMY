@@ -45,15 +45,15 @@ const PosSalesCard = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
-        <div>
+      <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="min-w-0">
           <CardTitle className="text-lg flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-primary" />
+            <CreditCard className="h-5 w-5 text-primary shrink-0" />
             {t("pos.recentSales")}
           </CardTitle>
           <CardDescription>{t("pos.recentSalesHint")}</CardDescription>
         </div>
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" className="shrink-0 self-start" asChild>
           <Link to="/checkout">{t("pos.checkoutTitle")}</Link>
         </Button>
       </CardHeader>
@@ -66,22 +66,26 @@ const PosSalesCard = () => {
               const items = Array.isArray(sale.items) ? (sale.items as PosLineItem[]) : [];
               const summary = items.map((i) => i.name).slice(0, 2).join(", ");
               return (
-                <div key={sale.id} className="flex items-start justify-between gap-3 text-sm border-b border-border/60 pb-3 last:border-0 last:pb-0">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{sale.client_name || "—"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{summary || artists[sale.artist_id] || "—"}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{format(parseISO(sale.created_at), "d MMM yyyy, HH:mm")}</p>
+                <div key={sale.id} className="rounded-xl border border-border bg-card/80 p-4 space-y-2 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{sale.client_name || "—"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{summary || artists[sale.artist_id] || "—"}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-semibold tabular-nums">{formatShopMoney(Number(sale.total), sale.currency)}</p>
+                      <Badge variant={sale.status === "succeeded" ? "default" : "outline"} className="text-[10px] mt-1 capitalize">
+                        {sale.status === "succeeded"
+                          ? t("pos.saleStatusSucceeded")
+                          : sale.status === "pending"
+                            ? t("pos.saleStatusPending")
+                            : t("pos.saleStatusFailed")}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-semibold tabular-nums">{formatShopMoney(Number(sale.total), sale.currency)}</p>
-                    <Badge variant={sale.status === "succeeded" ? "default" : "outline"} className="text-[10px] mt-1 capitalize">
-                      {sale.status === "succeeded"
-                        ? t("pos.saleStatusSucceeded")
-                        : sale.status === "pending"
-                          ? t("pos.saleStatusPending")
-                          : t("pos.saleStatusFailed")}
-                    </Badge>
-                  </div>
+                  <p className="text-xs text-muted-foreground pt-1 border-t border-border/60">
+                    {format(parseISO(sale.created_at), "d MMM yyyy, HH:mm")}
+                  </p>
                 </div>
               );
             })}

@@ -72,10 +72,15 @@ export async function resolvePostLoginPath(userId: string, rawNext: string | nul
   if (next) return next;
   if (await fetchIsOnlyCustomer(userId)) return "/account";
   if (await fetchHasStaffAccess(userId)) {
-    if (!(await hasActiveOrganizationSubscription(userId))) return "/subscribe?plan=studio";
-    return isNativeApp() ? "/checkout" : "/schedule";
+    if (!(await hasActiveOrganizationSubscription(userId))) {
+      // Mobile app has no /subscribe page — avoid auth ↔ subscribe redirect loop.
+      return isNativeApp() ? "/billing" : "/subscribe?plan=studio";
+    }
+    return "/schedule";
   }
-  if (await fetchHasNoAppRoles(userId)) return "/subscribe?plan=studio";
+  if (await fetchHasNoAppRoles(userId)) {
+    return isNativeApp() ? "/billing" : "/subscribe?plan=studio";
+  }
   return "/account";
 }
 

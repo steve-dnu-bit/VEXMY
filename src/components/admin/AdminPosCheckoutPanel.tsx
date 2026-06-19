@@ -39,6 +39,9 @@ const AdminPosCheckoutPanel = () => {
   const [artists, setArtists] = useState<ArtistProfile[]>([]);
   const [draftSplits, setDraftSplits] = useState<Record<string, { shop: string; connect: string }>>({});
   const [settingUpTerminal, setSettingUpTerminal] = useState(false);
+  const [diagnosingTerminal, setDiagnosingTerminal] = useState(false);
+  const [terminalDiagnostics, setTerminalDiagnostics] = useState<Record<string, unknown> | null>(null);
+  const [connectAccountId, setConnectAccountId] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -49,11 +52,12 @@ const AdminPosCheckoutPanel = () => {
         return;
       }
 
-      const [posRow, splits, profilesRes, rolesRes] = await Promise.all([
+      const [posRow, splits, profilesRes, rolesRes, connectRes] = await Promise.all([
         loadShopPosSettings(id),
         loadArtistPosSplits(id),
         supabase.from("profiles").select("user_id, display_name"),
         supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+        invokeEdgeFunctionJson<{ connectAccountId?: string | null }>("stripe-terminal-pos", { action: "connect_status" }),
       ]);
 
       const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
@@ -61,6 +65,7 @@ const AdminPosCheckoutPanel = () => {
 
       setArtists(artistProfiles);
       setArtistSplits(splits);
+      setConnectAccountId(connectRes.data?.connectAccountId ?? null);
       if (posRow) {
         const { organization_id: _org, ...rest } = posRow;
         setSettings(rest);
@@ -133,10 +138,11 @@ const AdminPosCheckoutPanel = () => {
     toast.success(t("pos.artistSplitSaved"));
   };
 
-  const setupTerminalLocation = async () => {
+  const setupTerminalLocation = async (forceRecreate = false) => {
     setSettingUpTerminal(true);
-    const { data, error } = await invokeEdgeFunctionJson<{ locationId?: string }>("stripe-terminal-pos", {
+    const { data, error } = await invokeEdgeFunctionJson<{ locationId?: string; recreated?: boolean }>("stripe-terminal-pos", {
       action: "ensure_location",
+      forceRecreate,
     });
     setSettingUpTerminal(false);
     if (error || !data.locationId) {
@@ -147,7 +153,26 @@ const AdminPosCheckoutPanel = () => {
     if (orgId) {
       await saveShopPosSettings(orgId, { ...settings, stripe_terminal_location_id: data.locationId });
     }
-    toast.success(t("pos.terminalSetupDone"));
+    toast.success(data.recreated ? t("pos.terminalSetupRecreated") : t("pos.terminalSetupDone"));
+  };
+
+  const runTerminalDiagnostics = async () => {
+    setDiagnosingTerminal(true);
+    setTerminalDiagnostics(null);
+    const { data, error } = await invokeEdgeFunctionJson<Record<string, unknown>>("stripe-terminal-pos", {
+      action: "terminal_diagnose",
+    });
+    setDiagnosingTerminal(false);
+    if (error) {
+      toast.error(error.message || t("pos.terminalDiagnoseFailed"));
+      return;
+    }
+    setTerminalDiagnostics(data ?? null);
+    if (data?.connectionTokenOk && data?.locationValid) {
+      toast.success(t("pos.terminalDiagnoseOk"));
+    } else {
+      toast.error(t("pos.terminalDiagnoseIssues"));
+    }
   };
 
   if (loading) {
@@ -236,6 +261,13 @@ const AdminPosCheckoutPanel = () => {
               <p className="font-medium text-sm">{t("pos.terminalTitle")}</p>
             </div>
             <p className="text-xs text-muted-foreground">{t("pos.terminalIntro")}</p>
+            {connectAccountId ? (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs space-y-1">
+                <p className="font-medium">{t("pos.terminalConnectAccount")}</p>
+                <p className="font-mono break-all">{connectAccountId}</p>
+                <p className="text-muted-foreground">{t("pos.terminalConnectAccountHint")}</p>
+              </div>
+            ) : null}
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="pos-reader-label">{t("pos.readerLabel")}</Label>
@@ -254,8 +286,22 @@ const AdminPosCheckoutPanel = () => {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" disabled={settingUpTerminal} onClick={() => void setupTerminalLocation()}>
+              <Button type="button" variant="outline" size="sm" disabled={settingUpTerminal} onClick={() => void setupTerminalLocation(false)}>
                 {settingUpTerminal ? t("common.loading") : t("pos.setupTerminal")}
+              </Button>
+              {settings.stripe_terminal_location_id ? (
+                <Button type="button" variant="outline" size="sm" disabled={settingUpTerminal} onClick={() => void setupTerminalLocation(true)}>
+                  {t("pos.recreateTerminalLocation")}
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={diagnosingTerminal}
+                onClick={() => void runTerminalDiagnostics()}
+              >
+                {diagnosingTerminal ? t("common.loading") : t("pos.terminalDiagnose")}
               </Button>
               <div className="flex items-center gap-2 text-sm">
                 <Switch
@@ -265,6 +311,11 @@ const AdminPosCheckoutPanel = () => {
                 <span className="text-muted-foreground">{t("pos.simulatedReader")}</span>
               </div>
             </div>
+            {terminalDiagnostics ? (
+              <pre className="text-[10px] font-mono bg-muted/50 rounded-md p-3 overflow-x-auto whitespace-pre-wrap break-all">
+                {JSON.stringify(terminalDiagnostics, null, 2)}
+              </pre>
+            ) : null}
           </div>
 
           <Button onClick={() => void saveSettings()} disabled={saving}>

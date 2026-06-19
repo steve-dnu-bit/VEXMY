@@ -16,5 +16,7 @@ export function stripeTerminalIsTestMode(): boolean {
   const flag = import.meta.env.VITE_STRIPE_TERMINAL_TEST_MODE;
   if (flag === "true" || flag === "1") return true;
   if (flag === "false" || flag === "0") return false;
+  // Production mobile builds use live Connect keys — never default to test mode.
+  if (isNativeApp()) return false;
   return import.meta.env.DEV;
 }

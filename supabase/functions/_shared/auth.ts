@@ -91,3 +91,31 @@ export async function callerIsOnlyCustomer(admin: SupabaseClient, userId: string
   const hasStaff = roles.some((r) => r === "admin" || r === "artist");
   return roles.includes("customer") && !hasStaff;
 }
+
+export async function callerIsPlatformAdmin(admin: SupabaseClient, userId: string): Promise<boolean> {
+  const { data } = await admin.rpc("is_platform_admin", { _user_id: userId });
+  return !!data;
+}
+
+/** Stripe Terminal / POS — staff with checkout or billing permission only. */
+export async function callerHasPosAccess(admin: SupabaseClient, userId: string): Promise<boolean> {
+  if (await callerIsPlatformAdmin(admin, userId)) return true;
+  if (await callerIsOnlyCustomer(admin, userId)) return false;
+  if (await callerIsAdmin(admin, userId)) return true;
+  for (const feature of ["checkout", "billing"] as const) {
+    const { data } = await admin.rpc("has_permission", { _user_id: userId, _feature: feature });
+    if (data) return true;
+  }
+  return false;
+}
+
+export async function callerIsOrgMember(
+  admin: SupabaseClient,
+  organizationId: string | null | undefined,
+  userId: string,
+): Promise<boolean> {
+  if (!organizationId) return false;
+  if (await callerIsPlatformAdmin(admin, userId)) return true;
+  const { data } = await admin.rpc("is_org_member", { _org_id: organizationId, _user_id: userId });
+  return !!data;
+}

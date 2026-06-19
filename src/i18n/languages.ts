@@ -18,7 +18,7 @@ export const DEFAULT_LANGUAGE: AppLanguage = "en";
 export const LANGUAGE_STORAGE_KEY = "velbok.appLanguage";
 export const LANGUAGE_SOURCE_KEY = "velbok.appLanguageSource";
 
-export type LanguageSource = "user" | "ip" | "navigator" | "profile";
+export type LanguageSource = "user" | "ip" | "navigator" | "profile" | "default";
 
 export function isAppLanguage(value: string | null | undefined): value is AppLanguage {
   return SUPPORTED_LANGUAGES.some((l) => l.code === value);
@@ -27,7 +27,7 @@ export function isAppLanguage(value: string | null | undefined): value is AppLan
 export function getStoredLanguageSource(): LanguageSource | null {
   if (typeof window === "undefined") return null;
   const source = window.localStorage.getItem(LANGUAGE_SOURCE_KEY);
-  if (source === "user" || source === "ip" || source === "navigator" || source === "profile") {
+  if (source === "user" || source === "ip" || source === "navigator" || source === "profile" || source === "default") {
     return source;
   }
   return null;
@@ -39,7 +39,7 @@ export function hasResolvedLanguageChoice(): boolean {
   const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
   if (!isAppLanguage(stored)) return false;
   const source = getStoredLanguageSource();
-  if (source === "user" || source === "profile" || source === "ip" || source === "navigator") {
+  if (source === "user" || source === "profile" || source === "ip" || source === "navigator" || source === "default") {
     return true;
   }
   return false;

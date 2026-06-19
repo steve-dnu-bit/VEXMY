@@ -9,6 +9,7 @@ import { emailLocaleToIntlDateLocale, resolveEmailLocale, t } from "../_shared/e
 import { getActiveConnectAccount } from "../_shared/stripe-connect.ts";
 import { getConnectStripeSecret } from "../_shared/stripe-keys.ts";
 import { formatShopMoney, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
+import { callerIsOrgMember } from "../_shared/auth.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -275,6 +276,15 @@ serve(async (req) => {
       });
     }
 
+    const invoiceOrgId = (invoice as { organization_id?: string | null }).organization_id ?? null;
+    const inOrg = await callerIsOrgMember(adminClient, invoiceOrgId, authData.user.id);
+    if (!inOrg) {
+      return new Response(JSON.stringify({ error: "Forbidden", reason: "invoice_org_mismatch" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!invoice.client_email) {
       return new Response(JSON.stringify({ error: "Invoice has no client email" }), {
         status: 400,
@@ -316,11 +326,14 @@ serve(async (req) => {
       ? invoice.issuer_address as Record<string, unknown>
       : null;
 
-    // Stripe pay-link is optional: never block invoice email/PDF if checkout fails (bad key, low total, DB column drift, etc.)
+    // Stripe pay-link is required for card + due invoices.
+    // Do not silently send an invoice email without the Stripe button in that case.
     let payUrl: string | null = null;
+    let payLinkError: string | null = null;
     if (stripeSecret && action !== "pdf" && invoice.payment_method === "card" && invoice.payment_term === "due") {
       const invoiceTotal = Number(invoice.total || 0);
-      if (invoiceTotal >= stripeMinimumChargeMajor(invoiceCurrency)) {
+      const minCharge = stripeMinimumChargeMajor(invoiceCurrency);
+      if (invoiceTotal >= minCharge) {
         try {
           const checkout = await createInvoiceCheckoutUrl({
             stripeSecret,
@@ -344,9 +357,26 @@ serve(async (req) => {
             } as any)
             .eq("id", invoice.id);
         } catch (stripeErr) {
-          console.error("send-invoice: Stripe checkout or DB update failed; continuing without pay link:", stripeErr);
+          const msg = stripeErr instanceof Error ? stripeErr.message : String(stripeErr);
+          payLinkError = `Failed to create Stripe payment link: ${msg}`;
+          console.error("send-invoice: Stripe checkout or DB update failed:", stripeErr);
         }
+      } else {
+        payLinkError = `Invoice total is below Stripe minimum (${formatShopMoney(minCharge, invoiceCurrency)}).`;
       }
+    }
+
+    if (action !== "pdf" && invoice.payment_method === "card" && invoice.payment_term === "due" && !payUrl) {
+      return new Response(
+        JSON.stringify({
+          error: payLinkError || "Stripe payment link could not be generated for this invoice.",
+          code: "stripe_link_missing",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const brand = getShopBranding();

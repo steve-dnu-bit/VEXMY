@@ -104,9 +104,8 @@ const MobileAppRoutes = () => (
     <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
     {/* Marketing / platform / customer portal — not included in the mobile app shell */}
     <Route path="/pricing" element={<Navigate to="/auth" replace />} />
-    <Route path="/subscribe" element={<Navigate to="/auth" replace />} />
+    <Route path="/subscribe" element={<Navigate to="/billing" replace />} />
     <Route path="/platform" element={<Navigate to="/admin" replace />} />
-    <Route path="/account" element={<Navigate to="/checkout" replace />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

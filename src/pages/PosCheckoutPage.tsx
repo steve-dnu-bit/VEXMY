@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search } from "lucide-react";
+import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search, Smartphone } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
+import { WisePadSetupPanels } from "@/components/pos/WisePadSetupPanels";
+import { TapToPayReadinessAlert, useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import { Button } from "@/components/ui/button";
@@ -13,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +46,22 @@ import {
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
-import { isNativeApp } from "@/lib/platform";
+import { isNativeApp, nativePlatform } from "@/lib/platform";
+import {
+  dismissWisePadSetupGuide,
+  hasWisePadFirmwareCompleted,
+  isWisePadSetupGuideDismissed,
+  markWisePadFirmwareCompleted,
+} from "@/lib/terminal/wisePadSetupStorage";
+import { ensureTerminalLocation } from "@/lib/terminal/ensureTerminalLocation";
+import { buildReaderDisplayCart } from "@/lib/terminal/readerDisplay";
+import { setCachedTerminalLocationId } from "@/lib/terminal/terminalLocationCache";
+import { runStripeTerminalPreflight } from "@/lib/terminal/fetchConnectionToken";
+import {
+  loadTerminalReaderMode,
+  saveTerminalReaderMode,
+} from "@/lib/terminal/terminalReaderModeStorage";
+import type { TerminalReaderMode } from "@/lib/terminal/types";
 import { useSearchParams } from "react-router-dom";
 
 interface ArtistOption {
@@ -82,6 +101,7 @@ const PosCheckoutPage = () => {
   const [shopSplit, setShopSplit] = useState({ shopPercent: 30, artistPercent: 70 });
   const [artistSplits, setArtistSplits] = useState<Awaited<ReturnType<typeof loadArtistPosSplits>>>([]);
   const [simulatedReader, setSimulatedReader] = useState(false);
+  const [readerMode, setReaderMode] = useState<TerminalReaderMode>(() => loadTerminalReaderMode());
   const [locationId, setLocationId] = useState<string | null>(null);
   const [connectReady, setConnectReady] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -95,6 +115,10 @@ const PosCheckoutPage = () => {
   const [importingProducts, setImportingProducts] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const productsCsvInputRef = useRef<HTMLInputElement>(null);
+  const [showWisePadGuide, setShowWisePadGuide] = useState(
+    () => isNativeApp() && !isWisePadSetupGuideDismissed() && !hasWisePadFirmwareCompleted(),
+  );
+  const [testingStripeLink, setTestingStripeLink] = useState(false);
 
   const canConnectReader = connectReady && !!locationId && (simulatedReader || isNativeApp());
   const connectBlockedReason = !connectReady
@@ -103,7 +127,65 @@ const PosCheckoutPage = () => {
       ? t("pos.locationRequired")
       : null;
 
-  const terminal = useStripeTerminal({ simulated: simulatedReader, locationId });
+  const terminal = useStripeTerminal({
+    simulated: simulatedReader,
+    readerMode,
+    locationId,
+    onConnectionTokenError: (message) => toast.error(message),
+    onFirmwareUpdateChange: (state) => {
+      if (state.completed) {
+        markWisePadFirmwareCompleted();
+        setShowWisePadGuide(false);
+        toast.success(t("pos.wisePadFirmwareComplete"));
+      }
+    },
+  });
+
+  const readerFirmwareUpdating = terminal.firmwareUpdate.active;
+  const usingTapToPay = isNativeApp() && !simulatedReader && readerMode === "tap_to_pay";
+  const usingWisePad = isNativeApp() && !simulatedReader && readerMode === "bluetooth";
+  const tapToPayReady = useTapToPayReady();
+
+  useEffect(() => {
+    if (!usingTapToPay) return;
+    const refresh = () => tapToPayReady.refresh();
+    document.addEventListener("visibilitychange", refresh);
+    return () => document.removeEventListener("visibilitychange", refresh);
+  }, [usingTapToPay, tapToPayReady.refresh]);
+
+  const testStripeServerLink = async () => {
+    if (!locationId) {
+      toast.error(t("pos.locationRequired"));
+      return;
+    }
+    setTestingStripeLink(true);
+    tapToPayReady.refresh();
+    const result = await runStripeTerminalPreflight(locationId);
+    setTestingStripeLink(false);
+    if (result.ok) {
+      toast.success(t("pos.tapToPayTestStripeOk"));
+    } else {
+      toast.error(`${t("pos.tapToPayTestStripeFailed")}: ${result.message}`);
+    }
+  };
+
+  const readerModeInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!readerModeInitializedRef.current) {
+      readerModeInitializedRef.current = true;
+      return;
+    }
+    if (terminal.status === "connected") {
+      void terminal.disconnect();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset when the user switches reader type
+  }, [readerMode]);
+
+  const handleReaderModeChange = (nextMode: TerminalReaderMode) => {
+    setReaderMode(nextMode);
+    saveTerminalReaderMode(nextMode);
+  };
 
   const refreshRecentSales = async () => {
     const rows = await loadRecentPosSales();
@@ -119,54 +201,70 @@ const PosCheckoutPage = () => {
     if (!user) return;
     void (async () => {
       setLoading(true);
-      const [profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, display_name"),
-        supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
-        loadOrgBillingContext(),
-        loadShopPosSettings(),
-        loadArtistPosSplits(),
-        invokeEdgeFunctionJson<{ connect?: { ready?: boolean } }>("stripe-terminal-pos", { action: "connect_status" }),
-        loadRecentPosSales(),
-      ]);
+      try {
+        const [profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
+          supabase.from("profiles").select("user_id, display_name"),
+          supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+          loadOrgBillingContext(),
+          loadShopPosSettings(),
+          loadArtistPosSplits(),
+          invokeEdgeFunctionJson<{ connect?: { ready?: boolean } }>("stripe-terminal-pos", { action: "connect_status" }),
+          loadRecentPosSales(),
+        ]);
 
-      const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
-      const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as ArtistOption[];
-      const orgId = billingCtx.organizationId ?? null;
-      const itemTemplates = await loadPosItemTemplates(orgId);
+        const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
+        const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as ArtistOption[];
+        const orgId = billingCtx.organizationId ?? null;
+        const itemTemplates = await loadPosItemTemplates(orgId);
 
-      setOrganizationId(orgId);
-      setArtists(artistList);
-      setQuickItems(itemTemplates);
-      setCurrency(billingCtx.currency);
-      setTaxRate(billingCtx.defaultTaxRate);
-      setTaxLabel(billingCtx.taxLabel);
-      setPricesIncludeTax(billingCtx.pricesIncludeTax);
-      setTaxExempt(billingCtx.taxExempt);
-      setArtistSplits(splits);
-      setConnectReady(!!connectRes.data?.connect?.ready);
+        setOrganizationId(orgId);
+        setArtists(artistList);
+        setQuickItems(itemTemplates);
+        setCurrency(billingCtx.currency);
+        setTaxRate(billingCtx.defaultTaxRate);
+        setTaxLabel(billingCtx.taxLabel);
+        setPricesIncludeTax(billingCtx.pricesIncludeTax);
+        setTaxExempt(billingCtx.taxExempt);
+        setArtistSplits(splits);
+        setConnectReady(!!connectRes.data?.connect?.ready);
 
-      setArtistId((current) => {
-        if (prefilledArtistId) return prefilledArtistId;
-        if (current) return current;
-        if (user.id && artistIds.has(user.id)) return user.id;
-        if (artistList.length > 0) return artistList[0].user_id;
-        return current;
-      });
-      if (prefilledClientName) setClientName(prefilledClientName);
-
-      if (posSettings) {
-        setPosEnabled(posSettings.enabled);
-        setSimulatedReader(posSettings.simulated_reader);
-        setLocationId(posSettings.stripe_terminal_location_id);
-        setGratuityEnabled(posSettings.gratuity_enabled);
-        setGratuityPercent(posSettings.gratuity_enabled ? posSettings.default_gratuity_percent : 0);
-        setShopSplit({
-          shopPercent: posSettings.shop_split_percent,
-          artistPercent: posSettings.artist_split_percent,
+        setArtistId((current) => {
+          if (prefilledArtistId) return prefilledArtistId;
+          if (current) return current;
+          if (user.id && artistIds.has(user.id)) return user.id;
+          if (artistList.length > 0) return artistList[0].user_id;
+          return current;
         });
+        if (prefilledClientName) setClientName(prefilledClientName);
+
+        if (posSettings) {
+          setPosEnabled(posSettings.enabled);
+          setSimulatedReader(posSettings.simulated_reader);
+          if (posSettings.stripe_terminal_location_id) {
+            setLocationId(posSettings.stripe_terminal_location_id);
+            setCachedTerminalLocationId(posSettings.stripe_terminal_location_id);
+          }
+          setGratuityEnabled(posSettings.gratuity_enabled);
+          setGratuityPercent(posSettings.gratuity_enabled ? posSettings.default_gratuity_percent : 0);
+          setShopSplit({
+            shopPercent: posSettings.shop_split_percent,
+            artistPercent: posSettings.artist_split_percent,
+          });
+        }
+
+        setRecentSales(recentSalesRes);
+
+        // Do not block page render on terminal location setup.
+        if (connectRes.data?.connect?.ready && posSettings?.enabled && !posSettings.simulated_reader) {
+          void ensureTerminalLocation()
+            .then((ensuredLocationId) => {
+              setLocationId((current) => (current === ensuredLocationId ? current : ensuredLocationId));
+            })
+            .catch(() => undefined);
+        }
+      } finally {
+        setLoading(false);
       }
-      setRecentSales(recentSalesRes);
-      setLoading(false);
     })();
   }, [user, prefilledArtistId, prefilledClientName]);
 
@@ -226,6 +324,48 @@ const PosCheckoutPage = () => {
     () => computeAmountDue(totals.total, depositCredit),
     [totals.total, depositCredit],
   );
+
+  const pushCartToReader = async () => {
+    const cart = buildReaderDisplayCart({
+      currency,
+      chargeAmount: amountDue,
+      lineItems: lineItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
+    });
+    if (!cart || lineItems.length === 0) return;
+
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        await terminal.updateReaderDisplay(cart);
+        return;
+      } catch (error) {
+        lastError = error;
+        await new Promise((resolve) => window.setTimeout(resolve, 400 * (attempt + 1)));
+      }
+    }
+    const message = lastError instanceof Error ? lastError.message : t("pos.readerDisplayFailed");
+    if (!/not connected/i.test(message)) {
+      toast.error(message);
+    }
+  };
+
+  useEffect(() => {
+    if (readerFirmwareUpdating) return;
+    void pushCartToReader();
+  }, [
+    terminal.status,
+    terminal.updateReaderDisplay,
+    amountDue,
+    currency,
+    lineItems,
+    totals.subtotal,
+    totals.taxAmount,
+    readerFirmwareUpdating,
+  ]);
 
   const dueSplit = useMemo(
     () => splitPosAmount(amountDue, activeSplit.shopPercent, activeSplit.artistPercent),
@@ -379,6 +519,14 @@ const PosCheckoutPage = () => {
     setPaying(true);
     let saleId: string | null = null;
     try {
+      if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
+        try {
+          await terminal.discoverAndConnect();
+        } catch (connectError) {
+          throw connectError;
+        }
+      }
+
       const { data: piData, error: piErr } = await invokeEdgeFunctionJson<{
         clientSecret?: string;
         saleId?: string;
@@ -496,7 +644,7 @@ const PosCheckoutPage = () => {
               {terminal.status === "connected" ? (
                 <Badge variant="outline" className="gap-1 border-emerald-500/40 text-emerald-600">
                   <Wifi className="h-3 w-3" />
-                  {settingsReaderLabel(simulatedReader, terminal.reader?.label)}
+                  {settingsReaderLabel(readerMode, simulatedReader, terminal.reader?.label)}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="gap-1 text-muted-foreground">
@@ -507,10 +655,116 @@ const PosCheckoutPage = () => {
             </div>
           </div>
 
-          {isNativeApp() ? (
-            <p className="text-xs text-emerald-600">{t("pos.nativeBluetoothReady")}</p>
+          {isNativeApp() && !simulatedReader ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t("pos.readerModeTitle")}</CardTitle>
+                <CardDescription>{t("pos.readerModeDesc")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <RadioGroup
+                  value={readerMode}
+                  onValueChange={(value) => handleReaderModeChange(value as TerminalReaderMode)}
+                  className="grid gap-3 sm:grid-cols-2"
+                >
+                  <label
+                    htmlFor="reader-mode-bluetooth"
+                    className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
+                      readerMode === "bluetooth" ? "border-primary bg-primary/5" : "border-border"
+                    }`}
+                  >
+                    <RadioGroupItem id="reader-mode-bluetooth" value="bluetooth" className="mt-0.5" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 font-medium">
+                        <Wifi className="h-4 w-4" />
+                        {t("pos.readerModeBluetooth")}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t("pos.readerModeBluetoothHint")}</p>
+                    </div>
+                  </label>
+                  <label
+                    htmlFor="reader-mode-tap-to-pay"
+                    className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
+                      readerMode === "tap_to_pay" ? "border-primary bg-primary/5" : "border-border"
+                    }`}
+                  >
+                    <RadioGroupItem id="reader-mode-tap-to-pay" value="tap_to_pay" className="mt-0.5" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 font-medium">
+                        <Smartphone className="h-4 w-4" />
+                        {t("pos.readerModeTapToPay")}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t("pos.readerModeTapToPayHint")}</p>
+                    </div>
+                  </label>
+                </RadioGroup>
+                {usingTapToPay ? (
+                  <>
+                    <TapToPayReadinessAlert />
+                    {locationId ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={testingStripeLink}
+                        onClick={() => void testStripeServerLink()}
+                      >
+                        {testingStripeLink ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
+                        {t("pos.tapToPayTestStripeLink")}
+                      </Button>
+                    ) : null}
+                    <Alert>
+                    <Smartphone className="h-4 w-4" />
+                    <AlertTitle>{t("pos.tapToPayInfoTitle")}</AlertTitle>
+                    <AlertDescription className="text-sm space-y-2">
+                      <p>{t("pos.tapToPayInfoBody")}</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>{t("pos.tapToPayInfoAppleGoogle")}</li>
+                        {nativePlatform() === "android" ? (
+                          <li className="font-medium text-amber-800 dark:text-amber-300">{t("pos.tapToPayInfoAndroidDevOptions")}</li>
+                        ) : null}
+                        <li>{t("pos.tapToPayInfoAndroidRelease")}</li>
+                        <li>{t("pos.tapToPayInfoStripeEnable")}</li>
+                        {nativePlatform() === "ios" ? <li>{t("pos.tapToPayInfoAppleEntitlement")}</li> : null}
+                      </ul>
+                      {nativePlatform() === "ios" ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="bg-background/80"
+                          onClick={() => {
+                            void import("@/lib/terminal/tapToPayEducation").then(({ showTapToPayEducationIfAvailable }) =>
+                              showTapToPayEducationIfAvailable().then((shown) => {
+                                if (!shown) toast.message(t("pos.tapToPayHowToUnavailable"));
+                              }),
+                            );
+                          }}
+                        >
+                          {t("pos.tapToPayHowToTap")}
+                        </Button>
+                      ) : null}
+                    </AlertDescription>
+                    </Alert>
+                  </>
+                ) : (
+                  <p className="text-xs text-emerald-600">{t("pos.nativeBluetoothReady")}</p>
+                )}
+              </CardContent>
+            </Card>
           ) : !simulatedReader ? (
             <p className="text-xs text-muted-foreground rounded-lg border border-border bg-muted/30 p-3">{t("pos.mobileAppRequired")}</p>
+          ) : null}
+
+          {usingWisePad && connectReady && locationId ? (
+            <WisePadSetupPanels
+              terminal={terminal}
+              showFirstTimeGuide={showWisePadGuide}
+              onDismissGuide={() => {
+                dismissWisePadSetupGuide();
+                setShowWisePadGuide(false);
+              }}
+            />
           ) : null}
 
           {!connectReady || !locationId ? (
@@ -772,32 +1026,56 @@ const PosCheckoutPage = () => {
 
                   <div className="space-y-2 pt-2">
                     {terminal.status !== "connected" ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        disabled={
-                          terminal.status === "discovering" ||
-                          terminal.status === "connecting" ||
-                          !canConnectReader
-                        }
-                        onClick={() => {
-                          if (connectBlockedReason) {
-                            toast.error(connectBlockedReason);
-                            return;
-                          }
-                          void terminal.discoverAndConnect().catch(() => undefined);
-                        }}
-                      >
-                        {terminal.status === "discovering" || terminal.status === "connecting" ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
+                      terminal.status === "discovering" || terminal.status === "connecting" ? (
+                        <>
+                          <Button type="button" variant="outline" className="w-full" disabled>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            {usingTapToPay ? t("pos.connectTapToPayProgress") : t("pos.connectReaderProgress")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-muted-foreground"
+                            onClick={() => void terminal.cancelConnect()}
+                          >
+                            {t("common.cancel")}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          disabled={readerFirmwareUpdating || !canConnectReader || (usingTapToPay && !tapToPayReady.ready)}
+                          onClick={() => {
+                            if (usingTapToPay && !tapToPayReady.ready) {
+                              tapToPayReady.refresh();
+                              toast.error(t("pos.tapToPayPhoneBlocked"));
+                              return;
+                            }
+                            if (connectBlockedReason) {
+                              toast.error(connectBlockedReason);
+                              return;
+                            }
+                            void terminal
+                              .discoverAndConnect()
+                              .then(() => {
+                                markWisePadFirmwareCompleted();
+                                setShowWisePadGuide(false);
+                                return pushCartToReader();
+                              })
+                              .catch((e) => {
+                                toast.error(e instanceof Error ? e.message : t("pos.readerDisconnected"));
+                              });
+                          }}
+                        >
                           <Wifi className="h-4 w-4 mr-2" />
-                        )}
-                        {t("pos.connectReader")}
-                      </Button>
+                          {usingTapToPay ? t("pos.connectTapToPay") : t("pos.connectReader")}
+                        </Button>
+                      )
                     ) : (
-                      <Button type="button" variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => void terminal.disconnect()}>
+                      <Button type="button" variant="ghost" size="sm" className="w-full text-muted-foreground" disabled={readerFirmwareUpdating} onClick={() => void terminal.disconnect()}>
                         {t("pos.disconnectReader")}
                       </Button>
                     )}
@@ -806,7 +1084,7 @@ const PosCheckoutPage = () => {
                       type="button"
                       variant="gold"
                       className="w-full h-12 text-base"
-                      disabled={paying || cart.length === 0 || !artistId || (amountDue > 0 && terminal.status === "processing")}
+                      disabled={paying || readerFirmwareUpdating || cart.length === 0 || !artistId || (amountDue > 0 && terminal.status === "processing")}
                       onClick={() => void handlePay()}
                     >
                       {paying || (amountDue > 0 && terminal.status === "processing") ? (
@@ -826,7 +1104,35 @@ const PosCheckoutPage = () => {
                     )}
                   </div>
 
-                  {terminal.error && <p className="text-xs text-destructive">{terminal.error}</p>}
+                  {terminal.error ? (
+                    <Alert variant="destructive">
+                      <AlertTitle>{usingTapToPay ? t("pos.tapToPayFailed") : t("pos.readerDisconnected")}</AlertTitle>
+                      <AlertDescription className="text-sm space-y-2 whitespace-pre-wrap">
+                        <p>{terminal.error}</p>
+                        {usingTapToPay && /unsupported device|s21|s20|galaxy s2[01]/i.test(terminal.error) ? (
+                          <p className="text-xs opacity-90">
+                            Galaxy S21 may not support Tap to Pay — switch to WisePad (Bluetooth reader) in the reader mode above, or use a Galaxy S22+ phone.
+                          </p>
+                        ) : null}
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {terminal.status === "connected" && cart.length === 0 && usingWisePad ? (
+                    <p className="text-xs text-muted-foreground">{t("pos.readerDisplayHint")}</p>
+                  ) : null}
+                  {terminal.readerStatus && !readerFirmwareUpdating ? (
+                    <p
+                      className={
+                        terminal.status === "discovering" || terminal.status === "connecting"
+                          ? "text-sm font-medium text-foreground"
+                          : /firmware|update/i.test(terminal.readerStatus)
+                            ? "text-sm font-medium text-amber-700 dark:text-amber-400"
+                            : "text-xs text-muted-foreground"
+                      }
+                    >
+                      {terminal.readerStatus}
+                    </p>
+                  ) : null}
 
                   {lastSaleId && (
                     <div className="flex items-center gap-2 text-sm text-emerald-600">
@@ -848,7 +1154,8 @@ const PosCheckoutPage = () => {
               {recentSales.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">{t("pos.noRecentSales")}</p>
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-muted-foreground">
@@ -895,6 +1202,50 @@ const PosCheckoutPage = () => {
                     </tbody>
                   </table>
                 </div>
+
+                <div className="md:hidden space-y-3">
+                  {recentSales.map((sale) => {
+                    const artistName = artists.find((a) => a.user_id === sale.artist_id)?.display_name || "—";
+                    const itemSummary = Array.isArray(sale.items)
+                      ? (sale.items as PosLineItem[]).map((i) => i.name).slice(0, 2).join(", ")
+                      : "";
+                    const statusLabel =
+                      sale.status === "succeeded"
+                        ? t("pos.saleStatusSucceeded")
+                        : sale.status === "pending"
+                          ? t("pos.saleStatusPending")
+                          : t("pos.saleStatusFailed");
+                    return (
+                      <div key={sale.id} className="rounded-xl border border-border bg-card/80 p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-semibold truncate">{sale.client_name || "—"}</p>
+                            {itemSummary ? (
+                              <p className="text-xs text-muted-foreground truncate">{itemSummary}</p>
+                            ) : null}
+                            <p className="text-xs text-muted-foreground mt-1">{artistName}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="font-semibold tabular-nums">{formatShopMoney(Number(sale.total), sale.currency)}</p>
+                            <Badge
+                              variant={sale.status === "succeeded" ? "default" : "outline"}
+                              className="text-[10px] mt-1 capitalize"
+                            >
+                              {statusLabel}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground pt-1 border-t border-border/60">
+                          <span>
+                            {t("pos.paymentSplit")}: {formatShopMoney(Number(sale.shop_amount), sale.currency)} / {formatShopMoney(Number(sale.artist_amount), sale.currency)}
+                          </span>
+                          <span className="shrink-0">{format(parseISO(sale.created_at), "d MMM HH:mm")}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -956,9 +1307,11 @@ const PosCheckoutPage = () => {
   );
 };
 
-function settingsReaderLabel(simulated: boolean, label?: string) {
+function settingsReaderLabel(mode: TerminalReaderMode, simulated: boolean, label?: string) {
   if (label) return label;
-  return simulated ? "Simulated reader" : "WisePad";
+  if (simulated) return "Simulated reader";
+  if (mode === "tap_to_pay") return "Tap to Pay";
+  return "WisePad";
 }
 
 export default PosCheckoutPage;

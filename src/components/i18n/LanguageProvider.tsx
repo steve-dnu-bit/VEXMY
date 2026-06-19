@@ -11,7 +11,6 @@ import {
   SUPPORTED_LANGUAGES,
   type AppLanguage,
 } from "@/i18n/languages";
-import { detectAppLanguageFromIp } from "@/lib/detectShopCountry";
 
 type LanguageContextValue = {
   language: AppLanguage;
@@ -20,14 +19,6 @@ type LanguageContextValue = {
 };
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
-
-async function applyNavigatorFallback(i18nInstance: typeof i18n): Promise<void> {
-  const base = navigator.language?.split("-")[0];
-  if (isAppLanguage(base)) {
-    await i18nInstance.changeLanguage(base);
-    persistLanguageChoice(base, "navigator");
-  }
-}
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
@@ -64,12 +55,9 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
         return;
       }
 
-      const fromIp = await detectAppLanguageFromIp();
-      if (!cancelled && fromIp) {
-        await i18nInstance.changeLanguage(fromIp);
-        persistLanguageChoice(fromIp, "ip");
-      } else if (!cancelled) {
-        await applyNavigatorFallback(i18nInstance);
+      if (!cancelled) {
+        await i18nInstance.changeLanguage(DEFAULT_LANGUAGE);
+        persistLanguageChoice(DEFAULT_LANGUAGE, "default");
       }
 
       if (!cancelled) setReady(true);

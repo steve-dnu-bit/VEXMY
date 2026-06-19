@@ -10,6 +10,7 @@ import {
 import { createConnectStripe, getConnectStripeSecret, stripeSecretMode } from "../_shared/stripe-keys.ts";
 import { getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 import { mapShopCountryToStripe } from "../_shared/stripe-connect.ts";
+import { callerHasPosAccess } from "../_shared/auth.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -81,6 +82,14 @@ serve(async (req) => {
       });
     }
 
+    const canUsePos = await callerHasPosAccess(admin, user.id);
+    if (!canUsePos) {
+      return new Response(JSON.stringify({ error: "Forbidden", reason: "pos_staff_only" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const connect = await getActiveConnectAccount(admin, { organizationId: orgId });
     if (!connect) {
       return new Response(JSON.stringify({ error: "Stripe Connect is not ready", code: "connect_required" }), {
@@ -95,10 +104,48 @@ serve(async (req) => {
     const action = typeof body.action === "string" ? body.action : "";
 
     if (action === "connection_token") {
-      const tokenRes = await stripe.terminal.connectionTokens.create({}, stripeOpts);
-      return new Response(JSON.stringify({ secret: tokenRes.secret }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      let locationId = typeof body.locationId === "string" ? body.locationId.trim() : "";
+      if (!locationId) {
+        const { data: posSettings } = await admin
+          .from("shop_pos_settings")
+          .select("stripe_terminal_location_id")
+          .eq("organization_id", orgId)
+          .maybeSingle();
+        locationId = posSettings?.stripe_terminal_location_id?.trim() || "";
+      }
+
+      if (!locationId) {
+        return new Response(
+          JSON.stringify({
+            error: "Terminal location is not set up. Create one in Admin → POS checkout first.",
+            code: "location_required",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      try {
+        const tokenRes = await stripe.terminal.connectionTokens.create({ location: locationId }, stripeOpts);
+        return new Response(JSON.stringify({ secret: tokenRes.secret, locationId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (e) {
+        const stripeMessage = e instanceof Error ? e.message : String(e);
+        return new Response(
+          JSON.stringify({
+            error: `Stripe could not create a Terminal connection token: ${stripeMessage}`,
+            code: "connection_token_failed",
+            locationId,
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
     }
 
     if (action === "terminal_config") {
@@ -439,7 +486,72 @@ serve(async (req) => {
         .eq("organization_id", orgId)
         .maybeSingle();
 
-      return new Response(JSON.stringify({ connect: status, posSettings: posSettings ?? null }), {
+      return new Response(
+        JSON.stringify({
+          connect: status,
+          posSettings: posSettings ?? null,
+          stripeMode: stripeSecretMode(getConnectStripeSecret()),
+          connectAccountId: status.accountId,
+          terminalLocationId: posSettings?.stripe_terminal_location_id ?? null,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (action === "terminal_diagnose") {
+      const { data: posSettings } = await admin
+        .from("shop_pos_settings")
+        .select("stripe_terminal_location_id, simulated_reader, enabled")
+        .eq("organization_id", orgId)
+        .maybeSingle();
+
+      const storedLocationId = posSettings?.stripe_terminal_location_id?.trim() || "";
+      const diagnostics: Record<string, unknown> = {
+        connectAccountId: connect.stripeConnectAccountId,
+        stripeMode: stripeSecretMode(getConnectStripeSecret()),
+        simulatedReader: posSettings?.simulated_reader === true,
+        posEnabled: posSettings?.enabled === true,
+        storedLocationId: storedLocationId || null,
+      };
+
+      if (storedLocationId) {
+        try {
+          const location = await stripe.terminal.locations.retrieve(storedLocationId, stripeOpts);
+          diagnostics.locationValid = true;
+          diagnostics.locationDisplayName = location.display_name;
+        } catch (e) {
+          diagnostics.locationValid = false;
+          diagnostics.locationError = e instanceof Error ? e.message : String(e);
+        }
+      } else {
+        diagnostics.locationValid = false;
+        diagnostics.locationError = "No terminal location saved";
+      }
+
+      try {
+        const tokenParams: { location?: string } = {};
+        if (storedLocationId) tokenParams.location = storedLocationId;
+        const tokenRes = await stripe.terminal.connectionTokens.create(tokenParams, stripeOpts);
+        diagnostics.connectionTokenOk = !!tokenRes.secret;
+      } catch (e) {
+        diagnostics.connectionTokenOk = false;
+        diagnostics.connectionTokenError = e instanceof Error ? e.message : String(e);
+      }
+
+      try {
+        const readers = await stripe.terminal.readers.list({ limit: 5 }, stripeOpts);
+        diagnostics.registeredReaders = readers.data.map((r) => ({
+          id: r.id,
+          label: r.label,
+          serialNumber: r.serial_number,
+          status: r.status,
+          deviceType: r.device_type,
+        }));
+      } catch (e) {
+        diagnostics.registeredReadersError = e instanceof Error ? e.message : String(e);
+      }
+
+      return new Response(JSON.stringify(diagnostics), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

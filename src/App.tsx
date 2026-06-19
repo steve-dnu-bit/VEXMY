@@ -31,6 +31,7 @@ const PricingPage = lazy(() => import("./pages/marketing/PricingPage"));
 const SubscribePage = lazy(() => import("./pages/marketing/SubscribePage"));
 const SubscribeSuccessPage = lazy(() => import("./pages/marketing/SubscribeSuccessPage"));
 const ContactPage = lazy(() => import("./pages/marketing/ContactPage"));
+const DownloadPage = lazy(() => import("./pages/marketing/DownloadPage"));
 const DocsPage = lazy(() => import("./pages/docs/DocsPage"));
 const SchedulePage = lazy(() => import("./pages/SchedulePage"));
 const InboxPage = lazy(() => import("./pages/InboxPage"));
@@ -128,6 +129,7 @@ const App = () => (
                 <Route path="/subscribe" element={<SubscribePage />} />
                 <Route path="/subscribe/success" element={<SubscribeSuccessPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/download" element={<DownloadPage />} />
                 <Route path="/docs" element={<DocsPage />} />
                 <Route path="/docs/:slug" element={<DocsPage />} />
                 <Route path="/terms" element={<TermsPage />} />

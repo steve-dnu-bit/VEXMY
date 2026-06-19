@@ -1,24 +1,39 @@
+import { formatStripeTerminalErrorMessage } from "@/lib/terminal/stripeTerminalErrorMessages";
+
+function extractErrorRecord(error: unknown): Record<string, unknown> | null {
+  if (!error || typeof error !== "object") return null;
+  return error as Record<string, unknown>;
+}
+
 export function formatTerminalError(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
+  const record = extractErrorRecord(error);
+  const code =
+    (typeof record?.code === "string" && record.code) ||
+    (typeof record?.errorCode === "string" && record.errorCode) ||
+    null;
+  const message =
+    (error instanceof Error && error.message.trim()) ||
+    (typeof record?.message === "string" && record.message.trim()) ||
+    (typeof record?.errorMessage === "string" && record.errorMessage.trim()) ||
+    null;
+
+  const combined = [code, message].filter(Boolean).join(" — ");
+  if (combined) return formatStripeTerminalErrorMessage(combined);
+
   if (typeof error === "string" && error.trim()) {
-    return error;
+    return formatStripeTerminalErrorMessage(error);
   }
-  if (error && typeof error === "object") {
-    const record = error as Record<string, unknown>;
-    if (typeof record.message === "string" && record.message.trim()) {
-      return record.message;
-    }
-    if (typeof record.errorMessage === "string" && record.errorMessage.trim()) {
-      return record.errorMessage;
-    }
+
+  if (record) {
     try {
       const serialized = JSON.stringify(error);
-      if (serialized && serialized !== "{}") return serialized;
+      if (serialized && serialized !== "{}") {
+        return formatStripeTerminalErrorMessage(serialized);
+      }
     } catch {
       /* ignore */
     }
   }
-  return fallback;
+
+  return formatStripeTerminalErrorMessage(fallback);
 }

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import {
   callerHasStaffAccess,
+  callerIsOrgMember,
   isCronAuthorized,
   jsonCorsHeaders,
   jsonResponse,
@@ -63,7 +64,7 @@ function isImportedPlaceholderBooking(booking: BookingPayload): boolean {
 async function authorizeBookingNotification(
   adminClient: ReturnType<typeof createClient>,
   req: Request,
-): Promise<{ ok: true } | { status: number; body: Record<string, unknown> }> {
+): Promise<{ ok: true; userId?: string } | { status: number; body: Record<string, unknown> }> {
   if (isCronAuthorized(req)) return { ok: true };
 
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -80,7 +81,7 @@ async function authorizeBookingNotification(
     return { status: 403, body: { error: "Forbidden" } };
   }
 
-  return { ok: true };
+  return { ok: true, userId: authResult.user.id };
 }
 
 serve(async (req) => {
@@ -128,6 +129,13 @@ serve(async (req) => {
       booking = bookingPayload;
     } else {
       return jsonResponse({ error: "Booking not found" }, 404);
+    }
+
+    if (auth.userId && booking.organization_id) {
+      const inOrg = await callerIsOrgMember(adminClient, booking.organization_id, auth.userId);
+      if (!inOrg) {
+        return jsonResponse({ error: "Forbidden", reason: "booking_org_mismatch" }, 403);
+      }
     }
 
     if ((booking as { suppress_booking_notifications?: boolean }).suppress_booking_notifications) {

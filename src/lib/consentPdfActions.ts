@@ -1,4 +1,5 @@
 import { format, parseISO } from "date-fns";
+import { resolveUploadUrl } from "@/lib/uploadStorage";
 
 /** Safe filename stem for a downloaded consent PDF. */
 export function consentPdfBasename(clientName: string, signedAtIso: string): string {
@@ -11,11 +12,17 @@ export function consentPdfBasename(clientName: string, signedAtIso: string): str
   return `Velbok-consent-${safe || "client"}-${d}`;
 }
 
+async function fetchableConsentUrl(url: string): Promise<string | null> {
+  return resolveUploadUrl(url);
+}
+
 /** Download PDF via blob so the browser saves a real file (with filename). */
 export async function downloadConsentPdf(url: string, basename: string): Promise<boolean> {
   const name = basename.endsWith(".pdf") ? basename : `${basename}.pdf`;
+  const fetchUrl = await fetchableConsentUrl(url);
+  if (!fetchUrl) return false;
   try {
-    const res = await fetch(url);
+    const res = await fetch(fetchUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
@@ -29,7 +36,7 @@ export async function downloadConsentPdf(url: string, basename: string): Promise
     setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     return true;
   } catch {
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(fetchUrl, "_blank", "noopener,noreferrer");
     return false;
   }
 }
@@ -37,8 +44,10 @@ export async function downloadConsentPdf(url: string, basename: string): Promise
 /** Open print dialog for a remote PDF (fetch → blob → iframe print). */
 export function printConsentPdf(url: string): void {
   void (async () => {
+    const fetchUrl = await fetchableConsentUrl(url);
+    if (!fetchUrl) return;
     try {
-      const res = await fetch(url);
+      const res = await fetch(fetchUrl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -66,7 +75,7 @@ export function printConsentPdf(url: string): void {
       };
       document.body.appendChild(iframe);
     } catch {
-      window.open(url, "_blank", "noopener,noreferrer");
+      window.open(fetchUrl, "_blank", "noopener,noreferrer");
     }
   })();
 }

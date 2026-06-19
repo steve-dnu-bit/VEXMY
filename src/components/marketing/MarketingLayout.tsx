@@ -128,6 +128,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
               <li><Link to="/#features" className="hover:text-foreground">{t("common.features")}</Link></li>
               <li><Link to="/pricing" className="hover:text-foreground">{t("common.pricing")}</Link></li>
               <li><Link to="/docs" className="hover:text-foreground">{t("common.documentation")}</Link></li>
+              <li><Link to="/download" className="hover:text-foreground">{t("common.downloadApp")}</Link></li>
               <li><Link to="/contact" className="hover:text-foreground">{t("common.contact")}</Link></li>
               <li><Link to="/auth" className="hover:text-foreground">{t("common.studioLogin")}</Link></li>
             </ul>

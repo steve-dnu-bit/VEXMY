@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase, getSupabaseConfigError } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -152,6 +152,19 @@ const CustomerEmbedLoginPage = () => {
 
         <p className="mt-4 text-center text-[10px] text-zinc-500">
           {t("embed.poweredBy", { platform: BRANDING.platformName })}
+        </p>
+        <p className="mt-2 text-center text-[10px] text-zinc-500">
+          <Link to="/terms" className="hover:text-zinc-300 underline-offset-2 hover:underline">
+            {t("common.terms")}
+          </Link>
+          {" · "}
+          <Link to="/privacy" className="hover:text-zinc-300 underline-offset-2 hover:underline">
+            {t("common.privacy")}
+          </Link>
+          {" · "}
+          <Link to="/cookies" className="hover:text-zinc-300 underline-offset-2 hover:underline">
+            {t("common.cookies")}
+          </Link>
         </p>
       </div>
     </div>

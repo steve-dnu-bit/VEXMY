@@ -4,4 +4,8 @@
     <string name="title_activity_main">Velbok</string>
     <string name="package_name">com.velbok.app</string>
     <string name="custom_url_scheme">com.velbok.app</string>
+    <string name="terminal_permissions_title">Payments &amp; card readers</string>
+    <string name="terminal_permissions_message">Velbok uses your device location, Bluetooth, and NFC only to process in-person card payments and connect to Stripe card readers (including Tap to Pay). Location is required by payment regulations and fraud prevention — it is not used to track you for advertising.</string>
+    <string name="terminal_permissions_continue">Continue</string>
+    <string name="terminal_permissions_not_now">Not now</string>
 </resources>

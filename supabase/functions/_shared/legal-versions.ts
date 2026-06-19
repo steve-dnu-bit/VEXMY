@@ -1,0 +1,2 @@
+export const PLATFORM_TERMS_VERSION = "2026-06-18";
+export const PLATFORM_PRIVACY_VERSION = "2026-06-18";
