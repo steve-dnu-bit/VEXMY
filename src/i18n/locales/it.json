@@ -42,7 +42,9 @@
     "and": "e",
     "refresh": "Aggiorna",
     "organizationNotFound": "Organizzazione non trovata",
-    "appName": "Velbok"
+    "appName": "Velbok",
+    "saving": "Risparmio…",
+    "downloadApp": "Scarica l'app"
   },
   "nav": {
     "schedule": "Agenda",
@@ -411,7 +413,9 @@
     "consentHandSignNotice": "I clienti dovranno firmare il consenso precompilato con una penna, a mano, presso il vostro studio. Conserva la copia originale firmata conservata in modo sicuro presso la tua sede.",
     "payAtDesk": "Paga alla scrivania",
     "checkingPosPayment": "Verifica pagamento allo sportello…",
-    "posPaidAtDesk": "Pagamento alla reception · {{amount}}"
+    "posPaidAtDesk": "Pagamento alla reception · {{amount}}",
+    "legalTitle": "Legale",
+    "legalDesc": "Privacy, termini e informazioni sui cookie per Velbok."
   },
   "admin": {
     "title": "Ammin",
@@ -587,7 +591,21 @@
     "featureMyBookings": "Le mie prenotazioni/profilo",
     "featureConsentLink": "Link al modulo di consenso",
     "noStudioTitle": "Nessuno studio collegato a questo account",
-    "noStudioDesc": "Gli elenchi dei team e delle autorizzazioni riguardano il tuo studio. Completa la configurazione del negozio in Impostazioni o esegui lo script di concessione dell'amministratore della piattaforma in Supabase se questo è l'account operatore Velbok."
+    "noStudioDesc": "Gli elenchi dei team e delle autorizzazioni riguardano il tuo studio. Completa la configurazione del negozio in Impostazioni o esegui lo script di concessione dell'amministratore della piattaforma in Supabase se questo è l'account operatore Velbok.",
+    "reviewLinksTitle": "Rivedere i collegamenti",
+    "reviewLinksDesc": "Aggiungi Google, Facebook o altri URL di recensione. Gli artisti possono inviare manualmente un'e-mail di richiesta di recensione da una prenotazione dopo una sessione. Utilizza un link di recensione diretto (ad esempio g.page/r/... o l'URL di recensione della tua pagina Facebook) – evita i link share.google.com/\"Condividi\"; quelli spesso aprono l'app Google o Cast invece della pagina di recensione.",
+    "reviewLinksSaved": "Link di revisione salvati",
+    "reviewLinksSaveFailed": "Impossibile salvare i collegamenti alle recensioni",
+    "reviewLinksInvalid": "Ogni collegamento di revisione richiede un nome di piattaforma e un URL valido.",
+    "reviewLinkLabel": "Nome della piattaforma",
+    "reviewLinkLabelPlaceholder": "Recensioni di Google",
+    "reviewLinkUrl": "URL di revisione",
+    "reviewLinkShareUrlWarning": "Sembra un collegamento Google Share: potrebbe aprire Cast o l'app Google anziché la pagina di recensione. Nel profilo dell'attività su Google, copia il link per la revisione diretta (g.page/r/… o maps.google.com).",
+    "reviewLinkAdd": "Aggiungi un altro collegamento",
+    "reviewLinkRemove": "Rimuovi collegamento",
+    "reviewEmailMessage": "Nota personale facoltativa",
+    "reviewEmailMessagePlaceholder": "Grazie ancora per esserti seduto così bene oggi: apprezzeremmo davvero una breve recensione se hai un momento.",
+    "reviewEmailMessageHint": "Visualizzato nella parte superiore dell'e-mail di richiesta di revisione, sopra il testo di ringraziamento standard."
   },
   "notFound": {
     "title": "Pagina non trovata",
@@ -813,7 +831,9 @@
     "stripeCta": "Vedi i piani con Stripe",
     "regionsTitle": "Disponibile a livello internazionale",
     "regionsSubtitle": "Studi in 13 paesi — valuta locale e supporto linguistico integrati.",
-    "regionsCarouselLabel": "Paesi supportati"
+    "regionsCarouselLabel": "Paesi supportati",
+    "studioWelcomeBack": "Bentornato: apri il tuo programma o rivedi le statistiche dello studio.",
+    "returnToSchedule": "Ritorna al programma"
   },
   "contact": {
     "title": "Contattaci",
@@ -885,7 +905,8 @@
     "viewPdf": "Visualizza PDF",
     "pdfPending": "PDF in attesa",
     "contactableClients": "Clienti da contattare",
-    "openTickets": "Apri discussioni nella posta in arrivo"
+    "openTickets": "Apri discussioni nella posta in arrivo",
+    "backToSchedule": "Ritorna al programma"
   },
   "clients": {
     "title": "Clienti",
@@ -1221,7 +1242,17 @@
     "errorCreating": "Errore durante la creazione del servizio",
     "serviceCreated": "Servizio creato",
     "errorDeleting": "Errore durante l'eliminazione del servizio",
-    "serviceDeleted": "Servizio eliminato"
+    "serviceDeleted": "Servizio eliminato",
+    "depositRequiredLabel": "Richiedi deposito",
+    "depositRequiredHint": "Se abilitato, le nuove prenotazioni per questo servizio utilizzano l'importo del deposito riportato di seguito (o l'impostazione predefinita del tuo negozio).",
+    "depositAmountLabel": "Importo del deposito",
+    "depositAmountPlaceholder": "Lascia vuoto per impostazione predefinita del negozio",
+    "depositAmountHint": "Preimpostazione opzionale. Se vuoto, si applica il deposito predefinito del negozio.",
+    "depositInvalid": "Deposito non valido",
+    "depositInvalidDesc": "Il deposito deve essere compreso tra {{min}} e {{max}}.",
+    "depositRequiredShort": "Deposito {{amount}}",
+    "depositShopDefault": "negozio predefinito",
+    "noDeposit": "Nessun deposito"
   },
   "stock": {
     "title": "Scorte e materiali",
@@ -1526,7 +1557,22 @@
     "openInbox": "Apri nella posta in arrivo",
     "payAtDesk": "Paga alla scrivania",
     "checkingPosPayment": "Verifica pagamento allo sportello…",
-    "posPaidAtDesk": "Pagamento alla reception · {{amount}}"
+    "posPaidAtDesk": "Pagamento alla reception · {{amount}}",
+    "sidebarBookHint": "Facoltativo: tocca un servizio o un artista, quindi tocca una fascia oraria nel programma per aprire una nuova prenotazione con quelle preimpostazioni.",
+    "depositFromService": "Deposito per questa prenotazione: {{amount}} (dalle impostazioni del servizio).",
+    "noDepositForService": "Nessun deposito richiesto per questo servizio.",
+    "requestReview": "Richiedi una revisione",
+    "clientAppointments": "Tutti gli appuntamenti",
+    "clientAppointmentsTitle": "Appuntamenti con i clienti",
+    "clientAppointmentsUpcoming": "Prossimo ({{count}})",
+    "clientAppointmentsPast": "Passato ({{count}})",
+    "clientAppointmentsEmpty": "Nessun altro appuntamento trovato per questo cliente.",
+    "clientAppointmentsCurrent": "Questa prenotazione",
+    "reviewRequestSent": "E-mail di richiesta di revisione inviata",
+    "noClientEmailReview": "Aggiungi l'e-mail del cliente a questa prenotazione per inviare una richiesta di revisione.",
+    "reviewLinksNotConfigured": "Aggiungi prima i collegamenti di revisione in Amministrazione → E-mail.",
+    "reviewRequestFailed": "Impossibile inviare la richiesta di revisione",
+    "conductOrgMissing": "Impossibile determinare l'organizzazione del tuo studio per questo record di condotta."
   },
   "staff": {
     "loading": "Caricamento…"
@@ -1976,7 +2022,71 @@
       "ready": "Pronto a ricevere pagamenti di persona.",
       "notReady": "Completa i passaggi precedenti prima di addebitare le carte alla scrivania.",
       "stripeDashboardHint": "Stripe L'onboarding del terminale, la verifica dell'account, il provisioning dell'hardware e il supporto del terminale sono forniti da Stripe (non Velbok). Gestisci i lettori in Stripe Dashboard → Terminale."
-    }
+    },
+    "setupNeededTitle": "Completa la configurazione per accettare i pagamenti",
+    "setupGuideButton": "Configurazione del POS",
+    "setupGuideTitle": "Guida alla configurazione del POS",
+    "setupGuideDesc": "Collega i pagamenti, abilita il pagamento, scegli il tuo lettore e prova il collegamento Stripe.",
+    "setupNeededDesc": "Apri la guida alla configurazione per connettere Stripe e il tuo lettore di carte.",
+    "productsTools": "Importare/esportare prodotti",
+    "selectArtistHint": "Tocca l'artista per questa sessione prima di caricare: i colori corrispondono al suo profilo.",
+    "clientEmail": "E-mail del cliente",
+    "clientEmailPlaceholder": "nome@esempio.com",
+    "clientEmailHint": "Una ricevuta in PDF verrà inviata via email dopo il pagamento se viene fornito un indirizzo.",
+    "receiptEmailSent": "Ricevuta inviata via email al cliente.",
+    "connectTapToPay": "Abilita i pagamenti telefonici",
+    "connectTapToPayProgress": "Configurazione dei pagamenti telefonici…",
+    "connectReaderProgress": "Connessione al lettore...",
+    "readerModeTitle": "Come accettate i pagamenti con carta?",
+    "readerModeDesc": "Utilizza questo telefono come lettore di carte (Google Pay, Apple Pay, carte contactless) o collega un WisePad separato.",
+    "readerModeBluetooth": "WisePad (lettore di carte separato)",
+    "readerModeBluetoothHint": "Stripe WisePad 3: un dispositivo Bluetooth da offrire al cliente.",
+    "readerModeTapToPay": "Questo telefono (tocca per pagare)",
+    "readerModeTapToPayHint": "Il cliente tocca Google Pay, Apple Pay o la sua carta sul tuo telefono. Nessun hardware aggiuntivo.",
+    "tapToPayInfoTitle": "Usa questo telefono per accettare pagamenti",
+    "tapToPayInfoBody": "Tocca Abilita pagamenti telefonici, quindi addebita come al solito. Il cliente tiene la carta o il telefono (Google Pay/Apple Pay) vicino alla parte superiore del dispositivo.",
+    "tapToPayInfoAndroidDevOptions": "Android: le opzioni sviluppatore devono essere disattivate (Impostazioni → Opzioni sviluppatore). Stripe blocca Tocca per pagare mentre la modalità sviluppatore è attiva.",
+    "terminalTokenFailed": "Impossibile connettersi al terminale Stripe. Controlla Internet, accedi di nuovo e conferma Amministratore → Il POS ha configurato Connect + Posizione terminale.",
+    "tapToPayInfoAppleGoogle": "Supporta carte contactless, Apple Pay, Google Pay e portafogli simili.",
+    "tapToPayInfoAndroidRelease": "Android: utilizza una versione dell'app Velbok con le opzioni sviluppatore disattivate.",
+    "tapToPayInfoStripeEnable": "Il terminale Stripe viene utilizzato in background (token di connessione + posizione sul tuo account Connect). Non è necessario acquistare un lettore di carte separato per Tap to Pay: Velbok crea la posizione del terminale in Amministrazione → POS. Non è disponibile alcuna attivazione/disattivazione aggiuntiva Tocca per pagare in Stripe per l'app Velbok.",
+    "tapToPayInfoAppleEntitlement": "iPhone: il titolare dell'account Apple Developer deve richiedere Tap to Pay su iPhone ad Apple e abilitarlo sull'ID app com.velbok.app prima che le build di TestFlight o App Store funzionino.",
+    "tapToPayHowToTap": "Mostra la guida Come toccare",
+    "tapToPayHowToUnavailable": "La guida Come toccare di Apple richiede iOS 18+ e l'approvazione Tocca per pagare sul tuo account sviluppatore.",
+    "tapToPayFailed": "Impossibile avviare Tocca per pagare",
+    "tapToPayCheckingPhone": "Controllo della funzionalità Tocca per pagare su questo telefono…",
+    "tapToPayPhoneReady": "Questo telefono è pronto per Tocca per pagare",
+    "tapToPayPhoneReadyHint": "Velbok {{version}} · rilasciare build. Tocca Abilita pagamenti telefonici: Stripe verifica la sicurezza del telefono.",
+    "tapToPayPhoneBlocked": "Risolvi questo problema sul tuo telefono prima di abilitare i pagamenti",
+    "tapToPayPhoneBlockedHint": "Dopo aver risolto il problema, chiudi completamente Velbok (scorri lontano dalle app recenti) e riapri questa schermata.",
+    "tapToPayTestStripeLink": "Testare il collegamento al server Stripe",
+    "tapToPayTestStripeOk": "Collegamento al server Stripe OK: token di connessione ricevuto.",
+    "tapToPayTestStripeFailed": "Collegamento al server Stripe non riuscito",
+    "readerDisplayFailed": "Impossibile mostrare il totale su WisePad",
+    "readerDisplayHint": "Aggiungi prima gli articoli al carrello. Il WisePad mostra il totale dopo la connessione o quando tocchi Carica.",
+    "wisePadFirstConnectHint": "La prima connessione può richiedere alcuni minuti mentre il WisePad si accoppia tramite Bluetooth o installa un aggiornamento firmware una tantum. Tieni Velbok aperto e il lettore acceso.",
+    "wisePadFirstTimeTitle": "Prima configurazione di WisePad",
+    "wisePadFirstTimeIntro": "La prima volta che ti connetti, Stripe potrebbe installare un aggiornamento firmware obbligatorio sul lettore. Questo è normale e accade solo una volta.",
+    "wisePadFirstTimeTipMobileData": "Se l'aggiornamento continua a non riuscire, utilizza i dati mobili (4G/5G) invece del Wi-Fi per acquisti: alcune reti bloccano Stripe.",
+    "wisePadFirstTimeTipStayOpen": "Tieni Velbok aperto con lo schermo acceso. Non cambiare app né toccare di nuovo Connetti.",
+    "wisePadFirstTimeTipProximity": "Tieni il WisePad acceso e entro 2 metri dal telefono.",
+    "wisePadFirstTimeTipBluetooth": "Non associare il lettore nelle impostazioni Bluetooth di Android: connettiti solo tramite questa app.",
+    "wisePadFirstTimeTipDuration": "L'aggiornamento può richiedere 10-20 minuti. I pagamenti non sono disponibili fino al termine.",
+    "wisePadFirstTimeGotIt": "Fatto",
+    "wisePadFirmwareTitle": "Installazione del firmware WisePad… {{percent}}%",
+    "wisePadFirmwareBody": "Attendi: il lettore si sta aggiornando tramite il telefono. Non spegnere il lettore né chiudere l'app.",
+    "wisePadFirmwareTipPhone": "Lascia questa schermata aperta e mantieni il telefono sveglio.",
+    "wisePadFirmwareTipNetwork": "Se i progressi si bloccano, disattiva il Wi‑Fi e utilizza i dati mobili, quindi tocca Connetti ancora una volta.",
+    "wisePadFirmwareTokenNote": "Velbok mette in pausa le azioni di pagamento durante l'aggiornamento in modo che la connessione rimanga stabile.",
+    "wisePadFirmwareComplete": "Aggiornamento del firmware WisePad completato: puoi accettare pagamenti ora.",
+    "terminalSetupRecreated": "Posizione del terminale ricreata sul tuo account connesso.",
+    "recreateTerminalLocation": "Ricrea la posizione del terminale",
+    "terminalConnectAccount": "Stripe Connetti l'account (registra WisePad qui)",
+    "terminalConnectAccountHint": "In Inkaholics Stripe: Connetti → Account → questo account → Terminale → Lettori. Aggiungi il tuo seriale WisePad. Lettore live solo per chiavi live. Non associare nelle impostazioni Bluetooth del telefono.",
+    "terminalDiagnose": "Diagnostica il terminale Stripe",
+    "terminalDiagnoseOk": "Stripe Il terminale sembra OK (posizione + token di connessione).",
+    "terminalDiagnoseIssues": "Il terminale Stripe presenta problemi: vedi i dettagli di seguito.",
+    "terminalDiagnoseFailed": "Impossibile eseguire la diagnostica del terminale."
   },
   "consentPage": {
     "under18Question": "Hai meno di 18 anni?",
@@ -2334,7 +2444,8 @@
     "passwordUpdateFailed": "Impossibile aggiornare la password",
     "profileSaved": "Profilo salvato",
     "profileCompleted": "Profilo completato",
-    "saveFailed": "Impossibile salvare il profilo"
+    "saveFailed": "Impossibile salvare il profilo",
+    "backgroundSet": "Insieme di immagini di sfondo"
   },
   "routeError": {
     "defaultLabel": "Questa pagina",
@@ -2375,5 +2486,40 @@
     "adminPageFailed": "Impossibile caricare la pagina di amministrazione",
     "adminDataFailed": "Impossibile caricare i dati di amministrazione",
     "adminSectionFailed": "Impossibile caricare questa sezione. Prova ad aggiornare la pagina."
+  },
+  "download": {
+    "title": "Scarica Velbok",
+    "subtitle": "Installa l'app mobile Velbok sul tuo telefono in studio per effettuare pagamenti, Tocca per pagare e WisePad Bluetooth.",
+    "androidTitle": "Androide",
+    "androidDesc": "Rilascio della build per Touch to Pay e pagamento POS. Disinstalla prima qualsiasi installazione precedente di Velbok se Android segnala un conflitto di firme.",
+    "latestVersion": "Ultima versione",
+    "androidButton": "Scarica Velbok {{version}} per Android",
+    "apkUnavailable": "L'APK di Android non è ancora su questo server. Chiedi al tuo amministratore o ricostruisci con releases/velbok-release.apk presente.",
+    "installHint1": "Sul telefono: consenti le installazioni da questo browser o dall'app File se Android lo richiede.",
+    "installHint2": "Disinstalla prima la vecchia app Velbok se in precedenza hai installato una build di debug.",
+    "installHint3": "Per Tocca per pagare: utilizza un telefono supportato (vedi documenti), disattiva le opzioni sviluppatore, consenti la posizione.",
+    "tapToPayDocs": "Telefoni supportati e configurazione Tocca per pagare:",
+    "tapToPayDocsLink": "Pagamento POS e tocca per pagare",
+    "iphoneNote": "iPhone: Velbok per iOS è distribuito tramite TestFlight o App Store quando disponibile per il tuo studio, non da questa pagina."
+  },
+  "artistStripeConnect": {
+    "title": "Conto di pagamento POS",
+    "desc": "Collega il tuo conto bancario per ricevere la tua quota di pagamenti con carta di persona (WisePad / Checkout Tap to Pay).",
+    "notStartedBody": "Quando un cliente paga alla reception, il tuo studio mantiene la sua quota e il resto viene inviato qui, dopo aver completato questa configurazione Stripe una tantum.",
+    "incompleteBody": "La configurazione del tuo pagamento è incompleta. Continua ad aggiungere le coordinate bancarie e verifica la tua identità.",
+    "readyBody": "I pagamenti sono attivi. La tua quota ({{percent}}% per impostazione predefinita) dai pagamenti con carta di credito verrà trasferita su questo conto.",
+    "shopNotReady": "Il tuo studio sta ancora configurando il proprio conto di pagamento. Chiedi al proprietario di completare prima Amministrazione → Pagamenti, quindi torna qui.",
+    "startSetup": "Imposta il mio conto di pagamento",
+    "continueSetup": "Continua la configurazione del pagamento",
+    "managePayouts": "Gestisci i pagamenti",
+    "statusReady": "Collegata",
+    "statusIncomplete": "Azione richiesta",
+    "statusNotStarted": "Non connesso",
+    "stripeHostedNote": "Stripe gestisce l'identità e la verifica bancaria in modo sicuro. Potresti vedere Velbok o il nome del tuo studio come piattaforma: i pagamenti vanno sul tuo conto bancario personale, non su quello dello studio.",
+    "returnToast": "Configurazione del pagamento aggiornata: verifica dello stato…",
+    "refreshToast": "Continua la configurazione del pagamento da dove avevi interrotto.",
+    "loadFailed": "Impossibile caricare lo stato del pagamento",
+    "onboardFailed": "Impossibile avviare la configurazione del pagamento",
+    "dashboardFailed": "Impossibile aprire la dashboard dei pagamenti"
   }
 }

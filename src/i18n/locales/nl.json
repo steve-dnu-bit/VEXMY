@@ -42,7 +42,9 @@
     "and": "en",
     "refresh": "Vernieuwen",
     "organizationNotFound": "Organisatie niet gevonden",
-    "appName": "Velbok"
+    "appName": "Velbok",
+    "saving": "Besparing…",
+    "downloadApp": "App downloaden"
   },
   "nav": {
     "schedule": "Planning",
@@ -411,7 +413,9 @@
     "consentHandSignNotice": "Klanten moeten de vooraf ingevulde toestemming met een pen in uw studio met de hand ondertekenen. Bewaar het originele ondertekende exemplaar veilig op uw locatie.",
     "payAtDesk": "Betaal aan de balie",
     "checkingPosPayment": "Betalen via bureau controleren...",
-    "posPaidAtDesk": "Betaald aan de balie · {{amount}}"
+    "posPaidAtDesk": "Betaald aan de balie · {{amount}}",
+    "legalTitle": "Legaal",
+    "legalDesc": "Privacy, voorwaarden en cookie-informatie voor Velbok."
   },
   "admin": {
     "title": "Beheer",
@@ -587,7 +591,21 @@
     "featureMyBookings": "Mijn boekingen / profiel",
     "featureConsentLink": "Link naar toestemmingsformulier",
     "noStudioTitle": "Er is geen studio aan dit account gekoppeld",
-    "noStudioDesc": "Team- en toestemmingslijsten zijn gericht op uw studio. Voltooi het instellen van de winkel in Instellingen, of voer het platformbeheerderstoekenningsscript uit in Supabase als dit het Velbok operatoraccount is."
+    "noStudioDesc": "Team- en toestemmingslijsten zijn gericht op uw studio. Voltooi het instellen van de winkel in Instellingen, of voer het platformbeheerderstoekenningsscript uit in Supabase als dit het Velbok operatoraccount is.",
+    "reviewLinksTitle": "Reviewlinks",
+    "reviewLinksDesc": "Voeg Google-, Facebook- of andere recensie-URL's toe. Artiesten kunnen na een sessie vanuit een boeking handmatig een e-mail met een beoordelingsverzoek sturen. Gebruik een directe recensielink (bijvoorbeeld g.page/r/… of de recensie-URL van uw Facebook-pagina) – vermijd share.google.com/‘Deel’-links; die openen vaak de Google-app of Cast in plaats van de recensiepagina.",
+    "reviewLinksSaved": "Reviewlinks opgeslagen",
+    "reviewLinksSaveFailed": "Kan recensielinks niet opslaan",
+    "reviewLinksInvalid": "Elke recensielink heeft een platformnaam en een geldige URL nodig.",
+    "reviewLinkLabel": "Platformnaam",
+    "reviewLinkLabelPlaceholder": "Google-recensies",
+    "reviewLinkUrl": "Review-URL",
+    "reviewLinkShareUrlWarning": "Dit lijkt op een Google Share-link. Mogelijk wordt Cast of de Google-app geopend in plaats van uw beoordelingspagina. Kopieer in Google Bedrijfsprofiel de directe beoordelingslink (g.page/r/… of maps.google.com).",
+    "reviewLinkAdd": "Voeg nog een link toe",
+    "reviewLinkRemove": "Koppeling verwijderen",
+    "reviewEmailMessage": "Optioneel persoonlijke noot",
+    "reviewEmailMessagePlaceholder": "Nogmaals bedankt dat je zo goed hebt gezeten vandaag. We zouden een snelle beoordeling zeer op prijs stellen als je even tijd hebt.",
+    "reviewEmailMessageHint": "Wordt bovenaan de e-mail met het beoordelingsverzoek weergegeven, boven de standaard bedanktekst."
   },
   "notFound": {
     "title": "Pagina niet gevonden",
@@ -813,7 +831,9 @@
     "stripeCta": "Bekijk abonnementen met Stripe",
     "regionsTitle": "Internationaal beschikbaar",
     "regionsSubtitle": "Studio's in 13 landen — lokale valuta en taalondersteuning ingebouwd.",
-    "regionsCarouselLabel": "Ondersteunde landen"
+    "regionsCarouselLabel": "Ondersteunde landen",
+    "studioWelcomeBack": "Welkom terug: open je schema of bekijk studiostatistieken.",
+    "returnToSchedule": "Terug naar schema"
   },
   "contact": {
     "title": "Neem contact op",
@@ -885,7 +905,8 @@
     "viewPdf": "PDF bekijken",
     "pdfPending": "PDF in behandeling",
     "contactableClients": "Klanten om contact mee op te nemen",
-    "openTickets": "Inbox-threads openen"
+    "openTickets": "Inbox-threads openen",
+    "backToSchedule": "Terug naar schema"
   },
   "clients": {
     "title": "Klanten",
@@ -1221,7 +1242,17 @@
     "errorCreating": "Fout bij aanmaken dienst",
     "serviceCreated": "Dienst aangemaakt",
     "errorDeleting": "Fout bij verwijderen dienst",
-    "serviceDeleted": "Dienst verwijderd"
+    "serviceDeleted": "Dienst verwijderd",
+    "depositRequiredLabel": "Aanbetaling vereisen",
+    "depositRequiredHint": "Indien ingeschakeld, gebruiken nieuwe boekingen voor deze service het onderstaande aanbetalingsbedrag (of de standaardwaarde van uw winkel).",
+    "depositAmountLabel": "Borgbedrag",
+    "depositAmountPlaceholder": "Laat dit leeg voor winkelstandaard",
+    "depositAmountHint": "Optionele voorinstelling. Indien leeg, geldt de standaardwinkelwaarborg.",
+    "depositInvalid": "Ongeldige storting",
+    "depositInvalidDesc": "De storting moet tussen {{min}} en {{max}} liggen.",
+    "depositRequiredShort": "Borg {{amount}}",
+    "depositShopDefault": "winkel standaard",
+    "noDeposit": "Geen aanbetaling"
   },
   "stock": {
     "title": "Voorraad & benodigdheden",
@@ -1526,7 +1557,22 @@
     "openInbox": "Openen in postvak IN",
     "payAtDesk": "Betaal aan de balie",
     "checkingPosPayment": "Betalen via bureau controleren...",
-    "posPaidAtDesk": "Betaald aan de balie · {{amount}}"
+    "posPaidAtDesk": "Betaald aan de balie · {{amount}}",
+    "sidebarBookHint": "Optioneel: tik op een dienst of artiest en tik vervolgens op een tijdslot in de planning om een ​​nieuwe boeking met die presets te openen.",
+    "depositFromService": "Aanbetaling voor deze boeking: {{amount}} (via service-instellingen).",
+    "noDepositForService": "Voor deze service is geen aanbetaling vereist.",
+    "requestReview": "Vraag om beoordeling",
+    "clientAppointments": "Alle afspraken",
+    "clientAppointmentsTitle": "Afspraken met klanten",
+    "clientAppointmentsUpcoming": "Aankomend ({{count}})",
+    "clientAppointmentsPast": "Verleden ({{count}})",
+    "clientAppointmentsEmpty": "Er zijn geen andere afspraken gevonden voor deze klant.",
+    "clientAppointmentsCurrent": "Deze boeking",
+    "reviewRequestSent": "E-mail met beoordelingsverzoek verzonden",
+    "noClientEmailReview": "Voeg een klant-e-mailadres toe aan deze boeking om een ​​beoordelingsverzoek te verzenden.",
+    "reviewLinksNotConfigured": "Voeg eerst beoordelingslinks toe in Beheer → E-mails.",
+    "reviewRequestFailed": "Kan beoordelingsverzoek niet verzenden",
+    "conductOrgMissing": "Kan uw studioorganisatie voor dit gedragsrecord niet bepalen."
   },
   "staff": {
     "loading": "Laden..."
@@ -1976,7 +2022,71 @@
       "ready": "Klaar om persoonlijke betalingen te accepteren.",
       "notReady": "Voer de bovenstaande stappen uit voordat u kaarten aan de balie oplaadt.",
       "stripeDashboardHint": "Stripe Terminal-onboarding, accountverificatie, hardware-provisioning en terminalondersteuning worden geleverd door Stripe (niet Velbok). Beheer lezers in Stripe Dashboard → Terminal."
-    }
+    },
+    "setupNeededTitle": "Voltooi het instellen om betalingen te ontvangen",
+    "setupGuideButton": "POS-opstelling",
+    "setupGuideTitle": "Handleiding voor POS-installatie",
+    "setupGuideDesc": "Koppel uitbetalingen, schakel afrekenen in, kies uw lezer en test de Stripe-link.",
+    "setupNeededDesc": "Open de installatiehandleiding om Stripe en uw kaartlezer te verbinden.",
+    "productsTools": "Importeren/exporteren van producten",
+    "selectArtistHint": "Tik op de artiest voor deze sessie voordat je gaat opladen: de kleuren komen overeen met hun profiel.",
+    "clientEmail": "E-mailadres van klant",
+    "clientEmailPlaceholder": "naam@voorbeeld.com",
+    "clientEmailHint": "Als er een adres wordt opgegeven, wordt er na betaling een pdf-bon verzonden.",
+    "receiptEmailSent": "Ontvangst per e-mail naar de klant.",
+    "connectTapToPay": "Schakel telefonische betalingen in",
+    "connectTapToPayProgress": "Telefoonbetalingen instellen…",
+    "connectReaderProgress": "Verbinding maken met lezer…",
+    "readerModeTitle": "Hoe accepteert u kaartbetalingen?",
+    "readerModeDesc": "Gebruik deze telefoon als kaartlezer (Google Pay, Apple Pay, contactloze kaarten) – of sluit een aparte WisePad aan.",
+    "readerModeBluetooth": "WisePad (aparte kaartlezer)",
+    "readerModeBluetoothHint": "Stripe WisePad 3 — een Bluetooth-apparaat dat u aan de klant voorhoudt.",
+    "readerModeTapToPay": "Deze telefoon (Tik om te betalen)",
+    "readerModeTapToPayHint": "Klant tikt op Google Pay, Apple Pay of zijn kaart op uw telefoon. Geen extra hardware.",
+    "tapToPayInfoTitle": "Gebruik deze telefoon om betalingen te accepteren",
+    "tapToPayInfoBody": "Tik op Telefoonbetalingen inschakelen en breng vervolgens kosten in rekening zoals gewoonlijk. De klant houdt zijn kaart of telefoon (Google Pay / Apple Pay) bovenaan uw apparaat.",
+    "tapToPayInfoAndroidDevOptions": "Android: Ontwikkelaarsopties moeten UIT staan ​​(Instellingen → Ontwikkelaarsopties). Stripe blokkeert Tap to Pay terwijl de ontwikkelaarsmodus is ingeschakeld.",
+    "terminalTokenFailed": "Kan geen verbinding maken met de Stripe-terminal. Controleer internet, log opnieuw in en bevestig Beheerder → POS heeft Connect + Terminal-locatie ingesteld.",
+    "tapToPayInfoAppleGoogle": "Ondersteunt contactloze kaarten, Apple Pay, Google Pay en soortgelijke portemonnees.",
+    "tapToPayInfoAndroidRelease": "Android: gebruik een releasebuild van de Velbok-app met ontwikkelaarsopties uitgeschakeld.",
+    "tapToPayInfoStripeEnable": "Stripe Terminal wordt op de achtergrond gebruikt (verbindingstoken + locatie op uw Connect-account). Voor Tap to Pay hoeft u geen aparte kaartlezer aan te schaffen — Velbok maakt de Terminallocatie aan in Beheer → POS. Er is geen extra Tap to Pay-schakelaar in Stripe voor de Velbok-app.",
+    "tapToPayInfoAppleEntitlement": "iPhone: de houder van het Apple Developer-account moet Tap to Pay op iPhone aanvragen bij Apple en dit inschakelen op de app-ID com.velbok.app voordat TestFlight- of App Store-builds zullen werken.",
+    "tapToPayHowToTap": "Toon hoe u kunt tikken",
+    "tapToPayHowToUnavailable": "Voor de How to Tap-gids van Apple zijn iOS 18+ en Tap to Pay-goedkeuring vereist op je ontwikkelaarsaccount.",
+    "tapToPayFailed": "Tap to Pay kan niet starten",
+    "tapToPayCheckingPhone": "Deze telefoon controleren op Tap to Pay...",
+    "tapToPayPhoneReady": "Deze telefoon is klaar voor Tap to Pay",
+    "tapToPayPhoneReadyHint": "Velbok {{version}} · releaseversie. Tik op Telefoonbetalingen inschakelen — Stripe verifieert de beveiliging op de telefoon.",
+    "tapToPayPhoneBlocked": "Los dit op uw telefoon op voordat u betalingen inschakelt",
+    "tapToPayPhoneBlockedHint": "Sluit na het oplossen Velbok volledig (veeg weg van recente apps) en open dit scherm opnieuw.",
+    "tapToPayTestStripeLink": "Test de Stripe serverlink",
+    "tapToPayTestStripeOk": "Stripe serverlink OK — verbindingstoken ontvangen.",
+    "tapToPayTestStripeFailed": "Stripe serverkoppeling mislukt",
+    "readerDisplayFailed": "Kan het totaal niet weergeven op WisePad",
+    "readerDisplayHint": "Voeg eerst artikelen toe aan de winkelwagen. De WisePad toont het totaal nadat verbinding is gemaakt of wanneer u op Opladen tikt.",
+    "wisePadFirstConnectHint": "De eerste verbinding kan enkele minuten duren, terwijl de WisePad via Bluetooth koppelt of een eenmalige firmware-update installeert. Houd Velbok open en de lezer ingeschakeld.",
+    "wisePadFirstTimeTitle": "Eerste WisePad-installatie",
+    "wisePadFirstTimeIntro": "De eerste keer dat u verbinding maakt, kan Stripe een verplichte firmware-update op de lezer installeren. Dit is normaal en gebeurt slechts één keer.",
+    "wisePadFirstTimeTipMobileData": "Gebruik mobiele data (4G/5G) in plaats van wifi in de winkel als de update blijft mislukken; sommige netwerken blokkeren Stripe.",
+    "wisePadFirstTimeTipStayOpen": "Houd Velbok open met het scherm aan. Schakel niet tussen apps en tik niet nogmaals op Verbinden.",
+    "wisePadFirstTimeTipProximity": "Houd de WisePad ingeschakeld en binnen een afstand van 2 meter van uw telefoon.",
+    "wisePadFirstTimeTipBluetooth": "Koppel de lezer niet in de Android Bluetooth-instellingen - maak alleen verbinding via deze app.",
+    "wisePadFirstTimeTipDuration": "De update kan 10 tot 20 minuten duren. Betalingen zijn niet beschikbaar totdat deze is voltooid.",
+    "wisePadFirstTimeGotIt": "Ik heb het",
+    "wisePadFirmwareTitle": "WisePad-firmware installeren… {{percent}}%",
+    "wisePadFirmwareBody": "Een ogenblik geduld. De lezer wordt bijgewerkt via uw telefoon. Schakel de reader niet uit en sluit de app niet.",
+    "wisePadFirmwareTipPhone": "Laat dit scherm open en houd de telefoon wakker.",
+    "wisePadFirmwareTipNetwork": "Als de voortgang stagneert, schakel dan wifi uit en gebruik mobiele data en tik vervolgens nogmaals op Verbinden.",
+    "wisePadFirmwareTokenNote": "Velbok pauzeert afrekenacties tijdens de update, zodat de verbinding stabiel blijft.",
+    "wisePadFirmwareComplete": "WisePad-firmware-update voltooid: u kunt nu betalingen accepteren.",
+    "terminalSetupRecreated": "Terminallocatie opnieuw gemaakt op uw verbonden account.",
+    "recreateTerminalLocation": "Terminallocatie opnieuw creëren",
+    "terminalConnectAccount": "Stripe Connect-account (registreer WisePad hier)",
+    "terminalConnectAccountHint": "In Inkaholics Stripe: Verbinden → Accounts → dit account → Terminal → Lezers. Voeg uw WisePad-serienummer toe. Live-lezer alleen voor live-sleutels. Koppel niet in de Bluetooth-instellingen van de telefoon.",
+    "terminalDiagnose": "Diagnose Stripe Terminal",
+    "terminalDiagnoseOk": "Stripe Terminal ziet er goed uit (locatie + verbindingstoken).",
+    "terminalDiagnoseIssues": "Stripe Terminal heeft problemen — zie details hieronder.",
+    "terminalDiagnoseFailed": "Kan Terminal-diagnostiek niet uitvoeren."
   },
   "consentPage": {
     "under18Question": "Ben je jonger dan 18?",
@@ -2334,7 +2444,8 @@
     "passwordUpdateFailed": "Kan wachtwoord niet bijwerken",
     "profileSaved": "Profiel opgeslagen",
     "profileCompleted": "Profiel voltooid",
-    "saveFailed": "Kan profiel niet opslaan"
+    "saveFailed": "Kan profiel niet opslaan",
+    "backgroundSet": "Achtergrondafbeelding ingesteld"
   },
   "routeError": {
     "defaultLabel": "Deze pagina",
@@ -2375,5 +2486,40 @@
     "adminPageFailed": "Beheerderspagina kan niet worden geladen",
     "adminDataFailed": "Kan beheerdersgegevens niet laden",
     "adminSectionFailed": "Deze sectie kan niet worden geladen. Probeer de pagina te vernieuwen."
+  },
+  "download": {
+    "title": "Download Velbok",
+    "subtitle": "Installeer de mobiele app Velbok op uw studiotelefoon voor afrekenen, Tap to Pay en WisePad Bluetooth-betalingen.",
+    "androidTitle": "Android",
+    "androidDesc": "Release-build voor Tap to Pay en POS-afrekenen. Verwijder eerst een oudere Velbok-installatie als Android een handtekeningconflict meldt.",
+    "latestVersion": "Nieuwste versie",
+    "androidButton": "Download Velbok {{version}} voor Android",
+    "apkUnavailable": "De Android APK staat nog niet op deze server. Vraag het aan je beheerder of herbouw het met releases/velbok-release.apk aanwezig.",
+    "installHint1": "Op de telefoon: sta installaties vanuit deze browser of Bestanden-app toe als Android daarom vraagt.",
+    "installHint2": "Verwijder eerst de oude Velbok-app als u eerder een debug-build hebt geïnstalleerd.",
+    "installHint3": "Voor Tap to Pay: gebruik een ondersteunde telefoon (zie documenten), schakel de ontwikkelaarsopties UIT, sta Locatie toe.",
+    "tapToPayDocs": "Ondersteunde telefoons en Tap to Pay-installatie:",
+    "tapToPayDocsLink": "POS-afrekenen en tikken om te betalen",
+    "iphoneNote": "iPhone: Velbok voor iOS wordt gedistribueerd via TestFlight of App Store indien beschikbaar voor uw studio — niet vanaf deze pagina."
+  },
+  "artistStripeConnect": {
+    "title": "POS-uitbetalingsrekening",
+    "desc": "Koppel uw bankrekening om uw deel van de persoonlijke kaartbetalingen te ontvangen (WisePad / Tap to Pay-afrekenen).",
+    "notStartedBody": "Wanneer een klant aan de balie betaalt, behoudt jouw studio zijn deel en wordt de rest hierheen gestuurd — nadat je deze eenmalige Stripe-configuratie hebt voltooid.",
+    "incompleteBody": "Uw uitbetalingsinstellingen zijn onvolledig. Ga door met het toevoegen van bankgegevens en verifieer uw identiteit.",
+    "readyBody": "Uitbetalingen zijn actief. Uw deel (standaard {{percent}}%) van bureaukaartbetalingen wordt naar deze rekening overgemaakt.",
+    "shopNotReady": "Je studio is nog bezig met het opzetten van een eigen uitbetalingsaccount. Vraag de eigenaar om eerst Beheer → Uitbetalingen af ​​te ronden en dan hier terug te keren.",
+    "startSetup": "Mijn uitbetalingsaccount instellen",
+    "continueSetup": "Ga door met het instellen van de uitbetaling",
+    "managePayouts": "Beheer uitbetalingen",
+    "statusReady": "Aangesloten",
+    "statusIncomplete": "Actie vereist",
+    "statusNotStarted": "Niet verbonden",
+    "stripeHostedNote": "Stripe handelt identiteits- en bankverificatie veilig af. Mogelijk ziet u Velbok of de naam van uw studio als platform. Uitbetalingen gaan naar uw persoonlijke bankrekening, niet naar die van de studio.",
+    "returnToast": "Uitbetalingsinstellingen bijgewerkt — status controleren...",
+    "refreshToast": "Ga verder met het instellen van de uitbetaling waar u was gebleven.",
+    "loadFailed": "Kan uitbetalingsstatus niet laden",
+    "onboardFailed": "Kan het instellen van de uitbetaling niet starten",
+    "dashboardFailed": "Kan het uitbetalingsdashboard niet openen"
   }
 }

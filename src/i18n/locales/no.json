@@ -42,7 +42,9 @@
     "and": "og",
     "refresh": "Oppdater",
     "organizationNotFound": "Finner ikke organisasjonen",
-    "appName": "Velbok"
+    "appName": "Velbok",
+    "saving": "Lagrer …",
+    "downloadApp": "Last ned app"
   },
   "nav": {
     "schedule": "Timeplan",
@@ -411,7 +413,9 @@
     "consentHandSignNotice": "Kunder må signere det forhåndsutfylte samtykket med en penn, for hånd, i studioet ditt. Oppbevar den originale signerte kopien trygt i dine lokaler.",
     "payAtDesk": "Betal ved skranken",
     "checkingPosPayment": "Sjekker skrivebordsbetaling …",
-    "posPaidAtDesk": "Betales ved skranken · {{amount}}"
+    "posPaidAtDesk": "Betales ved skranken · {{amount}}",
+    "legalTitle": "Lovlig",
+    "legalDesc": "Personvern, vilkår og informasjonskapselinformasjon for Velbok."
   },
   "admin": {
     "title": "Admin",
@@ -587,7 +591,21 @@
     "featureMyBookings": "Mine bestillinger / profil",
     "featureConsentLink": "Link til samtykkeskjema",
     "noStudioTitle": "Ingen studio knyttet til denne kontoen",
-    "noStudioDesc": "Team- og tillatelseslister er scoped til studioet ditt. Fullfør butikkoppsettet i Innstillinger, eller kjør plattformadministrasjonsskriptet i Supabase hvis dette er Velbok-operatørkontoen."
+    "noStudioDesc": "Team- og tillatelseslister er scoped til studioet ditt. Fullfør butikkoppsettet i Innstillinger, eller kjør plattformadministrasjonsskriptet i Supabase hvis dette er Velbok-operatørkontoen.",
+    "reviewLinksTitle": "Gjennomgå lenker",
+    "reviewLinksDesc": "Legg til nettadresser for Google, Facebook eller andre anmeldelser. Artister kan sende en e-post med forespørsel om gjennomgang manuelt fra en bestilling etter en økt. Bruk en direkte anmeldelseslenke (f.eks. g.page/r/... eller URL-adressen for anmeldelser på Facebook-siden din) — unngå share.google.com / «Del»-koblinger; de åpner ofte Google-appen eller Cast i stedet for anmeldelsessiden.",
+    "reviewLinksSaved": "Gjennomgå koblinger lagret",
+    "reviewLinksSaveFailed": "Kunne ikke lagre anmeldelseslinker",
+    "reviewLinksInvalid": "Hver anmeldelseslink trenger et plattformnavn og en gyldig URL.",
+    "reviewLinkLabel": "Plattformnavn",
+    "reviewLinkLabelPlaceholder": "Google Anmeldelser",
+    "reviewLinkUrl": "Gjennomgå URL",
+    "reviewLinkShareUrlWarning": "Dette ser ut som en Google Share-kobling – den kan åpne Cast eller Google-appen i stedet for anmeldelsessiden din. I Google-bedriftsprofilen kopierer du koblingen for direkte anmeldelse (g.page/r/... eller maps.google.com).",
+    "reviewLinkAdd": "Legg til en annen lenke",
+    "reviewLinkRemove": "Fjern lenken",
+    "reviewEmailMessage": "Valgfritt personlig notat",
+    "reviewEmailMessagePlaceholder": "Takk igjen for at du sitter så bra i dag – vi vil virkelig sette pris på en rask anmeldelse hvis du har et øyeblikk.",
+    "reviewEmailMessageHint": "Vist øverst i e-posten med forespørsel om anmeldelse, over standard takketeksten."
   },
   "notFound": {
     "title": "Siden ble ikke funnet",
@@ -813,7 +831,9 @@
     "stripeCta": "Se planer med Stripe",
     "regionsTitle": "Tilgjengelig internasjonalt",
     "regionsSubtitle": "Studioer i 13 land — lokal valuta og språkstøtte innebygd.",
-    "regionsCarouselLabel": "Støttede land"
+    "regionsCarouselLabel": "Støttede land",
+    "studioWelcomeBack": "Velkommen tilbake – åpne timeplanen din eller se studiostatistikk.",
+    "returnToSchedule": "Gå tilbake til timeplanen"
   },
   "contact": {
     "title": "Ta kontakt",
@@ -885,7 +905,8 @@
     "viewPdf": "Vis PDF",
     "pdfPending": "PDF venter",
     "contactableClients": "Kunder å kontakte",
-    "openTickets": "Åpne innbokstråder"
+    "openTickets": "Åpne innbokstråder",
+    "backToSchedule": "Gå tilbake til timeplanen"
   },
   "clients": {
     "title": "Kunder",
@@ -1221,7 +1242,17 @@
     "errorCreating": "Feil ved oppretting av tjeneste",
     "serviceCreated": "Tjeneste opprettet",
     "errorDeleting": "Feil ved sletting av tjeneste",
-    "serviceDeleted": "Tjeneste slettet"
+    "serviceDeleted": "Tjeneste slettet",
+    "depositRequiredLabel": "Krev innskudd",
+    "depositRequiredHint": "Når den er aktivert, vil nye bestillinger for denne tjenesten bruke innskuddsbeløpet nedenfor (eller standardbutikken din).",
+    "depositAmountLabel": "Innskuddsbeløp",
+    "depositAmountPlaceholder": "La stå tomt for standardbutikk",
+    "depositAmountHint": "Valgfri forhåndsinnstilling. Hvis den er tom, gjelder standardinnskuddet i butikken.",
+    "depositInvalid": "Ugyldig innskudd",
+    "depositInvalidDesc": "Innskuddet må være mellom {{min}} og {{max}}.",
+    "depositRequiredShort": "Innskudd {{amount}}",
+    "depositShopDefault": "butikk standard",
+    "noDeposit": "Ingen innskudd"
   },
   "stock": {
     "title": "Lager og forsyninger",
@@ -1526,7 +1557,22 @@
     "openInbox": "Åpne i innboks",
     "payAtDesk": "Betal ved skranken",
     "checkingPosPayment": "Sjekker skrivebordsbetaling …",
-    "posPaidAtDesk": "Betales ved skranken · {{amount}}"
+    "posPaidAtDesk": "Betales ved skranken · {{amount}}",
+    "sidebarBookHint": "Valgfritt: trykk på en tjeneste eller artist, og trykk deretter på en tidsluke på timeplanen for å åpne en ny bestilling med disse forhåndsinnstillingene.",
+    "depositFromService": "Depositum for denne bestillingen: {{amount}} (fra tjenesteinnstillinger).",
+    "noDepositForService": "Ingen depositum kreves for denne tjenesten.",
+    "requestReview": "Be om anmeldelse",
+    "clientAppointments": "Alle avtaler",
+    "clientAppointmentsTitle": "Kundeavtaler",
+    "clientAppointmentsUpcoming": "Kommende ({{count}})",
+    "clientAppointmentsPast": "Tidligere ({{count}})",
+    "clientAppointmentsEmpty": "Ingen andre avtaler funnet for denne klienten.",
+    "clientAppointmentsCurrent": "Denne bestillingen",
+    "reviewRequestSent": "E-post med forespørsel om gjennomgang er sendt",
+    "noClientEmailReview": "Legg til en klient-e-postadresse på denne bestillingen for å sende en vurderingsforespørsel.",
+    "reviewLinksNotConfigured": "Legg til gjennomgangskoblinger i Admin → E-post først.",
+    "reviewRequestFailed": "Kunne ikke sende gjennomgangsforespørsel",
+    "conductOrgMissing": "Kunne ikke fastslå studioorganisasjonen din for denne oppførselsposten."
   },
   "staff": {
     "loading": "Laster…"
@@ -1976,7 +2022,71 @@
       "ready": "Klar til å ta personlig betaling.",
       "notReady": "Fullfør trinnene ovenfor før du lader kort ved skrivebordet.",
       "stripeDashboardHint": "Stripe Terminal onboarding, kontoverifisering, maskinvareklargjøring og terminalstøtte leveres av Stripe (ikke Velbok). Administrer lesere i Stripe Dashboard → Terminal."
-    }
+    },
+    "setupNeededTitle": "Fullfør oppsettet for å ta betalinger",
+    "setupGuideButton": "POS oppsett",
+    "setupGuideTitle": "POS-oppsettveiledning",
+    "setupGuideDesc": "Koble til utbetalinger, aktiver utsjekking, velg leseren din og test koblingen Stripe.",
+    "setupNeededDesc": "Åpne oppsettsveiledningen for å koble til Stripe og kortleseren.",
+    "productsTools": "Import / eksport produkter",
+    "selectArtistHint": "Trykk på artisten for denne økten før du lader - farger samsvarer med profilen deres.",
+    "clientEmail": "Klientens e-post",
+    "clientEmailPlaceholder": "navn@eksempel.com",
+    "clientEmailHint": "En PDF-kvittering vil bli sendt på e-post etter betaling hvis en adresse er oppgitt.",
+    "receiptEmailSent": "Kvittering sendt på e-post til klienten.",
+    "connectTapToPay": "Aktiver telefonbetalinger",
+    "connectTapToPayProgress": "Konfigurerer telefonbetalinger …",
+    "connectReaderProgress": "Kobler til leseren …",
+    "readerModeTitle": "Hvordan tar du kortbetalinger?",
+    "readerModeDesc": "Bruk denne telefonen som kortleser (Google Pay, Apple Pay, kontaktløse kort) – eller koble til en separat WisePad.",
+    "readerModeBluetooth": "WisePad (separat kortleser)",
+    "readerModeBluetoothHint": "Stripe WisePad 3 — en Bluetooth-enhet du holder frem til kunden.",
+    "readerModeTapToPay": "Denne telefonen (Trykk for å betale)",
+    "readerModeTapToPayHint": "Kunden trykker på Google Pay, Apple Pay eller kortet sitt på telefonen din. Ingen ekstra maskinvare.",
+    "tapToPayInfoTitle": "Bruk denne telefonen til å ta betalinger",
+    "tapToPayInfoBody": "Trykk på Aktiver telefonbetalinger, og lad deretter som vanlig. Kunden holder kortet eller telefonen (Google Pay / Apple Pay) nær toppen av enheten din.",
+    "tapToPayInfoAndroidDevOptions": "Android: Utvikleralternativer må være AV (Innstillinger → Utvikleralternativer). Stripe blokker Trykk for å betale mens utviklermodus er på.",
+    "terminalTokenFailed": "Kunne ikke koble til Stripe-terminalen. Sjekk Internett, logg på igjen og bekreft Admin → POS har konfigurert Connect + Terminal location.",
+    "tapToPayInfoAppleGoogle": "Støtter kontaktløse kort, Apple Pay, Google Pay og lignende lommebøker.",
+    "tapToPayInfoAndroidRelease": "Android: bruk en versjon av Velbok-appen med utvikleralternativer slått av.",
+    "tapToPayInfoStripeEnable": "Stripe Terminal brukes i bakgrunnen (tilkoblingstoken + plassering på Connect-kontoen din). Du trenger ikke å kjøpe en egen kortleser for Tap to Pay — Velbok oppretter terminalplasseringen i Admin → POS. Det er ingen ekstra Trykk for å betale-veksling i Stripe for Velbok-appen.",
+    "tapToPayInfoAppleEntitlement": "iPhone: Apple-utviklerkontoinnehaveren må be om Tap for å betale på iPhone fra Apple og aktivere den på com.velbok.app-app-ID-en før TestFlight- eller App Store-byggene vil fungere.",
+    "tapToPayHowToTap": "Vis veiledning for hvordan du trykker",
+    "tapToPayHowToUnavailable": "Apples How to Tap-veiledning krever iOS 18+ og Tap to Pay-godkjenning på utviklerkontoen din.",
+    "tapToPayFailed": "Trykk for å betale kunne ikke starte",
+    "tapToPayCheckingPhone": "Sjekker denne telefonen for trykk for å betale …",
+    "tapToPayPhoneReady": "Denne telefonen er klar for Trykk for å betale",
+    "tapToPayPhoneReadyHint": "Velbok {{version}} · release build. Trykk på Aktiver telefonbetalinger — Stripe bekrefter sikkerheten på telefonen.",
+    "tapToPayPhoneBlocked": "Løs dette på telefonen før du aktiverer betalinger",
+    "tapToPayPhoneBlockedHint": "Etter å ha fikset, lukker du Velbok helt (sveip bort fra nylige apper) og åpner denne skjermen på nytt.",
+    "tapToPayTestStripeLink": "Test Stripe serverkobling",
+    "tapToPayTestStripeOk": "Stripe serverkobling OK — tilkoblingstoken mottatt.",
+    "tapToPayTestStripeFailed": "Stripe serverkobling mislyktes",
+    "readerDisplayFailed": "Kunne ikke vise totalen på WisePad",
+    "readerDisplayHint": "Legg varer i handlekurven først. WisePad viser totalen etter tilkobling, eller når du trykker på Lad.",
+    "wisePadFirstConnectHint": "Den første tilkoblingen kan ta noen minutter mens WisePad pares over Bluetooth eller installerer en engangsfastvareoppdatering. Hold Velbok åpen og leseren slått på.",
+    "wisePadFirstTimeTitle": "Første gangs WisePad-oppsett",
+    "wisePadFirstTimeIntro": "Første gang du kobler til, kan Stripe installere en obligatorisk fastvareoppdatering på leseren. Dette er normalt og skjer bare én gang.",
+    "wisePadFirstTimeTipMobileData": "Bruk mobildata (4G/5G) i stedet for å handle Wi-Fi hvis oppdateringen fortsetter å mislykkes – noen nettverk blokkerer Stripe.",
+    "wisePadFirstTimeTipStayOpen": "Hold Velbok åpen med skjermen på. Ikke bytt app eller trykk på Koble til igjen.",
+    "wisePadFirstTimeTipProximity": "Hold WisePad slått på og innenfor 2 meter fra telefonen.",
+    "wisePadFirstTimeTipBluetooth": "Ikke sammenkoble leseren i Android Bluetooth-innstillinger – bare koble til via denne appen.",
+    "wisePadFirstTimeTipDuration": "Oppdateringen kan ta 10–20 minutter. Betalinger er utilgjengelige før den er ferdig.",
+    "wisePadFirstTimeGotIt": "Skjønner det",
+    "wisePadFirmwareTitle": "Installerer WisePad-fastvare... {{percent}}%",
+    "wisePadFirmwareBody": "Vennligst vent - leseren oppdaterer gjennom telefonen din. Ikke slå av leseren eller lukk appen.",
+    "wisePadFirmwareTipPhone": "La denne skjermen være åpen og hold telefonen våken.",
+    "wisePadFirmwareTipNetwork": "Hvis fremgangen stopper, slå av Wi-Fi og bruk mobildata, og trykk deretter på Koble til en gang til.",
+    "wisePadFirmwareTokenNote": "Velbok setter betalingshandlinger på pause under oppdateringen slik at tilkoblingen forblir stabil.",
+    "wisePadFirmwareComplete": "WisePad-firmwareoppdatering fullført - du kan ta betalinger nå.",
+    "terminalSetupRecreated": "Terminalplassering gjenskapt på din tilkoblede konto.",
+    "recreateTerminalLocation": "Gjenskap terminalplassering",
+    "terminalConnectAccount": "Stripe Connect-konto (registrer WisePad her)",
+    "terminalConnectAccountHint": "I Inkaholics Stripe: Koble til → Kontoer → denne kontoen → Terminal → Lesere. Legg til din WisePad-serie. Live-leser kun for live-nøkler. Ikke par i telefonens Bluetooth-innstillinger.",
+    "terminalDiagnose": "Diagnostiser Stripe terminal",
+    "terminalDiagnoseOk": "Stripe Terminal ser OK ut (plassering + tilkoblingstoken).",
+    "terminalDiagnoseIssues": "Stripe Terminal har problemer — se detaljer nedenfor.",
+    "terminalDiagnoseFailed": "Kunne ikke kjøre terminaldiagnostikk."
   },
   "consentPage": {
     "under18Question": "Er du under 18?",
@@ -2334,7 +2444,8 @@
     "passwordUpdateFailed": "Kunne ikke oppdatere passordet",
     "profileSaved": "Profilen er lagret",
     "profileCompleted": "Profil fullført",
-    "saveFailed": "Kunne ikke lagre profilen"
+    "saveFailed": "Kunne ikke lagre profilen",
+    "backgroundSet": "Bakgrunnsbildesett"
   },
   "routeError": {
     "defaultLabel": "Denne siden",
@@ -2375,5 +2486,40 @@
     "adminPageFailed": "Administrasjonssiden kunne ikke lastes inn",
     "adminDataFailed": "Kunne ikke laste inn administratordata",
     "adminSectionFailed": "Denne delen kunne ikke lastes inn. Prøv å oppdatere siden."
+  },
+  "download": {
+    "title": "Last ned Velbok",
+    "subtitle": "Installer Velbok-mobilappen på studiotelefonen din for betaling, trykk for å betale og WisePad Bluetooth-betalinger.",
+    "androidTitle": "Android",
+    "androidDesc": "Release build for Tap to Pay og POS-kasse. Avinstaller alle eldre Velbok-installasjoner først hvis Android rapporterer en signaturkonflikt.",
+    "latestVersion": "Siste versjon",
+    "androidButton": "Last ned Velbok {{version}} for Android",
+    "apkUnavailable": "Android APK er ikke på denne serveren ennå. Spør administratoren din eller bygg på nytt med releases/velbok-release.apk tilstede.",
+    "installHint1": "På telefonen: tillat installasjoner fra denne nettleseren eller Filer-appen hvis Android spør.",
+    "installHint2": "Avinstaller den gamle Velbok-appen først hvis du tidligere har installert en debug build.",
+    "installHint3": "For Tap for å betale: bruk en støttet telefon (se dokumenter), slå AV utvikleralternativer, tillat plassering.",
+    "tapToPayDocs": "Støttede telefoner og oppsett av trykk for å betale:",
+    "tapToPayDocsLink": "POS-kasse og trykk for å betale",
+    "iphoneNote": "iPhone: Velbok for iOS distribueres via TestFlight eller App Store når det er tilgjengelig for studioet ditt – ikke fra denne siden."
+  },
+  "artistStripeConnect": {
+    "title": "POS utbetalingskonto",
+    "desc": "Koble til bankkontoen din for å motta din andel av personlige kortbetalinger (WisePad / Trykk for å betale i kassen).",
+    "notStartedBody": "Når en klient betaler ved pulten, beholder studioet ditt sin andel, og resten sendes hit – etter at du har fullført dette engangsoppsettet Stripe.",
+    "incompleteBody": "Utbetalingsoppsettet ditt er ufullstendig. Fortsett å legge til bankdetaljer og bekrefte identiteten din.",
+    "readyBody": "Utbetalinger er aktive. Din andel ({{percent}}% som standard) fra skrivebordskortbetalinger vil bli overført til denne kontoen.",
+    "shopNotReady": "Studioet ditt oppretter fortsatt sin egen utbetalingskonto. Be eieren om å fullføre Admin → Utbetalinger først, og returner deretter hit.",
+    "startSetup": "Sett opp utbetalingskontoen min",
+    "continueSetup": "Fortsett utbetalingsoppsettet",
+    "managePayouts": "Administrer utbetalinger",
+    "statusReady": "Tilkoblet",
+    "statusIncomplete": "Handling kreves",
+    "statusNotStarted": "Ikke tilkoblet",
+    "stripeHostedNote": "Stripe håndterer identitet og bankverifisering sikkert. Du kan se Velbok eller studionavnet ditt som plattformen – utbetalinger går til din personlige bankkonto, ikke studioets.",
+    "returnToast": "Utbetalingsoppsettet er oppdatert – sjekker status …",
+    "refreshToast": "Fortsett utbetalingsoppsettet der du slapp.",
+    "loadFailed": "Kunne ikke laste inn utbetalingsstatus",
+    "onboardFailed": "Kunne ikke starte utbetalingsoppsett",
+    "dashboardFailed": "Kunne ikke åpne utbetalingsoversikten"
   }
 }

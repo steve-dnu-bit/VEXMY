@@ -17,14 +17,15 @@ const TARGETS = {
   no: "no",
   nl: "nl",
   bg: "bg",
+  uk: "uk",
 };
 
 const BRANDS = [
-  ["__Velbok__", "Velbok"],
-  ["__STRIPE__", "Stripe"],
-  ["__SUPABASE__", "Supabase"],
-  ["__GOOGLE_AUTH__", "Google Authenticator"],
-  ["__AUTHY__", "Authy"],
+  ["ZZZVELBOKZZZ", "Velbok"],
+  ["ZZZSTRIPEZZZ", "Stripe"],
+  ["ZZZSUPABASEZZZ", "Supabase"],
+  ["ZZZGOOGLEAUTHZZZ", "Google Authenticator"],
+  ["ZZZAUTHYZZZ", "Authy"],
 ];
 
 const KEEP_AS_EN = new Set([
