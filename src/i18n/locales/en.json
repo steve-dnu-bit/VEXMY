@@ -1743,7 +1743,7 @@
     "day": "Day",
     "week": "Week",
     "pickDate": "Pick a date",
-    "sidebarBookHint": "Tap a date, service, or artist to start a booking — choices combine until you save.",
+    "sidebarBookHint": "Optional: tap a service or artist, then tap a time slot on the schedule to open a new booking with those presets.",
     "services": "Services",
     "addServicesHint": "Add services in Services page",
     "team": "Team",

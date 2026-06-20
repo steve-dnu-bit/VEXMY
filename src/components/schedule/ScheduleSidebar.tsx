@@ -27,7 +27,6 @@ interface ScheduleSidebarProps {
   setCurrentDate: (d: Date) => void;
   bookingPrefillArtistId?: string;
   bookingPrefillServiceId?: string;
-  onCalendarDayPick?: (date: Date) => void;
   onServicePick?: (service: Service) => void;
   onArtistPick?: (profile: Profile) => void;
 }
@@ -50,7 +49,6 @@ const ScheduleSidebar = ({
   setCurrentDate,
   bookingPrefillArtistId,
   bookingPrefillServiceId,
-  onCalendarDayPick,
   onServicePick,
   onArtistPick,
 }: ScheduleSidebarProps) => {
@@ -80,7 +78,6 @@ const ScheduleSidebar = ({
             onSelect={(d) => {
               if (!d) return;
               setCurrentDate(d);
-              onCalendarDayPick?.(d);
             }}
             className="w-full p-0"
             classNames={{

@@ -12,10 +12,10 @@ import { useServices } from "@/components/schedule/ServicePresets";
 import { toast } from "sonner";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
-import { defaultShopScheduleHours, loadShopScheduleHours, parseTimeToMinutes, type ShopScheduleHours } from "@/lib/shopScheduleHours";
+import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours } from "@/lib/shopScheduleHours";
 import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { isImportedContactPlaceholderBooking } from "@/lib/importedContacts";
-import { type BookingPrefill, mergeBookingPrefill } from "@/lib/bookingPrefill";
+import { type SidebarBookingDraft, type BookingPrefill, buildBookingPrefillFromSlot } from "@/lib/bookingPrefill";
 import type { Service } from "@/components/schedule/ServicePresets";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
@@ -100,6 +100,7 @@ const SchedulePage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingPrefill, setBookingPrefill] = useState<BookingPrefill>({});
+  const [sidebarDraft, setSidebarDraft] = useState<SidebarBookingDraft>({});
   const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -242,63 +243,31 @@ const SchedulePage = () => {
 
   const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || t("schedule.unknown");
 
-  const openBookingWithPrefill = useCallback((patch: BookingPrefill) => {
-    setBookingPrefill((prev) => mergeBookingPrefill(prev, patch));
-    if (patch.date) setCurrentDate(patch.date);
-    if (patch.artistId) setSelectedArtists([patch.artistId]);
-    setEditingBooking(null);
-    setDialogOpen(true);
-  }, []);
-
   const openFreshBooking = useCallback(() => {
     setBookingPrefill({});
+    setSidebarDraft({});
     setEditingBooking(null);
     setDialogOpen(true);
   }, []);
 
-  const defaultOpenTime = useCallback(() => {
-    const openMinutes = parseTimeToMinutes(scheduleHours.openTime);
-    return { hour: Math.floor(openMinutes / 60), minute: openMinutes % 60 };
-  }, [scheduleHours.openTime]);
-
   const handleSlotClick = (date: Date, hour: number, minute: number, artistId?: string) => {
-    openBookingWithPrefill({ date, hour, minute, artistId });
-  };
-
-  const handleCalendarDayPick = (date: Date) => {
-    const { hour, minute } = defaultOpenTime();
-    openBookingWithPrefill({ date, hour, minute });
-  };
-
-  const handleServicePick = (service: Service) => {
-    setBookingPrefill((prev) => {
-      const patch: BookingPrefill = { serviceId: service.id };
-      if (prev.hour === undefined) {
-        const { hour, minute } = defaultOpenTime();
-        patch.hour = hour;
-        patch.minute = minute;
-      }
-      if (!prev.date) patch.date = currentDate;
-      return mergeBookingPrefill(prev, patch);
-    });
+    setBookingPrefill(buildBookingPrefillFromSlot({ date, hour, minute, artistId }, sidebarDraft));
     setEditingBooking(null);
     setDialogOpen(true);
   };
 
-  const handleArtistPick = (profile: Profile) => {
-    setSelectedArtists([profile.user_id]);
-    setBookingPrefill((prev) => {
-      const patch: BookingPrefill = { artistId: profile.user_id };
-      if (prev.hour === undefined) {
-        const { hour, minute } = defaultOpenTime();
-        patch.hour = hour;
-        patch.minute = minute;
-      }
-      if (!prev.date) patch.date = currentDate;
-      return mergeBookingPrefill(prev, patch);
-    });
-    setEditingBooking(null);
-    setDialogOpen(true);
+  const toggleDraftService = (serviceId: string) => {
+    setSidebarDraft((prev) => ({
+      ...prev,
+      serviceId: prev.serviceId === serviceId ? undefined : serviceId,
+    }));
+  };
+
+  const toggleDraftArtist = (artistId: string) => {
+    setSidebarDraft((prev) => ({
+      ...prev,
+      artistId: prev.artistId === artistId ? undefined : artistId,
+    }));
   };
 
   const sendClientInvite = async () => {
@@ -361,11 +330,10 @@ const SchedulePage = () => {
               artistColorCache={artistColorCache}
               currentDate={currentDate}
               setCurrentDate={setCurrentDate}
-              bookingPrefillArtistId={bookingPrefill.artistId}
-              bookingPrefillServiceId={bookingPrefill.serviceId}
-              onCalendarDayPick={handleCalendarDayPick}
-              onServicePick={handleServicePick}
-              onArtistPick={handleArtistPick}
+              bookingPrefillArtistId={sidebarDraft.artistId}
+              bookingPrefillServiceId={sidebarDraft.serviceId}
+              onServicePick={(service) => toggleDraftService(service.id)}
+              onArtistPick={(profile) => toggleDraftArtist(profile.user_id)}
             />
           </div>
           {sidebarOpen && (
@@ -430,6 +398,8 @@ const SchedulePage = () => {
             fetchBookings();
             setSelectedBooking(null);
             setEditingBooking(null);
+            setSidebarDraft({});
+            setBookingPrefill({});
           }}
         />
       )}

@@ -1,4 +1,10 @@
-/** Draft fields accumulated from calendar, services, artists, and time-grid clicks. */
+/** Fields chosen in the sidebar before a time-slot click opens the booking dialog. */
+export type SidebarBookingDraft = {
+  serviceId?: string;
+  artistId?: string;
+};
+
+/** Values passed into the booking dialog when a time slot is clicked. */
 export type BookingPrefill = {
   date?: Date;
   hour?: number;
@@ -7,6 +13,15 @@ export type BookingPrefill = {
   serviceId?: string;
 };
 
-export function mergeBookingPrefill(prev: BookingPrefill, patch: BookingPrefill): BookingPrefill {
-  return { ...prev, ...patch };
+export function buildBookingPrefillFromSlot(
+  slot: { date: Date; hour: number; minute: number; artistId?: string },
+  draft: SidebarBookingDraft,
+): BookingPrefill {
+  return {
+    date: slot.date,
+    hour: slot.hour,
+    minute: slot.minute,
+    artistId: slot.artistId ?? draft.artistId,
+    serviceId: draft.serviceId,
+  };
 }
