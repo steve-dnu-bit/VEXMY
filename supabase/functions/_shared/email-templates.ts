@@ -104,10 +104,11 @@ export function buildBookingNotificationEmail(params: {
   booking: BookingEmailDetails;
   includeCalendarHint?: boolean;
   locale?: EmailLanguage;
+  brand?: ShopBranding;
 }): { html: string; attachments: EmailAttachment[] } {
   const { action, recipientName, booking } = params;
   const locale = params.locale ?? "en";
-  const brand = getShopBranding();
+  const brand = params.brand ?? getShopBranding();
   const recipientRole = params.recipientRole ?? "customer";
   const title = action === "created"
     ? t(locale, "bookingNotification.title.created")
@@ -157,11 +158,15 @@ export function buildBookingNotificationEmail(params: {
   return { html, attachments: [ics] };
 }
 
-export function buildAppointmentReminderEmail(booking: BookingEmailDetails, locale: EmailLanguage = "en"): {
+export function buildAppointmentReminderEmail(
+  booking: BookingEmailDetails,
+  locale: EmailLanguage = "en",
+  brandOverride?: ShopBranding,
+): {
   html: string;
   attachments: EmailAttachment[];
 } {
-  const brand = getShopBranding();
+  const brand = brandOverride ?? getShopBranding();
   const details = emailDetailTable([
     { label: t(locale, "appointmentReminder.details.artist"), value: booking.artistName },
     { label: t(locale, "appointmentReminder.details.when"), value: formatBookingDateRange(booking.starts_at, booking.ends_at, locale) },
@@ -188,11 +193,16 @@ export function buildAppointmentReminderEmail(booking: BookingEmailDetails, loca
   };
 }
 
-export function buildDepositReminderEmail(booking: BookingEmailDetails, checkoutUrl?: string, locale: EmailLanguage = "en"): {
+export function buildDepositReminderEmail(
+  booking: BookingEmailDetails,
+  checkoutUrl?: string,
+  locale: EmailLanguage = "en",
+  brandOverride?: ShopBranding,
+): {
   html: string;
   attachments: EmailAttachment[];
 } {
-  const brand = getShopBranding();
+  const brand = brandOverride ?? getShopBranding();
   const amount = booking.deposit_amount
     ? formatShopMoney(Number(booking.deposit_amount), "gbp")
     : t(locale, "depositReminder.amountPlaceholder");
@@ -238,8 +248,9 @@ export function buildDepositRequestEmail(params: {
   depositAmount?: number | null;
   currency?: string;
   locale?: EmailLanguage;
+  brand?: ShopBranding;
 }): string {
-  const brand = getShopBranding();
+  const brand = params.brand ?? getShopBranding();
   const locale = params.locale ?? "en";
   const amount = params.depositAmount
     ? formatShopMoney(Number(params.depositAmount), params.currency ?? "gbp")
@@ -268,8 +279,9 @@ export function buildDepositReceiptEmail(params: {
   currency?: string;
   booking?: BookingEmailDetails | null;
   locale?: EmailLanguage;
+  brand?: ShopBranding;
 }): { html: string; attachments?: EmailAttachment[] } {
-  const brand = getShopBranding();
+  const brand = params.brand ?? getShopBranding();
   const locale = params.locale ?? "en";
   const currency = params.currency ?? "gbp";
   const body = emailDetailTable([

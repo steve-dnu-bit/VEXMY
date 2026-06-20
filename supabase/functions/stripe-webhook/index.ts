@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
-import { getShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForOrganization } from "../_shared/branding.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
@@ -168,6 +168,7 @@ serve(async (req) => {
             recipientUserId: paidBooking.client_user_id ?? null,
             organizationId: orgId,
           });
+          const orgBrand = await getShopBrandingForOrganization(admin, orgId);
           const { currency: shopCurrency } = await getShopPaymentSettings(admin, orgId);
           const receipt = buildDepositReceiptEmail({
             clientName: paidBooking.client_name || "there",
@@ -176,10 +177,11 @@ serve(async (req) => {
             currency: shopCurrency,
             booking: bookingDetails,
             locale,
+            brand: orgBrand,
           });
           await sendTransactionalEmail({
             to: receiptTo,
-            subject: t(locale, "subjects.deposit.receipt", { shopName: getShopBranding().shopName }),
+            subject: t(locale, "subjects.deposit.receipt", { shopName: orgBrand.shopName }),
             html: receipt.html,
             attachments: receipt.attachments,
             fromKind: "booking",

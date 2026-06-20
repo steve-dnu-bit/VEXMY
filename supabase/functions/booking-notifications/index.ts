@@ -9,7 +9,7 @@ import {
   parseBearerToken,
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
-import { getShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForOrganization } from "../_shared/branding.ts";
 import { resolveEmailLocale, t, type EmailLanguage } from "../_shared/email-i18n.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildBookingNotificationEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
@@ -220,8 +220,8 @@ serve(async (req) => {
     if (isValidEmail(artistEmailRaw)) recipients.set(artistEmailRaw, { role: "artist", name: artistName });
     if (isValidEmail(customerEmailRaw)) recipients.set(customerEmailRaw, { role: "customer", name: booking.client_name || "Customer" });
 
-    const brand = getShopBranding();
     const organizationId = (booking as { organization_id?: string | null }).organization_id ?? null;
+    const brand = await getShopBrandingForOrganization(adminClient, organizationId);
     const artistLocale = await resolveEmailLocale(adminClient, {
       recipientUserId: booking.artist_id,
       organizationId,
@@ -260,6 +260,7 @@ serve(async (req) => {
           booking: bookingDetails,
           includeCalendarHint: recipient.role === "customer" || action !== "deleted",
           locale,
+          brand,
         });
 
         const delivery = await sendTransactionalEmail({

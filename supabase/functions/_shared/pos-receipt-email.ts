@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { getShopBranding } from "./branding.ts";
+import { getShopBrandingForOrganization } from "./branding.ts";
 import { buildPosReceiptEmail } from "./email-templates.ts";
 import { emailLocaleToIntlDateLocale, resolveEmailLocale, t, type EmailLanguage } from "./email-i18n.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "./email.ts";
@@ -93,7 +93,7 @@ export async function sendPosReceiptEmailIfNeeded(
     organizationId: sale.organization_id,
   });
 
-  const brand = getShopBranding();
+  const brand = await getShopBrandingForOrganization(admin, sale.organization_id);
   const intlLocale = emailLocaleToIntlDateLocale(locale);
   const paidAt = new Date(sale.created_at);
   const paidAtText = paidAt.toLocaleString(intlLocale, { timeZone: "Europe/London" });
@@ -122,6 +122,7 @@ export async function sendPosReceiptEmailIfNeeded(
     depositCreditAmount: Number(sale.deposit_credit_amount) || 0,
     amountPaid,
     paymentMethodLabel,
+    brand,
   });
 
   const html = buildPosReceiptEmail({

@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
-import { getShopBranding } from "./branding.ts";
+import { getShopBranding, type ShopBranding } from "./branding.ts";
 import { formatShopMoney } from "./shop-currency.ts";
 
 export type PosReceiptLineItem = {
@@ -25,10 +25,11 @@ export type PosReceiptPdfParams = {
   depositCreditAmount: number;
   amountPaid: number;
   paymentMethodLabel: string;
+  brand?: ShopBranding;
 };
 
 export async function buildPosReceiptPdf(params: PosReceiptPdfParams): Promise<string> {
-  const brand = getShopBranding();
+  const brand = params.brand ?? getShopBranding();
   const fmt = (n: number) => formatShopMoney(Number(n), params.currency);
   const pdf = await PDFDocument.create();
   let page = pdf.addPage([595, 842]);

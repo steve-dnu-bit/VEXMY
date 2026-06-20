@@ -7,7 +7,7 @@ import {
   jsonResponse,
   requireAuthenticatedUser,
 } from "../_shared/auth.ts";
-import { getShopBranding, type ShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForOrganization } from "../_shared/branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildReviewRequestEmail } from "../_shared/email-templates.ts";
 import { resolveEmailLocale } from "../_shared/email-i18n.ts";
@@ -95,17 +95,11 @@ serve(async (req) => {
     }, 400);
   }
 
-  const subjectShop =
-    (shopRow.trading_name as string | null)?.trim() ||
-    (shopRow.shop_name as string | null)?.trim() ||
-    getShopBranding().shopName;
-
-  const brand: ShopBranding = {
-    ...getShopBranding(),
-    shopName: subjectShop,
-    tradingName: subjectShop,
-    supportEmail: (shopRow.support_email as string | null)?.trim() || getShopBranding().supportEmail,
-  };
+  const brand = await getShopBrandingForOrganization(admin, resolvedOrgId);
+  if (shopRow.support_email) {
+    brand.supportEmail = (shopRow.support_email as string).trim() || brand.supportEmail;
+  }
+  const customMessage = (shopRow.review_email_message as string | null) ?? null;
 
   const { data: artistProfile } = await admin
     .from("profiles")
@@ -127,7 +121,7 @@ serve(async (req) => {
     startsAt: booking.starts_at as string,
     endsAt: booking.ends_at as string,
     reviewLinks,
-    customMessage: (shopRow.review_email_message as string | null) ?? null,
+    customMessage,
     locale,
   });
 
@@ -135,7 +129,7 @@ serve(async (req) => {
     requireEmailDeliveryConfig();
     await sendTransactionalEmail({
       to: clientEmail,
-      subject: `${subjectShop} — we'd love your feedback`,
+      subject: `${brand.shopName} — we'd love your feedback`,
       html,
       replyTo: brand.supportEmail ?? undefined,
     });

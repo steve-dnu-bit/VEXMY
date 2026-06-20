@@ -12,7 +12,7 @@ import {
 
 } from "../_shared/auth.ts";
 
-import { getShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForOrganization } from "../_shared/branding.ts";
 
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 
@@ -132,8 +132,7 @@ serve(async (req) => {
 
 
 
-    const branding = await getShopBranding(admin);
-
+    const branding = await getShopBrandingForOrganization(admin, organizationId);
     const shopName = branding.shopName || "Velbok";
 
 

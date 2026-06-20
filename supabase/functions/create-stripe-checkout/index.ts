@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
-import { getShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForOrganization } from "../_shared/branding.ts";
 import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
 import { getEmailDeliveryStatus, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
@@ -163,6 +163,7 @@ serve(async (req) => {
         recipientUserId: booking.client_user_id ?? null,
         organizationId: bookingOrgId ?? null,
       });
+      const orgBrand = await getShopBrandingForOrganization(admin, bookingOrgId);
 
       const connectCtx = bookingOrgId
         ? await getConnectAccountForOrganization(admin, bookingOrgId)
@@ -267,10 +268,11 @@ serve(async (req) => {
               currency: shopCurrency,
               booking: bookingDetails,
               locale: clientLocale,
+              brand: orgBrand,
             });
             await sendTransactionalEmail({
               to: receiptTo,
-              subject: t(clientLocale, "subjects.deposit.receipt", { shopName: getShopBranding().shopName }),
+              subject: t(clientLocale, "subjects.deposit.receipt", { shopName: orgBrand.shopName }),
               html: receipt.html,
               attachments: receipt.attachments,
               fromKind: "booking",
@@ -387,10 +389,11 @@ serve(async (req) => {
               depositAmount: booking.deposit_amount,
               currency: shopCurrency,
               locale: clientLocale,
+              brand: orgBrand,
             });
             await sendTransactionalEmail({
               to: booking.client_email,
-              subject: t(clientLocale, "subjects.deposit.request", { shopName: getShopBranding().shopName }),
+              subject: t(clientLocale, "subjects.deposit.request", { shopName: orgBrand.shopName }),
               html,
               fromKind: "booking",
             });
@@ -481,6 +484,7 @@ serve(async (req) => {
         },
       );
     }
+    const invoiceBrand = await getShopBrandingForOrganization(admin, connectCtx.organizationId);
     const amountPence = Math.round(invoiceTotal * 100);
     const session = await stripe.checkout.sessions.create(
       {
@@ -495,7 +499,7 @@ serve(async (req) => {
               currency: invoiceCurrency,
               product_data: {
                 name: `Invoice ${invoice.invoice_number}`,
-                description: `${getShopBranding().shopName} - ${invoice.client_name}`,
+                description: `${invoiceBrand.shopName} - ${invoice.client_name}`,
               },
               unit_amount: amountPence,
             },
