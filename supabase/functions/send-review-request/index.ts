@@ -61,7 +61,7 @@ serve(async (req) => {
     return jsonResponse({ error: "Booking has no organization" }, 400);
   }
 
-  if (!(await callerIsOrgMember(admin, user.id, orgId))) {
+  if (!(await callerIsOrgMember(admin, orgId, user.id))) {
     return jsonResponse({ error: "Forbidden" }, 403);
   }
 
