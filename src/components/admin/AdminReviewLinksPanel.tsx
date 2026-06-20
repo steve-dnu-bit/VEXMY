@@ -48,11 +48,15 @@ const AdminReviewLinksPanel = () => {
   const save = useCallback(async () => {
     setSaving(true);
     const { error } = await saveShopReviewSettings({ links, message });
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(error);
       return;
     }
+    const refreshed = await loadShopReviewSettings();
+    setLinks(refreshed.links.length > 0 ? refreshed.links : [emptyLink()]);
+    setMessage(refreshed.message);
+    setSaving(false);
     toast.success(t("admin.reviewLinksSaved"));
   }, [links, message, t]);
 

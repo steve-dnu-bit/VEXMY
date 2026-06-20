@@ -820,6 +820,8 @@
     "reviewLinksTitle": "Review links",
     "reviewLinksDesc": "Add Google, Facebook, or other review URLs. Artists can send a review-request email manually from a booking after a session.",
     "reviewLinksSaved": "Review links saved",
+    "reviewLinksSaveFailed": "Could not save review links",
+    "reviewLinksInvalid": "Each review link needs a platform name and a valid URL.",
     "reviewLinkLabel": "Platform name",
     "reviewLinkLabelPlaceholder": "Google Reviews",
     "reviewLinkUrl": "Review URL",

@@ -57,11 +57,18 @@ serve(async (req) => {
   }
 
   const orgId = booking.organization_id as string | null;
-  if (!orgId) {
+  let resolvedOrgId = orgId;
+  if (!resolvedOrgId && booking.artist_id) {
+    const { data: artistOrg } = await admin.rpc("resolve_user_organization_id", {
+      _user_id: booking.artist_id,
+    });
+    resolvedOrgId = (artistOrg as string | null) ?? null;
+  }
+  if (!resolvedOrgId) {
     return jsonResponse({ error: "Booking has no organization" }, 400);
   }
 
-  if (!(await callerIsOrgMember(admin, orgId, user.id))) {
+  if (!(await callerIsOrgMember(admin, resolvedOrgId, user.id))) {
     return jsonResponse({ error: "Forbidden" }, 403);
   }
 
@@ -73,7 +80,7 @@ serve(async (req) => {
   const { data: shopRow, error: shopErr } = await admin
     .from("shop_settings")
     .select("review_links, review_email_message, shop_name, trading_name, support_email")
-    .eq("organization_id", orgId)
+    .eq("organization_id", resolvedOrgId)
     .maybeSingle();
 
   if (shopErr || !shopRow) {
@@ -110,7 +117,7 @@ serve(async (req) => {
   const locale = await resolveEmailLocale(admin, {
     recipientEmail: clientEmail,
     recipientUserId: null,
-    organizationId: orgId,
+    organizationId: resolvedOrgId,
   });
 
   const html = buildReviewRequestEmail({
@@ -138,7 +145,7 @@ serve(async (req) => {
   }
 
   await admin.from("booking_review_requests").insert({
-    organization_id: orgId,
+    organization_id: resolvedOrgId,
     booking_id: bookingId,
     client_email: clientEmail,
     sent_by: user.id,
