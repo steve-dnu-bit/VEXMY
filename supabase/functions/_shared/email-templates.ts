@@ -100,6 +100,7 @@ export function buildBookingIcsEvent(
 export function buildBookingNotificationEmail(params: {
   action: "created" | "updated" | "deleted";
   recipientName: string;
+  recipientRole?: "artist" | "customer";
   booking: BookingEmailDetails;
   includeCalendarHint?: boolean;
   locale?: EmailLanguage;
@@ -107,16 +108,18 @@ export function buildBookingNotificationEmail(params: {
   const { action, recipientName, booking } = params;
   const locale = params.locale ?? "en";
   const brand = getShopBranding();
+  const recipientRole = params.recipientRole ?? "customer";
   const title = action === "created"
     ? t(locale, "bookingNotification.title.created")
     : action === "updated"
       ? t(locale, "bookingNotification.title.updated")
       : t(locale, "bookingNotification.title.deleted");
-  const intro = action === "created"
-    ? t(locale, "bookingNotification.intro.created")
-    : action === "updated"
-      ? t(locale, "bookingNotification.intro.updated")
-      : t(locale, "bookingNotification.intro.deleted");
+  const introRole = recipientRole === "artist" ? "artist" : "customer";
+  const intro = t(locale, `bookingNotification.intro.${introRole}.${action}`, {
+    shopName: escapeHtml(brand.shopName),
+    artistName: escapeHtml(booking.artistName),
+    clientName: escapeHtml(booking.client_name),
+  });
 
   const details = emailDetailTable([
     { label: t(locale, "bookingNotification.details.client"), value: booking.client_name },
@@ -127,7 +130,6 @@ export function buildBookingNotificationEmail(params: {
     { label: t(locale, "bookingNotification.details.style"), value: booking.tattoo_style },
     { label: t(locale, "bookingNotification.details.size"), value: booking.tattoo_size },
     { label: t(locale, "bookingNotification.details.placement"), value: booking.tattoo_placement },
-    { label: t(locale, "bookingNotification.details.deposit"), value: depositStatusLabel(booking.deposit_paid, booking.deposit_amount, "gbp", locale) },
     { label: t(locale, "bookingNotification.details.phone"), value: booking.client_phone },
     { label: t(locale, "bookingNotification.details.email"), value: booking.client_email },
     { label: t(locale, "bookingNotification.details.reference"), value: booking.id.slice(0, 8).toUpperCase() },
@@ -173,7 +175,10 @@ export function buildAppointmentReminderEmail(booking: BookingEmailDetails, loca
     badge: t(locale, "appointmentReminder.badge"),
     title: t(locale, "appointmentReminder.title"),
     greeting: t(locale, "common.greeting", { name: escapeHtml(booking.client_name) }),
-    intro: t(locale, "appointmentReminder.intro"),
+    intro: t(locale, "appointmentReminder.intro", {
+      shopName: escapeHtml(brand.shopName),
+      artistName: escapeHtml(booking.artistName),
+    }),
     bodyHtml: `${details}${emailNoteBox(t(locale, "appointmentReminder.notes.calendarTitle"), t(locale, "appointmentReminder.notes.calendarBody"))}`,
   });
 
@@ -198,7 +203,12 @@ export function buildDepositReminderEmail(booking: BookingEmailDetails, checkout
         t(locale, "depositReminder.pay.noteBody", { supportEmail: brand.supportEmail, amount }),
       );
   const dateRange = escapeHtml(formatBookingDateRange(booking.starts_at, booking.ends_at, locale));
-  const intro = t(locale, "depositReminder.intro", { dateRange, amount: escapeHtml(amount) });
+  const intro = t(locale, "depositReminder.intro", {
+    shopName: escapeHtml(brand.shopName),
+    artistName: escapeHtml(booking.artistName),
+    dateRange,
+    amount: escapeHtml(amount),
+  });
 
   const html = emailLayout({
     brand,
@@ -222,6 +232,7 @@ export function buildDepositReminderEmail(booking: BookingEmailDetails, checkout
 
 export function buildDepositRequestEmail(params: {
   clientName: string;
+  artistName?: string | null;
   startsAt: string;
   checkoutUrl: string;
   depositAmount?: number | null;
@@ -240,7 +251,12 @@ export function buildDepositRequestEmail(params: {
     badge: t(locale, "depositRequest.badge"),
     title: t(locale, "depositRequest.title"),
     greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName || "there") }),
-    intro: t(locale, "depositRequest.intro", { amount: escapeHtml(amount), startsAt: startsAtText }),
+    intro: t(locale, "depositRequest.intro", {
+      shopName: escapeHtml(brand.shopName),
+      artistName: escapeHtml(params.artistName ?? brand.shopName),
+      amount: escapeHtml(amount),
+      startsAt: startsAtText,
+    }),
     bodyHtml: emailButton(params.checkoutUrl, t(locale, "depositRequest.buttonLabel"), locale),
   });
 }
@@ -268,7 +284,10 @@ export function buildDepositReceiptEmail(params: {
     badge: t(locale, "depositReceipt.badge"),
     title: t(locale, "depositReceipt.title"),
     greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName || "there") }),
-    intro: t(locale, "depositReceipt.intro"),
+    intro: t(locale, "depositReceipt.intro", {
+      shopName: escapeHtml(brand.shopName),
+      artistName: escapeHtml(params.booking?.artistName ?? brand.shopName),
+    }),
     bodyHtml: body,
     footerNote: t(locale, "depositReceipt.footer"),
   });
@@ -460,6 +479,48 @@ export function buildReviewRequestEmail(params: {
     intro,
     bodyHtml,
     footerNote: t(locale, "reviewRequest.footer"),
+  });
+}
+
+export function buildPosReceiptEmail(params: {
+  brand?: ShopBranding;
+  clientName: string;
+  artistName: string;
+  receiptNumber: string;
+  paidAtText: string;
+  amountPaidText: string;
+  sessionTotalText: string;
+  depositCreditText?: string | null;
+  locale?: EmailLanguage;
+}): string {
+  const brand = params.brand ?? getShopBranding();
+  const locale = params.locale ?? "en";
+  const intro = t(locale, "posReceipt.intro", {
+    shopName: escapeHtml(brand.shopName),
+    artistName: escapeHtml(params.artistName),
+  });
+
+  const details = emailDetailTable([
+    { label: t(locale, "posReceipt.details.artist"), value: params.artistName },
+    { label: t(locale, "posReceipt.details.studio"), value: brand.shopName },
+    { label: t(locale, "posReceipt.details.date"), value: params.paidAtText },
+    { label: t(locale, "posReceipt.details.receiptNumber"), value: params.receiptNumber },
+    { label: t(locale, "posReceipt.details.sessionTotal"), value: params.sessionTotalText },
+    ...(params.depositCreditText
+      ? [{ label: t(locale, "posReceipt.details.depositCredit"), value: `-${params.depositCreditText}` }]
+      : []),
+    { label: t(locale, "posReceipt.details.amountPaid"), value: params.amountPaidText },
+  ]);
+
+  return emailLayout({
+    brand,
+    locale,
+    badge: t(locale, "posReceipt.badge"),
+    title: t(locale, "posReceipt.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName) }),
+    intro,
+    bodyHtml: `${details}${emailNoteBox(t(locale, "posReceipt.note.title"), t(locale, "posReceipt.note.body"))}`,
+    footerNote: t(locale, "posReceipt.footer"),
   });
 }
 

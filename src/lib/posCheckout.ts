@@ -319,12 +319,13 @@ export interface PosBookingPrefill {
   ends_at: string;
   deposit_paid: boolean | null;
   deposit_amount: number | null;
+  client_email: string | null;
 }
 
 export async function loadBookingForPosPrefill(bookingId: string): Promise<PosBookingPrefill | null> {
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, booking_type, service_category, starts_at, ends_at, deposit_paid, deposit_amount")
+    .select("id, booking_type, service_category, starts_at, ends_at, deposit_paid, deposit_amount, client_email")
     .eq("id", bookingId)
     .maybeSingle();
 

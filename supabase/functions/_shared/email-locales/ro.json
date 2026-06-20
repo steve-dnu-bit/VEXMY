@@ -22,9 +22,16 @@
       "deleted": "Rezervarea a fost anulată"
     },
     "intro": {
-      "created": "Numirea dvs. este confirmată. Detaliile complete sunt mai jos - adăugați-l în calendar folosind fișierul atașat.",
-      "updated": "Detaliile programării tale s-au schimbat. Examinați actualizarea de mai jos și reimportați fișierul calendar dacă este necesar.",
-      "deleted": "Această întâlnire a fost anulată. Fișierul de calendar atașat îl va elimina din aplicațiile de calendar acceptate."
+      "customer": {
+        "created": "Programarea ta cu {{artistName}} la {{shopName}} este confirmată. Detaliile complete sunt mai jos — adaugă-o în calendar folosind fișierul atașat.",
+        "updated": "Programarea ta cu {{artistName}} la {{shopName}} a fost actualizată. Verifică modificările de mai jos și reimportă fișierul calendar dacă este necesar.",
+        "deleted": "Programarea ta cu {{artistName}} la {{shopName}} a fost anulată. Fișierul calendar atașat o va elimina din aplicațiile compatibile."
+      },
+      "artist": {
+        "created": "O rezervare nouă cu {{clientName}} la {{shopName}} a fost adăugată în programul tău. Detaliile complete sunt mai jos.",
+        "updated": "Rezervarea cu {{clientName}} la {{shopName}} a fost actualizată. Verifică modificările de mai jos.",
+        "deleted": "Rezervarea cu {{clientName}} la {{shopName}} a fost anulată."
+      }
     },
     "calendarHint": {
       "title": "Adăugați în calendar",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Memento de întâlnire",
     "title": "Sesiunea ta se apropie",
-    "intro": "Acesta este un memento prietenos despre următoarea întâlnire.",
+    "intro": "Un memento prietenos — programarea ta viitoare cu {{artistName}} la {{shopName}} se apropie.",
     "notes": {
       "calendarTitle": "Calendaristic",
       "calendarBody": "Utilizați fișierul booking.ics atașat pentru a adăuga sau actualiza această întâlnire în calendarul dvs."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "depozitul dvs",
     "badge": "Memento de depozit",
     "title": "Depozit inca restant",
-    "intro": "Sesiunea dvs. de pe {{dateRange}} necesită o depunere de {{amount}} pentru a vă asigura slotul.",
+    "intro": "Sesiunea ta cu {{artistName}} la {{shopName}} pe {{dateRange}} necesită un depozit de {{amount}} pentru a-ți asigura locul.",
     "notes": {
       "depositPaymentLabel": "Plată"
     },
@@ -86,13 +93,13 @@
     "badge": "Plata depozitului",
     "amountPlaceholder": "depozitul dvs",
     "title": "Completați depozitul",
-    "intro": "Vă rugăm să plătiți {{amount}} pentru a vă asigura sesiunea pe {{startsAt}}.",
+    "intro": "Te rugăm să plătești {{amount}} pentru a-ți asigura sesiunea cu {{artistName}} la {{shopName}} pe {{startsAt}}.",
     "buttonLabel": "Plătiți depozitul în siguranță"
   },
   "depositReceipt": {
     "badge": "Confirmare plată",
     "title": "Depozit primit",
-    "intro": "Vă mulțumim — am primit plata depozitului.",
+    "intro": "Mulțumim — am primit depozitul pentru sesiunea ta cu {{artistName}} la {{shopName}}.",
     "details": {
       "amountReceived": "Suma primită",
       "sessionDate": "Data sesiunii",

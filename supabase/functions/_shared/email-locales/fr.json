@@ -22,9 +22,16 @@
       "deleted": "Réservation annulée"
     },
     "intro": {
-      "created": "Votre rendez-vous est confirmé. Tous les détails sont ci-dessous – ajoutez-le à votre calendrier en utilisant le fichier joint.",
-      "updated": "Les détails de votre rendez-vous ont changé. Consultez la mise à jour ci-dessous et réimportez le fichier de calendrier si nécessaire.",
-      "deleted": "Ce rendez-vous a été annulé. Le fichier de calendrier ci-joint le supprimera des applications de calendrier prises en charge."
+      "customer": {
+        "created": "Votre rendez-vous avec {{artistName}} chez {{shopName}} est confirmé. Tous les détails sont ci-dessous — ajoutez-le à votre calendrier à l'aide du fichier joint.",
+        "updated": "Votre rendez-vous avec {{artistName}} chez {{shopName}} a été mis à jour. Consultez les modifications ci-dessous et réimportez le fichier calendrier si nécessaire.",
+        "deleted": "Votre rendez-vous avec {{artistName}} chez {{shopName}} a été annulé. Le fichier calendrier joint le supprimera des applications prises en charge."
+      },
+      "artist": {
+        "created": "Une nouvelle réservation avec {{clientName}} chez {{shopName}} a été ajoutée à votre planning. Tous les détails sont ci-dessous.",
+        "updated": "La réservation avec {{clientName}} chez {{shopName}} a été mise à jour. Consultez les modifications ci-dessous.",
+        "deleted": "La réservation avec {{clientName}} chez {{shopName}} a été annulée."
+      }
     },
     "calendarHint": {
       "title": "Ajouter au calendrier",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Rappel de rendez-vous",
     "title": "Votre séance approche",
-    "intro": "Ceci est un rappel amical concernant votre prochain rendez-vous.",
+    "intro": "Un petit rappel amical — votre rendez-vous à venir avec {{artistName}} chez {{shopName}} approche.",
     "notes": {
       "calendarTitle": "Calendrier",
       "calendarBody": "Utilisez le fichier booking.ics ci-joint pour ajouter ou mettre à jour ce rendez-vous dans votre calendrier."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "votre dépôt",
     "badge": "Rappel de dépôt",
     "title": "Dépôt toujours impayé",
-    "intro": "Votre session le {{dateRange}} nécessite un dépôt de {{amount}} pour garantir votre créneau.",
+    "intro": "Votre session avec {{artistName}} chez {{shopName}} le {{dateRange}} nécessite un dépôt de {{amount}} pour garantir votre créneau.",
     "notes": {
       "depositPaymentLabel": "Paiement"
     },
@@ -86,13 +93,13 @@
     "badge": "Paiement de l'acompte",
     "amountPlaceholder": "votre dépôt",
     "title": "Complétez votre dépôt",
-    "intro": "Veuillez payer {{amount}} pour sécuriser votre session le {{startsAt}}.",
+    "intro": "Veuillez payer {{amount}} pour sécuriser votre session avec {{artistName}} chez {{shopName}} le {{startsAt}}.",
     "buttonLabel": "Payer la caution en toute sécurité"
   },
   "depositReceipt": {
     "badge": "Confirmation de paiement",
     "title": "Dépôt reçu",
-    "intro": "Merci, nous avons reçu votre paiement d'acompte.",
+    "intro": "Merci — nous avons reçu votre dépôt pour votre session avec {{artistName}} chez {{shopName}}.",
     "details": {
       "amountReceived": "Montant reçu",
       "sessionDate": "Date de la séance",

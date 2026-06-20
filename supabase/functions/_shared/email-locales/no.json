@@ -22,9 +22,16 @@
       "deleted": "Bestilling kansellert"
     },
     "intro": {
-      "created": "Din avtale er bekreftet. Full detalj er nedenfor - legg den til i kalenderen din ved å bruke den vedlagte filen.",
-      "updated": "Avtaleopplysningene dine er endret. Se gjennom oppdateringen nedenfor og importer kalenderfilen på nytt om nødvendig.",
-      "deleted": "Denne avtalen er kansellert. Den vedlagte kalenderfilen vil fjerne den fra støttede kalenderapper."
+      "customer": {
+        "created": "Avtalen din med {{artistName}} hos {{shopName}} er bekreftet. Fullstendige detaljer finner du nedenfor — legg den til i kalenderen med den vedlagte filen.",
+        "updated": "Avtalen din med {{artistName}} hos {{shopName}} er oppdatert. Se endringene nedenfor og importer kalenderfilen på nytt om nødvendig.",
+        "deleted": "Avtalen din med {{artistName}} hos {{shopName}} er kansellert. Den vedlagte kalenderfilen fjerner den fra støttede kalenderapper."
+      },
+      "artist": {
+        "created": "En ny booking med {{clientName}} hos {{shopName}} er lagt til i timeplanen din. Fullstendige detaljer finner du nedenfor.",
+        "updated": "Bookingen med {{clientName}} hos {{shopName}} er oppdatert. Se endringene nedenfor.",
+        "deleted": "Bookingen med {{clientName}} hos {{shopName}} er kansellert."
+      }
     },
     "calendarHint": {
       "title": "Legg til i kalenderen",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Påminnelse om avtale",
     "title": "Økten din nærmer seg",
-    "intro": "Dette er en vennlig påminnelse om din kommende avtale.",
+    "intro": "En vennlig påminnelse — din kommende avtale med {{artistName}} hos {{shopName}} nærmer seg.",
     "notes": {
       "calendarTitle": "Kalender",
       "calendarBody": "Bruk den vedlagte booking.ics-filen for å legge til eller oppdatere denne avtalen i kalenderen din."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "innskuddet ditt",
     "badge": "Innskuddspåminnelse",
     "title": "Innskudd fortsatt utestående",
-    "intro": "Økten din på {{dateRange}} krever et innskudd på {{amount}} for å sikre spilleautomaten din.",
+    "intro": "Økten din med {{artistName}} hos {{shopName}} den {{dateRange}} krever et innskudd på {{amount}} for å sikre plassen din.",
     "notes": {
       "depositPaymentLabel": "Betaling"
     },
@@ -86,13 +93,13 @@
     "badge": "Innskuddsbetaling",
     "amountPlaceholder": "innskuddet ditt",
     "title": "Fullfør innskuddet ditt",
-    "intro": "Vennligst betal {{amount}} for å sikre økten din på {{startsAt}}.",
+    "intro": "Vennligst betal {{amount}} for å sikre økten din med {{artistName}} hos {{shopName}} den {{startsAt}}.",
     "buttonLabel": "Betal depositum sikkert"
   },
   "depositReceipt": {
     "badge": "Betalingsbekreftelse",
     "title": "Innskudd mottatt",
-    "intro": "Takk – vi har mottatt innbetalingen din.",
+    "intro": "Takk — vi har mottatt innbetalingen din for økten med {{artistName}} hos {{shopName}}.",
     "details": {
       "amountReceived": "Mottatt beløp",
       "sessionDate": "Sesjonsdato",

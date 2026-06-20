@@ -89,6 +89,7 @@ const PosCheckoutPage = () => {
   const [cart, setCart] = useState<CartEntry[]>([]);
   const [artistId, setArtistId] = useState("");
   const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [gratuityPercent, setGratuityPercent] = useState(0);
   const [gratuityEnabled, setGratuityEnabled] = useState(false);
   const [currency, setCurrency] = useState("gbp");
@@ -291,7 +292,10 @@ const PosCheckoutPage = () => {
   useEffect(() => {
     if (!prefilledBookingId || loading) return;
     void loadBookingForPosPrefill(prefilledBookingId).then((booking) => {
-      if (booking) setLinkedBooking(booking);
+      if (booking) {
+        setLinkedBooking(booking);
+        if (booking.client_email) setClientEmail(booking.client_email);
+      }
     });
   }, [prefilledBookingId, loading]);
 
@@ -461,6 +465,7 @@ const PosCheckoutPage = () => {
     await refreshQuickItems();
     setCart([]);
     setClientName("");
+    setClientEmail("");
     setLinkedBooking(null);
     await refreshRecentSales();
   };
@@ -468,6 +473,7 @@ const PosCheckoutPage = () => {
   const clearCart = () => {
     setCart([]);
     setClientName("");
+    setClientEmail("");
     setLastSaleId(null);
   };
 
@@ -561,6 +567,7 @@ const PosCheckoutPage = () => {
         action: "create_payment_intent",
         artistId,
         clientName,
+        clientEmail: clientEmail.trim() || undefined,
         currency,
         items: lineItems,
         subtotal: totals.subtotal,
@@ -585,6 +592,9 @@ const PosCheckoutPage = () => {
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
         toast.success(t("pos.depositCoversBalance"));
+        if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
+          toast.success(t("pos.receiptEmailSent"));
+        }
         await finalizeSale();
         return;
       }
@@ -597,6 +607,7 @@ const PosCheckoutPage = () => {
 
       const { data: completeData } = await invokeEdgeFunctionJson<{
         transfers?: { errors?: string[] } | null;
+        receiptEmail?: { sent?: boolean } | null;
       }>("stripe-terminal-pos", {
         action: "complete_sale",
         saleId: piData.saleId,
@@ -607,6 +618,9 @@ const PosCheckoutPage = () => {
 
       setLastSaleId(piData.saleId);
       toast.success(t("pos.paymentSuccess"));
+      if (completeData?.receiptEmail?.sent) {
+        toast.success(t("pos.receiptEmailSent"));
+      }
       const transferErrors = completeData?.transfers?.errors ?? [];
       if (transferErrors.length > 0) {
         toast.warning(
@@ -834,10 +848,22 @@ const PosCheckoutPage = () => {
                       setSuggestionsOpen={setClientSuggestionsOpen}
                       applyClientPick={(c) => {
                         setClientName(c.client_name);
+                        if (c.client_email) setClientEmail(c.client_email);
                         setClientSuggestionsOpen(false);
                       }}
                       clientNameWrapRef={clientNameWrapRef}
                     />
+                    <div className="mt-4">
+                      <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("pos.clientEmail")}</Label>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 mb-1">{t("pos.clientEmailHint")}</p>
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        value={clientEmail}
+                        onChange={(e) => setClientEmail(e.target.value)}
+                        placeholder={t("pos.clientEmailPlaceholder")}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -22,9 +22,16 @@
       "deleted": "Buchung storniert"
     },
     "intro": {
-      "created": "Ihr Termin ist bestätigt. Ausführliche Informationen finden Sie weiter unten. Fügen Sie sie mithilfe der angehängten Datei zu Ihrem Kalender hinzu.",
-      "updated": "Ihre Termindetails haben sich geändert. Überprüfen Sie das Update unten und importieren Sie die Kalenderdatei bei Bedarf erneut.",
-      "deleted": "Dieser Termin wurde abgesagt. Durch die angehängte Kalenderdatei wird sie aus den unterstützten Kalender-Apps entfernt."
+      "customer": {
+        "created": "Ihr Termin mit {{artistName}} bei {{shopName}} ist bestätigt. Ausführliche Informationen finden Sie weiter unten — fügen Sie ihn mithilfe der angehängten Datei zu Ihrem Kalender hinzu.",
+        "updated": "Ihr Termin mit {{artistName}} bei {{shopName}} wurde aktualisiert. Überprüfen Sie die Änderungen unten und importieren Sie die Kalenderdatei bei Bedarf erneut.",
+        "deleted": "Ihr Termin mit {{artistName}} bei {{shopName}} wurde abgesagt. Die angehängte Kalenderdatei entfernt ihn aus unterstützten Kalender-Apps."
+      },
+      "artist": {
+        "created": "Eine neue Buchung mit {{clientName}} bei {{shopName}} wurde in Ihren Kalender aufgenommen. Ausführliche Informationen finden Sie weiter unten.",
+        "updated": "Die Buchung mit {{clientName}} bei {{shopName}} wurde aktualisiert. Überprüfen Sie die Änderungen unten.",
+        "deleted": "Die Buchung mit {{clientName}} bei {{shopName}} wurde abgesagt."
+      }
     },
     "calendarHint": {
       "title": "Zum Kalender hinzufügen",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Terminerinnerung",
     "title": "Ihre Sitzung steht vor der Tür",
-    "intro": "Dies ist eine freundliche Erinnerung an Ihren bevorstehenden Termin.",
+    "intro": "Eine freundliche Erinnerung — Ihr bevorstehender Termin mit {{artistName}} bei {{shopName}} rückt näher.",
     "notes": {
       "calendarTitle": "Kalender",
       "calendarBody": "Verwenden Sie die beigefügte Datei booking.ics, um diesen Termin in Ihrem Kalender hinzuzufügen oder zu aktualisieren."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "Ihre Anzahlung",
     "badge": "Einzahlungserinnerung",
     "title": "Anzahlung noch ausstehend",
-    "intro": "Für Ihre Sitzung am {{dateRange}} ist eine Anzahlung von {{amount}} erforderlich, um Ihren Platz zu sichern.",
+    "intro": "Ihre Sitzung mit {{artistName}} bei {{shopName}} am {{dateRange}} erfordert eine Anzahlung von {{amount}}, um Ihren Platz zu sichern.",
     "notes": {
       "depositPaymentLabel": "Zahlung"
     },
@@ -86,13 +93,13 @@
     "badge": "Anzahlung",
     "amountPlaceholder": "Ihre Anzahlung",
     "title": "Schließen Sie Ihre Einzahlung ab",
-    "intro": "Bitte zahlen Sie {{amount}}, um Ihre Sitzung am {{startsAt}} zu sichern.",
+    "intro": "Bitte zahlen Sie {{amount}}, um Ihre Sitzung mit {{artistName}} bei {{shopName}} am {{startsAt}} zu sichern.",
     "buttonLabel": "Zahlen Sie die Anzahlung sicher"
   },
   "depositReceipt": {
     "badge": "Zahlungsbestätigung",
     "title": "Anzahlung erhalten",
-    "intro": "Vielen Dank – wir haben Ihre Anzahlung erhalten.",
+    "intro": "Vielen Dank — wir haben Ihre Anzahlung für Ihre Sitzung mit {{artistName}} bei {{shopName}} erhalten.",
     "details": {
       "amountReceived": "Erhaltener Betrag",
       "sessionDate": "Sitzungsdatum",

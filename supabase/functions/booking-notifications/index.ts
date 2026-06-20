@@ -256,6 +256,7 @@ serve(async (req) => {
         const { html, attachments } = buildBookingNotificationEmail({
           action,
           recipientName: recipient.name,
+          recipientRole: recipient.role,
           booking: bookingDetails,
           includeCalendarHint: recipient.role === "customer" || action !== "deleted",
           locale,

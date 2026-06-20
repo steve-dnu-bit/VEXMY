@@ -13,6 +13,7 @@ import { getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/sho
 import { mapShopCountryToStripe } from "../_shared/stripe-connect.ts";
 import { callerHasPosAccess } from "../_shared/auth.ts";
 import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
+import { sendPosReceiptEmailIfNeeded } from "../_shared/pos-receipt-email.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -55,6 +56,12 @@ const ZERO_DECIMAL_CURRENCIES = [
 function toMinorUnits(amountMajor: number, currency: string): number {
   const cur = currency.toLowerCase();
   return ZERO_DECIMAL_CURRENCIES.includes(cur) ? Math.round(amountMajor) : Math.round(amountMajor * 100);
+}
+
+function normalizeClientEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
 }
 
 serve(async (req) => {
@@ -300,6 +307,7 @@ serve(async (req) => {
       const artistId = typeof body.artistId === "string" ? body.artistId : null;
       const items = Array.isArray(body.items) ? (body.items as PosLineItem[]) : [];
       const clientName = typeof body.clientName === "string" ? body.clientName.trim() : "";
+      let clientEmail = normalizeClientEmail(body.clientEmail);
       const shopAmount = Number(body.shopAmount) || 0;
       const artistAmount = Number(body.artistAmount) || 0;
       const shopSplitPercent = Number(body.shopSplitPercent) || 0;
@@ -331,6 +339,15 @@ serve(async (req) => {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
+        }
+
+        if (!clientEmail) {
+          const { data: bookingEmailRow } = await admin
+            .from("bookings")
+            .select("client_email")
+            .eq("id", bookingId)
+            .maybeSingle();
+          clientEmail = normalizeClientEmail(bookingEmailRow?.client_email);
         }
 
         if (depositCreditAmount > 0) {
@@ -378,6 +395,7 @@ serve(async (req) => {
             artist_id: artistId,
             created_by: user.id,
             client_name: clientName || null,
+            client_email: clientEmail,
             booking_id: bookingId || null,
             items,
             currency,
@@ -403,8 +421,10 @@ serve(async (req) => {
           });
         }
 
+        const receiptResult = await sendPosReceiptEmailIfNeeded(admin, saleRow.id);
+
         return new Response(
-          JSON.stringify({ saleId: saleRow.id, zeroBalance: true }),
+          JSON.stringify({ saleId: saleRow.id, zeroBalance: true, receiptEmail: receiptResult }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
@@ -438,6 +458,7 @@ serve(async (req) => {
           artist_id: artistId,
           created_by: user.id,
           client_name: clientName || null,
+          client_email: clientEmail,
           booking_id: bookingId || null,
           items,
           currency,
@@ -528,6 +549,7 @@ serve(async (req) => {
         .eq("organization_id", orgId);
 
       let transferResult: Awaited<ReturnType<typeof executePosSplitTransfers>> | null = null;
+      let receiptResult: Awaited<ReturnType<typeof sendPosReceiptEmailIfNeeded>> | null = null;
       if (status === "succeeded" && paymentIntentId) {
         transferResult = await executePosSplitTransfers({
           admin,
@@ -536,6 +558,7 @@ serve(async (req) => {
           paymentIntentId,
           stripeConnectAccountId: connect.stripeConnectAccountId,
         });
+        receiptResult = await sendPosReceiptEmailIfNeeded(admin, saleId);
       }
 
       return new Response(
@@ -549,6 +572,7 @@ serve(async (req) => {
               skipped: transferResult.skipped,
             }
             : null,
+          receiptEmail: receiptResult,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );

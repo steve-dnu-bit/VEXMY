@@ -22,9 +22,16 @@
       "deleted": "Booking cancelled"
     },
     "intro": {
-      "created": "Your appointment is confirmed. Full details are below — add it to your calendar using the attached file.",
-      "updated": "Your appointment details have changed. Review the update below and re-import the calendar file if needed.",
-      "deleted": "This appointment has been cancelled. The attached calendar file will remove it from supported calendar apps."
+      "customer": {
+        "created": "Your appointment with {{artistName}} at {{shopName}} is confirmed. Full details are below — add it to your calendar using the attached file.",
+        "updated": "Your appointment with {{artistName}} at {{shopName}} has been updated. Review the changes below and re-import the calendar file if needed.",
+        "deleted": "Your appointment with {{artistName}} at {{shopName}} has been cancelled. The attached calendar file will remove it from supported calendar apps."
+      },
+      "artist": {
+        "created": "A new booking with {{clientName}} at {{shopName}} has been added to your schedule. Full details are below.",
+        "updated": "The booking with {{clientName}} at {{shopName}} has been updated. Review the changes below.",
+        "deleted": "The booking with {{clientName}} at {{shopName}} has been cancelled."
+      }
     },
     "calendarHint": {
       "title": "Add to calendar",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Appointment reminder",
     "title": "Your session is coming up",
-    "intro": "This is a friendly reminder about your upcoming appointment.",
+    "intro": "Just a friendly reminder — your upcoming appointment with {{artistName}} at {{shopName}} is coming up soon.",
     "notes": {
       "calendarTitle": "Calendar",
       "calendarBody": "Use the attached booking.ics file to add or update this appointment in your calendar."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "your deposit",
     "badge": "Deposit reminder",
     "title": "Deposit still outstanding",
-    "intro": "Your session on {{dateRange}} requires a {{amount}} deposit to secure your slot.",
+    "intro": "Your session with {{artistName}} at {{shopName}} on {{dateRange}} requires a {{amount}} deposit to secure your slot.",
     "notes": {
       "depositPaymentLabel": "Payment"
     },
@@ -86,13 +93,13 @@
     "badge": "Deposit payment",
     "amountPlaceholder": "your deposit",
     "title": "Complete your deposit",
-    "intro": "Please pay {{amount}} to secure your session on {{startsAt}}.",
+    "intro": "Please pay {{amount}} to secure your session with {{artistName}} at {{shopName}} on {{startsAt}}.",
     "buttonLabel": "Pay deposit securely"
   },
   "depositReceipt": {
     "badge": "Payment confirmation",
     "title": "Deposit received",
-    "intro": "Thank you — we've received your deposit payment.",
+    "intro": "Thank you — we've received your deposit payment for your session with {{artistName}} at {{shopName}}.",
     "details": {
       "amountReceived": "Amount received",
       "sessionDate": "Session date",
@@ -172,7 +179,32 @@
     },
     "inbox": {
       "update": "New inbox message — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Your receipt {{receiptNumber}} — {{shopName}}"
     }
+  },
+  "posReceipt": {
+    "badge": "Receipt",
+    "title": "Payment received",
+    "intro": "Thank you for your visit to {{shopName}}. Here is your receipt for your session with {{artistName}} — a PDF copy is attached.",
+    "paymentMethod": {
+      "card": "Card (Tap to Pay / WisePad)"
+    },
+    "details": {
+      "artist": "Artist",
+      "studio": "Studio",
+      "date": "Date",
+      "receiptNumber": "Receipt #",
+      "sessionTotal": "Session total",
+      "depositCredit": "Deposit credit",
+      "amountPaid": "Amount paid"
+    },
+    "note": {
+      "title": "PDF attached",
+      "body": "Your itemised receipt is attached as a PDF. Keep it for your records."
+    },
+    "footer": "This receipt was sent automatically after your in-studio payment."
   },
   "reviewRequest": {
     "badge": "Thank you",

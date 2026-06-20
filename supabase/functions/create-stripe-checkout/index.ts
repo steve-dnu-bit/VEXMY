@@ -374,8 +374,14 @@ serve(async (req) => {
         } else {
           try {
             requireEmailDeliveryConfig();
+            const { data: artistProfile } = await admin
+              .from("profiles")
+              .select("display_name")
+              .eq("user_id", booking.artist_id)
+              .maybeSingle();
             const html = buildDepositRequestEmail({
               clientName: booking.client_name,
+              artistName: artistProfile?.display_name || "Artist",
               startsAt: booking.starts_at,
               checkoutUrl: session.url,
               depositAmount: booking.deposit_amount,

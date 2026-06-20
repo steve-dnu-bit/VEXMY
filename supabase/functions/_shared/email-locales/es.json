@@ -22,9 +22,16 @@
       "deleted": "Reserva cancelada"
     },
     "intro": {
-      "created": "Tu cita está confirmada. Los detalles completos se encuentran a continuación: agréguelo a su calendario usando el archivo adjunto.",
-      "updated": "Los detalles de su cita han cambiado. Revise la actualización a continuación y vuelva a importar el archivo de calendario si es necesario.",
-      "deleted": "Esta cita ha sido cancelada. El archivo de calendario adjunto lo eliminará de las aplicaciones de calendario compatibles."
+      "customer": {
+        "created": "Tu cita con {{artistName}} en {{shopName}} está confirmada. Los detalles completos están abajo — añádela a tu calendario con el archivo adjunto.",
+        "updated": "Tu cita con {{artistName}} en {{shopName}} ha sido actualizada. Revisa los cambios abajo y vuelve a importar el archivo de calendario si es necesario.",
+        "deleted": "Tu cita con {{artistName}} en {{shopName}} ha sido cancelada. El archivo de calendario adjunto la eliminará de las apps compatibles."
+      },
+      "artist": {
+        "created": "Se ha añadido una nueva reserva con {{clientName}} en {{shopName}} a tu agenda. Los detalles completos están abajo.",
+        "updated": "La reserva con {{clientName}} en {{shopName}} ha sido actualizada. Revisa los cambios abajo.",
+        "deleted": "La reserva con {{clientName}} en {{shopName}} ha sido cancelada."
+      }
     },
     "calendarHint": {
       "title": "Añadir al calendario",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Recordatorio de cita",
     "title": "Tu sesión se acerca",
-    "intro": "Este es un recordatorio amistoso sobre su próxima cita.",
+    "intro": "Un recordatorio amistoso — tu próxima cita con {{artistName}} en {{shopName}} se acerca.",
     "notes": {
       "calendarTitle": "Calendario",
       "calendarBody": "Utilice el archivo booking.ics adjunto para agregar o actualizar esta cita en su calendario."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "tu deposito",
     "badge": "Recordatorio de depósito",
     "title": "El depósito aún está pendiente",
-    "intro": "Su sesión el {{dateRange}} requiere un depósito de {{amount}} para asegurar su lugar.",
+    "intro": "Su sesión con {{artistName}} en {{shopName}} el {{dateRange}} requiere un depósito de {{amount}} para asegurar su lugar.",
     "notes": {
       "depositPaymentLabel": "Pago"
     },
@@ -86,13 +93,13 @@
     "badge": "Pago de deposito",
     "amountPlaceholder": "tu deposito",
     "title": "Completa tu depósito",
-    "intro": "Pague {{amount}} para asegurar su sesión el {{startsAt}}.",
+    "intro": "Pague {{amount}} para asegurar su sesión con {{artistName}} en {{shopName}} el {{startsAt}}.",
     "buttonLabel": "Pague el depósito de forma segura"
   },
   "depositReceipt": {
     "badge": "Confirmación de pago",
     "title": "Depósito recibido",
-    "intro": "Gracias. Hemos recibido el pago de su depósito.",
+    "intro": "Gracias — hemos recibido su depósito para su sesión con {{artistName}} en {{shopName}}.",
     "details": {
       "amountReceived": "Cantidad recibida",
       "sessionDate": "fecha de la sesión",

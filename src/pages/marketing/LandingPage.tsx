@@ -6,7 +6,7 @@ import LandingStripeSection from "@/components/marketing/landing/LandingStripeSe
 import LandingSupportedCountries from "@/components/marketing/landing/LandingSupportedCountries";
 import LandingHeroCarousel from "@/components/marketing/landing/LandingHeroCarousel";
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight, CheckCircle2, Calendar, LayoutDashboard } from "lucide-react";
+import { Shield, ArrowRight, CheckCircle2, LayoutDashboard } from "lucide-react";
 import { useLandingI18n } from "@/hooks/useLandingI18n";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
@@ -37,21 +37,13 @@ const LandingPage = () => {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             {showStaffHome ? (
-              <>
-                <Button variant="gold" size="lg" asChild className="min-w-[200px]">
-                  <Link to="/schedule">
-                    <Calendar className="mr-1 h-4 w-4" />
-                    {t("landing.returnToSchedule")}
-                    <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="gold-outline" size="lg" asChild className="min-w-[200px]">
-                  <Link to="/dashboard">
-                    <LayoutDashboard className="mr-1 h-4 w-4" />
-                    {t("nav.dashboard")}
-                  </Link>
-                </Button>
-              </>
+              <Button variant="gold" size="lg" asChild className="min-w-[200px]">
+                <Link to="/dashboard">
+                  <LayoutDashboard className="mr-1 h-4 w-4" />
+                  {t("nav.dashboard")}
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
             ) : (
               <>
                 <Button variant="gold" size="lg" asChild className="min-w-[200px]">

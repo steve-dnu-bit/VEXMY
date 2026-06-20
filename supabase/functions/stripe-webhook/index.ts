@@ -8,6 +8,7 @@ import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
 import { syncConnectAccountFromStripe, syncArtistConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
 import { markBookingDepositPaid } from "../_shared/deposit-payment.ts";
 import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
+import { sendPosReceiptEmailIfNeeded } from "../_shared/pos-receipt-email.ts";
 import { getShopPaymentSettings } from "../_shared/shop-currency.ts";
 import {
   constructVerifiedStripeEvent,
@@ -280,6 +281,14 @@ serve(async (req) => {
             saleId: pi.metadata.pos_sale_id,
             paymentIntentId: pi.id,
             errors: transferResult.errors,
+          });
+        }
+
+        const receiptResult = await sendPosReceiptEmailIfNeeded(admin, pi.metadata.pos_sale_id);
+        if (receiptResult.error) {
+          console.error("POS receipt email failed from webhook", {
+            saleId: pi.metadata.pos_sale_id,
+            error: receiptResult.error,
           });
         }
       }

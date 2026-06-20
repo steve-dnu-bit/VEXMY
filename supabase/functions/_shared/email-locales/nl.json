@@ -22,9 +22,16 @@
       "deleted": "Boeking geannuleerd"
     },
     "intro": {
-      "created": "Uw afspraak is bevestigd. Volledige details vindt u hieronder. Voeg het toe aan uw agenda met behulp van het bijgevoegde bestand.",
-      "updated": "Uw afspraakgegevens zijn gewijzigd. Bekijk de onderstaande update en importeer het agendabestand indien nodig opnieuw.",
-      "deleted": "Deze afspraak is geannuleerd. Het bijgevoegde agendabestand verwijdert het uit ondersteunde agenda-apps."
+      "customer": {
+        "created": "Uw afspraak met {{artistName}} bij {{shopName}} is bevestigd. Volledige details staan hieronder — voeg hem toe aan uw agenda met het bijgevoegde bestand.",
+        "updated": "Uw afspraak met {{artistName}} bij {{shopName}} is bijgewerkt. Bekijk de wijzigingen hieronder en importeer het agendabestand indien nodig opnieuw.",
+        "deleted": "Uw afspraak met {{artistName}} bij {{shopName}} is geannuleerd. Het bijgevoegde agendabestand verwijdert hem uit ondersteunde agenda-apps."
+      },
+      "artist": {
+        "created": "Er is een nieuwe boeking met {{clientName}} bij {{shopName}} aan uw planning toegevoegd. Volledige details staan hieronder.",
+        "updated": "De boeking met {{clientName}} bij {{shopName}} is bijgewerkt. Bekijk de wijzigingen hieronder.",
+        "deleted": "De boeking met {{clientName}} bij {{shopName}} is geannuleerd."
+      }
     },
     "calendarHint": {
       "title": "Voeg toe aan kalender",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Afspraakherinnering",
     "title": "Je sessie komt eraan",
-    "intro": "Dit is een vriendelijke herinnering aan uw aanstaande afspraak.",
+    "intro": "Een vriendelijke herinnering — uw aankomende afspraak met {{artistName}} bij {{shopName}} komt eraan.",
     "notes": {
       "calendarTitle": "Kalender",
       "calendarBody": "Gebruik het bijgevoegde booking.ics-bestand om deze afspraak in uw agenda toe te voegen of bij te werken."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "uw storting",
     "badge": "Herinnering voor storting",
     "title": "Borgsom nog openstaand",
-    "intro": "Voor uw sessie op {{dateRange}} is een aanbetaling van {{amount}} vereist om uw slot veilig te stellen.",
+    "intro": "Voor uw sessie met {{artistName}} bij {{shopName}} op {{dateRange}} is een aanbetaling van {{amount}} vereist om uw slot veilig te stellen.",
     "notes": {
       "depositPaymentLabel": "Betaling"
     },
@@ -86,13 +93,13 @@
     "badge": "Aanbetaling",
     "amountPlaceholder": "uw storting",
     "title": "Voltooi uw storting",
-    "intro": "Betaal {{amount}} om uw sessie op {{startsAt}} veilig te stellen.",
+    "intro": "Betaal {{amount}} om uw sessie met {{artistName}} bij {{shopName}} op {{startsAt}} veilig te stellen.",
     "buttonLabel": "Betaal de aanbetaling veilig"
   },
   "depositReceipt": {
     "badge": "Betalingsbevestiging",
     "title": "Aanbetaling ontvangen",
-    "intro": "Bedankt, we hebben uw aanbetaling ontvangen.",
+    "intro": "Bedankt — we hebben uw aanbetaling ontvangen voor uw sessie met {{artistName}} bij {{shopName}}.",
     "details": {
       "amountReceived": "Ontvangen bedrag",
       "sessionDate": "Sessie datum",

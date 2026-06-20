@@ -22,9 +22,16 @@
       "deleted": "Prenotazione annullata"
     },
     "intro": {
-      "created": "Il tuo appuntamento è confermato. I dettagli completi sono riportati di seguito: aggiungilo al tuo calendario utilizzando il file allegato.",
-      "updated": "I dettagli dell'appuntamento sono cambiati. Rivedi l'aggiornamento di seguito e reimporta il file del calendario, se necessario.",
-      "deleted": "Questo appuntamento è stato annullato. Il file di calendario allegato lo rimuoverà dalle app di calendario supportate."
+      "customer": {
+        "created": "Il tuo appuntamento con {{artistName}} presso {{shopName}} è confermato. I dettagli completi sono riportati di seguito — aggiungilo al calendario con il file allegato.",
+        "updated": "Il tuo appuntamento con {{artistName}} presso {{shopName}} è stato aggiornato. Rivedi le modifiche di seguito e reimporta il file del calendario se necessario.",
+        "deleted": "Il tuo appuntamento con {{artistName}} presso {{shopName}} è stato annullato. Il file calendario allegato lo rimuoverà dalle app supportate."
+      },
+      "artist": {
+        "created": "Una nuova prenotazione con {{clientName}} presso {{shopName}} è stata aggiunta al tuo calendario. I dettagli completi sono riportati di seguito.",
+        "updated": "La prenotazione con {{clientName}} presso {{shopName}} è stata aggiornata. Rivedi le modifiche di seguito.",
+        "deleted": "La prenotazione con {{clientName}} presso {{shopName}} è stata annullata."
+      }
     },
     "calendarHint": {
       "title": "Aggiungi al calendario",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Promemoria appuntamento",
     "title": "La tua sessione si avvicina",
-    "intro": "Questo è un promemoria amichevole sul tuo prossimo appuntamento.",
+    "intro": "Un promemoria amichevole — il tuo prossimo appuntamento con {{artistName}} presso {{shopName}} si avvicina.",
     "notes": {
       "calendarTitle": "Calendario",
       "calendarBody": "Utilizza il file booking.ics allegato per aggiungere o aggiornare questo appuntamento nel tuo calendario."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "il tuo deposito",
     "badge": "Promemoria di deposito",
     "title": "Deposito ancora in sospeso",
-    "intro": "La tua sessione su {{dateRange}} richiede un deposito di {{amount}} per assicurarti il ​​tuo slot.",
+    "intro": "La tua sessione con {{artistName}} presso {{shopName}} il {{dateRange}} richiede un deposito di {{amount}} per assicurarti il slot.",
     "notes": {
       "depositPaymentLabel": "Pagamento"
     },
@@ -86,13 +93,13 @@
     "badge": "Pagamento del deposito",
     "amountPlaceholder": "il tuo deposito",
     "title": "Completa il tuo deposito",
-    "intro": "Si prega di pagare {{amount}} per proteggere la sessione su {{startsAt}}.",
+    "intro": "Si prega di pagare {{amount}} per assicurare la sessione con {{artistName}} presso {{shopName}} il {{startsAt}}.",
     "buttonLabel": "Paga il deposito in modo sicuro"
   },
   "depositReceipt": {
     "badge": "Conferma del pagamento",
     "title": "Deposito ricevuto",
-    "intro": "Grazie: abbiamo ricevuto il pagamento del deposito.",
+    "intro": "Grazie — abbiamo ricevuto il deposito per la tua sessione con {{artistName}} presso {{shopName}}.",
     "details": {
       "amountReceived": "Importo ricevuto",
       "sessionDate": "Data della sessione",

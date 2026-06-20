@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, Calendar, LayoutDashboard } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { BRANDING } from "@/lib/branding";
@@ -55,12 +55,6 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
             <LanguageSelector compact />
             {showStaffNav ? (
               <>
-                <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
-                  <Link to="/schedule">
-                    <Calendar className="h-4 w-4 mr-1.5" />
-                    {t("nav.schedule")}
-                  </Link>
-                </Button>
                 <Button variant="gold-outline" asChild>
                   <Link to="/dashboard">
                     <LayoutDashboard className="h-4 w-4 mr-1.5" />
@@ -118,10 +112,7 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
               <LanguageSelector compact className="w-full" />
               {showStaffNav ? (
                 <>
-                  <Link to="/schedule" className="text-sm font-medium text-gold" onClick={() => setMobileOpen(false)}>
-                    {t("nav.schedule")}
-                  </Link>
-                  <Link to="/dashboard" className="text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                  <Link to="/dashboard" className="text-sm font-medium text-gold" onClick={() => setMobileOpen(false)}>
                     {t("nav.dashboard")}
                   </Link>
                   <button

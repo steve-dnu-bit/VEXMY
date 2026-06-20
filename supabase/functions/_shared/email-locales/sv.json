@@ -22,9 +22,16 @@
       "deleted": "Bokning avbruten"
     },
     "intro": {
-      "created": "Ditt möte är bekräftat. Fullständig information finns nedan - lägg till den i din kalender med hjälp av den bifogade filen.",
-      "updated": "Dina mötesuppgifter har ändrats. Granska uppdateringen nedan och importera om kalenderfilen om det behövs.",
-      "deleted": "Detta möte har ställts in. Den bifogade kalenderfilen tar bort den från kalenderappar som stöds."
+      "customer": {
+        "created": "Ditt möte med {{artistName}} hos {{shopName}} är bekräftat. Fullständig information finns nedan — lägg till det i kalendern med den bifogade filen.",
+        "updated": "Ditt möte med {{artistName}} hos {{shopName}} har uppdaterats. Granska ändringarna nedan och importera om kalenderfilen vid behov.",
+        "deleted": "Ditt möte med {{artistName}} hos {{shopName}} har ställts in. Den bifogade kalenderfilen tar bort det från kalenderappar som stöds."
+      },
+      "artist": {
+        "created": "En ny bokning med {{clientName}} hos {{shopName}} har lagts till i ditt schema. Fullständig information finns nedan.",
+        "updated": "Bokningen med {{clientName}} hos {{shopName}} har uppdaterats. Granska ändringarna nedan.",
+        "deleted": "Bokningen med {{clientName}} hos {{shopName}} har ställts in."
+      }
     },
     "calendarHint": {
       "title": "Lägg till i kalendern",
@@ -51,7 +58,7 @@
   "appointmentReminder": {
     "badge": "Påminnelse om möte",
     "title": "Din session närmar sig",
-    "intro": "Det här är en vänlig påminnelse om ditt kommande möte.",
+    "intro": "En vänlig påminnelse — ditt kommande möte med {{artistName}} hos {{shopName}} närmar sig.",
     "notes": {
       "calendarTitle": "Kalender",
       "calendarBody": "Använd den bifogade booking.ics-filen för att lägga till eller uppdatera detta möte i din kalender."
@@ -67,7 +74,7 @@
     "amountPlaceholder": "din insättning",
     "badge": "Insättningspåminnelse",
     "title": "Depositionen är fortfarande utestående",
-    "intro": "Din session på {{dateRange}} kräver en {{amount}} insättning för att säkra din slot.",
+    "intro": "Din session med {{artistName}} hos {{shopName}} den {{dateRange}} kräver en deposition på {{amount}} för att säkra din plats.",
     "notes": {
       "depositPaymentLabel": "Betalning"
     },
@@ -86,13 +93,13 @@
     "badge": "Depositionsbetalning",
     "amountPlaceholder": "din insättning",
     "title": "Slutför din insättning",
-    "intro": "Vänligen betala {{amount}} för att säkra din session på {{startsAt}}.",
+    "intro": "Betala {{amount}} för att säkra din session med {{artistName}} hos {{shopName}} den {{startsAt}}.",
     "buttonLabel": "Betala deposition säkert"
   },
   "depositReceipt": {
     "badge": "Betalningsbekräftelse",
     "title": "Deposition mottagen",
-    "intro": "Tack – vi har tagit emot din insättningsbetalning.",
+    "intro": "Tack — vi har tagit emot din deposition för sessionen med {{artistName}} hos {{shopName}}.",
     "details": {
       "amountReceived": "Mottaget belopp",
       "sessionDate": "Sessionsdatum",
