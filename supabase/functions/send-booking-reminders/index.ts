@@ -9,39 +9,34 @@ import {
   buildDepositReminderEmail,
   type BookingEmailDetails,
 } from "../_shared/email-templates.ts";
-import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
+import {
+  buildReminderDueWindows,
+  fetchBookingsDueForReminders,
+  timingToMs,
+} from "../_shared/reminder-due-windows.ts";
+import { loadShopReminderSettings, type ShopReminderSettingsRow } from "../_shared/shop-reminder-settings.ts";
 import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
-type ReminderType = "appointment" | "deposit";
+/** Cap sends per cron tick to stay within Edge Function time limits. */
+const MAX_SENDS_PER_RUN = 200;
 
-function timingToMs(value: string): number | null {
-  switch (value) {
-    case "1h":
-      return 1 * 60 * 60 * 1000;
-    case "3h":
-      return 3 * 60 * 60 * 1000;
-    case "12h":
-      return 12 * 60 * 60 * 1000;
-    case "24h":
-      return 24 * 60 * 60 * 1000;
-    case "48h":
-      return 48 * 60 * 60 * 1000;
-    case "72h":
-      return 72 * 60 * 60 * 1000;
-    case "1w":
-      return 7 * 24 * 60 * 60 * 1000;
-    default:
-      return null;
-  }
-}
+type ReminderType = "appointment" | "deposit";
 
 function isPiercingBooking(booking: { booking_type: string; service_category?: string | null }): boolean {
   const cat = (booking.service_category || "").toLowerCase();
   if (cat === "piercing") return true;
   const bt = (booking.booking_type || "").toLowerCase();
   return bt === "piercing-session" || bt.includes("piercing");
+}
+
+function settingsCacheKey(booking: { organization_id?: string | null; artist_id: string }): string {
+  return `${booking.organization_id ?? ""}|${booking.artist_id}`;
+}
+
+function isEmailReminderChannel(settings: ShopReminderSettingsRow): boolean {
+  return settings.reminder_channel === "email" || settings.reminder_channel === "both";
 }
 
 serve(async (req) => {
@@ -65,33 +60,9 @@ serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
     const now = Date.now();
     const toleranceMs = 30 * 60 * 1000; // 30 minutes
-    const horizon = new Date(now + 8 * 24 * 60 * 60 * 1000).toISOString();
 
-    const shopSettings = await loadShopReminderSettings(admin);
-    if (!shopSettings) {
-      return new Response(JSON.stringify({ ok: true, checked: 0, sent: 0, skipped: 0, failedCount: 0, failures: [] }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (!shopSettings.deposit_reminder && !shopSettings.appointment_reminder) {
-      return new Response(JSON.stringify({ ok: true, checked: 0, sent: 0, skipped: 0, failedCount: 0, failures: [] }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (shopSettings.reminder_channel === "sms") {
-      return new Response(JSON.stringify({ ok: true, checked: 0, sent: 0, skipped: 0, failedCount: 0, failures: [] }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: bookings, error: bookingErr } = await admin
-      .from("bookings")
-      .select("id, organization_id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount, notes, suppress_booking_notifications")
-      .gte("starts_at", new Date(now).toISOString())
-      .lte("starts_at", horizon)
-      .neq("status", "cancelled")
-      .eq("suppress_booking_notifications", false)
-      .order("starts_at", { ascending: true });
+    const dueWindows = buildReminderDueWindows(now, toleranceMs);
+    const { data: bookings, error: bookingErr } = await fetchBookingsDueForReminders(admin, dueWindows);
     if (bookingErr) {
       return new Response(JSON.stringify({ error: bookingErr.message }), {
         status: 500,
@@ -112,14 +83,30 @@ serve(async (req) => {
     let skipped = 0;
     let checked = 0;
     let failedCount = 0;
+    let capped = false;
     const failures: Array<{ bookingId: string; reminderType: ReminderType; reminderTiming: string; recipientEmail: string; error: string }> = [];
+
+    const settingsCache = new Map<string, ShopReminderSettingsRow | null>();
+    const getShopSettings = async (booking: {
+      organization_id?: string | null;
+      artist_id: string;
+    }): Promise<ShopReminderSettingsRow | null> => {
+      const key = settingsCacheKey(booking);
+      if (settingsCache.has(key)) return settingsCache.get(key)!;
+      const settings = await loadShopReminderSettings(admin, {
+        organizationId: booking.organization_id ?? null,
+        artistUserId: booking.artist_id,
+      });
+      settingsCache.set(key, settings);
+      return settings;
+    };
 
     const brandCache = new Map<string, ShopBranding>();
     const getOrgBrand = async (booking: {
       organization_id?: string | null;
       artist_id: string;
     }): Promise<ShopBranding> => {
-      const key = `${booking.organization_id ?? ""}|${booking.artist_id}`;
+      const key = settingsCacheKey(booking);
       const cached = brandCache.get(key);
       if (cached) return cached;
       const brand = await getShopBrandingForBooking(admin, {
@@ -131,7 +118,10 @@ serve(async (req) => {
     };
 
     const localeCache = new Map<string, EmailLanguage>();
-    const getBookingLocale = async (booking: any): Promise<EmailLanguage> => {
+    const getBookingLocale = async (booking: {
+      organization_id?: string | null;
+      client_user_id?: string | null;
+    }): Promise<EmailLanguage> => {
       const key = `${booking.organization_id ?? ""}|${booking.client_user_id ?? ""}`;
       const cached = localeCache.get(key);
       if (cached) return cached;
@@ -144,12 +134,27 @@ serve(async (req) => {
     };
 
     for (const booking of bookings || []) {
+      if (sent >= MAX_SENDS_PER_RUN) {
+        capped = true;
+        break;
+      }
+
       checked += 1;
       if (isImportedContactPlaceholderBooking(booking)) {
         skipped += 1;
         continue;
       }
       if (!booking.client_email) {
+        skipped += 1;
+        continue;
+      }
+
+      const shopSettings = await getShopSettings(booking);
+      if (!shopSettings || !isEmailReminderChannel(shopSettings)) {
+        skipped += 1;
+        continue;
+      }
+      if (!shopSettings.deposit_reminder && !shopSettings.appointment_reminder) {
         skipped += 1;
         continue;
       }
@@ -164,6 +169,11 @@ serve(async (req) => {
       }
 
       for (const candidate of candidates) {
+        if (sent >= MAX_SENDS_PER_RUN) {
+          capped = true;
+          break;
+        }
+
         const offsetMs = timingToMs(candidate.timing);
         if (!offsetMs) {
           skipped += 1;
@@ -255,9 +265,10 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ ok: failedCount === 0, checked, sent, skipped, failedCount, failures }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: failedCount === 0, checked, sent, skipped, failedCount, capped, failures }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     return new Response(JSON.stringify({ error: msg }), {

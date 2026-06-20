@@ -1,20 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, requireCronAuth } from "../_shared/auth.ts";
-import { getShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForBooking } from "../_shared/branding.ts";
 import { formatBookingDateRange, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { resolveEmailLocale } from "../_shared/email-i18n.ts";
 import { aftercareEmailSubject, buildAftercareEmail } from "../_shared/email-templates.ts";
-import { loadShopAftercareTemplates } from "../_shared/shop-aftercare-templates.ts";
+import { loadActiveServicesForBooking, type OrgServiceRow } from "../_shared/org-services.ts";
+import { loadShopAftercareTemplates, type ShopAftercareRow } from "../_shared/shop-aftercare-templates.ts";
 import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
 
 const corsHeaders = jsonCorsHeaders;
+
+const MAX_SENDS_PER_RUN = 200;
 
 type AftercareKind = "tattoo" | "piercing";
 
 type BookingRow = {
   id: string;
   organization_id: string | null;
+  artist_id: string;
   client_name: string;
   client_user_id: string | null;
   client_email: string | null;
@@ -25,13 +29,6 @@ type BookingRow = {
   status: string;
   notes?: string | null;
   suppress_booking_notifications?: boolean | null;
-};
-
-type ServiceRow = {
-  booking_type: string;
-  service_category: string;
-  duration: number;
-  name: string;
 };
 
 function bookingDurationMinutes(startsAt: string, endsAt: string): number {
@@ -59,7 +56,7 @@ function bookingTypesMatchForService(
   return false;
 }
 
-function inferServiceCategory(services: ServiceRow[], booking: BookingRow): string | null {
+function inferServiceCategory(services: OrgServiceRow[], booking: BookingRow): string | null {
   if (services.length === 0) return null;
   const typeNorm = String(booking.booking_type || "session").toLowerCase();
   const catNorm = String(booking.service_category || "").toLowerCase();
@@ -71,7 +68,7 @@ function inferServiceCategory(services: ServiceRow[], booking: BookingRow): stri
   if (pool.length === 0) pool = [...services];
 
   const exact = pool.filter((s) => s.duration === dur);
-  let match: ServiceRow | undefined;
+  let match: OrgServiceRow | undefined;
   if (exact.length === 1) {
     match = exact[0];
   } else if (exact.length > 1) {
@@ -103,6 +100,10 @@ function aftercareKindForBooking(
   return null;
 }
 
+function orgCacheKey(booking: Pick<BookingRow, "organization_id" | "artist_id">): string {
+  return `${booking.organization_id ?? ""}|${booking.artist_id}`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -127,22 +128,9 @@ serve(async (req) => {
     const minDate = new Date(nowMs - toleranceMs).toISOString();
     const maxDate = new Date(nowMs + toleranceMs).toISOString();
 
-    const { data: services, error: servicesErr } = await admin
-      .from("services")
-      .select("booking_type, service_category, duration, name")
-      .eq("is_active", true);
-    if (servicesErr) {
-      return new Response(JSON.stringify({ error: servicesErr.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const serviceRows = (services || []) as ServiceRow[];
-    const aftercareTemplates = await loadShopAftercareTemplates(admin, null);
-
     const { data: bookings, error: bookingErr } = await admin
       .from("bookings")
-      .select("id, organization_id, client_user_id, client_name, client_email, booking_type, service_category, starts_at, ends_at, status, notes, suppress_booking_notifications")
+      .select("id, organization_id, artist_id, client_user_id, client_name, client_email, booking_type, service_category, starts_at, ends_at, status, notes, suppress_booking_notifications")
       .gte("starts_at", minDate)
       .lte("starts_at", maxDate)
       .neq("status", "cancelled")
@@ -159,9 +147,37 @@ serve(async (req) => {
     let sent = 0;
     let skipped = 0;
     let failedCount = 0;
+    let capped = false;
     const skipReasons: Array<{ bookingId: string; reason: string }> = [];
 
+    const servicesCache = new Map<string, OrgServiceRow[]>();
+    const aftercareCache = new Map<string, Map<AftercareKind, ShopAftercareRow>>();
+
+    const getOrgServices = async (booking: BookingRow): Promise<OrgServiceRow[]> => {
+      const key = orgCacheKey(booking);
+      if (servicesCache.has(key)) return servicesCache.get(key)!;
+      const services = await loadActiveServicesForBooking(admin, {
+        organizationId: booking.organization_id,
+        artistId: booking.artist_id,
+      });
+      servicesCache.set(key, services);
+      return services;
+    };
+
+    const getAftercareTemplates = async (booking: BookingRow): Promise<Map<AftercareKind, ShopAftercareRow>> => {
+      const key = orgCacheKey(booking);
+      if (aftercareCache.has(key)) return aftercareCache.get(key)!;
+      const templates = await loadShopAftercareTemplates(admin, booking.organization_id);
+      aftercareCache.set(key, templates);
+      return templates;
+    };
+
     for (const booking of (bookings || []) as BookingRow[]) {
+      if (sent >= MAX_SENDS_PER_RUN) {
+        capped = true;
+        break;
+      }
+
       checked += 1;
       if (isImportedContactPlaceholderBooking(booking)) {
         skipped += 1;
@@ -174,6 +190,7 @@ serve(async (req) => {
         continue;
       }
 
+      const serviceRows = await getOrgServices(booking);
       const inferredCategory = inferServiceCategory(serviceRows, booking);
       const aftercareKind = aftercareKindForBooking(booking, inferredCategory);
       if (!aftercareKind) {
@@ -185,6 +202,7 @@ serve(async (req) => {
         continue;
       }
 
+      const aftercareTemplates = await getAftercareTemplates(booking);
       const templateRow = aftercareTemplates.get(aftercareKind);
       if (!templateRow?.enabled) {
         skipped += 1;
@@ -211,7 +229,10 @@ serve(async (req) => {
       });
       const bookingWindow = formatBookingDateRange(booking.starts_at, booking.ends_at, locale);
       const clientName = booking.client_name || "there";
-      const brand = getShopBranding();
+      const brand = await getShopBrandingForBooking(admin, {
+        organizationId: booking.organization_id,
+        artistId: booking.artist_id,
+      });
       const subject = aftercareEmailSubject(templateRow, brand.tradingName);
       const html = buildAftercareEmail({
         kind: aftercareKind,
@@ -227,6 +248,8 @@ serve(async (req) => {
           subject,
           html,
           fromKind: "booking",
+          fromDisplayName: brand.shopName,
+          replyTo: brand.supportEmail ?? undefined,
         });
         sent += 1;
         await admin.from("booking_aftercare_events").insert({
@@ -250,7 +273,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ ok: failedCount === 0, checked, sent, skipped, failedCount, skipReasons }),
+      JSON.stringify({ ok: failedCount === 0, checked, sent, skipped, failedCount, capped, skipReasons }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
@@ -261,4 +284,3 @@ serve(async (req) => {
     });
   }
 });
-
