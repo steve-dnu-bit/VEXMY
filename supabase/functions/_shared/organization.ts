@@ -38,6 +38,18 @@ export async function canManageOrganizationBilling(
   return !!isOrgAdmin;
 }
 
+/** Resolve org from booking row when organization_id is missing (legacy/migrated rows). */
+export async function resolveBookingOrganizationId(
+  admin: SupabaseClient,
+  params: { organizationId?: string | null; artistId?: string | null },
+): Promise<string | null> {
+  const direct = params.organizationId?.trim();
+  if (direct) return direct;
+  const artistId = params.artistId?.trim();
+  if (!artistId) return null;
+  return resolveOrganizationForUser(admin, artistId);
+}
+
 export async function loadOrganizationRecord(
   admin: SupabaseClient,
   organizationId: string,

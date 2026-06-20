@@ -131,6 +131,7 @@ serve(async (req) => {
       to: clientEmail,
       subject: `${brand.shopName} — we'd love your feedback`,
       html,
+      fromDisplayName: brand.shopName,
       replyTo: brand.supportEmail ?? undefined,
     });
   } catch (e) {

@@ -159,6 +159,10 @@ serve(async (req) => {
 
         fromKind: "notification",
 
+        fromDisplayName: shopName,
+
+        replyTo: branding.supportEmail ?? undefined,
+
       });
 
     } else if (channel === "whatsapp") {

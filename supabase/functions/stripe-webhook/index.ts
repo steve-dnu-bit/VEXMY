@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
-import { getShopBrandingForOrganization } from "../_shared/branding.ts";
+import { getShopBrandingForBooking } from "../_shared/branding.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
@@ -119,7 +119,7 @@ serve(async (req) => {
       const { data: paidBookingRow } = await admin
         .from("bookings")
         .select(
-          "id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid",
+          "id, organization_id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid",
         )
         .eq("id", bookingId)
         .maybeSingle();
@@ -128,6 +128,7 @@ serve(async (req) => {
       const paidBooking = paidBookingRow as
         | {
             id: string;
+            organization_id?: string | null;
             artist_id: string;
             client_user_id?: string | null;
             client_name: string | null;
@@ -163,12 +164,15 @@ serve(async (req) => {
             deposit_amount: paidBooking.deposit_amount,
             deposit_paid: true,
           };
-          const orgId = session.metadata?.organization_id ?? null;
+          const orgId = session.metadata?.organization_id ?? paidBooking.organization_id ?? null;
           const locale = await resolveEmailLocale(admin, {
             recipientUserId: paidBooking.client_user_id ?? null,
             organizationId: orgId,
           });
-          const orgBrand = await getShopBrandingForOrganization(admin, orgId);
+          const orgBrand = await getShopBrandingForBooking(admin, {
+            organizationId: orgId,
+            artistId: paidBooking.artist_id,
+          });
           const { currency: shopCurrency } = await getShopPaymentSettings(admin, orgId);
           const receipt = buildDepositReceiptEmail({
             clientName: paidBooking.client_name || "there",
@@ -185,6 +189,8 @@ serve(async (req) => {
             html: receipt.html,
             attachments: receipt.attachments,
             fromKind: "booking",
+            fromDisplayName: orgBrand.shopName,
+            replyTo: orgBrand.supportEmail ?? undefined,
           });
         } catch (receiptError) {
           console.error("Deposit receipt email failed", {

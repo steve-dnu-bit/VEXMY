@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { resolveBookingOrganizationId } from "./organization.ts";
 
 export interface ShopBranding {
   platformName: string;
@@ -59,6 +60,14 @@ export function getShopBranding(): ShopBranding {
       Deno.env.get("CONSENT_PIERCING_DATA_STORAGE") ||
       "I give my permission for the studio and any piercer in the shop to store my personal data for legal, medical, and insurance reasons.",
   };
+}
+
+export async function getShopBrandingForBooking(
+  admin: SupabaseClient,
+  params: { organizationId?: string | null; artistId?: string | null },
+): Promise<ShopBranding> {
+  const organizationId = await resolveBookingOrganizationId(admin, params);
+  return getShopBrandingForOrganization(admin, organizationId);
 }
 
 export async function getShopBrandingForOrganization(

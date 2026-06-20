@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, jsonResponse, requireCronAuth } from "../_shared/auth.ts";
-import { getShopBrandingForOrganization, type ShopBranding } from "../_shared/branding.ts";
+import { getShopBrandingForBooking, type ShopBranding } from "../_shared/branding.ts";
 import { resolveEmailLocale, t, type EmailLanguage } from "../_shared/email-i18n.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
@@ -115,11 +115,17 @@ serve(async (req) => {
     const failures: Array<{ bookingId: string; reminderType: ReminderType; reminderTiming: string; recipientEmail: string; error: string }> = [];
 
     const brandCache = new Map<string, ShopBranding>();
-    const getOrgBrand = async (organizationId: string | null | undefined): Promise<ShopBranding> => {
-      const key = organizationId ?? "";
+    const getOrgBrand = async (booking: {
+      organization_id?: string | null;
+      artist_id: string;
+    }): Promise<ShopBranding> => {
+      const key = `${booking.organization_id ?? ""}|${booking.artist_id}`;
       const cached = brandCache.get(key);
       if (cached) return cached;
-      const brand = await getShopBrandingForOrganization(admin, organizationId);
+      const brand = await getShopBrandingForBooking(admin, {
+        organizationId: booking.organization_id ?? null,
+        artistId: booking.artist_id,
+      });
       brandCache.set(key, brand);
       return brand;
     };
@@ -183,7 +189,7 @@ serve(async (req) => {
         }
 
         const locale = await getBookingLocale(booking);
-        const brand = await getOrgBrand(booking.organization_id ?? null);
+        const brand = await getOrgBrand(booking);
         const subject =
           candidate.type === "deposit"
             ? t(locale, "subjects.reminders.deposit", { shopName: brand.shopName })
@@ -216,6 +222,8 @@ serve(async (req) => {
             html: built.html,
             attachments: built.attachments,
             fromKind: "booking",
+            fromDisplayName: brand.shopName,
+            replyTo: brand.supportEmail ?? undefined,
           });
           sent += 1;
           await admin.from("booking_reminder_events").insert({

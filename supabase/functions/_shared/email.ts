@@ -176,12 +176,28 @@ export function emailLayout(params: {
 
 export type EmailFromKind = "booking" | "notification";
 
+function parseEmailFromAddress(from: string): { displayName: string | null; email: string } {
+  const match = from.match(/^(.+?)\s*<([^>]+)>$/);
+  if (match) {
+    return { displayName: match[1].trim().replace(/^"|"$/g, ""), email: match[2].trim() };
+  }
+  return { displayName: null, email: from.trim() };
+}
+
 export function getEmailFrom(kind: EmailFromKind = "notification"): string | null {
   const legacy = Deno.env.get("EMAIL_FROM") ?? Deno.env.get("SMTP_FROM") ?? null;
   if (kind === "booking") {
     return Deno.env.get("BOOKINGS_EMAIL_FROM") ?? legacy ?? "Velbok <no-reply@velbok.com>";
   }
   return Deno.env.get("NOTIFICATIONS_EMAIL_FROM") ?? legacy ?? "Velbok <no-reply@velbok.com>";
+}
+
+/** Use org shop name as sender display name while keeping the verified from address. */
+export function buildEmailFromAddress(displayName: string, kind: EmailFromKind = "notification"): string {
+  const base = getEmailFrom(kind) ?? "Velbok <no-reply@velbok.com>";
+  const { email } = parseEmailFromAddress(base);
+  const safeName = displayName.replace(/[\r\n<>]/g, "").trim() || "Velbok";
+  return `${safeName} <${email}>`;
 }
 
 /** Bare address for calendar organizer / reply-to on booking mail. */
@@ -290,10 +306,13 @@ export async function sendTransactionalEmail(params: {
   html: string;
   attachments?: EmailAttachment[];
   fromKind?: EmailFromKind;
+  fromDisplayName?: string;
   replyTo?: string | null;
 }): Promise<{ provider: "resend" | "smtp" }> {
   const fromKind = params.fromKind ?? "notification";
-  const from = getEmailFrom(fromKind);
+  const from = params.fromDisplayName?.trim()
+    ? buildEmailFromAddress(params.fromDisplayName.trim(), fromKind)
+    : getEmailFrom(fromKind);
   if (!from) {
     throw new Error(
       fromKind === "booking"

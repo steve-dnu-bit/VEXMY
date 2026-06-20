@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
-import { getShopBrandingForOrganization } from "../_shared/branding.ts";
+import { getShopBrandingForBooking } from "../_shared/branding.ts";
 import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
 import { getEmailDeliveryStatus, requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import {
@@ -163,7 +163,10 @@ serve(async (req) => {
         recipientUserId: booking.client_user_id ?? null,
         organizationId: bookingOrgId ?? null,
       });
-      const orgBrand = await getShopBrandingForOrganization(admin, bookingOrgId);
+      const orgBrand = await getShopBrandingForBooking(admin, {
+        organizationId: bookingOrgId,
+        artistId: booking.artist_id,
+      });
 
       const connectCtx = bookingOrgId
         ? await getConnectAccountForOrganization(admin, bookingOrgId)
@@ -276,6 +279,8 @@ serve(async (req) => {
               html: receipt.html,
               attachments: receipt.attachments,
               fromKind: "booking",
+              fromDisplayName: orgBrand.shopName,
+              replyTo: orgBrand.supportEmail ?? undefined,
             });
           } catch (receiptError) {
             console.error("Deposit receipt email failed from confirm flow", {
@@ -396,6 +401,8 @@ serve(async (req) => {
               subject: t(clientLocale, "subjects.deposit.request", { shopName: orgBrand.shopName }),
               html,
               fromKind: "booking",
+              fromDisplayName: orgBrand.shopName,
+              replyTo: orgBrand.supportEmail ?? undefined,
             });
             emailSent = true;
           } catch (mailErr) {
@@ -484,7 +491,9 @@ serve(async (req) => {
         },
       );
     }
-    const invoiceBrand = await getShopBrandingForOrganization(admin, connectCtx.organizationId);
+    const invoiceBrand = await getShopBrandingForBooking(admin, {
+      organizationId: connectCtx.organizationId,
+    });
     const amountPence = Math.round(invoiceTotal * 100);
     const session = await stripe.checkout.sessions.create(
       {
