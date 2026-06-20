@@ -68,10 +68,17 @@ const CustomerPortalShell = () => (
   </CustomerShopProvider>
 );
 
+const MobileRootRedirect = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <PageFallback />;
+  if (user) return <AuthHomeRedirect />;
+  return <Navigate to="/auth" replace />;
+};
+
 /** Staff-focused routes for the Capacitor shell (no marketing or platform admin). */
 const MobileAppRoutes = () => (
   <Routes>
-    <Route path="/" element={<Navigate to="/auth" replace />} />
+    <Route path="/" element={<MobileRootRedirect />} />
     <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
     <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
     <Route path="/terms" element={<TermsPage />} />

@@ -82,17 +82,35 @@ export function emailDetailTable(rows: Array<{ label: string; value: string | nu
     </table>`;
 }
 
-export function emailButton(href: string, label: string, locale: EmailLanguage = "en"): string {
+export function emailButton(href: string, label: string, locale: EmailLanguage = "en", options?: { hideFallback?: boolean }): string {
   const safeHref = escapeHtml(href);
+  const fallback = options?.hideFallback
+    ? ""
+    : `<p style="margin:8px 0 0;font-size:12px;color:#9f9f9f;word-break:break-all;text-align:center;">${t(locale, "email.button.doesNotWork")} <a href="${safeHref}" style="color:${getShopBranding().accentColor};">${safeHref}</a></p>`;
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:20px auto;">
+    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:${options?.hideFallback ? "12px" : "20px"} auto;">
       <tr>
         <td align="center" bgcolor="${getShopBranding().accentColor}" style="border-radius:999px;background-color:${getShopBranding().accentColor};">
           <a href="${safeHref}" style="display:inline-block;padding:14px 28px;font-size:14px;font-weight:800;color:#1a1a1a;text-decoration:none;border-radius:999px;">${escapeHtml(label)}</a>
         </td>
       </tr>
     </table>
-    <p style="margin:8px 0 0;font-size:12px;color:#9f9f9f;word-break:break-all;text-align:center;">${t(locale, "email.button.doesNotWork")} <a href="${safeHref}" style="color:${getShopBranding().accentColor};">${safeHref}</a></p>`;
+    ${fallback}`;
+}
+
+export function emailButtonStack(
+  links: Array<{ href: string; label: string }>,
+  locale: EmailLanguage = "en",
+): string {
+  if (links.length === 0) return "";
+  const buttons = links
+    .map(({ href, label }) => emailButton(href, label, locale, { hideFallback: true }))
+    .join("");
+  return `
+    <div style="margin:20px 0 8px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:12px;color:#9f9f9f;text-transform:uppercase;letter-spacing:.35px;">${escapeHtml(t(locale, "reviewRequest.pickPlatform"))}</p>
+      ${buttons}
+    </div>`;
 }
 
 export function emailNoteBox(title: string, body: string): string {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Calendar, Users, MessageSquare, FileSignature, Eye, CreditCard, Receipt, CheckCircle2 } from "lucide-react";
+import { Calendar, Users, MessageSquare, FileSignature, Eye, CreditCard, Receipt, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { loadShopSettings } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { supabase } from "@/integrations/supabase/client";
@@ -202,11 +203,19 @@ const DashboardPage = () => {
   return (
     <AppLayout>
       <div className="p-4 md:p-6">
-        <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold">
-            <span className="text-gold">{t("dashboard.title")}</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("dashboard.welcome")}</p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold">
+              <span className="text-gold">{t("dashboard.title")}</span>
+            </h1>
+            <p className="text-sm text-muted-foreground">{t("dashboard.welcome")}</p>
+          </div>
+          <Button variant="outline" asChild className="shrink-0 self-start sm:self-auto">
+            <Link to="/schedule">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("dashboard.backToSchedule")}
+            </Link>
+          </Button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">

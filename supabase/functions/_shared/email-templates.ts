@@ -9,6 +9,7 @@ import {
   emailDetailTable,
   emailLayout,
   emailNoteBox,
+  emailButtonStack,
   escapeHtml,
   formatBookingDateRange,
   formatDateTimeGb,
@@ -418,6 +419,48 @@ export function buildAftercareEmailFromTemplate(params: {
 
 export function aftercareEmailSubject(template: AftercareTemplateContent, tradingName: string): string {
   return `${template.emailSubject} — ${tradingName}`;
+}
+
+export function buildReviewRequestEmail(params: {
+  brand?: ShopBranding;
+  clientName: string;
+  artistName: string;
+  startsAt: string;
+  endsAt: string;
+  reviewLinks: Array<{ label: string; url: string }>;
+  customMessage?: string | null;
+  locale?: EmailLanguage;
+}): string {
+  const brand = params.brand ?? getShopBranding();
+  const locale = params.locale ?? "en";
+  const defaultIntro = t(locale, "reviewRequest.intro", {
+    shopName: escapeHtml(brand.shopName),
+    artistName: escapeHtml(params.artistName),
+  });
+  const custom = params.customMessage?.trim();
+  const intro = custom
+    ? `${escapeHtml(custom)}<br/><br/><span style="color:#d7d7d7;">${defaultIntro}</span>`
+    : defaultIntro;
+  const when = formatBookingDateRange(params.startsAt, params.endsAt, locale);
+
+  const bodyHtml = `${emailDetailTable([
+    { label: t(locale, "reviewRequest.details.artist"), value: params.artistName },
+    { label: t(locale, "reviewRequest.details.visit"), value: when },
+  ])}${emailButtonStack(
+    params.reviewLinks.map((l) => ({ href: l.url, label: l.label })),
+    locale,
+  )}${emailNoteBox(t(locale, "reviewRequest.note.title"), t(locale, "reviewRequest.note.body"))}`;
+
+  return emailLayout({
+    brand,
+    locale,
+    badge: t(locale, "reviewRequest.badge"),
+    title: t(locale, "reviewRequest.title"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName) }),
+    intro,
+    bodyHtml,
+    footerNote: t(locale, "reviewRequest.footer"),
+  });
 }
 
 export function buildAftercareEmail(params: {

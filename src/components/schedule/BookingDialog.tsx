@@ -133,6 +133,7 @@ interface BookingDialogProps {
   prefillHour?: number;
   prefillMinute?: number;
   prefillArtistId?: string;
+  prefillServiceId?: string;
   services: Service[];
   bookingToEdit?: {
     id: string;
@@ -165,6 +166,7 @@ const BookingDialog = ({
   prefillHour,
   prefillMinute,
   prefillArtistId,
+  prefillServiceId,
   services,
   bookingToEdit,
   onSaved,
@@ -294,14 +296,19 @@ const BookingDialog = ({
           start_time: startTime,
           deposit_amount: defaultAmount,
         }));
-        if (services.length > 0) setServiceId(services[0].id);
-        else setServiceId("");
+        if (services.length > 0) {
+          const sid =
+            prefillServiceId && services.some((s) => s.id === prefillServiceId)
+              ? prefillServiceId
+              : services[0].id;
+          setServiceId(sid);
+        } else setServiceId("");
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [open, prefillDate, prefillHour, prefillMinute, prefillArtistId, artists, services, bookingToEdit, userId]);
+  }, [open, prefillDate, prefillHour, prefillMinute, prefillArtistId, prefillServiceId, artists, services, bookingToEdit, userId]);
 
   useEffect(() => {
     if (!open || !bookingToEdit) {

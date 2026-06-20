@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { type ArtistColorMap, resolveScheduleArtistColor } from "@/lib/artistThemeCache";
 import { getThemePresetByBgColor } from "@/lib/themePresets";
+import { cn } from "@/lib/utils";
 
 interface Profile {
   user_id: string;
@@ -24,6 +25,11 @@ interface ScheduleSidebarProps {
   artistColorCache: ArtistColorMap;
   currentDate: Date;
   setCurrentDate: (d: Date) => void;
+  bookingPrefillArtistId?: string;
+  bookingPrefillServiceId?: string;
+  onCalendarDayPick?: (date: Date) => void;
+  onServicePick?: (service: Service) => void;
+  onArtistPick?: (profile: Profile) => void;
 }
 
 function ArtistColorDot({ color }: { color: string }) {
@@ -42,6 +48,11 @@ const ScheduleSidebar = ({
   artistColorCache,
   currentDate,
   setCurrentDate,
+  bookingPrefillArtistId,
+  bookingPrefillServiceId,
+  onCalendarDayPick,
+  onServicePick,
+  onArtistPick,
 }: ScheduleSidebarProps) => {
   const { t } = useScheduleI18n();
   const filteredProfiles = profiles.filter((p) => p.display_name.toLowerCase().includes(teamSearch.toLowerCase()));
@@ -61,11 +72,16 @@ const ScheduleSidebar = ({
           <CalendarDays className="h-3.5 w-3.5" />
           {t("schedule.pickDate")}
         </p>
+        <p className="text-[10px] text-muted-foreground mb-2 leading-snug">{t("schedule.sidebarBookHint")}</p>
         <div className="rounded-xl border border-border bg-secondary/35 px-2 py-1 backdrop-blur-sm">
           <Calendar
             mode="single"
             selected={currentDate}
-            onSelect={(d) => d && setCurrentDate(d)}
+            onSelect={(d) => {
+              if (!d) return;
+              setCurrentDate(d);
+              onCalendarDayPick?.(d);
+            }}
             className="w-full p-0"
             classNames={{
               months: "flex w-full flex-col",
@@ -88,13 +104,20 @@ const ScheduleSidebar = ({
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t("schedule.services")}</p>
         <div className="space-y-1 min-w-0">
           {services.map((s) => (
-            <div
+            <button
               key={s.id}
-              className="flex min-w-0 items-center gap-2 py-1.5 px-2 rounded-lg text-xs bg-secondary/40 border border-border/60 hover:bg-secondary/60 transition-colors"
+              type="button"
+              onClick={() => onServicePick?.(s)}
+              className={cn(
+                "flex min-w-0 w-full items-center gap-2 py-2 px-2 rounded-lg text-xs border transition-colors text-left",
+                bookingPrefillServiceId === s.id
+                  ? "bg-primary/15 border-primary/50 ring-1 ring-primary/30"
+                  : "bg-secondary/40 border-border/60 hover:bg-secondary/70",
+              )}
             >
               <span className="min-w-0 truncate text-foreground font-medium">{s.name}</span>
               <span className="ml-auto text-muted-foreground text-[10px] tabular-nums">{s.duration} min</span>
-            </div>
+            </button>
           ))}
           {services.length === 0 && <p className="text-[11px] text-muted-foreground">{t("schedule.addServicesHint")}</p>}
         </div>
@@ -108,14 +131,22 @@ const ScheduleSidebar = ({
             .sort((a, b) => a.display_name.localeCompare(b.display_name))
             .map((p) => {
               const color = resolveScheduleArtistColor(p.user_id, p.portal_bg_color, artistColorCache);
+              const selected = bookingPrefillArtistId === p.user_id;
               return (
-                <div
+                <button
                   key={p.user_id}
-                  className="flex min-w-0 items-center gap-2 py-1.5 px-2 rounded-lg text-xs bg-secondary/40 border border-border/60"
+                  type="button"
+                  onClick={() => onArtistPick?.(p)}
+                  className={cn(
+                    "flex min-w-0 w-full items-center gap-2 py-2 px-2 rounded-lg text-xs border transition-colors text-left",
+                    selected
+                      ? "bg-primary/15 border-primary/50 ring-1 ring-primary/30"
+                      : "bg-secondary/40 border-border/60 hover:bg-secondary/70",
+                  )}
                 >
                   <ArtistColorDot color={color} />
                   <span className="min-w-0 truncate text-foreground font-medium">{p.display_name}</span>
-                </div>
+                </button>
               );
             })}
         </div>

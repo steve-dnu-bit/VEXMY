@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.stripe-terminal-pos]
 verify_jwt = false
+
+[functions.send-review-request]
+verify_jwt = false

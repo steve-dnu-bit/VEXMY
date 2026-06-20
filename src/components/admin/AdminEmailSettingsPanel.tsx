@@ -15,6 +15,7 @@ import {
   saveShopReminderSettings,
   type ShopReminderSettings,
 } from "@/lib/shopReminderSettings";
+import AdminReviewLinksPanel from "@/components/admin/AdminReviewLinksPanel";
 
 const AdminEmailSettingsPanel = () => {
   const { user } = useAuth();
@@ -255,6 +256,8 @@ const AdminEmailSettingsPanel = () => {
       <Button onClick={() => void saveSettings()} disabled={saving} className="w-full max-w-md">
         {saving ? t("settings.saving") : t("settings.saveSettings")}
       </Button>
+
+      <AdminReviewLinksPanel />
     </div>
   );
 };

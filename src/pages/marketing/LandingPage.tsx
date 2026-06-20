@@ -6,11 +6,16 @@ import LandingStripeSection from "@/components/marketing/landing/LandingStripeSe
 import LandingSupportedCountries from "@/components/marketing/landing/LandingSupportedCountries";
 import LandingHeroCarousel from "@/components/marketing/landing/LandingHeroCarousel";
 import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Shield, ArrowRight, CheckCircle2, Calendar, LayoutDashboard } from "lucide-react";
 import { useLandingI18n } from "@/hooks/useLandingI18n";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 const LandingPage = () => {
   const { features, steps, audiences, faqs, heroSubtitle, t } = useLandingI18n();
+  const { user } = useAuth();
+  const { hasStaffRole, loading: rolesLoading } = useUserRoles();
+  const showStaffHome = !!user && hasStaffRole && !rolesLoading;
 
   return (
     <MarketingLayout>
@@ -27,24 +32,48 @@ const LandingPage = () => {
             {t("landing.heroTitle1")}
             <span className="block text-gold">{t("landing.heroTitle2")}</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">{heroSubtitle}</p>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {showStaffHome ? t("landing.studioWelcomeBack") : heroSubtitle}
+          </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button variant="gold" size="lg" asChild className="min-w-[200px]">
-              <Link to="/contact">
-                {t("landing.getStarted")}
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="gold-outline" size="lg" asChild className="min-w-[200px]">
-              <Link to="/pricing">{t("landing.viewPricing")}</Link>
-            </Button>
+            {showStaffHome ? (
+              <>
+                <Button variant="gold" size="lg" asChild className="min-w-[200px]">
+                  <Link to="/schedule">
+                    <Calendar className="mr-1 h-4 w-4" />
+                    {t("landing.returnToSchedule")}
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="gold-outline" size="lg" asChild className="min-w-[200px]">
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="mr-1 h-4 w-4" />
+                    {t("nav.dashboard")}
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="gold" size="lg" asChild className="min-w-[200px]">
+                  <Link to="/contact">
+                    {t("landing.getStarted")}
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="gold-outline" size="lg" asChild className="min-w-[200px]">
+                  <Link to="/pricing">{t("landing.viewPricing")}</Link>
+                </Button>
+              </>
+            )}
           </div>
+          {!showStaffHome ? (
           <p className="mt-6 text-xs text-muted-foreground">
             {t("landing.alreadyHaveStudio")}{" "}
             <Link to="/auth" className="text-gold hover:underline">
               {t("landing.signInApp")}
             </Link>
           </p>
+          ) : null}
         </div>
 
         <div className="relative mx-auto mt-12 max-w-6xl">

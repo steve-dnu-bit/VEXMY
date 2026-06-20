@@ -173,6 +173,21 @@
     "inbox": {
       "update": "New inbox message — {{shopName}}"
     }
+  },
+  "reviewRequest": {
+    "badge": "Thank you",
+    "title": "We'd love your feedback",
+    "intro": "Thank you for visiting {{shopName}}. If you had a great experience with {{artistName}}, a short review helps other clients find us and means a lot to the team.",
+    "pickPlatform": "Leave a review",
+    "details": {
+      "artist": "Artist",
+      "visit": "Your visit"
+    },
+    "note": {
+      "title": "Optional",
+      "body": "Reviews are public on the platform you choose. If anything wasn't right, reply to this email — we'd rather put it right privately first."
+    },
+    "footer": "This email was sent because your studio asked you to share feedback after your appointment."
   }
 }
 

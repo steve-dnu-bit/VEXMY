@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { startOfWeek, addDays } from "date-fns";
@@ -12,9 +12,11 @@ import { useServices } from "@/components/schedule/ServicePresets";
 import { toast } from "sonner";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
-import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours } from "@/lib/shopScheduleHours";
+import { defaultShopScheduleHours, loadShopScheduleHours, parseTimeToMinutes, type ShopScheduleHours } from "@/lib/shopScheduleHours";
 import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { isImportedContactPlaceholderBooking } from "@/lib/importedContacts";
+import { type BookingPrefill, mergeBookingPrefill } from "@/lib/bookingPrefill";
+import type { Service } from "@/components/schedule/ServicePresets";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -97,10 +99,7 @@ const SchedulePage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [prefillDate, setPrefillDate] = useState<Date | undefined>();
-  const [prefillHour, setPrefillHour] = useState<number | undefined>();
-  const [prefillMinute, setPrefillMinute] = useState<number | undefined>();
-  const [prefillArtistId, setPrefillArtistId] = useState<string | undefined>();
+  const [bookingPrefill, setBookingPrefill] = useState<BookingPrefill>({});
   const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -243,11 +242,61 @@ const SchedulePage = () => {
 
   const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || t("schedule.unknown");
 
+  const openBookingWithPrefill = useCallback((patch: BookingPrefill) => {
+    setBookingPrefill((prev) => mergeBookingPrefill(prev, patch));
+    if (patch.date) setCurrentDate(patch.date);
+    if (patch.artistId) setSelectedArtists([patch.artistId]);
+    setEditingBooking(null);
+    setDialogOpen(true);
+  }, []);
+
+  const openFreshBooking = useCallback(() => {
+    setBookingPrefill({});
+    setEditingBooking(null);
+    setDialogOpen(true);
+  }, []);
+
+  const defaultOpenTime = useCallback(() => {
+    const openMinutes = parseTimeToMinutes(scheduleHours.openTime);
+    return { hour: Math.floor(openMinutes / 60), minute: openMinutes % 60 };
+  }, [scheduleHours.openTime]);
+
   const handleSlotClick = (date: Date, hour: number, minute: number, artistId?: string) => {
-    setPrefillDate(date);
-    setPrefillHour(hour);
-    setPrefillMinute(minute);
-    setPrefillArtistId(artistId);
+    openBookingWithPrefill({ date, hour, minute, artistId });
+  };
+
+  const handleCalendarDayPick = (date: Date) => {
+    const { hour, minute } = defaultOpenTime();
+    openBookingWithPrefill({ date, hour, minute });
+  };
+
+  const handleServicePick = (service: Service) => {
+    setBookingPrefill((prev) => {
+      const patch: BookingPrefill = { serviceId: service.id };
+      if (prev.hour === undefined) {
+        const { hour, minute } = defaultOpenTime();
+        patch.hour = hour;
+        patch.minute = minute;
+      }
+      if (!prev.date) patch.date = currentDate;
+      return mergeBookingPrefill(prev, patch);
+    });
+    setEditingBooking(null);
+    setDialogOpen(true);
+  };
+
+  const handleArtistPick = (profile: Profile) => {
+    setSelectedArtists([profile.user_id]);
+    setBookingPrefill((prev) => {
+      const patch: BookingPrefill = { artistId: profile.user_id };
+      if (prev.hour === undefined) {
+        const { hour, minute } = defaultOpenTime();
+        patch.hour = hour;
+        patch.minute = minute;
+      }
+      if (!prev.date) patch.date = currentDate;
+      return mergeBookingPrefill(prev, patch);
+    });
     setEditingBooking(null);
     setDialogOpen(true);
   };
@@ -283,14 +332,7 @@ const SchedulePage = () => {
           setView={setView}
           currentDate={currentDate}
           setCurrentDate={setCurrentDate}
-          onNewBooking={() => {
-            setPrefillDate(undefined);
-            setPrefillHour(undefined);
-            setPrefillMinute(undefined);
-            setPrefillArtistId(undefined);
-            setEditingBooking(null);
-            setDialogOpen(true);
-          }}
+          onNewBooking={openFreshBooking}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           profiles={profiles}
@@ -319,6 +361,11 @@ const SchedulePage = () => {
               artistColorCache={artistColorCache}
               currentDate={currentDate}
               setCurrentDate={setCurrentDate}
+              bookingPrefillArtistId={bookingPrefill.artistId}
+              bookingPrefillServiceId={bookingPrefill.serviceId}
+              onCalendarDayPick={handleCalendarDayPick}
+              onServicePick={handleServicePick}
+              onArtistPick={handleArtistPick}
             />
           </div>
           {sidebarOpen && (
@@ -358,14 +405,18 @@ const SchedulePage = () => {
           open={dialogOpen}
           onOpenChange={(v) => {
             setDialogOpen(v);
-            if (!v) setEditingBooking(null);
+            if (!v) {
+              setEditingBooking(null);
+              setBookingPrefill({});
+            }
           }}
           userId={user.id}
           artists={profiles}
-          prefillDate={prefillDate}
-          prefillHour={prefillHour}
-          prefillMinute={prefillMinute}
-          prefillArtistId={prefillArtistId}
+          prefillDate={bookingPrefill.date}
+          prefillHour={bookingPrefill.hour}
+          prefillMinute={bookingPrefill.minute}
+          prefillArtistId={bookingPrefill.artistId}
+          prefillServiceId={bookingPrefill.serviceId}
           services={services}
           bookingToEdit={editingBooking}
           onSaved={() => {

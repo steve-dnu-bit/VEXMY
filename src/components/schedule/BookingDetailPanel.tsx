@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare, CreditCard } from "lucide-react";
+import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare, CreditCard, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CountInput } from "@/components/ui/count-input";
@@ -81,6 +81,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
   const [isBanned, setIsBanned] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [sendingDepositReminder, setSendingDepositReminder] = useState(false);
+  const [sendingReviewRequest, setSendingReviewRequest] = useState(false);
   const [consentLoading, setConsentLoading] = useState(true);
   const [consentRows, setConsentRows] = useState<Array<{ id: string; consent_pdf_url: string | null; created_at: string }>>([]);
   const [consentDownloadBusy, setConsentDownloadBusy] = useState(false);
@@ -304,6 +305,31 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
     }
   };
 
+  const sendReviewRequest = async () => {
+    if (!booking.client_email) {
+      toast.error(t("schedule.noClientEmailReview"));
+      return;
+    }
+    setSendingReviewRequest(true);
+    const { data, error } = await invokeEdgeFunctionJson<{
+      ok?: boolean;
+      error?: string;
+      message?: string;
+    }>("send-review-request", { bookingId: booking.id });
+    setSendingReviewRequest(false);
+
+    if (error || !data?.ok) {
+      const msg = data?.message || data?.error || error?.message || t("schedule.reviewRequestFailed");
+      if (data?.error === "no_review_links") {
+        toast.error(t("schedule.reviewLinksNotConfigured"));
+      } else {
+        toast.error(msg);
+      }
+      return;
+    }
+    toast.success(t("schedule.reviewRequestSent"));
+  };
+
   return (
     <>
       {/* Mobile overlay */}
@@ -385,6 +411,21 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                 layout="column"
                 className="pt-1"
               />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-xs gap-1.5"
+                disabled={!booking.client_email || sendingReviewRequest}
+                onClick={() => void sendReviewRequest()}
+              >
+                {sendingReviewRequest ? (
+                  <Send className="h-3 w-3 animate-pulse" />
+                ) : (
+                  <Star className="h-3 w-3 text-gold" />
+                )}
+                {sendingReviewRequest ? t("schedule.sending") : t("schedule.requestReview")}
+              </Button>
               {booking.client_user_id && hasFeature("staff_inbox") ? (
                 <Button variant="outline" size="sm" className="w-full h-8 text-xs gap-1" asChild>
                   <Link to={`/inbox?customerId=${encodeURIComponent(booking.client_user_id)}`}>
