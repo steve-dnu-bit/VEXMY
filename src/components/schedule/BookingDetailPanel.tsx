@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare, CreditCard, Star } from "lucide-react";
+import { X, Clock, User, Palette, MapPin, Ruler, Phone, Mail, FileText, Pencil, AlertTriangle, Send, Printer, Download, MessageSquare, CreditCard, Star, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CountInput } from "@/components/ui/count-input";
@@ -27,6 +27,7 @@ import { loadPosSaleForBooking, type PosSaleRow } from "@/lib/posCheckout";
 import { formatShopMoney } from "@/lib/shopCurrency";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
+import ClientAppointmentsDialog from "@/components/schedule/ClientAppointmentsDialog";
 
 interface Booking {
   id: string;
@@ -52,6 +53,8 @@ interface BookingDetailPanelProps {
   artistName: string;
   onClose: () => void;
   onEdit: () => void;
+  resolveArtistName?: (artistId: string) => string;
+  onSelectClientBooking?: (bookingId: string) => void;
 }
 
 type ClientConductRow = {
@@ -68,7 +71,7 @@ type ClientConductRow = {
   ban_reason: string | null;
 };
 
-const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDetailPanelProps) => {
+const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtistName, onSelectClientBooking }: BookingDetailPanelProps) => {
   const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
   const { user } = useAuth();
   const { hasFeature } = useSubscription();
@@ -87,6 +90,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
   const [consentDownloadBusy, setConsentDownloadBusy] = useState(false);
   const [posSale, setPosSale] = useState<PosSaleRow | null>(null);
   const [posSaleLoading, setPosSaleLoading] = useState(true);
+  const [clientAppointmentsOpen, setClientAppointmentsOpen] = useState(false);
 
   const typeColors = BOOKING_TYPE_BADGE_STYLES;
 
@@ -362,6 +366,16 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
                 </Badge>
               </div>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full mt-2 h-8 text-xs gap-1.5"
+              onClick={() => setClientAppointmentsOpen(true)}
+            >
+              <CalendarDays className="h-3.5 w-3.5 text-gold" />
+              {t("schedule.clientAppointments")}
+            </Button>
           </div>
 
           <div className="flex items-start gap-2">
@@ -594,6 +608,18 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit }: BookingDet
           </div>
         </div>
       </div>
+
+      <ClientAppointmentsDialog
+        open={clientAppointmentsOpen}
+        onOpenChange={setClientAppointmentsOpen}
+        clientName={booking.client_name}
+        clientUserId={booking.client_user_id}
+        clientEmail={booking.client_email}
+        clientPhone={booking.client_phone}
+        currentBookingId={booking.id}
+        resolveArtistName={resolveArtistName ?? (() => artistName)}
+        onSelectBooking={onSelectClientBooking}
+      />
     </>
   );
 };

@@ -40,6 +40,16 @@ export function hasDraftReviewLink(link: ShopReviewLink): boolean {
   return !!link.label.trim() || !!link.url.trim();
 }
 
+/** Short Google “Share” links often deep-link into apps (Cast, Google app) instead of a review page. */
+export function isUnreliableReviewShareUrl(url: string): boolean {
+  try {
+    const host = new URL(normalizeReviewUrl(url)).hostname.toLowerCase();
+    return host === "share.google" || host === "share.google.com" || host === "goo.gl" || host === "maps.app.goo.gl";
+  } catch {
+    return false;
+  }
+}
+
 export async function loadShopReviewSettings(): Promise<ShopReviewSettings> {
   const orgId = await getUserOrganizationId();
   if (!orgId) return { links: [], message: "" };

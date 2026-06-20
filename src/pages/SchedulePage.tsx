@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { startOfWeek, addDays } from "date-fns";
+import { startOfWeek, addDays, parseISO } from "date-fns";
 import AppLayout from "@/components/AppLayout";
 import ScheduleHeader from "@/components/schedule/ScheduleHeader";
 import ScheduleSidebar from "@/components/schedule/ScheduleSidebar";
@@ -390,6 +390,13 @@ const SchedulePage = () => {
             <BookingDetailPanel
               booking={selectedBooking}
               artistName={getArtistName(selectedBooking.artist_id)}
+              resolveArtistName={getArtistName}
+              onSelectClientBooking={(bookingId) => {
+                const match = bookings.find((b) => b.id === bookingId);
+                if (!match) return;
+                setSelectedBooking(match);
+                setCurrentDate(parseISO(match.starts_at));
+              }}
               onClose={() => setSelectedBooking(null)}
               onEdit={() => {
                 setEditingBooking(selectedBooking);

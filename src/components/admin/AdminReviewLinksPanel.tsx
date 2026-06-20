@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   loadShopReviewSettings,
   saveShopReviewSettings,
+  isUnreliableReviewShareUrl,
   type ShopReviewLink,
 } from "@/lib/shopReviewLinks";
 
@@ -46,6 +47,9 @@ const AdminReviewLinksPanel = () => {
   };
 
   const save = useCallback(async () => {
+    if (links.some((l) => l.url.trim() && isUnreliableReviewShareUrl(l.url))) {
+      toast.warning(t("admin.reviewLinkShareUrlWarning"));
+    }
     setSaving(true);
     const { error } = await saveShopReviewSettings({ links, message });
     if (error) {
