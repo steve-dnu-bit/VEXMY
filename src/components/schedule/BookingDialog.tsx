@@ -154,7 +154,7 @@ interface BookingDialogProps {
     deposit_paid: boolean | null;
     deposit_amount?: number | null;
   } | null;
-  onSaved?: () => void;
+  onSaved?: (movedTo?: Date) => void;
 }
 
 const BookingDialog = ({
@@ -196,6 +196,9 @@ const BookingDialog = ({
   const suggestionsDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clientNameWrapRef = useRef<HTMLDivElement>(null);
   const editBaselineRef = useRef<BookingSavePayload | null>(null);
+  const editingBookingIdRef = useRef<string | null>(null);
+  const formInitKeyRef = useRef<string | null>(null);
+  const baselineInitKeyRef = useRef<string | null>(null);
   const skipAutoLinkFromEmailRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -225,7 +228,23 @@ const BookingDialog = ({
   });
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      formInitKeyRef.current = null;
+      editingBookingIdRef.current = null;
+      return;
+    }
+
+    if (bookingToEdit?.id) {
+      editingBookingIdRef.current = bookingToEdit.id;
+    }
+
+    const initKey = bookingToEdit?.id
+      ? `edit:${bookingToEdit.id}`
+      : `new:${format(prefillDate || new Date(), "yyyy-MM-dd")}:${prefillHour ?? ""}:${prefillMinute ?? ""}:${prefillArtistId ?? ""}:${prefillServiceId ?? ""}`;
+
+    if (formInitKeyRef.current === initKey) return;
+    formInitKeyRef.current = initKey;
+
     let cancelled = false;
     void (async () => {
       const shop = await loadShopSettings();
@@ -287,9 +306,6 @@ const BookingDialog = ({
           prefillHour !== undefined
             ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
             : "10:00";
-        const defaultAmount = await loadShopDefaultDepositAmount();
-        if (cancelled) return;
-        setShopDefaultDeposit(defaultAmount);
         setForm((f) => ({
           ...f,
           date: format(prefillDate || new Date(), "yyyy-MM-dd"),
@@ -308,13 +324,17 @@ const BookingDialog = ({
     return () => {
       cancelled = true;
     };
-  }, [open, prefillDate, prefillHour, prefillMinute, prefillArtistId, prefillServiceId, artists, services, bookingToEdit, userId]);
+  }, [open, bookingToEdit, prefillDate, prefillHour, prefillMinute, prefillArtistId, prefillServiceId, artists, services, userId]);
 
   useEffect(() => {
     if (!open || !bookingToEdit) {
       editBaselineRef.current = null;
+      baselineInitKeyRef.current = null;
       return;
     }
+    const baselineKey = `edit:${bookingToEdit.id}:${shopCurrency}`;
+    if (baselineInitKeyRef.current === baselineKey) return;
+    baselineInitKeyRef.current = baselineKey;
     const cu = (bookingToEdit.client_user_id || "").trim();
     editBaselineRef.current = {
       artist_id: bookingToEdit.artist_id,
@@ -551,7 +571,8 @@ const BookingDialog = ({
       }
       const starts_at = startsAtLocal.toISOString();
       const ends_at = endsAtLocal.toISOString();
-      const depositAmount = bookingToEdit
+      const editingId = bookingToEdit?.id ?? editingBookingIdRef.current;
+      const depositAmount = editingId
         ? (() => {
             const parsed = parseDepositInput(String(form.deposit_amount), shopCurrency);
             if (parsed == null) {
@@ -582,7 +603,7 @@ const BookingDialog = ({
         ends_at,
       };
 
-      if (bookingToEdit) {
+      if (editingId) {
         const baseline = editBaselineRef.current;
         const patch = baseline ? diffBookingPayload(nextPayload, baseline) : nextPayload;
         if (Object.keys(patch).length === 0) {
@@ -591,7 +612,7 @@ const BookingDialog = ({
         }
         const { data: updatedBooking, error } = await supabase
           .rpc("staff_update_booking", {
-            p_id: bookingToEdit.id,
+            p_id: editingId,
             p_patch: patch as unknown as Json,
           })
           .single();
@@ -600,37 +621,41 @@ const BookingDialog = ({
           return;
         }
 
-      } else {
-        const { data: createdBooking, error } = await supabase
-          .rpc("staff_insert_booking", {
-            p_artist_id: nextPayload.artist_id,
-            p_client_name: nextPayload.client_name,
-            p_client_phone: nextPayload.client_phone,
-            p_client_email: nextPayload.client_email,
-            p_client_user_id: nextPayload.client_user_id,
-            p_tattoo_style: nextPayload.tattoo_style,
-            p_tattoo_size: nextPayload.tattoo_size,
-            p_tattoo_placement: nextPayload.tattoo_placement,
-            p_notes: nextPayload.notes,
-            p_booking_type: nextPayload.booking_type,
-            p_status: nextPayload.status,
-            p_deposit_paid: nextPayload.deposit_paid,
-            p_starts_at: nextPayload.starts_at,
-            p_ends_at: nextPayload.ends_at,
-            p_service_category: nextPayload.service_category,
-            p_deposit_amount: nextPayload.deposit_amount,
-          })
-          .single();
-        if (error || !createdBooking) {
-          toast.error(error?.message || t("schedule.couldNotSave"));
-          return;
-        }
-
+        toast.success(t("schedule.bookingUpdated"));
+        onOpenChange(false);
+        onSaved?.(startsAtLocal);
+        return;
       }
 
-      toast.success(bookingToEdit ? t("schedule.bookingUpdated") : t("schedule.bookingCreated"));
+      const { data: createdBooking, error } = await supabase
+        .rpc("staff_insert_booking", {
+          p_artist_id: nextPayload.artist_id,
+          p_client_name: nextPayload.client_name,
+          p_client_phone: nextPayload.client_phone,
+          p_client_email: nextPayload.client_email,
+          p_client_user_id: nextPayload.client_user_id,
+          p_tattoo_style: nextPayload.tattoo_style,
+          p_tattoo_size: nextPayload.tattoo_size,
+          p_tattoo_placement: nextPayload.tattoo_placement,
+          p_notes: nextPayload.notes,
+          p_booking_type: nextPayload.booking_type,
+          p_status: nextPayload.status,
+          p_deposit_paid: nextPayload.deposit_paid,
+          p_starts_at: nextPayload.starts_at,
+          p_ends_at: nextPayload.ends_at,
+          p_service_category: nextPayload.service_category,
+          p_deposit_amount: nextPayload.deposit_amount,
+        })
+        .single();
+      if (error || !createdBooking) {
+        toast.error(error?.message || t("schedule.couldNotSave"));
+        return;
+      }
+
+      toast.success(t("schedule.bookingCreated"));
       onOpenChange(false);
-      onSaved?.();
+      onSaved?.(startsAtLocal);
+
       setForm({
         client_name: "", client_phone: "", client_email: "", tattoo_style: "",
         tattoo_size: "", tattoo_placement: "", notes: "",
@@ -644,12 +669,13 @@ const BookingDialog = ({
 
   const handleDelete = async () => {
     if (isSaving || isDeleting) return;
-    if (!bookingToEdit) return;
+    const editingId = bookingToEdit?.id ?? editingBookingIdRef.current;
+    if (!editingId) return;
     const yes = window.confirm(t("schedule.deleteConfirm"));
     if (!yes) return;
     setIsDeleting(true);
     try {
-      const { data: bookingSnapshot, error } = await supabase.rpc("staff_delete_booking", { p_id: bookingToEdit.id }).single();
+      const { data: bookingSnapshot, error } = await supabase.rpc("staff_delete_booking", { p_id: editingId }).single();
       if (error || !bookingSnapshot) {
         toast.error(error?.message || t("schedule.couldNotDelete"));
         return;
@@ -667,7 +693,9 @@ const BookingDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">{bookingToEdit ? t("schedule.editBooking") : t("schedule.newBooking")}</DialogTitle>
+          <DialogTitle className="font-display text-lg">
+            {bookingToEdit || editingBookingIdRef.current ? t("schedule.editBooking") : t("schedule.newBooking")}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-3 mt-2">
           <div>

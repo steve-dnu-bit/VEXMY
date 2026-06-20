@@ -251,6 +251,7 @@ const SchedulePage = () => {
   }, []);
 
   const handleSlotClick = (date: Date, hour: number, minute: number, artistId?: string) => {
+    if (dialogOpen && editingBooking) return;
     setBookingPrefill(buildBookingPrefillFromSlot({ date, hour, minute, artistId }, sidebarDraft));
     setEditingBooking(null);
     setDialogOpen(true);
@@ -367,6 +368,8 @@ const SchedulePage = () => {
               }}
               onClose={() => setSelectedBooking(null)}
               onEdit={() => {
+                setBookingPrefill({});
+                setSidebarDraft({});
                 setEditingBooking(selectedBooking);
                 setDialogOpen(true);
               }}
@@ -394,7 +397,8 @@ const SchedulePage = () => {
           prefillServiceId={bookingPrefill.serviceId}
           services={services}
           bookingToEdit={editingBooking}
-          onSaved={() => {
+          onSaved={(movedTo) => {
+            if (movedTo) setCurrentDate(movedTo);
             fetchBookings();
             setSelectedBooking(null);
             setEditingBooking(null);
