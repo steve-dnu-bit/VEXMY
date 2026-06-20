@@ -60,7 +60,7 @@ const BookingClientSearch = ({
       </div>
       {suggestionsOpen && clientSuggestions.length > 0 && (
         <ul
-          className="absolute z-[100] mt-1 max-h-52 w-full overflow-auto rounded-md border border-border bg-popover py-1 text-sm shadow-md"
+          className="absolute z-[200] mt-1 max-h-52 w-full overflow-auto rounded-md border border-border bg-popover py-1 text-sm shadow-lg"
           role="listbox"
         >
           {clientSuggestions.map((c, i) => (
@@ -86,7 +86,7 @@ const BookingClientSearch = ({
         </ul>
       )}
       {suggestionsOpen && !suggestionsLoading && clientName.trim().length >= 2 && clientSuggestions.length === 0 && (
-        <p className="absolute z-[100] mt-1 w-full rounded-md border border-border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-md">
+        <p className="absolute z-[200] mt-1 w-full rounded-md border border-border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-lg">
           {t("schedule.noClientMatches")}
         </p>
       )}

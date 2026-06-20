@@ -237,6 +237,94 @@
             "Turn Developer options OFF and restart the phone if Stripe reports an insecure environment",
             "Galaxy S21 users: switch to WisePad mode or use a Galaxy S22+ / Z Flip7+ phone for Tap to Pay"
           ]
+        },
+        {
+          "heading": "Splitting payment with an artist",
+          "paragraphs": [
+            "If your studio shares POS takings with resident or guest artists, both the studio and each artist need their own Stripe Connect payout account. Velbok routes the artist’s share automatically after the client pays.",
+            "See the full guide: https://velbok.com/docs/pos-split-payments — including setup steps, how turnover is recorded for tax purposes, and important accounting disclaimers."
+          ]
+        }
+      ]
+    },
+    "pos-split-payments": {
+      "title": "POS split payments",
+      "description": "Share in-person card takings between your studio and artists — Connect setup, how money moves, and what the split percentage means for your accounts.",
+      "sections": [
+        {
+          "heading": "What split payments do",
+          "paragraphs": [
+            "When an artist is assigned on a POS charge, Velbok collects the full amount from the client on your studio’s Stripe Connect account, keeps your configured shop share in that account, and transfers the artist’s share to the artist’s own Connect account.",
+            "The split percentage controls how much each party receives in Stripe — it does not mean each party only declares that percentage of the client payment for tax or turnover purposes. See Turnover and subcontractor model below."
+          ]
+        },
+        {
+          "heading": "Both studio and artist need a Connect account",
+          "paragraphs": [
+            "Split payouts only work when two separate Stripe Connect accounts exist and are fully onboarded:",
+            "1. Your studio (shop) — receives the client payment and holds the shop share.",
+            "2. Each artist who receives a split — receives their share by transfer into their own Connect account.",
+            "If either account is missing, incomplete, or was created outside Velbok’s Connect platform, the artist transfer will fail even though the client was charged successfully. Retry is available from Admin → POS checkout after the artist finishes setup."
+          ],
+          "note": "Artists must onboard through Velbok (Settings → POS payout account). A Stripe account ID copied from another platform or an old personal Connect account will not work."
+        },
+        {
+          "heading": "Studio setup (shop Connect account)",
+          "bullets": [
+            "Sign in as a studio admin and open Admin → POS checkout.",
+            "Complete Stripe Connect using the Payouts / Connect card on that page — identity, business details, and bank account.",
+            "Create a Terminal location (Admin → POS checkout → Create Terminal location) so Tap to Pay and card readers work.",
+            "Set the default shop split % (e.g. 50% shop / 50% artist) and enable POS checkout for staff.",
+            "Optionally set per-artist overrides: custom shop % and/or a Connect account ID if the artist has not self-served yet."
+          ],
+          "paragraphs": [
+            "The studio Connect account is the merchant of record for the client payment: the customer’s receipt and card statement show your studio’s Stripe account."
+          ]
+        },
+        {
+          "heading": "Artist setup (payout Connect account)",
+          "bullets": [
+            "The artist signs in to Velbok with their own user account (linked to your studio).",
+            "Open Settings → POS payout account.",
+            "Tap Connect payout account and complete Stripe’s Express onboarding — legal name, date of birth, address, and bank details.",
+            "Return to Velbok; the card should show Connected when payouts are enabled.",
+            "Artists can open the Stripe Express dashboard from the same card to view transfers and update bank details."
+          ],
+          "paragraphs": [
+            "Each artist who receives POS splits needs their own onboarding. Guest artists need a Velbok login for your studio before they can connect.",
+            "Studio admins can still paste an artist’s Connect account ID (acct_…) under Admin → POS checkout → Artist overrides, but self-service via Settings is recommended so the account is registered on the correct Connect platform."
+          ]
+        },
+        {
+          "heading": "At checkout",
+          "bullets": [
+            "Staff selects the artist on the POS charge (when splits are enabled for your studio).",
+            "The client pays the full amount — e.g. £200 — on the studio’s terminal or Tap to Pay.",
+            "Stripe settles the payment to the studio Connect account minus Stripe fees.",
+            "Velbok transfers the artist’s configured share (e.g. £100 at 50/50) to the artist’s Connect account.",
+            "The shop share remains in the studio Connect account.",
+            "If a transfer fails, the sale is still paid; fix Connect setup and use Admin → POS to retry the artist transfer."
+          ]
+        },
+        {
+          "heading": "Subcontractor model and turnover",
+          "paragraphs": [
+            "Velbok is built around a common studio model: the shop supplies the client and premises, and the artist works as a subcontractor (or independent contractor) paid a fee or commission from the studio.",
+            "Under this model, the full amount the client pays at POS is normally part of the studio’s gross takings or turnover — 100% of what the customer paid, not only the shop’s split percentage.",
+            "The artist’s income for accounting purposes is usually the fee or commission the studio pays them (their split amount), not a direct share of the client’s receipt. How you label this in your books — commission, chair rent, subcontractor invoice — depends on your legal structure and local rules.",
+            "The split % in Velbok only divides money in Stripe between two Connect accounts. It does not replace payroll, invoicing, or tax reporting obligations between studio and artist."
+          ],
+          "note": "This description reflects how many tattoo studios operate with resident artists, similar to HMRC’s “Option B” chair-rental / commission models in other industries. Your structure may differ — confirm with a qualified adviser."
+        },
+        {
+          "heading": "Tax, VAT, and accounting — important disclaimer",
+          "paragraphs": [
+            "Velbok provides software to take payments and route splits between Connect accounts. We do not provide tax, VAT, accounting, or legal advice.",
+            "We are not responsible for your tax status, registrations, returns, or compliance in any country. Rules for turnover, VAT, income tax, self-employment, and subcontractor relationships vary widely — the UK, EU, US, and other jurisdictions each have different requirements.",
+            "You and your artists should speak to a qualified accountant or tax adviser about: what counts as studio turnover vs artist income, whether VAT applies to the full client payment or only part of it, how to document payments between studio and artist, and record-keeping for audits.",
+            "Stripe may issue tax forms or reporting depending on account type and region; that is between you, your artists, and Stripe — not something Velbok determines.",
+            "By using split payments you confirm that you will obtain appropriate professional advice for your situation and that Velbok is only a payment routing tool, not your tax agent or accountant."
+          ]
         }
       ]
     },

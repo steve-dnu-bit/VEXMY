@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { parseCsvRecords } from "@/lib/csvRecords";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { computeInvoiceTotals } from "@/lib/orgBilling";
@@ -98,43 +99,45 @@ export async function saveArtistPosSplit(
   shopSplitPercent: number,
   stripeConnectAccountId?: string | null,
 ): Promise<{ error: string | null }> {
-  const shop = Math.min(100, Math.max(0, shopSplitPercent));
-  const artist = 100 - shop;
+  const { data, error } = await invokeEdgeFunctionJson<{ ok?: boolean }>("stripe-terminal-pos", {
+    action: "save_artist_split",
+    artistId,
+    shopSplitPercent,
+    stripeConnectAccountId: stripeConnectAccountId?.trim() || null,
+  });
 
-  const { error } = await supabase.from("artist_pos_splits" as any).upsert(
-    {
-      organization_id: orgId,
-      artist_id: artistId,
-      shop_split_percent: shop,
-      artist_split_percent: artist,
-      stripe_connect_account_id: stripeConnectAccountId?.trim() || null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "organization_id,artist_id" },
-  );
-
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+  if (!data?.ok) return { error: "Could not save artist payout settings" };
+  return { error: null };
 }
 
 export async function deleteArtistPosSplit(orgId: string, artistId: string): Promise<{ error: string | null }> {
-  const { error } = await supabase
-    .from("artist_pos_splits" as any)
-    .delete()
-    .eq("organization_id", orgId)
-    .eq("artist_id", artistId);
+  const { data, error } = await invokeEdgeFunctionJson<{ ok?: boolean }>("stripe-terminal-pos", {
+    action: "delete_artist_split",
+    artistId,
+  });
 
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+  if (!data?.ok) return { error: "Could not clear artist payout settings" };
+  return { error: null };
 }
 
 export function resolveSplitPercents(
   shopDefaults: Pick<ShopPosSettings, "shop_split_percent" | "artist_split_percent">,
-  artistOverride?: Pick<ArtistPosSplit, "shop_split_percent" | "artist_split_percent"> | null,
+  artistOverride?: Pick<ArtistPosSplit, "shop_split_percent" | "artist_split_percent" | "stripe_connect_account_id"> | null,
 ): { shopPercent: number; artistPercent: number } {
   if (artistOverride) {
-    return {
-      shopPercent: Number(artistOverride.shop_split_percent),
-      artistPercent: Number(artistOverride.artist_split_percent),
-    };
+    const shop = Number(artistOverride.shop_split_percent);
+    const artist = Number(artistOverride.artist_split_percent);
+    const hasConnect = !!artistOverride.stripe_connect_account_id?.trim();
+    // Ignore stale rows that zero-out the artist without a Connect account (blocks all splits).
+    if (!hasConnect && shop >= 100 && artist <= 0) {
+      return {
+        shopPercent: Number(shopDefaults.shop_split_percent),
+        artistPercent: Number(shopDefaults.artist_split_percent),
+      };
+    }
+    return { shopPercent: shop, artistPercent: artist };
   }
   return {
     shopPercent: Number(shopDefaults.shop_split_percent),

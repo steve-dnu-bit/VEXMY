@@ -12,6 +12,7 @@ This folder mirrors the product documentation published at **[velbok.com/docs](h
 | Deposits & payments | [/docs/deposits](https://velbok.com/docs/deposits) |
 | Billing & invoices | [/docs/billing](https://velbok.com/docs/billing) |
 | **POS checkout & Tap to Pay** | [/docs/pos-checkout](https://velbok.com/docs/pos-checkout) |
+| **POS split payments** | [/docs/pos-split-payments](https://velbok.com/docs/pos-split-payments) |
 | Consent forms | [/docs/consent](https://velbok.com/docs/consent) |
 | Customer portal | [/docs/customer-portal](https://velbok.com/docs/customer-portal) |
 | Inbox & messaging | [/docs/inbox](https://velbok.com/docs/inbox) |
@@ -31,4 +32,4 @@ This folder mirrors the product documentation published at **[velbok.com/docs](h
 
 ## Source of truth
 
-In-app documentation content lives in `src/i18n/locales/docs/en.json` and page order in `src/lib/docsContent.ts`. Update those when adding or changing product docs, then redeploy the site. Repo copy: `docs/pos-tap-to-pay.md`.
+In-app documentation content lives in `src/i18n/locales/docs/en.json` and page order in `src/lib/docsContent.ts`. Update those when adding or changing product docs, then redeploy the site. Repo copies: `docs/pos-tap-to-pay.md`, `docs/pos-split-payments.md`.

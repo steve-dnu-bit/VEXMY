@@ -21,6 +21,9 @@ verify_jwt = false
 [functions.send-aftercare-emails]
 verify_jwt = false
 
+[functions.sync-pending-deposits]
+verify_jwt = false
+
 [functions.create-stripe-checkout]
 verify_jwt = false
 
@@ -46,6 +49,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.stripe-connect-onboarding]
+verify_jwt = false
+
+[functions.artist-connect-onboarding]
 verify_jwt = false
 
 [functions.generate-stencil]

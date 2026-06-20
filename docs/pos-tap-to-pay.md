@@ -87,3 +87,5 @@ Register the WisePad serial in **Stripe Dashboard → Terminal → Readers** on 
 ## In-app documentation
 
 Published at [/docs/pos-checkout](https://velbok.com/docs/pos-checkout) (content: `src/i18n/locales/docs/en.json`).
+
+**Splitting takings with artists:** [/docs/pos-split-payments](https://velbok.com/docs/pos-split-payments) — both studio and artist need Connect accounts, turnover notes, and tax disclaimer. Repo copy: [pos-split-payments.md](./pos-split-payments.md).

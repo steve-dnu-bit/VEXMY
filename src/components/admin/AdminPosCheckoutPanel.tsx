@@ -114,28 +114,76 @@ const AdminPosCheckoutPanel = () => {
   const saveArtistOverride = async (artistId: string) => {
     if (!orgId) return;
     const draft = draftSplits[artistId];
-    if (!draft?.shop.trim()) {
-      const { error } = await deleteArtistPosSplit(orgId, artistId);
-      if (error) toast.error(error);
-      else {
-        setArtistSplits((prev) => prev.filter((s) => s.artist_id !== artistId));
-        toast.success(t("pos.artistSplitCleared"));
-      }
+    const connectId = draft?.connect?.trim() || "";
+    const shopRaw = draft?.shop?.trim() || "";
+
+    if (!connectId && !shopRaw) {
+      toast.error(
+        t("pos.artistOverrideNothingToSave", {
+          defaultValue: "Enter the artist Connect account (acct_…) and/or a custom shop split %, then save.",
+        }),
+      );
       return;
     }
-    const shop = Number(draft.shop);
+
+    const shop = shopRaw ? Number(shopRaw) : settings.shop_split_percent;
     if (Number.isNaN(shop) || shop < 0 || shop > 100) {
       toast.error(t("pos.invalidSplit"));
       return;
     }
-    const { error } = await saveArtistPosSplit(orgId, artistId, shop, draft.connect);
+
+    const { error } = await saveArtistPosSplit(orgId, artistId, shop, connectId || null);
     if (error) {
       toast.error(error);
       return;
     }
     const refreshed = await loadArtistPosSplits(orgId);
     setArtistSplits(refreshed);
-    toast.success(t("pos.artistSplitSaved"));
+    const saved = refreshed.find((s) => s.artist_id === artistId);
+    if (saved) {
+      setDraftSplits((prev) => ({
+        ...prev,
+        [artistId]: {
+          shop: Number(saved.shop_split_percent) === settings.shop_split_percent
+            ? ""
+            : String(saved.shop_split_percent),
+          connect: saved.stripe_connect_account_id || "",
+        },
+      }));
+    }
+    const artistPercent = 100 - shop;
+    if (connectId && !shopRaw) {
+      toast.success(
+        t("pos.artistConnectSaved", {
+          defaultValue: "Artist payout account saved. Split uses shop default ({{shopPercent}}% shop / {{artistPercent}}% artist).",
+          shopPercent: settings.shop_split_percent,
+          artistPercent: settings.artist_split_percent,
+        }),
+      );
+    } else {
+      toast.success(
+        t("pos.artistSplitSaved", {
+          defaultValue: "Artist override saved ({{shopPercent}}% shop / {{artistPercent}}% artist).",
+          shopPercent: shop,
+          artistPercent,
+        }),
+      );
+    }
+  };
+
+  const clearArtistOverride = async (artistId: string) => {
+    if (!orgId) return;
+    const { error } = await deleteArtistPosSplit(orgId, artistId);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setArtistSplits((prev) => prev.filter((s) => s.artist_id !== artistId));
+    setDraftSplits((prev) => ({
+      ...prev,
+      [artistId]: { shop: "", connect: "" },
+    }));
+    toast.success(t("pos.artistSplitCleared"));
   };
 
   const setupTerminalLocation = async (forceRecreate = false) => {
@@ -359,7 +407,10 @@ const AdminPosCheckoutPanel = () => {
                           onChange={(e) =>
                             setDraftSplits((prev) => ({
                               ...prev,
-                              [artist.user_id]: { ...draft, shop: e.target.value },
+                              [artist.user_id]: {
+                                shop: e.target.value,
+                                connect: prev[artist.user_id]?.connect ?? "",
+                              },
                             }))
                           }
                           className="h-8 w-24"
@@ -377,16 +428,32 @@ const AdminPosCheckoutPanel = () => {
                           onChange={(e) =>
                             setDraftSplits((prev) => ({
                               ...prev,
-                              [artist.user_id]: { ...draft, connect: e.target.value },
+                              [artist.user_id]: {
+                                shop: prev[artist.user_id]?.shop ?? "",
+                                connect: e.target.value,
+                              },
                             }))
                           }
                           className="h-8 font-mono text-xs"
                         />
+                        {override?.stripe_connect_account_id ? (
+                          <p className="text-[10px] text-emerald-600 mt-0.5 font-mono truncate">
+                            {t("pos.artistConnectSavedShort", {
+                              defaultValue: "Saved: {{accountId}}",
+                              accountId: override.stripe_connect_account_id,
+                            })}
+                          </p>
+                        ) : null}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-1">
                         <Button size="sm" variant="outline" onClick={() => void saveArtistOverride(artist.user_id)}>
                           {t("common.save")}
                         </Button>
+                        {override ? (
+                          <Button size="sm" variant="ghost" onClick={() => void clearArtistOverride(artist.user_id)}>
+                            {t("common.clear", { defaultValue: "Clear" })}
+                          </Button>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   );

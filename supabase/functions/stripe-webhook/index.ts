@@ -5,7 +5,9 @@ import { getShopBranding } from "../_shared/branding.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildDepositReceiptEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { resolveEmailLocale, t } from "../_shared/email-i18n.ts";
-import { syncConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
+import { syncConnectAccountFromStripe, syncArtistConnectAccountFromStripe } from "../_shared/stripe-connect.ts";
+import { markBookingDepositPaid } from "../_shared/deposit-payment.ts";
+import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
 import { getShopPaymentSettings } from "../_shared/shop-currency.ts";
 import {
   constructVerifiedStripeEvent,
@@ -110,35 +112,19 @@ serve(async (req) => {
     };
 
     const markDepositPaid = async (session: Stripe.Checkout.Session) => {
-      const metadataBookingId = session.metadata?.booking_id || null;
-      const paymentRef = String(session.payment_intent || session.id);
-      let bookingId = metadataBookingId;
-
-      if (!bookingId) {
-        const { data: fallbackBooking } = await admin
-          .from("bookings")
-          .select("id")
-          .or(`deposit_payment_id.eq.${session.id},deposit_payment_id.eq.${paymentRef}`)
-          .limit(1)
-          .maybeSingle();
-        bookingId = fallbackBooking?.id || null;
-      }
-
+      const { bookingId, newlyMarkedPaid } = await markBookingDepositPaid(admin, session);
       if (!bookingId) return;
 
-      const { data: updatedRows } = await admin
+      const { data: paidBookingRow } = await admin
         .from("bookings")
-        .update({
-          deposit_paid: true,
-          deposit_link_sent: true,
-          deposit_payment_id: paymentRef,
-        } as any)
-        .eq("id", bookingId)
-        .or("deposit_paid.is.null,deposit_paid.eq.false")
         .select(
-          "id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount",
-        );
-      const paidBooking = updatedRows?.[0] as
+          "id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid",
+        )
+        .eq("id", bookingId)
+        .maybeSingle();
+      if (!newlyMarkedPaid && !paidBookingRow?.deposit_paid) return;
+
+      const paidBooking = paidBookingRow as
         | {
             id: string;
             artist_id: string;
@@ -152,10 +138,10 @@ serve(async (req) => {
             status: string;
             deposit_amount: number | null;
           }
-        | undefined;
+        | null;
       const receiptTo = paidBooking?.client_email || session.customer_details?.email || session.customer_email || null;
 
-      if (paidBooking && receiptTo && canSendEmail) {
+      if (newlyMarkedPaid && paidBooking && receiptTo && canSendEmail) {
         try {
           const { data: artistProfile } = await admin
             .from("profiles")
@@ -258,18 +244,44 @@ serve(async (req) => {
     if (event.type === "account.updated") {
       const account = event.data.object as Stripe.Account;
       if (account.id) {
-        await syncConnectAccountFromStripe(admin, connectStripe, account.id);
+        if (account.metadata?.velbok_kind === "pos_artist") {
+          await syncArtistConnectAccountFromStripe(admin, connectStripe, account.id);
+        } else {
+          await syncConnectAccountFromStripe(admin, connectStripe, account.id);
+        }
       }
     }
 
     if (event.type === "payment_intent.succeeded") {
       const pi = event.data.object as Stripe.PaymentIntent;
-      if (pi.metadata?.kind === "pos" && pi.metadata?.pos_sale_id) {
+      if (pi.metadata?.kind === "deposit" && pi.metadata?.booking_id) {
+        await markDepositPaid({
+          id: pi.id,
+          payment_intent: pi.id,
+          metadata: pi.metadata,
+          customer_email: pi.receipt_email,
+        } as Stripe.Checkout.Session);
+      } else if (pi.metadata?.kind === "pos" && pi.metadata?.pos_sale_id) {
         await admin
           .from("pos_sales")
           .update({ status: "succeeded", stripe_payment_intent_id: pi.id })
           .eq("id", pi.metadata.pos_sale_id)
           .eq("status", "pending");
+
+        const transferResult = await executePosSplitTransfers({
+          admin,
+          stripe: connectStripe,
+          saleId: pi.metadata.pos_sale_id,
+          paymentIntentId: pi.id,
+          stripeConnectAccountId: pi.metadata?.shop_connect_account_id ?? null,
+        });
+        if (transferResult.errors.length) {
+          console.error("POS split transfer errors", {
+            saleId: pi.metadata.pos_sale_id,
+            paymentIntentId: pi.id,
+            errors: transferResult.errors,
+          });
+        }
       }
     }
 

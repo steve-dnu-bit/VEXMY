@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PosArtistPicker, { type PosArtistOption } from "@/components/pos/PosArtistPicker";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatShopMoney } from "@/lib/shopCurrency";
+import { cn } from "@/lib/utils";
 import { loadOrgBillingContext } from "@/lib/orgBilling";
 import { format, parseISO } from "date-fns";
 import {
@@ -63,12 +64,8 @@ import {
   saveTerminalReaderMode,
 } from "@/lib/terminal/terminalReaderModeStorage";
 import type { TerminalReaderMode } from "@/lib/terminal/types";
+import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useSearchParams } from "react-router-dom";
-
-interface ArtistOption {
-  user_id: string;
-  display_name: string;
-}
 
 interface CartEntry {
   key: string;
@@ -87,7 +84,8 @@ const PosCheckoutPage = () => {
   const prefilledBookingId = searchParams.get("bookingId");
   const [loading, setLoading] = useState(true);
   const [quickItems, setQuickItems] = useState<PosItemTemplate[]>([]);
-  const [artists, setArtists] = useState<ArtistOption[]>([]);
+  const [artists, setArtists] = useState<PosArtistOption[]>([]);
+  const [artistColorCache, setArtistColorCache] = useState(readScheduleArtistColors);
   const [cart, setCart] = useState<CartEntry[]>([]);
   const [artistId, setArtistId] = useState("");
   const [clientName, setClientName] = useState("");
@@ -224,7 +222,7 @@ const PosCheckoutPage = () => {
       setLoading(true);
       try {
         const [profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
-          supabase.from("profiles").select("user_id, display_name"),
+          supabase.from("profiles").select("user_id, display_name, portal_bg_color"),
           supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
           loadOrgBillingContext(),
           loadShopPosSettings(),
@@ -234,12 +232,13 @@ const PosCheckoutPage = () => {
         ]);
 
         const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
-        const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as ArtistOption[];
+        const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as PosArtistOption[];
         const orgId = billingCtx.organizationId ?? null;
         const itemTemplates = await loadPosItemTemplates(orgId);
 
         setOrganizationId(orgId);
         setArtists(artistList);
+        setArtistColorCache(writeScheduleArtistColors(artistList));
         setQuickItems(itemTemplates);
         setCurrency(billingCtx.currency);
         setTaxRate(billingCtx.defaultTaxRate);
@@ -321,6 +320,11 @@ const PosCheckoutPage = () => {
       override,
     );
   }, [artistId, artistSplits, shopSplit]);
+
+  const artistConnectAccountId = useMemo(() => {
+    const override = artistSplits.find((s) => s.artist_id === artistId);
+    return override?.stripe_connect_account_id?.trim() || null;
+  }, [artistId, artistSplits]);
 
   const totals = useMemo(
     () =>
@@ -591,16 +595,27 @@ const PosCheckoutPage = () => {
 
       const result = await terminal.collectAndProcess(piData.clientSecret);
 
-      await invokeEdgeFunctionJson("stripe-terminal-pos", {
+      const { data: completeData } = await invokeEdgeFunctionJson<{
+        transfers?: { errors?: string[] } | null;
+      }>("stripe-terminal-pos", {
         action: "complete_sale",
         saleId: piData.saleId,
-        paymentIntentId: result.paymentIntentId,
+        paymentIntentId: piData.paymentIntentId || result.paymentIntentId,
         readerId: result.readerId,
         status: "succeeded",
       });
 
       setLastSaleId(piData.saleId);
       toast.success(t("pos.paymentSuccess"));
+      const transferErrors = completeData?.transfers?.errors ?? [];
+      if (transferErrors.length > 0) {
+        toast.warning(
+          t("pos.splitTransferWarning", {
+            defaultValue: "Payment received, but payout split failed: {{message}}",
+            message: transferErrors.join("; "),
+          }),
+        );
+      }
       await finalizeSale();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
@@ -694,7 +709,7 @@ const PosCheckoutPage = () => {
 
           <div className="grid lg:grid-cols-5 gap-6">
             {/* Services */}
-            <div className="lg:col-span-3 space-y-4">
+            <div className={cn("lg:col-span-3 space-y-4", clientSuggestionsOpen && "relative z-50")}>
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -793,29 +808,22 @@ const PosCheckoutPage = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={cn(clientSuggestionsOpen && "overflow-visible")}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <User className="h-4 w-4" />
                     {t("pos.sessionDetails")}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label>{t("pos.artist")}</Label>
-                    <Select value={artistId} onValueChange={setArtistId}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={t("pos.selectArtist")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {artists.map((a) => (
-                          <SelectItem key={a.user_id} value={a.user_id}>
-                            {a.display_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <CardContent className={cn("space-y-6", clientSuggestionsOpen && "overflow-visible")}>
+                  <PosArtistPicker
+                    artists={artists}
+                    artistId={artistId}
+                    onArtistIdChange={setArtistId}
+                    colorCache={artistColorCache}
+                    label={t("pos.artist")}
+                    hint={t("pos.selectArtistHint")}
+                  />
                   <div>
                     <BookingClientSearch
                       clientName={clientName}
@@ -948,6 +956,22 @@ const PosCheckoutPage = () => {
                         {depositCredit > 0 ? (
                           <p className="text-[11px] text-muted-foreground pt-1">{t("pos.depositSplitHint")}</p>
                         ) : null}
+                        {dueSplit.artistAmount > 0 && !artistConnectAccountId ? (
+                          <p className="text-[11px] text-amber-600 pt-1">
+                            {t("pos.artistConnectMissing", {
+                              defaultValue:
+                                "Artist Stripe Connect (acct_…) is not saved — add it in Admin → POS and click Save for this artist, or select an artist with a payout account.",
+                            })}
+                          </p>
+                        ) : null}
+                        {activeSplit.artistPercent > 0 && artistConnectAccountId ? (
+                          <p className="text-[11px] text-muted-foreground pt-1 font-mono truncate">
+                            {t("pos.artistConnectConfigured", {
+                              defaultValue: "Payout account: {{accountId}}",
+                              accountId: artistConnectAccountId,
+                            })}
+                          </p>
+                        ) : null}
                       </div>
                     </details>
                   ) : null}
@@ -1007,6 +1031,12 @@ const PosCheckoutPage = () => {
                         {t("pos.disconnectReader")}
                       </Button>
                     )}
+
+                    {usingWisePad && terminal.status !== "connected" ? (
+                      <p className="text-xs text-muted-foreground text-center leading-snug px-1">
+                        {t("pos.wisePadFirstConnectHint")}
+                      </p>
+                    ) : null}
 
                     <Button
                       type="button"
@@ -1073,7 +1103,7 @@ const PosCheckoutPage = () => {
             </div>
           </div>
 
-          <Collapsible open={recentSalesOpen} onOpenChange={setRecentSalesOpen}>
+          <Collapsible open={recentSalesOpen} onOpenChange={setRecentSalesOpen} className="relative z-0">
             <Card>
               <CardHeader className="pb-3">
                 <CollapsibleTrigger asChild>

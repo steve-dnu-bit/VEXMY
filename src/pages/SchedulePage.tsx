@@ -168,7 +168,12 @@ const SchedulePage = () => {
       toast.error(error.message || t("schedule.couldNotLoadBookings", { defaultValue: "Could not load bookings" }));
       return;
     }
-    setBookings(((data || []) as Booking[]).filter((b) => !isImportedContactPlaceholderBooking(b)));
+    const nextBookings = ((data || []) as Booking[]).filter((b) => !isImportedContactPlaceholderBooking(b));
+    setBookings(nextBookings);
+    setSelectedBooking((prev) => {
+      if (!prev) return null;
+      return nextBookings.find((b) => b.id === prev.id) ?? prev;
+    });
   };
 
   const fetchProfiles = async () => {

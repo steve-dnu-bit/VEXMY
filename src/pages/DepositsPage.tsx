@@ -64,9 +64,59 @@ const DepositsPage = () => {
     });
   }, []);
 
+  const syncPendingDeposits = useCallback(async (pending: BookingWithDeposit[]) => {
+    const toSync = pending.filter((b) => b.deposit_link_sent && !b.deposit_paid && b.deposit_payment_id);
+    if (!toSync.length) return false;
+    let anyConfirmed = false;
+    await Promise.all(
+      toSync.map(async (booking) => {
+        const { data, error } = await invokeEdgeFunctionJson("create-stripe-checkout", {
+          type: "deposit",
+          action: "sync",
+          bookingId: booking.id,
+        });
+        if (!error && (data as { confirmed?: boolean })?.confirmed) {
+          anyConfirmed = true;
+        }
+      }),
+    );
+    return anyConfirmed;
+  }, []);
+
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    const from = startOfDay(subDays(new Date(), daysBack));
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, client_name, client_email, client_phone, starts_at, deposit_amount, deposit_paid, deposit_link_sent, deposit_payment_id, vip_client, booking_type, status")
+      .gte("starts_at", from.toISOString())
+      .order("starts_at", { ascending: true });
+    if (error) {
+      toast.error(error.message || t("deposits.loadFailed"));
+      setBookings([]);
+      setLoading(false);
+      return;
+    }
+    const rows = (data as BookingWithDeposit[]) || [];
+    setBookings(rows);
+    setLoading(false);
+    const pending = rows.filter((b) => b.deposit_link_sent && !b.deposit_paid && b.deposit_payment_id);
+    if (pending.length) {
+      const confirmed = await syncPendingDeposits(pending);
+      if (confirmed) {
+        const { data: refreshed } = await supabase
+          .from("bookings")
+          .select("id, client_name, client_email, client_phone, starts_at, deposit_amount, deposit_paid, deposit_link_sent, deposit_payment_id, vip_client, booking_type, status")
+          .gte("starts_at", from.toISOString())
+          .order("starts_at", { ascending: true });
+        if (refreshed) setBookings((refreshed as BookingWithDeposit[]) || []);
+      }
+    }
+  }, [daysBack, syncPendingDeposits, t]);
+
   useEffect(() => {
-    fetchBookings();
-  }, [daysBack]);
+    void fetchBookings();
+  }, [fetchBookings]);
 
   const formatAmount = (amount: number | null | undefined) =>
     formatShopMoney(amount ?? defaultDeposit, shopCurrency);
@@ -95,31 +145,17 @@ const DepositsPage = () => {
     const channel = supabase
       .channel("deposits-bookings-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
-        fetchBookings();
+        void fetchBookings();
       })
       .subscribe();
+    const poll = window.setInterval(() => {
+      void fetchBookings();
+    }, 60_000);
     return () => {
+      window.clearInterval(poll);
       supabase.removeChannel(channel);
     };
-  }, [daysBack]);
-
-  const fetchBookings = async () => {
-    setLoading(true);
-    const from = startOfDay(subDays(new Date(), daysBack));
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("id, client_name, client_email, client_phone, starts_at, deposit_amount, deposit_paid, deposit_link_sent, deposit_payment_id, vip_client, booking_type, status")
-      .gte("starts_at", from.toISOString())
-      .order("starts_at", { ascending: true });
-    if (error) {
-      toast.error(error.message || t("deposits.loadFailed"));
-      setBookings([]);
-      setLoading(false);
-      return;
-    }
-    setBookings((data as BookingWithDeposit[]) || []);
-    setLoading(false);
-  };
+  }, [fetchBookings]);
 
   const handleSendDepositLink = async (booking: BookingWithDeposit) => {
     if (!booking.client_email && !booking.client_phone) {

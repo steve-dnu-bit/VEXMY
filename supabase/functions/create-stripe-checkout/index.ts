@@ -10,8 +10,13 @@ import {
   type BookingEmailDetails,
 } from "../_shared/email-templates.ts";
 import { resolveOrganizationForUser } from "../_shared/organization.ts";
-import { getActiveConnectAccount, stripeRequestOptions } from "../_shared/stripe-connect.ts";
+import { getActiveConnectAccount, getConnectAccountForOrganization, stripeRequestOptions } from "../_shared/stripe-connect.ts";
 import { createConnectStripe, getConnectStripeSecret } from "../_shared/stripe-keys.ts";
+import {
+  isPaidDepositCheckoutSession,
+  markBookingDepositPaid,
+  retrieveDepositCheckoutSession,
+} from "../_shared/deposit-payment.ts";
 import { maxDepositAmountForCurrency, resolveBookingDepositAmount } from "../_shared/deposit-limits.ts";
 import { formatShopMoney, getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 
@@ -44,48 +49,57 @@ serve(async (req) => {
       });
     }
 
-    const token = parseBearerJwt(req);
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Unauthorized", reason: "missing_bearer_token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const admin = createClient(supabaseUrl, serviceKey);
     const emailReady = getEmailDeliveryStatus();
     const canSendEmail = emailReady.from && (emailReady.resendApi || emailReady.smtp);
-
-    const { data: authData, error: authError } = await admin.auth.getUser(token);
-    const user = authData.user;
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized", reason: "invalid_or_expired_token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: roleRows } = await admin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .in("role", ["admin", "artist"]);
-    let isStaff = (roleRows || []).length > 0;
-    if (!isStaff) {
-      const [depRes, billRes] = await Promise.all([
-        admin.rpc("has_permission", { _user_id: user.id, _feature: "deposits" }),
-        admin.rpc("has_permission", { _user_id: user.id, _feature: "billing" }),
-      ]);
-      isStaff = !!(depRes.data || billRes.data);
-    }
 
     const body = await req.json().catch(() => ({}));
     const type = body.type === "invoice" ? "invoice" : body.type === "deposit" ? "deposit" : null;
     const bookingId = typeof body.bookingId === "string" ? body.bookingId : null;
     const invoiceId = typeof body.invoiceId === "string" ? body.invoiceId : null;
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : null;
-    const action = body.action === "confirm" ? "confirm" : "create";
+    const action =
+      body.action === "confirm" ? "confirm" : body.action === "sync" ? "sync" : "create";
     const sendEmail = body.sendEmail === true;
+    const isPublicDepositConfirm =
+      type === "deposit" && action === "confirm" && !!bookingId && !!sessionId;
+
+    const token = parseBearerJwt(req);
+    let user: { id: string; email?: string | null } | null = null;
+    let isStaff = false;
+
+    if (!isPublicDepositConfirm) {
+      if (!token) {
+        return new Response(JSON.stringify({ error: "Unauthorized", reason: "missing_bearer_token" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: authData, error: authError } = await admin.auth.getUser(token);
+      user = authData.user;
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized", reason: "invalid_or_expired_token" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: roleRows } = await admin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["admin", "artist"]);
+      isStaff = (roleRows || []).length > 0;
+      if (!isStaff) {
+        const [depRes, billRes] = await Promise.all([
+          admin.rpc("has_permission", { _user_id: user.id, _feature: "deposits" }),
+          admin.rpc("has_permission", { _user_id: user.id, _feature: "billing" }),
+        ]);
+        isStaff = !!(depRes.data || billRes.data);
+      }
+    }
+
     if (!type) {
       return new Response(JSON.stringify({ error: "type must be deposit or invoice" }), {
         status: 400,
@@ -107,7 +121,7 @@ serve(async (req) => {
 
       const { data: booking, error } = await admin
         .from("bookings")
-        .select("id, artist_id, organization_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid, vip_client")
+        .select("id, artist_id, organization_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, status, deposit_amount, deposit_paid, deposit_payment_id, vip_client")
         .eq("id", bookingId)
         .single();
       if (error || !booking) {
@@ -116,13 +130,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (!isStaff && booking.client_user_id !== user.id) {
+      if (!isPublicDepositConfirm && !isStaff && user && booking.client_user_id !== user.id) {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (booking.deposit_paid) {
+        if (action === "confirm") {
+          return new Response(
+            JSON.stringify({ ok: true, confirmed: true, bookingId: booking.id, alreadyPaid: true }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
         return new Response(JSON.stringify({ error: "Deposit already paid" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -144,10 +164,9 @@ serve(async (req) => {
         organizationId: bookingOrgId ?? null,
       });
 
-      const connectCtx = await getActiveConnectAccount(admin, {
-        organizationId: bookingOrgId,
-        userId: user.id,
-      });
+      const connectCtx = bookingOrgId
+        ? await getConnectAccountForOrganization(admin, bookingOrgId)
+        : null;
       const connectOpts = stripeRequestOptions(connectCtx?.stripeConnectAccountId);
       const { currency: shopCurrency, defaultDepositAmount } = await getShopPaymentSettings(admin, bookingOrgId);
       const resolvedDeposit = resolveBookingDepositAmount(
@@ -166,6 +185,39 @@ serve(async (req) => {
         );
       }
 
+      if (action === "sync") {
+        if (!isStaff) {
+          return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const checkoutSessionId = booking.deposit_payment_id;
+        if (!checkoutSessionId) {
+          return new Response(
+            JSON.stringify({ ok: false, confirmed: false, reason: "no_checkout_session" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        const session = await retrieveDepositCheckoutSession(stripe, admin, checkoutSessionId, booking);
+        if (!session || !isPaidDepositCheckoutSession(session, booking.id)) {
+          return new Response(
+            JSON.stringify({
+              ok: true,
+              confirmed: false,
+              paymentStatus: session?.payment_status || null,
+              sessionStatus: session?.status || null,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        await markBookingDepositPaid(admin, session);
+        return new Response(
+          JSON.stringify({ ok: true, confirmed: true, bookingId: booking.id }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       if (action === "confirm") {
         if (!sessionId) {
           return new Response(JSON.stringify({ error: "sessionId is required for confirm" }), {
@@ -173,43 +225,19 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        let session: Stripe.Checkout.Session;
-        try {
-          session = connectOpts
-            ? await stripe.checkout.sessions.retrieve(sessionId, {}, connectOpts)
-            : await stripe.checkout.sessions.retrieve(sessionId);
-        } catch {
-          session = await stripe.checkout.sessions.retrieve(sessionId);
-        }
-        const sessionBookingId = session.metadata?.booking_id || null;
-        const paid =
-          session.mode === "payment" &&
-          (session.payment_status === "paid" || session.status === "complete") &&
-          session.metadata?.kind === "deposit" &&
-          sessionBookingId === booking.id;
-        if (!paid) {
+        const session = await retrieveDepositCheckoutSession(stripe, admin, sessionId, booking);
+        if (!session || !isPaidDepositCheckoutSession(session, booking.id)) {
           return new Response(
             JSON.stringify({
               ok: false,
               confirmed: false,
-              paymentStatus: session.payment_status || null,
-              sessionStatus: session.status || null,
+              paymentStatus: session?.payment_status || null,
+              sessionStatus: session?.status || null,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
         }
-        const { data: updatedRows } = await admin
-          .from("bookings")
-          .update({
-            deposit_paid: true,
-            deposit_link_sent: true,
-            deposit_payment_id: String(session.payment_intent || session.id),
-          } as any)
-          .eq("id", booking.id)
-          .or("deposit_paid.is.null,deposit_paid.eq.false")
-          .select("id")
-          .limit(1);
-        const newlyMarkedPaid = (updatedRows?.length || 0) > 0;
+        const { newlyMarkedPaid } = await markBookingDepositPaid(admin, session);
         const receiptTo = booking.client_email || session.customer_details?.email || session.customer_email || null;
         if (newlyMarkedPaid && receiptTo && canSendEmail) {
           try {
@@ -297,7 +325,7 @@ serve(async (req) => {
           mode: "payment",
           success_url: `${baseUrl}/deposit-payment?status=success&bookingId=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${baseUrl}/deposit-payment/checkout?bookingId=${booking.id}&status=cancel`,
-          customer_email: booking.client_email || user.email || undefined,
+          customer_email: booking.client_email || user?.email || undefined,
           line_items: [
             {
               quantity: 1,
@@ -316,6 +344,13 @@ serve(async (req) => {
             booking_id: booking.id,
             organization_id: connectCtx?.organizationId ?? "",
             stripe_connect_account_id: connectCtx?.stripeConnectAccountId ?? "",
+          },
+          payment_intent_data: {
+            metadata: {
+              kind: "deposit",
+              booking_id: booking.id,
+              organization_id: connectCtx?.organizationId ?? "",
+            },
           },
         },
         connectOpts,

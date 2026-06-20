@@ -6,11 +6,13 @@ import {
   getActiveConnectAccount,
   getConnectStatusForOrg,
   stripeRequestOptions,
+  canManageStripeConnect,
 } from "../_shared/stripe-connect.ts";
 import { createConnectStripe, getConnectStripeSecret, stripeSecretMode } from "../_shared/stripe-keys.ts";
 import { getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
 import { mapShopCountryToStripe } from "../_shared/stripe-connect.ts";
 import { callerHasPosAccess } from "../_shared/auth.ts";
+import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +25,19 @@ function parseBearerJwt(req: Request): string | null {
   if (!authHeader) return null;
   const m = /^Bearer\s+(.+)$/i.exec(authHeader.trim());
   return m ? m[1].trim() : null;
+}
+
+function bearerIsServiceRole(token: string, serviceKey: string): boolean {
+  if (!token) return false;
+  if (serviceKey && token === serviceKey) return true;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload.role === "service_role" && String(payload.iss ?? "").includes("supabase");
+  } catch {
+    return false;
+  }
 }
 
 type PosLineItem = {
@@ -65,6 +80,54 @@ serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
+    const body = await req.json().catch(() => ({}));
+    const action = typeof body.action === "string" ? body.action : "";
+
+    // Ops-only: service role may retry artist transfers for a sale (scripts / support).
+    if (action === "retry_transfers" && bearerIsServiceRole(token, serviceKey)) {
+      const saleId = typeof body.saleId === "string" ? body.saleId : null;
+      if (!saleId) {
+        return new Response(JSON.stringify({ error: "saleId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: sale } = await admin
+        .from("pos_sales")
+        .select("organization_id, stripe_payment_intent_id")
+        .eq("id", saleId)
+        .maybeSingle();
+
+      if (!sale?.stripe_payment_intent_id) {
+        return new Response(JSON.stringify({ error: "Sale has no payment intent" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const connect = await getActiveConnectAccount(admin, { organizationId: sale.organization_id });
+      if (!connect) {
+        return new Response(JSON.stringify({ error: "Stripe Connect is not ready" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const stripe = createConnectStripe();
+      const transferResult = await executePosSplitTransfers({
+        admin,
+        stripe,
+        saleId,
+        paymentIntentId: sale.stripe_payment_intent_id,
+        stripeConnectAccountId: connect.stripeConnectAccountId,
+      });
+
+      return new Response(JSON.stringify({ ok: true, transfers: transferResult }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: authData, error: authError } = await admin.auth.getUser(token);
     const user = authData.user;
     if (authError || !user) {
@@ -100,8 +163,6 @@ serve(async (req) => {
 
     const stripe = createConnectStripe();
     const stripeOpts = stripeRequestOptions(connect.stripeConnectAccountId);
-    const body = await req.json().catch(() => ({}));
-    const action = typeof body.action === "string" ? body.action : "";
 
     if (action === "connection_token") {
       let locationId = typeof body.locationId === "string" ? body.locationId.trim() : "";
@@ -198,6 +259,7 @@ serve(async (req) => {
               postal_code: shop?.postcode || "SW1A 1AA",
               country,
             },
+            metadata: { organization_id: orgId },
           },
           stripeOpts,
         );
@@ -347,8 +409,27 @@ serve(async (req) => {
         );
       }
 
-      const zeroDecimal = ZERO_DECIMAL_CURRENCIES;
       const amountCents = toMinorUnits(amountMajor, currency);
+      const artistCents = toMinorUnits(artistAmount, currency);
+
+      if (artistCents > 0) {
+        const { data: artistSplit } = await admin
+          .from("artist_pos_splits")
+          .select("stripe_connect_account_id")
+          .eq("organization_id", orgId)
+          .eq("artist_id", artistId)
+          .maybeSingle();
+        const artistConnectId = artistSplit?.stripe_connect_account_id?.trim();
+        if (!artistConnectId) {
+          return new Response(
+            JSON.stringify({
+              error: "Add the artist Stripe Connect account (acct_…) in Admin → POS → Artist overrides before taking a split payment.",
+              code: "artist_connect_required",
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
 
       const { data: saleRow, error: saleErr } = await admin
         .from("pos_sales")
@@ -389,6 +470,7 @@ serve(async (req) => {
         capture_method: "automatic",
         metadata: {
           kind: "pos",
+          charge_model: "direct_application_fee",
           organization_id: orgId,
           artist_id: artistId,
           pos_sale_id: saleRow.id,
@@ -397,8 +479,13 @@ serve(async (req) => {
           session_total: String(sessionTotal),
           shop_amount: String(shopAmount),
           artist_amount: String(artistAmount),
+          shop_connect_account_id: connect.stripeConnectAccountId,
         },
       };
+
+      if (artistCents > 0) {
+        piParams.application_fee_amount = artistCents;
+      }
 
       const paymentIntent = await stripe.paymentIntents.create(piParams, stripeOpts);
 
@@ -440,37 +527,209 @@ serve(async (req) => {
         .eq("id", saleId)
         .eq("organization_id", orgId);
 
+      let transferResult: Awaited<ReturnType<typeof executePosSplitTransfers>> | null = null;
       if (status === "succeeded" && paymentIntentId) {
-        const { data: sale } = await admin
-          .from("pos_sales")
-          .select("artist_id, artist_amount, currency")
-          .eq("id", saleId)
-          .maybeSingle();
+        transferResult = await executePosSplitTransfers({
+          admin,
+          stripe,
+          saleId,
+          paymentIntentId,
+          stripeConnectAccountId: connect.stripeConnectAccountId,
+        });
+      }
 
-        if (sale?.artist_id && Number(sale.artist_amount) > 0) {
-          const { data: artistSplit } = await admin
-            .from("artist_pos_splits")
-            .select("stripe_connect_account_id")
-            .eq("organization_id", orgId)
-            .eq("artist_id", sale.artist_id)
-            .maybeSingle();
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          transfers: transferResult
+            ? {
+              shopTransferId: transferResult.shopTransferId,
+              artistTransferId: transferResult.artistTransferId,
+              errors: transferResult.errors,
+              skipped: transferResult.skipped,
+            }
+            : null,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
-          const dest = artistSplit?.stripe_connect_account_id?.trim();
-          if (dest) {
-            const cur = (sale.currency || "gbp").toLowerCase();
-            const artistCents = toMinorUnits(Number(sale.artist_amount), cur);
-            if (artistCents > 0) {
-              try {
-                await stripe.transfers.create(
-                  { amount: artistCents, currency: cur, destination: dest },
-                  stripeOpts,
-                );
-              } catch {
-                /* transfer optional — sale still recorded */
-              }
+    if (action === "retry_transfers") {
+      const saleId = typeof body.saleId === "string" ? body.saleId : null;
+      if (!saleId) {
+        return new Response(JSON.stringify({ error: "saleId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: sale } = await admin
+        .from("pos_sales")
+        .select("stripe_payment_intent_id")
+        .eq("id", saleId)
+        .eq("organization_id", orgId)
+        .maybeSingle();
+
+      if (!sale?.stripe_payment_intent_id) {
+        return new Response(JSON.stringify({ error: "Sale has no payment intent" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const transferResult = await executePosSplitTransfers({
+        admin,
+        stripe,
+        saleId,
+        paymentIntentId: sale.stripe_payment_intent_id,
+        stripeConnectAccountId: connect.stripeConnectAccountId,
+      });
+
+      return new Response(
+        JSON.stringify({
+          ok: transferResult.errors.length === 0,
+          transfers: {
+            shopTransferId: transferResult.shopTransferId,
+            artistTransferId: transferResult.artistTransferId,
+            errors: transferResult.errors,
+            skipped: transferResult.skipped,
+          },
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (action === "save_artist_split") {
+      const canManage = await canManageStripeConnect(admin, user.id, orgId);
+      if (!canManage) {
+        return new Response(JSON.stringify({ error: "Forbidden", code: "org_admin_required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const artistId = typeof body.artistId === "string" ? body.artistId.trim() : "";
+      const connectRaw = typeof body.stripeConnectAccountId === "string" ? body.stripeConnectAccountId.trim() : "";
+      const shopSplitRaw = body.shopSplitPercent;
+
+      if (!artistId) {
+        return new Response(JSON.stringify({ error: "artistId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (!connectRaw && (shopSplitRaw === null || shopSplitRaw === undefined || shopSplitRaw === "")) {
+        return new Response(JSON.stringify({ error: "Enter a Connect account and/or shop split %" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (connectRaw && !connectRaw.startsWith("acct_")) {
+        return new Response(JSON.stringify({ error: "Artist Connect account must start with acct_" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (connectRaw) {
+        try {
+          const account = await stripe.accounts.retrieve(connectRaw);
+          if (account.metadata?.velbok_kind === "pos_artist") {
+            if (account.metadata?.artist_id !== artistId || account.metadata?.organization_id !== orgId) {
+              return new Response(JSON.stringify({ error: "That Connect account belongs to a different artist or studio." }), {
+                status: 400,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
             }
           }
+        } catch {
+          return new Response(JSON.stringify({
+            error: "That Connect account was not found on your studio's Stripe platform. Ask the artist to set up payouts under Settings, or create the account in Stripe Connect.",
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
         }
+      }
+
+      let shopSplit = Number(shopSplitRaw);
+      if (!Number.isFinite(shopSplit)) {
+        const { data: posSettings } = await admin
+          .from("shop_pos_settings")
+          .select("shop_split_percent")
+          .eq("organization_id", orgId)
+          .maybeSingle();
+        shopSplit = Number(posSettings?.shop_split_percent ?? 30);
+      }
+
+      if (shopSplit < 0 || shopSplit > 100) {
+        return new Response(JSON.stringify({ error: "Shop split must be between 0 and 100" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const shop = Math.min(100, Math.max(0, shopSplit));
+      const artist = 100 - shop;
+
+      const { data: row, error: upsertErr } = await admin
+        .from("artist_pos_splits")
+        .upsert(
+          {
+            organization_id: orgId,
+            artist_id: artistId,
+            shop_split_percent: shop,
+            artist_split_percent: artist,
+            stripe_connect_account_id: connectRaw || null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "organization_id,artist_id" },
+        )
+        .select("*")
+        .single();
+
+      if (upsertErr || !row) {
+        return new Response(JSON.stringify({ error: upsertErr?.message || "Could not save artist split" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ ok: true, split: row }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "delete_artist_split") {
+      const canManage = await canManageStripeConnect(admin, user.id, orgId);
+      if (!canManage) {
+        return new Response(JSON.stringify({ error: "Forbidden", code: "org_admin_required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const artistId = typeof body.artistId === "string" ? body.artistId.trim() : "";
+      if (!artistId) {
+        return new Response(JSON.stringify({ error: "artistId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error: deleteErr } = await admin
+        .from("artist_pos_splits")
+        .delete()
+        .eq("organization_id", orgId)
+        .eq("artist_id", artistId);
+
+      if (deleteErr) {
+        return new Response(JSON.stringify({ error: deleteErr.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       return new Response(JSON.stringify({ ok: true }), {
@@ -508,6 +767,7 @@ serve(async (req) => {
       const storedLocationId = posSettings?.stripe_terminal_location_id?.trim() || "";
       const diagnostics: Record<string, unknown> = {
         connectAccountId: connect.stripeConnectAccountId,
+        chargeModel: "direct_charge_application_fee",
         stripeMode: stripeSecretMode(getConnectStripeSecret()),
         simulatedReader: posSettings?.simulated_reader === true,
         posEnabled: posSettings?.enabled === true,

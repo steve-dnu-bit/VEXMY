@@ -111,9 +111,8 @@ const CustomerDepositsPage = () => {
 
     if (status === "success") {
       toast.success(t("customer.paymentReceivedConfirming"));
-      if (bookingId && user) {
+      if (bookingId && sessionId) {
         const confirmFromStripe = async () => {
-          if (!sessionId) return false;
           const { data, error } = await supabase.functions.invoke("create-stripe-checkout", {
             body: {
               type: "deposit",
@@ -126,20 +125,21 @@ const CustomerDepositsPage = () => {
         };
         void confirmFromStripe().then((confirmedNow) => {
           if (confirmedNow) {
-            void loadDeposits({ silent: true });
+            if (user) void loadDeposits({ silent: true });
             toast.success(t("customer.depositConfirmed"));
             return;
           }
+          if (!bookingId) return;
           void waitForDepositConfirmation(bookingId).then((confirmed) => {
             if (confirmed) {
               toast.success(t("customer.depositConfirmed"));
               return;
             }
             toast.message(t("customer.paymentSucceededProcessing"));
-            void loadDeposits({ silent: true });
+            if (user) void loadDeposits({ silent: true });
           });
         });
-      } else {
+      } else if (user) {
         void loadDeposits({ silent: true });
       }
       setSearchParams((prev) => {

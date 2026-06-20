@@ -18,6 +18,7 @@ import i18n from "@/i18n";
 import { canArtistCustomizeDashboardTheme } from "@/lib/shopDashboardTheme";
 import { uploadFileToUploads } from "@/lib/uploadStorage";
 import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
+import ArtistPosPayoutCard from "@/components/settings/ArtistPosPayoutCard";
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
@@ -171,6 +172,10 @@ const SettingsPage = () => {
           {/* MFA / Two-Factor Authentication */}
           <SectionErrorBoundary title={t("mfa.title")}>
             <MFAEnrollment />
+          </SectionErrorBoundary>
+
+          <SectionErrorBoundary title={t("artistStripeConnect.title")}>
+            <ArtistPosPayoutCard />
           </SectionErrorBoundary>
 
           <Card className="bg-card border-border">
