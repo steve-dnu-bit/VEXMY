@@ -25,6 +25,7 @@ const CustomerPortalShell = () => (
 );
 
 const LandingPage = lazy(() => import("./pages/marketing/LandingPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
 const PricingPage = lazy(() => import("./pages/marketing/PricingPage"));
 const SubscribePage = lazy(() => import("./pages/marketing/SubscribePage"));
 const SubscribeSuccessPage = lazy(() => import("./pages/marketing/SubscribeSuccessPage"));

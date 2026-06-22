@@ -5,13 +5,16 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
 import { bootstrapLanguageFromIp } from "@/i18n/bootstrapLanguage";
-import { preloadStoredLanguage } from "@/i18n/loadLocale";
 
 async function start() {
+  const { preloadStoredLanguage } = await import("@/i18n/loadLocale");
+
   if (Capacitor.isNativePlatform()) {
     const { bootstrapNativeTerminalListener } = await import("@/lib/terminal/bootstrapNativeTerminal");
     void bootstrapNativeTerminalListener();
   }
+
+  await preloadStoredLanguage().catch(() => undefined);
 
   createRoot(document.getElementById("root")!).render(<App />);
 
@@ -20,7 +23,6 @@ async function start() {
   }
 
   void bootstrapLanguageFromIp().catch(() => undefined);
-  void preloadStoredLanguage().catch(() => undefined);
 }
 
 void start();

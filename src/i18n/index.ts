@@ -27,6 +27,8 @@ void i18n
         return isAppLanguage(base) ? base : DEFAULT_LANGUAGE;
       },
     },
+    // Avoid rendering with a lazy-loaded locale before its bundle is fetched.
+    partialBundledLanguages: true,
   });
 
 export default i18n;
