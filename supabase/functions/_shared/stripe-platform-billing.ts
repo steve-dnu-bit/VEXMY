@@ -1,13 +1,18 @@
 import Stripe from "npm:stripe@16.12.0";
 
-export const PLATFORM_PLAN_IDS = ["starter", "studio", "enterprise"] as const;
+export const PLATFORM_PLAN_IDS = ["solo", "starter", "studio", "enterprise"] as const;
 export type PlatformPlanId = (typeof PLATFORM_PLAN_IDS)[number];
 
 const SECRET_BY_PLAN: Record<PlatformPlanId, string> = {
+  solo: "STRIPE_PRICE_SOLO",
   starter: "STRIPE_PRICE_STARTER",
   studio: "STRIPE_PRICE_STUDIO",
   enterprise: "STRIPE_PRICE_ENTERPRISE",
 };
+
+export function isPlatformPlanId(planId: string | null | undefined): planId is PlatformPlanId {
+  return !!planId && (PLATFORM_PLAN_IDS as readonly string[]).includes(planId);
+}
 
 export function getPlatformPriceSecret(planId: PlatformPlanId): string | null {
   return Deno.env.get(SECRET_BY_PLAN[planId]) ?? null;

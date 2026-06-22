@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000000"/>
+  <g fill="#b8a06e">
+    <path d="M128 360 L200 140 L240 140 L188 360 Z"/>
+    <path d="M384 360 L312 140 L272 140 L324 360 Z"/>
+    <path d="M200 140 L256 100 L312 140 L280 160 L256 148 L232 160 Z"/>
+    <rect x="168" y="228" width="64" height="8" rx="2"/>
+    <rect x="168" y="248" width="52" height="8" rx="2"/>
+    <rect x="280" y="228" width="64" height="8" rx="2"/>
+    <rect x="292" y="248" width="52" height="8" rx="2"/>
+    <path d="M244 360 L268 360 L262 382 L250 382 Z"/>
+  </g>
+  <g stroke="#b8a06e" stroke-width="2" stroke-linecap="round">
+    <line x1="250" y1="382" x2="250" y2="392"/>
+    <line x1="254" y1="382" x2="254" y2="394"/>
+    <line x1="258" y1="382" x2="258" y2="392"/>
+    <line x1="256" y1="100" x2="256" y2="88"/>
+    <line x1="236" y1="108" x2="228" y2="98"/>
+    <line x1="276" y1="108" x2="284" y2="98"/>
+  </g>
+</svg>

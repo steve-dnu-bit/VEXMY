@@ -2,8 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "npm:stripe@16.12.0";
 import { jsonResponse, requireAuthenticatedUser } from "../_shared/auth.ts";
-
-const VALID_PLANS = ["starter", "studio", "enterprise"] as const;
+import { isPlatformPlanId } from "../_shared/stripe-platform-billing.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -45,8 +44,8 @@ serve(async (req) => {
     if (!organizationId) {
       return jsonResponse({ error: "organizationId is required" }, 400);
     }
-    if (!planId || !VALID_PLANS.includes(planId as (typeof VALID_PLANS)[number])) {
-      return jsonResponse({ error: "planId must be starter, studio, or enterprise" }, 400);
+    if (!isPlatformPlanId(planId)) {
+      return jsonResponse({ error: "planId must be solo, starter, studio, or enterprise" }, 400);
     }
 
     const months = Number.isFinite(monthsRaw)

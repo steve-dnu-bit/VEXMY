@@ -16,6 +16,11 @@ import {
   createPlatformStripe,
   getPlatformStripeSecret,
 } from "../_shared/stripe-keys.ts";
+import {
+  getPlatformPriceSecret,
+  isPlatformPlanId,
+  type PlatformPlanId,
+} from "../_shared/stripe-platform-billing.ts";
 
 function mapStripeSubStatus(status: Stripe.Subscription.Status): string {
   const allowed = ["trialing", "active", "past_due", "canceled", "unpaid", "incomplete", "paused"];
@@ -26,15 +31,15 @@ function resolvePlanIdFromPrice(
   priceId: string | null | undefined,
   metadataPlanId: string | null | undefined,
 ): string {
-  if (metadataPlanId && ["starter", "studio", "enterprise"].includes(metadataPlanId)) {
+  if (isPlatformPlanId(metadataPlanId)) {
     return metadataPlanId;
   }
-  const starterPrice = Deno.env.get("STRIPE_PRICE_STARTER");
-  const studioPrice = Deno.env.get("STRIPE_PRICE_STUDIO");
-  const enterprisePrice = Deno.env.get("STRIPE_PRICE_ENTERPRISE");
-  if (priceId && starterPrice && priceId === starterPrice) return "starter";
-  if (priceId && studioPrice && priceId === studioPrice) return "studio";
-  if (priceId && enterprisePrice && priceId === enterprisePrice) return "enterprise";
+  if (priceId) {
+    for (const planId of ["solo", "starter", "studio", "enterprise"] as const) {
+      const configuredPrice = getPlatformPriceSecret(planId);
+      if (configuredPrice && priceId === configuredPrice) return planId;
+    }
+  }
   return "studio";
 }
 

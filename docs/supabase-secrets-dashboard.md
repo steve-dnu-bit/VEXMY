@@ -68,12 +68,13 @@ SELECT vault.update_secret(
 
 ## Platform subscription billing (Stripe)
 
-Required for `/subscribe` checkout. **All three** price secrets must be set.
+Required for `/subscribe` checkout. **All four** price secrets must be set.
 
 | Secret | Value |
 |--------|--------|
 | `STRIPE_SECRET_KEY` | `sk_test_...` (dev) or `sk_live_...` (production) |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` from Stripe webhook endpoint |
+| `STRIPE_PRICE_SOLO` | `price_...` recurring monthly price (**not** `prod_...`) |
 | `STRIPE_PRICE_STARTER` | `price_...` recurring monthly price (**not** `prod_...`) |
 | `STRIPE_PRICE_STUDIO` | `price_...` |
 | `STRIPE_PRICE_ENTERPRISE` | `price_...` |
@@ -88,7 +89,7 @@ Required for `/subscribe` checkout. **All three** price secrets must be set.
 
 | Secret pattern | Example |
 |----------------|---------|
-| `STRIPE_PRICE_{PLAN}_{CURRENCY}` | `STRIPE_PRICE_STARTER_EUR`, `STRIPE_PRICE_STUDIO_USD` |
+| `STRIPE_PRICE_{PLAN}_{CURRENCY}` | `STRIPE_PRICE_SOLO_EUR`, `STRIPE_PRICE_STARTER_USD` |
 
 Create matching **recurring monthly** Stripe prices in each currency (Products → Pricing → copy `price_...`).
 

@@ -11,6 +11,7 @@ import {
   formatPriceSecretError,
   getPlatformPriceSecret,
   getPlatformPriceSecretForCurrency,
+  isPlatformPlanId,
   platformPriceSecretName,
   type PlatformPlanId,
 } from "../_shared/stripe-platform-billing.ts";
@@ -91,8 +92,8 @@ serve(async (req) => {
       );
     }
 
-    if (!planId || !["starter", "studio", "enterprise"].includes(planId)) {
-      return new Response(JSON.stringify({ error: "planId must be starter, studio, or enterprise" }), {
+    if (!isPlatformPlanId(planId)) {
+      return new Response(JSON.stringify({ error: "planId must be solo, starter, studio, or enterprise" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

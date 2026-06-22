@@ -178,7 +178,7 @@ const SubscriptionSettingsCard = () => {
           <div className="space-y-3 pt-2">
             <p className="text-sm font-medium">{t("subscription.changePlanTitle")}</p>
             <p className="text-xs text-muted-foreground">{t("subscription.changePlanDesc")}</p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {pricingPlans.map((p) => {
                 const isCurrent = currentPlanId === p.id && active;
                 const direction =

@@ -21,6 +21,8 @@ export const BRANDING = {
   accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "hsl(43, 34%, 54%)",
   /** V mark only — transparent PNG for in-app UI beside the wordmark text. */
   markSrc: "/icons/logo-mark.png",
+  /** Full lockup with velbok.com text (black background). */
+  logoFullSrc: "/brand/logo-with-text-black.png",
   logoSrc: "/icons/logo-mark.png",
   iconSrc: "/icons/icon-512-plain.png",
 } as const;

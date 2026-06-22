@@ -14,6 +14,7 @@ export type PricingPlan = {
 };
 
 export const PLAN_PRICES_GBP = {
+  solo: 9.95,
   starter: 14.95,
   studio: 19.95,
   enterprise: 49.95,
@@ -24,14 +25,14 @@ export type PlanPriceKey = keyof typeof PLAN_PRICES_GBP;
 /** Monthly list prices by billing currency (aligned with subscription_plan_prices). */
 export const PLAN_PRICES_BY_CURRENCY: Record<string, Record<PlanPriceKey, number>> = {
   gbp: { ...PLAN_PRICES_GBP },
-  eur: { starter: 17.95, studio: 23.95, enterprise: 59.95 },
-  usd: { starter: 18.95, studio: 24.95, enterprise: 62.95 },
-  aud: { starter: 22.95, studio: 29.95, enterprise: 74.95 },
-  cad: { starter: 20.95, studio: 27.95, enterprise: 69.95 },
-  sek: { starter: 199, studio: 265, enterprise: 649 },
-  nok: { starter: 199, studio: 265, enterprise: 649 },
-  ron: { starter: 84.95, studio: 112.95, enterprise: 279.95 },
-  bgn: { starter: 34.95, studio: 46.95, enterprise: 116.95 },
+  eur: { solo: 11.95, starter: 17.95, studio: 23.95, enterprise: 59.95 },
+  usd: { solo: 12.95, starter: 18.95, studio: 24.95, enterprise: 62.95 },
+  aud: { solo: 15.95, starter: 22.95, studio: 29.95, enterprise: 74.95 },
+  cad: { solo: 13.95, starter: 20.95, studio: 27.95, enterprise: 69.95 },
+  sek: { solo: 129, starter: 199, studio: 265, enterprise: 649 },
+  nok: { solo: 129, starter: 199, studio: 265, enterprise: 649 },
+  ron: { solo: 56.95, starter: 84.95, studio: 112.95, enterprise: 279.95 },
+  bgn: { solo: 23.95, starter: 34.95, studio: 46.95, enterprise: 116.95 },
 };
 
 export function getPlanPricesForCurrency(currency: string | null | undefined): Record<PlanPriceKey, number> {
@@ -40,6 +41,7 @@ export function getPlanPricesForCurrency(currency: string | null | undefined): R
 }
 
 export const PLAN_ARTIST_SEATS = {
+  solo: 1,
   starter: 3,
   studio: 6,
   enterprise: 10,
@@ -47,31 +49,33 @@ export const PLAN_ARTIST_SEATS = {
 
 /** Max inbox/ticket image uploads per person per conversation, by plan. */
 export const PLAN_TICKET_MEDIA_MAX = {
+  solo: 2,
   starter: 2,
   studio: 6,
   enterprise: 10,
 } as const;
 
 export function getTicketMediaMaxForPlan(planId: string | null | undefined): number {
-  if (!planId) return PLAN_TICKET_MEDIA_MAX.starter;
+  if (!planId) return PLAN_TICKET_MEDIA_MAX.solo;
   const key = planId.toLowerCase() as keyof typeof PLAN_TICKET_MEDIA_MAX;
-  return PLAN_TICKET_MEDIA_MAX[key] ?? PLAN_TICKET_MEDIA_MAX.starter;
+  return PLAN_TICKET_MEDIA_MAX[key] ?? PLAN_TICKET_MEDIA_MAX.solo;
 }
 
 /** Max AI stencil generations per user per rolling 24h window, by plan. */
 export const PLAN_STENCIL_MAX_PER_24H = {
+  solo: 2,
   starter: 3,
   studio: 6,
   enterprise: 10,
 } as const;
 
 export function getStencilMaxForPlan(planId: string | null | undefined): number {
-  if (!planId) return PLAN_STENCIL_MAX_PER_24H.starter;
+  if (!planId) return PLAN_STENCIL_MAX_PER_24H.solo;
   const key = planId.toLowerCase() as keyof typeof PLAN_STENCIL_MAX_PER_24H;
-  return PLAN_STENCIL_MAX_PER_24H[key] ?? PLAN_STENCIL_MAX_PER_24H.starter;
+  return PLAN_STENCIL_MAX_PER_24H[key] ?? PLAN_STENCIL_MAX_PER_24H.solo;
 }
 
-export const PLAN_ORDER = ["starter", "studio", "enterprise"] as const;
+export const PLAN_ORDER = ["solo", "starter", "studio", "enterprise"] as const;
 
 export function formatPlanPriceGbp(amount: number): string {
   return `£${amount.toFixed(2)}`;
@@ -98,6 +102,11 @@ export const CORE_PLAN_FEATURES = [
 ] as const;
 
 export const PLAN_INBOX_FEATURES: Record<(typeof PLAN_ORDER)[number], string[]> = {
+  solo: [
+    "Support tickets in the customer portal",
+    "WhatsApp, SMS & email links from every booking",
+    "Automated booking reminders & aftercare emails",
+  ],
   starter: [
     "Support tickets in the customer portal",
     "WhatsApp, SMS & email links from every booking",
@@ -116,6 +125,20 @@ export const PLAN_INBOX_FEATURES: Record<(typeof PLAN_ORDER)[number], string[]> 
 };
 
 export const PRICING_PLANS: PricingPlan[] = [
+  {
+    id: "solo",
+    name: "Solo",
+    price: formatPlanPriceGbp(PLAN_PRICES_GBP.solo),
+    period: "/ month",
+    tagline: "Solo artist",
+    description: "Essentials for one artist — schedule, CRM, consent, deposits, and support tickets.",
+    seats: "1 artist seat",
+    maxArtistSeats: PLAN_ARTIST_SEATS.solo,
+    features: [...CORE_PLAN_FEATURES, ...PLAN_INBOX_FEATURES.solo],
+    cta: "Start with Solo",
+    ctaHref: "/subscribe?plan=solo",
+    highlighted: false,
+  },
   {
     id: "starter",
     name: "Starter",
@@ -175,7 +198,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Can I switch plans later?",
-    a: "Yes. Upgrade or downgrade anytime from Admin — Starter (3 artists), Studio (6), or Enterprise (10).",
+    a: "Yes. Upgrade or downgrade anytime from Admin — Solo (1 artist), Starter (3), Studio (6), or Enterprise (10).",
   },
   {
     q: "Do you help migrate from my current system?",
@@ -183,16 +206,23 @@ export const PRICING_FAQ = [
   },
 ];
 
-export const COMPARISON_ROWS: { label: string; starter: string; studio: string; enterprise: string }[] = [
+export type ComparisonRow = {
+  label: string;
+} & Record<(typeof PLAN_ORDER)[number], string>;
+
+export const COMPARISON_ROWS: ComparisonRow[] = [
   {
     label: "Monthly price (GBP)",
+    solo: formatPlanPriceGbp(PLAN_PRICES_GBP.solo),
     starter: formatPlanPriceGbp(PLAN_PRICES_GBP.starter),
     studio: formatPlanPriceGbp(PLAN_PRICES_GBP.studio),
     enterprise: formatPlanPriceGbp(PLAN_PRICES_GBP.enterprise),
   },
-  { label: "Artist seats", starter: "3", studio: "6", enterprise: "10" },
-  { label: "Client contact centre", starter: "✓", studio: "✓", enterprise: "✓" },
-  { label: "Unified inbox", starter: "—", studio: "Email + 1 channel", enterprise: "All channels" },
+  { label: "Artist seats", solo: "1", starter: "3", studio: "6", enterprise: "10" },
+  { label: "Ticket images per person", solo: "2", starter: "2", studio: "6", enterprise: "10" },
+  { label: "AI stencils per 24h", solo: "2", starter: "3", studio: "6", enterprise: "10" },
+  { label: "Client contact centre", solo: "✓", starter: "✓", studio: "✓", enterprise: "✓" },
+  { label: "Unified inbox", solo: "—", starter: "—", studio: "Email + 1 channel", enterprise: "All channels" },
 ];
 
 export function getPlanById(id: string | null): PricingPlan | undefined {

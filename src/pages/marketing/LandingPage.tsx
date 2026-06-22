@@ -3,6 +3,7 @@ import MarketingLayout from "@/components/marketing/MarketingLayout";
 import LandingFeatureTour from "@/components/marketing/landing/LandingFeatureTour";
 import LandingScreenshotGallery from "@/components/marketing/landing/LandingScreenshotGallery";
 import LandingStripeSection from "@/components/marketing/landing/LandingStripeSection";
+import LandingPricingSection from "@/components/marketing/landing/LandingPricingSection";
 import LandingSupportedCountries from "@/components/marketing/landing/LandingSupportedCountries";
 import LandingHeroCarousel from "@/components/marketing/landing/LandingHeroCarousel";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ const LandingPage = () => {
                   </Link>
                 </Button>
                 <Button variant="gold-outline" size="lg" asChild className="min-w-[200px]">
-                  <Link to="/pricing">{t("landing.viewPricing")}</Link>
+                  <a href="#pricing">{t("landing.viewPricing")}</a>
                 </Button>
               </>
             )}
@@ -77,6 +78,7 @@ const LandingPage = () => {
       <LandingScreenshotGallery />
       <LandingStripeSection />
       <LandingSupportedCountries />
+      <LandingPricingSection />
 
       <section id="features" className="border-t border-gold/10 bg-[#0a0b10]/80 px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-6xl">

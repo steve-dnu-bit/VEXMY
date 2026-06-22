@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Velbok brand assets</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #111; color: #e8e8e8; padding: 2rem; }
+    h1 { margin: 0 0 0.25rem; font-weight: 600; }
+    p { color: #999; margin: 0 0 2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; overflow: hidden; }
+    .card img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; }
+    .on-black { background: #000; }
+    .checker { background: repeating-conic-gradient(#222 0% 25%, #333 0% 50%) 50% / 24px 24px; }
+    figcaption { padding: 0.75rem 1rem 1rem; font-size: 0.875rem; line-height: 1.45; }
+    strong { color: #b8a06e; display: block; margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+  <h1>Velbok brand assets</h1>
+  <p>Generated from your new master logo. Mark for icons/app UI; full lockup for marketing.</p>
+  <div class="grid">
+    <figure class="card"><img class="on-black" src="mark-only-black.png" alt="" /><figcaption><strong>Mark only</strong>Black background. Used for app icons and in-app UI.</figcaption></figure>
+    <figure class="card"><img class="checker" src="mark-only-transparent.png" alt="" /><figcaption><strong>Mark only</strong>Transparent background.</figcaption></figure>
+    <figure class="card"><img class="on-black" src="logo-with-text-black.png" alt="" /><figcaption><strong>Full logo</strong>Mark + velbok.com on black.</figcaption></figure>
+    <figure class="card"><img class="checker" src="logo-with-text-transparent.png" alt="" /><figcaption><strong>Full logo</strong>Mark + velbok.com, transparent.</figcaption></figure>
+  </div>
+</body>
+</html>

@@ -68,7 +68,7 @@
   "marketing": {
     "footerTagline": "The all-in-one platform for tattoo studios — scheduling, deposits, consent, billing, and client communication in one place.",
     "pricingTitle": "Plans that scale with your studio",
-    "pricingSubtitle": "Transparent monthly pricing. Core studio tools on every plan — support tickets and WhatsApp links included.",
+    "pricingSubtitle": "From solo artists to multi-artist shops — transparent monthly pricing with a 14-day free trial on every plan.",
     "comparePlans": "Compare plans",
     "pricingFaq": "Pricing FAQ",
     "notSurePlan": "Not sure which plan fits?",
@@ -121,6 +121,11 @@
       "6": "Documentation & email support"
     },
     "inboxFeatures": {
+      "solo": {
+        "0": "Support tickets in the customer portal",
+        "1": "WhatsApp, SMS & email links from every booking",
+        "2": "Automated booking reminders & aftercare emails"
+      },
       "starter": {
         "0": "Support tickets in the customer portal",
         "1": "WhatsApp, SMS & email links from every booking",
@@ -136,6 +141,13 @@
         "1": "WhatsApp, SMS & email links from every booking",
         "2": "Automated booking reminders & aftercare emails"
       }
+    },
+    "solo": {
+      "name": "Solo",
+      "tagline": "Solo artist",
+      "description": "Essentials for one artist — schedule, CRM, consent, deposits, and support tickets.",
+      "seats": "1 artist seat",
+      "cta": "Start with Solo"
     },
     "starter": {
       "name": "Starter",
@@ -161,6 +173,8 @@
     "comparison": {
       "monthlyPrice": "Monthly price (GBP)",
       "artistSeats": "Artist seats",
+      "ticketImages": "Ticket images per person",
+      "stencilsPerDay": "AI stencils per 24h",
       "fullPlatform": "Full platform features",
       "unifiedInbox": "Support tickets",
       "contactCentre": "WhatsApp & contact links",
@@ -177,7 +191,7 @@
       "stripeFeesQ": "Are Stripe fees included?",
       "stripeFeesA": "No. Card processing fees are charged by Stripe on top of your subscription. Typical UK Stripe rates are 1.5% + 20p for online UK cards and 1.4% + 10p for in-person Terminal EEA cards (higher for international cards). Stripe pricing can change, so confirm your live rates in Stripe.",
       "switchQ": "Can I switch plans later?",
-      "switchA": "Yes. Upgrade or downgrade anytime from Admin — Starter (3 artists), Studio (6), or Enterprise (10).",
+      "switchA": "Yes. Upgrade or downgrade anytime from Admin — Solo (1 artist), Starter (3), Studio (6), or Enterprise (10).",
       "migrateQ": "Do you help migrate from my current system?",
       "migrateA": "All plans include client CSV import in the app. Contact us if you need hands-on migration help for bookings and records."
     }
@@ -304,6 +318,9 @@
     "stripeCardConnect": "Connect payouts",
     "stripeCardWebhook": "Auto reconcile",
     "stripeCta": "See plans with Stripe",
+    "pricingTitle": "Simple monthly pricing",
+    "pricingSubtitle": "Start with Solo for one artist, or scale up as your shop grows. Every plan includes scheduling, CRM, deposits, consent, and support tickets.",
+    "pricingCompare": "Compare all plans & features",
     "regionsTitle": "Available internationally",
     "regionsSubtitle": "Studios in 13 countries — local currency and language support built in.",
     "regionsCarouselLabel": "Supported countries",

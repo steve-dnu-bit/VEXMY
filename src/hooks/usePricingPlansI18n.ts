@@ -4,6 +4,9 @@ import type { PricingPlan } from "@/lib/pricingPlans";
 import {
   PLAN_ARTIST_SEATS,
   PLAN_INBOX_FEATURES,
+  PLAN_ORDER,
+  PLAN_STENCIL_MAX_PER_24H,
+  PLAN_TICKET_MEDIA_MAX,
   formatPlanPrice,
   getPlanPricesForCurrency,
 } from "@/lib/pricingPlans";
@@ -11,6 +14,7 @@ import { usePricingCurrency } from "@/hooks/usePricingCurrency";
 
 const CORE_FEATURE_KEYS = [0, 1, 2, 3, 4, 5, 6] as const;
 const INBOX_FEATURE_KEYS: Record<string, readonly number[]> = {
+  solo: [0, 1, 2],
   starter: [0, 1, 2],
   studio: [0, 1],
   enterprise: [0, 1, 2],
@@ -22,8 +26,7 @@ export function usePricingPlansI18n(): PricingPlan[] {
   const prices = getPlanPricesForCurrency(currency);
 
   return useMemo(() => {
-    const planIds = ["starter", "studio", "enterprise"] as const;
-    return planIds.map((id) => ({
+    return PLAN_ORDER.map((id) => ({
       id,
       name: t(`pricing.${id}.name`),
       price: formatPlanPrice(prices[id], currency),
@@ -62,28 +65,53 @@ export function useComparisonRowsI18n() {
   const currency = usePricingCurrency();
   const prices = getPlanPricesForCurrency(currency);
   const dash = t("pricing.comparison.notIncluded");
+  const included = t("pricing.comparison.included");
+
   return useMemo(
     () => [
       {
         label: t("pricing.comparison.monthlyPrice"),
+        solo: formatPlanPrice(prices.solo, currency),
         starter: formatPlanPrice(prices.starter, currency),
         studio: formatPlanPrice(prices.studio, currency),
         enterprise: formatPlanPrice(prices.enterprise, currency),
       },
-      { label: t("pricing.comparison.artistSeats"), starter: "3", studio: "6", enterprise: "10" },
+      {
+        label: t("pricing.comparison.artistSeats"),
+        solo: String(PLAN_ARTIST_SEATS.solo),
+        starter: String(PLAN_ARTIST_SEATS.starter),
+        studio: String(PLAN_ARTIST_SEATS.studio),
+        enterprise: String(PLAN_ARTIST_SEATS.enterprise),
+      },
+      {
+        label: t("pricing.comparison.ticketImages"),
+        solo: String(PLAN_TICKET_MEDIA_MAX.solo),
+        starter: String(PLAN_TICKET_MEDIA_MAX.starter),
+        studio: String(PLAN_TICKET_MEDIA_MAX.studio),
+        enterprise: String(PLAN_TICKET_MEDIA_MAX.enterprise),
+      },
+      {
+        label: t("pricing.comparison.stencilsPerDay"),
+        solo: String(PLAN_STENCIL_MAX_PER_24H.solo),
+        starter: String(PLAN_STENCIL_MAX_PER_24H.starter),
+        studio: String(PLAN_STENCIL_MAX_PER_24H.studio),
+        enterprise: String(PLAN_STENCIL_MAX_PER_24H.enterprise),
+      },
       {
         label: t("pricing.comparison.contactCentre"),
-        starter: t("pricing.comparison.included"),
-        studio: t("pricing.comparison.included"),
-        enterprise: t("pricing.comparison.included"),
+        solo: included,
+        starter: included,
+        studio: included,
+        enterprise: included,
       },
       {
         label: t("pricing.comparison.unifiedInbox"),
+        solo: dash,
         starter: dash,
         studio: t("pricing.comparison.inboxStudio"),
         enterprise: t("pricing.comparison.inboxEnterprise"),
       },
     ],
-    [t, dash, currency, prices],
+    [t, dash, included, currency, prices],
   );
 }

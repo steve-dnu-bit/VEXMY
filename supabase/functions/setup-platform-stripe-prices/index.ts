@@ -9,22 +9,23 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const PLAN_IDS = ["starter", "studio", "enterprise"] as const;
+const PLAN_IDS = ["solo", "starter", "studio", "enterprise"] as const;
 
 /** Monthly amounts in smallest currency unit (pence, cents, öre, etc.). */
 const PLAN_AMOUNTS: Record<string, Record<(typeof PLAN_IDS)[number], number>> = {
-  gbp: { starter: 1495, studio: 1995, enterprise: 4995 },
-  eur: { starter: 1795, studio: 2395, enterprise: 5995 },
-  usd: { starter: 1895, studio: 2495, enterprise: 6295 },
-  aud: { starter: 2295, studio: 2995, enterprise: 7495 },
-  cad: { starter: 2095, studio: 2795, enterprise: 6995 },
-  sek: { starter: 19900, studio: 26500, enterprise: 64900 },
-  nok: { starter: 19900, studio: 26500, enterprise: 64900 },
-  ron: { starter: 8495, studio: 11295, enterprise: 27995 },
-  bgn: { starter: 3495, studio: 4695, enterprise: 11695 },
+  gbp: { solo: 995, starter: 1495, studio: 1995, enterprise: 4995 },
+  eur: { solo: 1195, starter: 1795, studio: 2395, enterprise: 5995 },
+  usd: { solo: 1295, starter: 1895, studio: 2495, enterprise: 6295 },
+  aud: { solo: 1595, starter: 2295, studio: 2995, enterprise: 7495 },
+  cad: { solo: 1395, starter: 2095, studio: 2795, enterprise: 6995 },
+  sek: { solo: 12900, starter: 19900, studio: 26500, enterprise: 64900 },
+  nok: { solo: 12900, starter: 19900, studio: 26500, enterprise: 64900 },
+  ron: { solo: 5695, starter: 8495, studio: 11295, enterprise: 27995 },
+  bgn: { solo: 2395, starter: 3495, studio: 4695, enterprise: 11695 },
 };
 
 const PLAN_NAMES: Record<(typeof PLAN_IDS)[number], string> = {
+  solo: "Velbok Solo",
   starter: "Velbok Starter",
   studio: "Velbok Studio",
   enterprise: "Velbok Enterprise",

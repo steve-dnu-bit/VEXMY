@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "node scripts/generate-sitemap.mjs && node scripts/build-logo-icon.mjs && node scripts/copy-release-apk.mjs && vite build",
     "build:analyze": "node scripts/generate-sitemap.mjs && node scripts/build-logo-icon.mjs && vite build --mode analyze",
-    "build:icons": "node scripts/build-logo-icon.mjs",
+    "build:icons": "node scripts/prepare-brand-assets.mjs && node scripts/build-logo-icon.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",

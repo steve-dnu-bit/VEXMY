@@ -21,7 +21,7 @@ const PricingPage = () => {
           <p className="mt-4 text-lg text-muted-foreground">{t("marketing.pricingSubtitle")}</p>
         </div>
 
-        <div className="mx-auto mt-14 grid max-w-6xl gap-8 lg:grid-cols-3">
+        <div className="mx-auto mt-14 grid max-w-6xl gap-8 sm:grid-cols-2 xl:grid-cols-4">
           {pricingPlans.map((plan) => (
             <div
               key={plan.id}
@@ -62,22 +62,40 @@ const PricingPage = () => {
         <div className="mx-auto mt-20 max-w-5xl">
           <h2 className="text-center font-display text-2xl font-bold sm:text-3xl">{t("marketing.comparePlans")}</h2>
           <div className="mt-8 overflow-x-auto rounded-xl border border-border/60">
-            <table className="w-full min-w-[540px] text-sm">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-border/60 bg-card/50">
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t("marketing.comparePlans")}</th>
-                  <th className="px-4 py-3 text-center font-medium">Starter</th>
-                  <th className="px-4 py-3 text-center font-medium text-gold">Studio</th>
-                  <th className="px-4 py-3 text-center font-medium">Enterprise</th>
+                  {pricingPlans.map((plan) => (
+                    <th
+                      key={plan.id}
+                      className={`px-4 py-3 text-center font-medium ${plan.highlighted ? "text-gold" : ""}`}
+                    >
+                      {plan.name}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {comparisonRows.map((row) => (
                   <tr key={row.label} className="border-b border-border/40">
                     <td className="px-4 py-3 text-muted-foreground">{row.label}</td>
-                    <td className="px-4 py-3 text-center">{row.starter === "—" ? <X className="mx-auto h-4 w-4 text-muted-foreground/50" /> : row.starter}</td>
-                    <td className="px-4 py-3 text-center bg-gold/5">{row.studio === "—" ? <X className="mx-auto h-4 w-4 text-muted-foreground/50" /> : row.studio}</td>
-                    <td className="px-4 py-3 text-center">{row.enterprise === "—" ? <X className="mx-auto h-4 w-4 text-muted-foreground/50" /> : row.enterprise}</td>
+                    {pricingPlans.map((plan) => {
+                      const value = row[plan.id as keyof typeof row];
+                      const isDash = value === "—";
+                      return (
+                        <td
+                          key={plan.id}
+                          className={`px-4 py-3 text-center ${plan.highlighted ? "bg-gold/5" : ""}`}
+                        >
+                          {isDash ? (
+                            <X className="mx-auto h-4 w-4 text-muted-foreground/50" />
+                          ) : (
+                            value
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
