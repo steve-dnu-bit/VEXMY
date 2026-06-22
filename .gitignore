@@ -22,6 +22,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Play internal tester list (PII — generated locally)
+docs/play-internal-testers.txt
+docs/play-review-credentials.txt
+
 # Supabase CLI local cache
 supabase/.temp/
 
