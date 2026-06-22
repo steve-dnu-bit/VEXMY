@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { canArtistCustomizeDashboardTheme } from "@/lib/shopDashboardTheme";
 import { uploadFileToUploads } from "@/lib/uploadStorage";
+import { resizeProfileImageForUpload } from "@/lib/resizeProfileImage";
 import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 import ArtistPosPayoutCard from "@/components/settings/ArtistPosPayoutCard";
 
@@ -91,9 +92,9 @@ const SettingsPage = () => {
     if (!file || !user) return;
     setUploadingAvatar(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `avatars/${user.id}-${Date.now()}.${ext}`;
-      const storageRef = await uploadFileToUploads(path, file);
+      const prepared = await resizeProfileImageForUpload(file, "avatar");
+      const path = `avatars/${user.id}-${Date.now()}.jpg`;
+      const storageRef = await uploadFileToUploads(path, prepared);
       const { error: updateError } = await supabase.from("profiles").update({ avatar_url: storageRef }).eq("user_id", user.id);
       if (updateError) throw updateError;
       setAvatarStored(storageRef);

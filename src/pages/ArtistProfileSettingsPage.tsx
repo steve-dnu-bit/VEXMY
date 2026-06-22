@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { THEME_PRESETS } from "@/lib/themePresets";
 import { canArtistCustomizeDashboardTheme, notifyPortalThemeUpdated } from "@/lib/shopDashboardTheme";
 import { uploadFileToUploads } from "@/lib/uploadStorage";
+import { resizeProfileImageForUpload } from "@/lib/resizeProfileImage";
 import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 
 const ArtistProfileSettingsPage = () => {
@@ -42,6 +43,7 @@ const ArtistProfileSettingsPage = () => {
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const bgInputRef = useRef<HTMLInputElement | null>(null);
   const resolvedBgPreview = useResolvedUploadUrl(bgImageUrl);
+  const resolvedAvatarPreview = useResolvedUploadUrl(avatarUrl);
 
   useEffect(() => {
     void canArtistCustomizeDashboardTheme().then(setCanCustomizeTheme);
@@ -81,9 +83,10 @@ const ArtistProfileSettingsPage = () => {
 
   const uploadAsset = async (file: File, folder: "avatars" | "artist_portal_bg") => {
     if (!user) return null;
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${folder}/${user.id}-${Date.now()}.${ext}`;
-    return uploadFileToUploads(path, file);
+    const kind = folder === "avatars" ? "avatar" : "portalBackground";
+    const prepared = await resizeProfileImageForUpload(file, kind);
+    const path = `${folder}/${user.id}-${Date.now()}.jpg`;
+    return uploadFileToUploads(path, prepared);
   };
 
   const onAvatarFile = async (file?: File) => {
@@ -194,7 +197,7 @@ const ArtistProfileSettingsPage = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarUrl || undefined} />
+                <AvatarImage src={resolvedAvatarPreview || undefined} />
                 <AvatarFallback>{displayName?.charAt(0)?.toUpperCase() || "A"}</AvatarFallback>
               </Avatar>
               <div className="space-y-2">

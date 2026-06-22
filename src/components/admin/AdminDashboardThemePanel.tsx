@@ -18,6 +18,7 @@ import {
   type ShopDashboardThemeSettings,
 } from "@/lib/shopDashboardTheme";
 import { uploadFileToUploads } from "@/lib/uploadStorage";
+import { resizeProfileImageForUpload } from "@/lib/resizeProfileImage";
 import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 
 const AdminDashboardThemePanel = () => {
@@ -47,9 +48,9 @@ const AdminDashboardThemePanel = () => {
     if (!user) return;
     setUploadingBg(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `shop_portal_bg/${user.id}-${Date.now()}.${ext}`;
-      const storageRef = await uploadFileToUploads(path, file);
+      const prepared = await resizeProfileImageForUpload(file, "portalBackground");
+      const path = `shop_portal_bg/${user.id}-${Date.now()}.jpg`;
+      const storageRef = await uploadFileToUploads(path, prepared);
       setSettings((prev) => ({
         ...prev,
         portalBgImageUrl: storageRef,

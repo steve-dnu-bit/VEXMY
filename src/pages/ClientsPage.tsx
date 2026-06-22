@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useArtistDataPrivacy } from "@/hooks/useArtistDataPrivacy";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
