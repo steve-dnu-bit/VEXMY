@@ -428,10 +428,11 @@ export function buildAftercareEmailFromTemplate(params: {
   template: AftercareTemplateContent;
   clientName: string;
   bookingWindow: string;
+  brand?: ShopBranding;
   shopName?: string;
   locale?: EmailLanguage;
 }): string {
-  const brand = getShopBranding();
+  const brand = params.brand ?? getShopBranding();
   const locale = params.locale ?? "en";
   const shopName = params.shopName || brand.shopName;
   const intro = renderAftercareIntro(params.template.introTemplate, shopName, params.bookingWindow);
@@ -541,13 +542,17 @@ export function buildAftercareEmail(params: {
   clientName: string;
   bookingWindow: string;
   template?: AftercareTemplateContent;
+  brand?: ShopBranding;
   locale?: EmailLanguage;
 }): string {
   const content = params.template ?? defaultAftercareForKind(params.kind);
+  const brand = params.brand ?? getShopBranding();
   return buildAftercareEmailFromTemplate({
     template: content,
     clientName: params.clientName,
     bookingWindow: params.bookingWindow,
+    brand,
+    shopName: brand.shopName,
     locale: params.locale,
   });
 }

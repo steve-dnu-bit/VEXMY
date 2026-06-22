@@ -5,24 +5,22 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
 import { bootstrapLanguageFromIp } from "@/i18n/bootstrapLanguage";
+import { preloadStoredLanguage } from "@/i18n/loadLocale";
 
 async function start() {
   if (Capacitor.isNativePlatform()) {
     const { bootstrapNativeTerminalListener } = await import("@/lib/terminal/bootstrapNativeTerminal");
-    await bootstrapNativeTerminalListener();
+    void bootstrapNativeTerminalListener();
   }
-  try {
-    await Promise.race([
-      bootstrapLanguageFromIp(),
-      new Promise<void>((resolve) => window.setTimeout(resolve, 2500)),
-    ]);
-  } catch {
-    /* never block app launch on language bootstrap */
-  }
+
   createRoot(document.getElementById("root")!).render(<App />);
+
   if (Capacitor.isNativePlatform()) {
     void SplashScreen.hide();
   }
+
+  void bootstrapLanguageFromIp().catch(() => undefined);
+  void preloadStoredLanguage().catch(() => undefined);
 }
 
 void start();

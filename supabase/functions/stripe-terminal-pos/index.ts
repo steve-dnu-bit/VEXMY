@@ -321,8 +321,24 @@ serve(async (req) => {
       const gratuityAmount = Number(body.gratuityAmount) || 0;
       const bookingId = typeof body.bookingId === "string" ? body.bookingId.trim() : null;
 
-      if (!artistId || items.length === 0) {
-        return new Response(JSON.stringify({ error: "artistId and items are required" }), {
+      const shopOnlyPayout = artistAmount <= 0 && shopSplitPercent >= 100;
+
+      if (items.length === 0) {
+        return new Response(JSON.stringify({ error: "items are required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (!artistId && !shopOnlyPayout) {
+        return new Response(JSON.stringify({ error: "artistId is required unless payout is 100% shop" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (bookingId && !artistId) {
+        return new Response(JSON.stringify({ error: "Linked bookings require an artist" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -331,7 +347,7 @@ serve(async (req) => {
       const paymentSettings = await getShopPaymentSettings(admin, orgId);
       const minCharge = stripeMinimumChargeMajor(currency);
 
-      if (bookingId) {
+      if (bookingId && artistId) {
         const { data: bookingRow } = await admin
           .from("bookings")
           .select("id, artist_id, organization_id, deposit_paid, deposit_amount")

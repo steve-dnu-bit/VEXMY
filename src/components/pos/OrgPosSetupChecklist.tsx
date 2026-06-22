@@ -10,7 +10,10 @@ import { Link } from "react-router-dom";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import {
   defaultShopPosSettings,
+  findPosHourlyRateItem,
+  loadPosItemTemplates,
   loadShopPosSettings,
+  savePosHourlyRate,
   saveShopPosSettings,
   type ShopPosSettings,
 } from "@/lib/posCheckout";
@@ -45,6 +48,8 @@ const OrgPosSetupChecklist = ({
   const [connectReady, setConnectReady] = useState(false);
   const [settings, setSettings] = useState<Omit<ShopPosSettings, "organization_id">>(defaultShopPosSettings());
   const [settingUpTerminal, setSettingUpTerminal] = useState(false);
+  const [hourlyRate, setHourlyRate] = useState("");
+  const [savingHourlyRate, setSavingHourlyRate] = useState(false);
 
   const hasTerminalLocation = !!settings.stripe_terminal_location_id?.trim();
   const readyForCheckout = connectReady && settings.enabled && hasTerminalLocation;
@@ -63,11 +68,14 @@ const OrgPosSetupChecklist = ({
     setLoading(true);
     const id = await getUserOrganizationId();
     setOrgId(id);
-    const [posRow, connectRes] = await Promise.all([
+    const [posRow, connectRes, templates] = await Promise.all([
       id ? loadShopPosSettings(id) : Promise.resolve(null),
       invokeEdgeFunctionJson<{ connect?: { ready?: boolean } }>("stripe-terminal-pos", { action: "connect_status" }),
+      id ? loadPosItemTemplates(id) : Promise.resolve([]),
     ]);
     setConnectReady(!!connectRes.data?.connect?.ready);
+    const hourly = findPosHourlyRateItem(templates);
+    setHourlyRate(hourly ? String(Number(hourly.unit_price) || "") : "");
     if (posRow) {
       const { organization_id: _org, ...rest } = posRow;
       setSettings(rest);
@@ -123,6 +131,20 @@ const OrgPosSetupChecklist = ({
     patchSettings({ stripe_terminal_location_id: data.locationId });
     const ok = await persistSettings({ stripe_terminal_location_id: data.locationId });
     if (ok) toast.success(t("pos.terminalSetupDone"));
+  };
+
+  const persistHourlyRate = async () => {
+    if (!orgId) return;
+    const rate = Number(hourlyRate);
+    if (hourlyRate.trim() === "" || Number.isNaN(rate) || rate < 0) return;
+    setSavingHourlyRate(true);
+    const { error } = await savePosHourlyRate(rate, orgId);
+    setSavingHourlyRate(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(t("pos.hourlyRateSaved"));
   };
 
   const steps = [
@@ -238,6 +260,23 @@ const OrgPosSetupChecklist = ({
                     {t("pos.shopOnlySplitPreset")}
                   </Button>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="wizard-pos-hourly-rate">{t("pos.setupHourlyRate")}</Label>
+                <Input
+                  id="wizard-pos-hourly-rate"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  className="mt-1 max-w-[8rem]"
+                  value={hourlyRate}
+                  placeholder="110"
+                  disabled={savingHourlyRate}
+                  onChange={(e) => setHourlyRate(e.target.value)}
+                  onBlur={() => void persistHourlyRate()}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{t("pos.hourlyRatePresetHint")}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

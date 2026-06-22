@@ -11,6 +11,7 @@ import BookingDetailPanel from "@/components/schedule/BookingDetailPanel";
 import { useServices } from "@/components/schedule/ServicePresets";
 import { toast } from "sonner";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
+import { useArtistDataPrivacy } from "@/hooks/useArtistDataPrivacy";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours } from "@/lib/shopScheduleHours";
 import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
@@ -74,6 +75,7 @@ function isHardHiddenScheduleArtist(p: Profile): boolean {
 const SchedulePage = () => {
   const { t } = useScheduleI18n();
   const { user } = useAuth();
+  const { restricted: artistPrivacyRestricted } = useArtistDataPrivacy();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [profilesReady, setProfilesReady] = useState(false);
@@ -133,6 +135,12 @@ const SchedulePage = () => {
   }, [selectedArtists]);
 
   useEffect(() => {
+    if (artistPrivacyRestricted && user?.id) {
+      setSelectedArtists([user.id]);
+    }
+  }, [artistPrivacyRestricted, user?.id]);
+
+  useEffect(() => {
     void loadShopScheduleHours().then(setScheduleHours);
   }, []);
 
@@ -149,7 +157,7 @@ const SchedulePage = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentDate, view]);
+  }, [currentDate, view, artistPrivacyRestricted, user?.id]);
 
   // `selectedArtists` is intentionally empty (`[]`) to mean "All artists".
   // Specific artist selection is represented as `[artistId]`.
@@ -163,12 +171,25 @@ const SchedulePage = () => {
         ? new Date(new Date(currentDate).setHours(23, 59, 59, 999)).toISOString()
         : addDays(weekStart, 7).toISOString();
 
-    const { data, error } = await supabase.from("bookings").select("*").gte("starts_at", from).lt("starts_at", to).order("starts_at");
+    let query = supabase
+      .from("bookings")
+      .select(
+        "id, artist_id, client_name, client_phone, client_email, client_user_id, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, deposit_paid, deposit_amount, organization_id",
+      )
+      .gte("starts_at", from)
+      .lt("starts_at", to)
+      .order("starts_at");
+    if (artistPrivacyRestricted && user?.id) {
+      query = query.eq("artist_id", user.id);
+    }
+    const { data, error } = await query;
     if (error) {
       toast.error(error.message || t("schedule.couldNotLoadBookings", { defaultValue: "Could not load bookings" }));
       return;
     }
-    const nextBookings = ((data || []) as Booking[]).filter((b) => !isImportedContactPlaceholderBooking(b));
+    const nextBookings = ((data || []) as Booking[])
+      .filter((b) => !isImportedContactPlaceholderBooking(b))
+      .filter((b) => !artistPrivacyRestricted || !user?.id || b.artist_id === user.id);
     setBookings(nextBookings);
     setSelectedBooking((prev) => {
       if (!prev) return null;
@@ -228,6 +249,7 @@ const SchedulePage = () => {
     // Filter artists + booking dialog: not customer-only; hard-hidden (e.g. Mr.Tattooist); then booking artists;
     // then drop admin-only. Hard-hidden wins over bookingArtistIds so owner never clutters the picker.
     const team = filterByOrganizationMembers((allProfiles || []) as Profile[], orgMemberIds).filter((p) => {
+      if (artistPrivacyRestricted && user?.id && p.user_id !== user.id) return false;
       if (isPureCustomerOnly(p.user_id)) return false;
       if (isHardHiddenScheduleArtist(p)) return false;
       if (bookingArtistIds.has(p.user_id)) return true;

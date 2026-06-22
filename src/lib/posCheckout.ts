@@ -148,6 +148,19 @@ export function resolveSplitPercents(
 }
 
 export const POS_DEFAULT_CATEGORY = "General";
+export const POS_HOURLY_CATEGORY = "Session";
+export const POS_HOURLY_PRODUCT_NAME = "Hourly rate";
+export const POS_SHOP_SESSION_ID = "__shop__";
+
+export type PosUnitType = "each" | "hour";
+
+export function posQtyStep(unitType: PosUnitType): number {
+  return unitType === "hour" ? 0.1 : 0.25;
+}
+
+export function isPosHourlyItem(item: { unit_type?: PosUnitType | string | null }): boolean {
+  return item.unit_type === "hour";
+}
 
 export function parsePosQuantity(raw: string | number, min = 0.01): number {
   const n = typeof raw === "number" ? raw : parseFloat(String(raw).replace(",", ".").trim());
@@ -179,6 +192,7 @@ export interface PosItemTemplate {
   default_quantity: number;
   use_count: number;
   category: string;
+  unit_type: PosUnitType;
 }
 
 export async function loadPosItemTemplates(orgId?: string | null): Promise<PosItemTemplate[]> {
@@ -187,14 +201,17 @@ export async function loadPosItemTemplates(orgId?: string | null): Promise<PosIt
 
   const { data, error } = await supabase
     .from("pos_item_templates" as any)
-    .select("id, name, unit_price, default_quantity, use_count, category")
+    .select("id, name, unit_price, default_quantity, use_count, category, unit_type")
     .eq("organization_id", resolvedOrgId)
     .order("category")
     .order("use_count", { ascending: false })
     .order("name");
 
   if (error || !data) return [];
-  return data as PosItemTemplate[];
+  return (data as PosItemTemplate[]).map((row) => ({
+    ...row,
+    unit_type: row.unit_type === "hour" ? "hour" : "each",
+  }));
 }
 
 export interface PosProductCsvRow {
@@ -202,6 +219,7 @@ export interface PosProductCsvRow {
   unitPrice: number;
   defaultQuantity: number;
   category: string;
+  unitType: PosUnitType;
 }
 
 export const MAX_POS_PRODUCT_IMPORT_ROWS = 500;
@@ -228,6 +246,7 @@ export function parsePosProductsFromCsv(raw: string): { rows: PosProductCsvRow[]
   const priceIndex = headerIndex(headers, ["price", "unit_price", "unit price", "amount", "cost"]);
   const qtyIndex = headerIndex(headers, ["quantity", "qty", "default_quantity", "units"]);
   const categoryIndex = headerIndex(headers, ["category", "group", "type", "section"]);
+  const unitTypeIndex = headerIndex(headers, ["unit_type", "unit type", "unit", "pricing"]);
 
   if (nameIndex < 0 || priceIndex < 0) {
     return { rows: [], error: "csv_missing_columns" };
@@ -246,7 +265,10 @@ export function parsePosProductsFromCsv(raw: string): { rows: PosProductCsvRow[]
     if (Number.isNaN(defaultQuantity)) continue;
     const categoryRaw = categoryIndex >= 0 ? (cols[categoryIndex] || "").trim() : "";
     const category = categoryRaw || POS_DEFAULT_CATEGORY;
-    rows.push({ name, unitPrice, defaultQuantity, category });
+    const unitRaw = unitTypeIndex >= 0 ? (cols[unitTypeIndex] || "").trim().toLowerCase() : "";
+    const unitType: PosUnitType =
+      unitRaw === "hour" || unitRaw === "hours" || unitRaw === "hr" || unitRaw === "/hr" ? "hour" : "each";
+    rows.push({ name, unitPrice, defaultQuantity, category, unitType });
   }
 
   if (rows.length === 0) {
@@ -282,6 +304,7 @@ export async function importPosItemTemplates(
     unit_price: item.unitPrice,
     default_quantity: item.defaultQuantity,
     category: item.category.trim() || POS_DEFAULT_CATEGORY,
+    unit_type: item.unitType,
   }));
 
   let imported = 0;
@@ -304,6 +327,7 @@ export async function savePosItemTemplate(
   defaultQuantity = 1,
   orgId?: string | null,
   category = POS_DEFAULT_CATEGORY,
+  unitType: PosUnitType = "each",
 ): Promise<{ error: string | null }> {
   const resolvedOrgId = orgId ?? (await getUserOrganizationId());
   if (!resolvedOrgId) return { error: "Organization not found" };
@@ -321,11 +345,37 @@ export async function savePosItemTemplate(
       unit_price: unitPrice,
       default_quantity: qty,
       category: category.trim() || POS_DEFAULT_CATEGORY,
+      unit_type: unitType === "hour" ? "hour" : "each",
     },
     { onConflict: "organization_id,name", ignoreDuplicates: false },
   );
 
   return { error: error?.message ?? null };
+}
+
+export function findPosHourlyRateItem(items: PosItemTemplate[]): PosItemTemplate | null {
+  const named = items.find(
+    (item) => item.name.trim().toLowerCase() === POS_HOURLY_PRODUCT_NAME.toLowerCase(),
+  );
+  if (named) return named;
+  return items.find((item) => isPosHourlyItem(item)) ?? null;
+}
+
+export async function savePosHourlyRate(
+  hourlyRate: number,
+  orgId?: string | null,
+): Promise<{ error: string | null }> {
+  if (!Number.isFinite(hourlyRate) || hourlyRate < 0) {
+    return { error: "Hourly rate must be zero or greater" };
+  }
+  return savePosItemTemplate(
+    POS_HOURLY_PRODUCT_NAME,
+    hourlyRate,
+    1,
+    orgId,
+    POS_HOURLY_CATEGORY,
+    "hour",
+  );
 }
 
 export async function deletePosItemTemplate(

@@ -32,6 +32,11 @@
     Cache-Control = "public, max-age=3600"
 
 [[headers]]
+  for = "/downloads/android-version.json"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
   for = "/downloads/*"
   [headers.values]
     Cache-Control = "public, max-age=3600"
@@ -41,6 +46,7 @@
   [headers.values]
     Content-Type = "application/vnd.android.package-archive"
     Content-Disposition = "attachment; filename=\"velbok-android.apk\""
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 # Allow studios to embed customer login on their own websites
 [[headers]]

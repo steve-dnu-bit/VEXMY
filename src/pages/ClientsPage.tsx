@@ -24,7 +24,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useArtistDataPrivacy } from "@/hooks/useArtistDataPrivacy";
+import { useAuth } from "@/hooks/useAuth";
 import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
@@ -79,6 +80,8 @@ function importedContactGroupKey(c: { name: string; email: string | null; phone:
 
 const ClientsPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { restricted: artistPrivacyRestricted } = useArtistDataPrivacy();
   const { hasFeature } = useSubscription();
   const hasStaffInbox = hasFeature("staff_inbox");
   const [clients, setClients] = useState<BookingClient[]>([]);
@@ -103,6 +106,7 @@ const ClientsPage = () => {
       client_name: string;
       client_email: string | null;
       client_phone: string | null;
+      client_user_id: string | null;
       tattoo_style: string | null;
       starts_at: string;
     }> = [];
@@ -110,7 +114,7 @@ const ClientsPage = () => {
     for (;;) {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, booking_type, client_name, client_email, client_phone, tattoo_style, starts_at")
+        .select("id, booking_type, client_name, client_email, client_phone, client_user_id, tattoo_style, starts_at")
         .order("starts_at", { ascending: false })
         .range(from, from + pageSize - 1);
       if (error) {
@@ -161,10 +165,16 @@ const ClientsPage = () => {
       }
     }
 
-    // Also include signed-up customer accounts linked to this studio (even without bookings yet).
+    // Signed-up customer accounts (shop admins see all; privacy-restricted artists only linked clients).
     const orgMemberIds = await loadOrganizationMemberIds();
     let customerIds: string[];
-    if (orgMemberIds) {
+    if (artistPrivacyRestricted && user?.id) {
+      customerIds = [
+        ...new Set(
+          bookingRows.map((b) => b.client_user_id).filter((id): id is string => Boolean(id)),
+        ),
+      ];
+    } else if (orgMemberIds) {
       customerIds = [...(await loadOrganizationCustomerIds())];
     } else {
       const { data: customerRoles } = await supabase.from("user_roles").select("user_id").eq("role", "customer");

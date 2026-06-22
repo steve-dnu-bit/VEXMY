@@ -37,10 +37,12 @@ const AdminScheduleHoursPanel = lazy(() => import("@/components/admin/AdminSched
 const AdminDashboardThemePanel = lazy(() => import("@/components/admin/AdminDashboardThemePanel"));
 const AdminWebsiteEmbedPanel = lazy(() => import("@/components/admin/AdminWebsiteEmbedPanel"));
 const AdminPosCheckoutPanel = lazy(() => import("@/components/admin/AdminPosCheckoutPanel"));
+const AdminArtistPrivacyPanel = lazy(() => import("@/components/admin/AdminArtistPrivacyPanel"));
 
 const ADMIN_TABS = [
   "defaults",
   "staff",
+  "artist-privacy",
   "customers",
   "consents",
   "consent-forms",
@@ -573,6 +575,7 @@ const AdminPage = () => {
           <TabsList className="flex flex-wrap h-auto gap-1">
             <TabsTrigger value="defaults">{t("admin.tabDefaults")}</TabsTrigger>
             <TabsTrigger value="staff">{t("admin.tabStaff")}</TabsTrigger>
+            <TabsTrigger value="artist-privacy">{t("admin.tabArtistPrivacy")}</TabsTrigger>
             <TabsTrigger value="customers">{t("admin.tabCustomers")}</TabsTrigger>
             <TabsTrigger value="consents">{t("admin.tabConsents")}</TabsTrigger>
             <TabsTrigger value="consent-forms">{t("admin.tabConsentForms")}</TabsTrigger>
@@ -783,6 +786,10 @@ const AdminPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <LazyAdminTab tab="artist-privacy" activeTab={activeTab} title={t("admin.tabArtistPrivacy")}>
+            <AdminArtistPrivacyPanel />
+          </LazyAdminTab>
 
           <LazyAdminTab tab="consents" activeTab={activeTab} title={t("admin.tabConsents")}>
             <AdminConsentsPanel />

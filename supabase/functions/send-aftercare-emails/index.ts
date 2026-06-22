@@ -239,6 +239,7 @@ serve(async (req) => {
         clientName,
         bookingWindow,
         template: templateRow,
+        brand,
         locale,
       });
 

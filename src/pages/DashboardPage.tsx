@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import AppLayout from "@/components/AppLayout";
-import SalesReportsPanel from "@/components/dashboard/SalesReportsPanel";
+import LazySalesReportsPanel from "@/components/dashboard/LazySalesReportsPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -76,7 +76,7 @@ const DashboardPage = () => {
 
     const { count: bCount } = await supabase
       .from("bookings")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .gte("starts_at", `${today}T00:00:00`)
       .lt("starts_at", `${today}T23:59:59`);
     setBookingCount(bCount || 0);
@@ -85,7 +85,7 @@ const DashboardPage = () => {
       const orgId = await getUserOrganizationId();
       let ticketQuery = supabase
         .from("support_tickets" as any)
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("status", "open");
       if (orgId) ticketQuery = ticketQuery.eq("organization_id", orgId);
       const { count: mCount } = await ticketQuery;
@@ -396,7 +396,7 @@ const DashboardPage = () => {
           )}
         </div>
 
-        <SalesReportsPanel currency={shopCurrency} />
+        <LazySalesReportsPanel currency={shopCurrency} />
       </div>
     </AppLayout>
   );

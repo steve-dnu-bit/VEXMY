@@ -91,9 +91,9 @@ export async function getShopBrandingForOrganization(
   const shop = shopRow as ShopSettingsBrandingRow | null;
   const orgName = (orgRow as { name?: string | null } | null)?.name?.trim() || null;
   const displayName =
+    orgName ||
     shop?.trading_name?.trim() ||
     shop?.shop_name?.trim() ||
-    orgName ||
     base.shopName;
 
   return {

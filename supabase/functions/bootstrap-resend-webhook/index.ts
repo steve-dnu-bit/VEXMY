@@ -5,6 +5,11 @@ const WEBHOOK_ENDPOINT =
   "https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/resend-inbound";
 const WEBHOOK_EVENTS = ["email.received"];
 
+type BootstrapBody = {
+  action?: string;
+  to?: string;
+};
+
 type ResendWebhook = {
   id: string;
   endpoint: string;
@@ -83,6 +88,39 @@ serve(async (req) => {
   }
 
   try {
+    const body = await req.json().catch(() => ({})) as BootstrapBody;
+    const action = body.action?.trim();
+
+    if (action === "domains") {
+      const domains = await resendRequest<{ data?: unknown[] }>(apiKey, "/domains");
+      return json({ ok: true, domains: domains.data ?? domains });
+    }
+    if (action === "webhooks") {
+      const webhooks = await resendRequest<ResendListResponse>(apiKey, "/webhooks");
+      return json({ ok: true, webhooks: webhooks.data ?? webhooks });
+    }
+    if (action === "received") {
+      const received = await resendRequest<{ data?: unknown[] }>(apiKey, "/emails/receiving?limit=10");
+      return json({ ok: true, received: received.data ?? received });
+    }
+    if (action === "sent") {
+      const sent = await resendRequest<{ data?: unknown[] }>(apiKey, "/emails?limit=10");
+      return json({ ok: true, sent: sent.data ?? sent });
+    }
+    if (action === "send-inbound-test") {
+      const to = body.to?.trim() || "support@velbok.com";
+      const sent = await resendRequest<{ id?: string }>(apiKey, "/emails", {
+        method: "POST",
+        body: JSON.stringify({
+          from: "Velbok Test <no-reply@velbok.com>",
+          to: [to],
+          subject: `Inbound pipeline test ${new Date().toISOString()}`,
+          text: "This is an automated test of support@velbok.com inbound forwarding to Hotmail.",
+        }),
+      });
+      return json({ ok: true, sent_id: sent.id, to });
+    }
+
     const listed = await resendRequest<ResendListResponse>(apiKey, "/webhooks");
     const existing = (listed.data ?? []).filter((w) => w.endpoint === WEBHOOK_ENDPOINT);
 

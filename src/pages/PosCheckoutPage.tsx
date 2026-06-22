@@ -46,8 +46,12 @@ import {
   parsePosQuantity,
   formatPosQuantity,
   POS_DEFAULT_CATEGORY,
+  POS_SHOP_SESSION_ID,
+  isPosHourlyItem,
+  posQtyStep,
   type PosBookingPrefill,
   type PosItemTemplate,
+  type PosUnitType,
   type PosLineItem,
   type PosSaleRow,
 } from "@/lib/posCheckout";
@@ -78,6 +82,7 @@ interface CartEntry {
   name: string;
   unitPrice: number;
   quantity: number;
+  unitType: PosUnitType;
 }
 
 const PosCheckoutPage = () => {
@@ -113,18 +118,22 @@ const PosCheckoutPage = () => {
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
-  const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1", category: POS_DEFAULT_CATEGORY });
+  const [customForm, setCustomForm] = useState({
+    name: "",
+    price: "",
+    quantity: "1",
+    category: POS_DEFAULT_CATEGORY,
+    perHour: false,
+  });
   const [saveForQuickAdd, setSaveForQuickAdd] = useState(true);
   const [manageProducts, setManageProducts] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [quickAddItem, setQuickAddItem] = useState<PosItemTemplate | null>(null);
   const [quickAddQty, setQuickAddQty] = useState("1");
-  const [forceShopOnlySplit, setForceShopOnlySplit] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setForceShopOnlySplit(false);
-  }, [artistId]);
+  const isShopSession = artistId === POS_SHOP_SESSION_ID;
+  const chargeArtistId = isShopSession ? "" : artistId;
   const [linkedBooking, setLinkedBooking] = useState<PosBookingPrefill | null>(null);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [importingProducts, setImportingProducts] = useState(false);
@@ -352,24 +361,23 @@ const PosCheckoutPage = () => {
   }, [quickItems]);
 
   const configuredSplit = useMemo(() => {
+    if (isShopSession) {
+      return { shopPercent: 100, artistPercent: 0 };
+    }
     const override = artistSplits.find((s) => s.artist_id === artistId);
     return resolveSplitPercents(
       { shop_split_percent: shopSplit.shopPercent, artist_split_percent: shopSplit.artistPercent },
       override,
     );
-  }, [artistId, artistSplits, shopSplit]);
+  }, [artistId, artistSplits, shopSplit, isShopSession]);
 
-  const activeSplit = useMemo(() => {
-    if (forceShopOnlySplit) {
-      return { shopPercent: 100, artistPercent: 0 };
-    }
-    return configuredSplit;
-  }, [configuredSplit, forceShopOnlySplit]);
+  const activeSplit = configuredSplit;
 
   const artistConnectAccountId = useMemo(() => {
+    if (isShopSession) return null;
     const override = artistSplits.find((s) => s.artist_id === artistId);
     return override?.stripe_connect_account_id?.trim() || null;
-  }, [artistId, artistSplits]);
+  }, [artistId, artistSplits, isShopSession]);
 
   const totals = useMemo(
     () =>
@@ -442,7 +450,11 @@ const PosCheckoutPage = () => {
     [amountDue, activeSplit],
   );
 
-  const selectedArtist = artists.find((a) => a.user_id === artistId);
+  const selectedArtist = isShopSession ? undefined : artists.find((a) => a.user_id === artistId);
+
+  const handleSessionSelect = (id: string) => {
+    setArtistId(id);
+  };
 
   const openQuickAddDialog = (item: PosItemTemplate) => {
     setQuickAddItem(item);
@@ -463,6 +475,7 @@ const PosCheckoutPage = () => {
   const addQuickItem = (item: PosItemTemplate, quantityOverride?: number) => {
     const unitPrice = Number(item.unit_price) || 0;
     const quantity = quantityOverride ?? (parsePosQuantity(item.default_quantity) || 1);
+    const unitType: PosUnitType = isPosHourlyItem(item) ? "hour" : "each";
     setCart((prev) => {
       const existing = prev.find((c) => c.templateId === item.id);
       if (existing) {
@@ -478,6 +491,7 @@ const PosCheckoutPage = () => {
           name: item.name,
           unitPrice,
           quantity,
+          unitType,
         },
       ];
     });
@@ -536,8 +550,17 @@ const PosCheckoutPage = () => {
       return;
     }
 
+    const unitType: PosUnitType = customForm.perHour ? "hour" : "each";
+
     if (saveForQuickAdd) {
-      const { error } = await savePosItemTemplate(name, unitPrice, quantity, organizationId, category);
+      const { error } = await savePosItemTemplate(
+        name,
+        unitPrice,
+        quantity,
+        organizationId,
+        category,
+        unitType,
+      );
       if (error) {
         toast.error(error);
       } else {
@@ -547,8 +570,8 @@ const PosCheckoutPage = () => {
     }
 
     const key = `custom-${Date.now()}`;
-    setCart((prev) => [...prev, { key, templateId: null, name, unitPrice, quantity }]);
-    setCustomForm({ name: "", price: "", quantity: "1", category: POS_DEFAULT_CATEGORY });
+    setCart((prev) => [...prev, { key, templateId: null, name, unitPrice, quantity, unitType }]);
+    setCustomForm({ name: "", price: "", quantity: "1", category: POS_DEFAULT_CATEGORY, perHour: false });
     setCustomOpen(false);
   };
 
@@ -574,7 +597,8 @@ const PosCheckoutPage = () => {
 
   const downloadProductsCsvTemplate = () => {
     const csv = [
-      "name,price,quantity,category",
+      "name,price,quantity,category,unit_type",
+      "Hourly rate,110,1,Session,hour",
       "Hourly rate,80,1,Services",
       "Touch-up,60,1,Services",
       "Merchandise,25,1,Retail",
@@ -634,7 +658,7 @@ const PosCheckoutPage = () => {
   };
 
   const handlePay = async () => {
-    if (!artistId || cart.length === 0) {
+    if ((!isShopSession && !artistId) || cart.length === 0) {
       toast.error(t("pos.addItemsFirst"));
       return;
     }
@@ -669,7 +693,7 @@ const PosCheckoutPage = () => {
         zeroBalance?: boolean;
       }>("stripe-terminal-pos", {
         action: "create_payment_intent",
-        artistId,
+        artistId: chargeArtistId || undefined,
         clientName,
         clientEmail: clientEmail.trim() || undefined,
         currency,
@@ -918,10 +942,15 @@ const PosCheckoutPage = () => {
                                   <span className="font-medium leading-snug">{item.name}</span>
                                   <span className="text-sm font-semibold tabular-nums shrink-0">
                                     {formatShopMoney(Number(item.unit_price) || 0, currency)}
+                                    {isPosHourlyItem(item) ? (
+                                      <span className="text-xs font-normal text-muted-foreground"> {t("pos.perHourShort")}</span>
+                                    ) : null}
                                   </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {t("pos.defaultQty", { qty: formatPosQuantity(Number(item.default_quantity) || 1) })}
+                                  {isPosHourlyItem(item)
+                                    ? t("pos.hourlyItemHint")
+                                    : t("pos.defaultQty", { qty: formatPosQuantity(Number(item.default_quantity) || 1) })}
                                   {item.use_count > 0 ? ` · ${t("pos.usedCount", { count: item.use_count })}` : ""}
                                 </p>
                               </button>
@@ -1008,10 +1037,13 @@ const PosCheckoutPage = () => {
                   <PosArtistPicker
                     artists={artists}
                     artistId={artistId}
-                    onArtistIdChange={setArtistId}
+                    onArtistIdChange={handleSessionSelect}
                     colorCache={artistColorCache}
-                    label={t("pos.artist")}
-                    hint={t("pos.selectArtistHint")}
+                    label={t("pos.sessionPayout")}
+                    hint={t("pos.sessionPayoutHint")}
+                    showShopOption
+                    shopLabel={t("pos.shopOnlySession")}
+                    shopHint={t("pos.shopOnlySessionHint")}
                   />
                   <div>
                     <BookingClientSearch
@@ -1049,11 +1081,13 @@ const PosCheckoutPage = () => {
               <Card className="sticky top-4">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">{t("pos.orderSummary")}</CardTitle>
-                  {selectedArtist && (
+                  {isShopSession ? (
+                    <CardDescription>{t("pos.shopOnlySession")}</CardDescription>
+                  ) : selectedArtist ? (
                     <CardDescription>
                       {t("pos.withArtist", { name: selectedArtist.display_name })}
                     </CardDescription>
-                  )}
+                  ) : null}
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {cart.length === 0 ? (
@@ -1066,7 +1100,14 @@ const PosCheckoutPage = () => {
                             <div className="min-w-0 flex-1">
                               <p className="font-medium leading-snug">{item.name}</p>
                               <p className="text-muted-foreground text-xs tabular-nums mt-0.5">
-                                {formatShopMoney(item.unitPrice, currency)} {t("pos.each")}
+                                {formatShopMoney(item.unitPrice, currency)}{" "}
+                                {item.unitType === "hour" ? t("pos.perHourShort") : t("pos.each")}
+                                {item.unitType === "hour" ? (
+                                  <span>
+                                    {" "}
+                                    × {formatPosQuantity(item.quantity)} {t("pos.hoursShort")}
+                                  </span>
+                                ) : null}
                               </p>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
@@ -1086,33 +1127,35 @@ const PosCheckoutPage = () => {
                             </div>
                           </div>
                           <div className="flex items-center justify-between gap-2">
-                            <Label className="text-xs text-muted-foreground shrink-0">{t("pos.quantityLabel")}</Label>
+                            <Label className="text-xs text-muted-foreground shrink-0">
+                              {item.unitType === "hour" ? t("pos.hoursLabel") : t("pos.quantityLabel")}
+                            </Label>
                             <div className="flex items-center gap-1">
                               <Button
                                 type="button"
                                 size="icon"
                                 variant="outline"
                                 className="h-8 w-8"
-                                onClick={() => updateQty(item.key, -0.25)}
+                                onClick={() => updateQty(item.key, -posQtyStep(item.unitType))}
                               >
                                 <Minus className="h-3.5 w-3.5" />
                               </Button>
                               <Input
                                 type="number"
                                 min={0.01}
-                                step={0.25}
+                                step={posQtyStep(item.unitType)}
                                 inputMode="decimal"
                                 value={formatPosQuantity(item.quantity)}
                                 onChange={(e) => setCartQty(item.key, e.target.value)}
                                 className="h-8 w-16 px-1 text-center tabular-nums text-sm"
-                                aria-label={t("pos.units")}
+                                aria-label={item.unitType === "hour" ? t("pos.hoursLabel") : t("pos.units")}
                               />
                               <Button
                                 type="button"
                                 size="icon"
                                 variant="outline"
                                 className="h-8 w-8"
-                                onClick={() => updateQty(item.key, 0.25)}
+                                onClick={() => updateQty(item.key, posQtyStep(item.unitType))}
                               >
                                 <Plus className="h-3.5 w-3.5" />
                               </Button>
@@ -1144,35 +1187,6 @@ const PosCheckoutPage = () => {
                       </div>
                     </div>
                   )}
-
-                  {cart.length > 0 ? (
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">{t("pos.paymentSplit")}</Label>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={!forceShopOnlySplit ? "default" : "outline"}
-                          className="h-8 px-3"
-                          onClick={() => setForceShopOnlySplit(false)}
-                        >
-                          {t("pos.splitDefaultShort", {
-                            shop: configuredSplit.shopPercent,
-                            artist: configuredSplit.artistPercent,
-                          })}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={forceShopOnlySplit ? "default" : "outline"}
-                          className="h-8 px-3"
-                          onClick={() => setForceShopOnlySplit(true)}
-                        >
-                          {t("pos.shopOnlySplitPreset")}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
 
                   <dl className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -1304,7 +1318,7 @@ const PosCheckoutPage = () => {
                       type="button"
                       variant="gold"
                       className="w-full h-12 text-base"
-                      disabled={paying || readerFirmwareUpdating || cart.length === 0 || !artistId || (amountDue > 0 && terminal.status === "processing")}
+                      disabled={paying || readerFirmwareUpdating || cart.length === 0 || (!isShopSession && !artistId) || (amountDue > 0 && terminal.status === "processing")}
                       onClick={() => void handlePay()}
                     >
                       {paying || (amountDue > 0 && terminal.status === "processing") ? (
@@ -1515,22 +1529,39 @@ const PosCheckoutPage = () => {
             {quickAddItem ? (
               <div className="space-y-4 pt-2">
                 <p className="text-sm text-muted-foreground tabular-nums">
-                  {formatShopMoney(Number(quickAddItem.unit_price) || 0, currency)} {t("pos.each")}
+                  {formatShopMoney(Number(quickAddItem.unit_price) || 0, currency)}{" "}
+                  {isPosHourlyItem(quickAddItem) ? t("pos.perHourShort") : t("pos.each")}
                 </p>
                 <div>
-                  <Label htmlFor="quick-add-qty">{t("pos.quantityLabel")}</Label>
+                  <Label htmlFor="quick-add-qty">
+                    {isPosHourlyItem(quickAddItem) ? t("pos.hoursLabel") : t("pos.quantityLabel")}
+                  </Label>
                   <Input
                     id="quick-add-qty"
                     type="number"
                     min={0.01}
-                    step={0.25}
+                    step={isPosHourlyItem(quickAddItem) ? 0.1 : 0.25}
                     inputMode="decimal"
                     value={quickAddQty}
                     onChange={(e) => setQuickAddQty(e.target.value)}
                     className="mt-1"
                     autoFocus
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">{t("pos.fractionalQtyHint")}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {isPosHourlyItem(quickAddItem) ? t("pos.hourlyQtyHint") : t("pos.fractionalQtyHint")}
+                  </p>
+                  {!Number.isNaN(parsePosQuantity(quickAddQty)) ? (
+                    <p className="text-sm font-semibold tabular-nums mt-2">
+                      {t("pos.lineTotalPreview", {
+                        total: formatShopMoney(
+                          Math.round(
+                            (Number(quickAddItem.unit_price) || 0) * parsePosQuantity(quickAddQty) * 100,
+                          ) / 100,
+                          currency,
+                        ),
+                      })}
+                    </p>
+                  ) : null}
                 </div>
                 <Button type="button" className="w-full" onClick={confirmQuickAdd}>
                   {t("pos.addToOrder")}
@@ -1558,7 +1589,9 @@ const PosCheckoutPage = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="custom-price">{t("pos.customItemPrice")}</Label>
+                  <Label htmlFor="custom-price">
+                    {customForm.perHour ? t("pos.hourlyRateLabel") : t("pos.customItemPrice")}
+                  </Label>
                   <Input
                     id="custom-price"
                     type="number"
@@ -1570,19 +1603,30 @@ const PosCheckoutPage = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="custom-qty">{t("pos.units")}</Label>
+                  <Label htmlFor="custom-qty">
+                    {customForm.perHour ? t("pos.defaultHoursLabel") : t("pos.units")}
+                  </Label>
                   <Input
                     id="custom-qty"
                     type="number"
                     min={0.01}
-                    step={0.25}
+                    step={customForm.perHour ? 0.1 : 0.25}
                     value={customForm.quantity}
                     onChange={(e) => setCustomForm((f) => ({ ...f, quantity: e.target.value }))}
                     className="mt-1"
                   />
-                  <p className="text-[10px] text-muted-foreground mt-1">{t("pos.fractionalQtyHint")}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {customForm.perHour ? t("pos.hourlyQtyHint") : t("pos.fractionalQtyHint")}
+                  </p>
                 </div>
               </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={customForm.perHour}
+                  onCheckedChange={(v) => setCustomForm((f) => ({ ...f, perHour: v === true }))}
+                />
+                <span>{t("pos.chargePerHour")}</span>
+              </label>
               <div>
                 <Label htmlFor="custom-category">{t("pos.productCategory")}</Label>
                 <Input

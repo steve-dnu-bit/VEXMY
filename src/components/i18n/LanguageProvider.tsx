@@ -2,11 +2,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import i18n from "@/i18n";
+import { changeAppLanguage, ensureLanguageLoaded } from "@/i18n/loadLocale";
 import {
   DEFAULT_LANGUAGE,
   hasResolvedLanguageChoice,
   isAppLanguage,
+  LANGUAGE_STORAGE_KEY,
   persistLanguageChoice,
   SUPPORTED_LANGUAGES,
   type AppLanguage,
@@ -43,6 +44,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
           .maybeSingle();
         const remote = (data as { app_language_preference?: string } | null)?.app_language_preference;
         if (!cancelled && isAppLanguage(remote)) {
+          await ensureLanguageLoaded(remote);
           await i18nInstance.changeLanguage(remote);
           persistLanguageChoice(remote, "profile");
           setReady(true);
@@ -51,6 +53,11 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
       }
 
       if (hasResolvedLanguageChoice()) {
+        const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        if (isAppLanguage(stored)) {
+          await ensureLanguageLoaded(stored);
+          await i18nInstance.changeLanguage(stored);
+        }
         if (!cancelled) setReady(true);
         return;
       }
@@ -71,7 +78,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   const setLanguage = useCallback(
     async (next: AppLanguage) => {
-      await i18nInstance.changeLanguage(next);
+      await changeAppLanguage(next);
       persistLanguageChoice(next, "user");
       if (user) {
         await supabase

@@ -15,9 +15,9 @@ import CreateInvoiceDialog from "@/components/billing/CreateInvoiceDialog";
 import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
 import BillingSettingsCard from "@/components/billing/BillingSettingsCard";
 import PosSalesCard from "@/components/billing/PosSalesCard";
-import SalesReportsPanel from "@/components/dashboard/SalesReportsPanel";
+import LazySalesReportsPanel from "@/components/dashboard/LazySalesReportsPanel";
 import ExpensesPanel from "@/components/billing/ExpensesPanel";
-import AccountingPanel from "@/components/billing/AccountingPanel";
+import LazyAccountingPanel from "@/components/billing/LazyAccountingPanel";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { refreshDashboardSalesReports } from "@/lib/salesReports";
 import { toast } from "sonner";
@@ -70,6 +70,7 @@ const BillingPage = () => {
   const [invoiceToDate, setInvoiceToDate] = useState("");
   const [shopCurrency, setShopCurrency] = useState("gbp");
   const [reportVersion, setReportVersion] = useState(0);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const handleFinancialChange = () => {
     setReportVersion((v) => v + 1);
@@ -265,7 +266,7 @@ const BillingPage = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1">
             <TabsTrigger value="overview">{t("billing.tabOverview")}</TabsTrigger>
             <TabsTrigger value="invoices">{t("billing.invoicesTitle")}</TabsTrigger>
@@ -274,16 +275,20 @@ const BillingPage = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-0">
-            <SalesReportsPanel key={reportVersion} currency={shopCurrency} />
+            {activeTab === "overview" ? (
+              <LazySalesReportsPanel key={reportVersion} currency={shopCurrency} />
+            ) : null}
             <PosSalesCard />
           </TabsContent>
 
           <TabsContent value="expenses" className="mt-0">
-            <ExpensesPanel currency={shopCurrency} onChanged={handleFinancialChange} />
+            {activeTab === "expenses" ? (
+              <ExpensesPanel currency={shopCurrency} onChanged={handleFinancialChange} />
+            ) : null}
           </TabsContent>
 
           <TabsContent value="accounting" className="mt-0">
-            <AccountingPanel currency={shopCurrency} />
+            {activeTab === "accounting" ? <LazyAccountingPanel currency={shopCurrency} /> : null}
           </TabsContent>
 
           <TabsContent value="invoices" className="space-y-4 mt-0">

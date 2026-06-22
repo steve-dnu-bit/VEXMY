@@ -22,7 +22,7 @@ const DownloadPage = () => {
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
-    void fetch(VERSION_URL)
+    void fetch(`${VERSION_URL}?v=${Date.now()}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("not found"))))
       .then((data: AndroidVersionInfo) => setInfo(data))
       .catch(() => setMissing(true));
@@ -62,7 +62,10 @@ const DownloadPage = () => {
                 </p>
               ) : null}
               <Button asChild size="lg" className="w-full sm:w-auto">
-                <a href={info?.downloadUrl ?? APK_URL} download>
+                <a
+                  href={`${info?.downloadUrl ?? APK_URL}?v=${info?.versionCode ?? Date.now()}`}
+                  download
+                >
                   <Download className="mr-2 h-4 w-4" />
                   {t("download.androidButton", { version: info?.versionName ?? "" })}
                 </a>
