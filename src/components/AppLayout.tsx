@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Users, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature, CreditCard } from "lucide-react";
+import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,7 +27,6 @@ const allNavItems: Array<{
   { labelKey: "nav.inbox", path: "/inbox", icon: MessageSquare, feature: "inbox" },
   { labelKey: "nav.services", path: "/services", icon: Briefcase, feature: "services" },
   { labelKey: "nav.stencil", path: "/stencil", icon: Image, feature: "stencil" },
-  { labelKey: "nav.clients", path: "/clients", icon: Users, feature: "clients" },
   { labelKey: "nav.stock", path: "/stock", icon: Package, feature: "stock" },
   { labelKey: "nav.dashboard", path: "/dashboard", icon: LayoutDashboard, feature: "dashboard" },
   { labelKey: "nav.settings", path: "/settings", icon: Settings, feature: "settings" },

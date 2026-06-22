@@ -914,6 +914,7 @@
     "artistPrivacyBullet2": "Clients: only people from that artist's bookings (plus imports they created or that match their clients).",
     "artistPrivacyBullet3": "Shop admins, owners, and front-desk staff without the artist role still see everything.",
     "artistPrivacyOwnerBypassNote": "Your account is a shop owner or admin, so you will still see every artist's bookings. Log in as an artist account to verify privacy.",
+    "tabClients": "Client list",
     "tabCustomers": "Customers",
     "tabConsents": "Consents",
     "tabEmails": "Emails",
