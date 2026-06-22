@@ -1,5 +1,6 @@
 import { format, endOfMonth, parseISO, startOfMonth, subMonths } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { aggregateExpensesForPeriod, type ExpenseCategoryBreakdown } from "@/lib/expenses";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 
 export type SalesReportType = "day" | "month";
@@ -28,6 +29,10 @@ export interface SalesReportSnapshot {
   invoicesTotal: number;
   grandCollected: number;
   byArtist: SalesReportArtistRow[];
+  expensesCount: number;
+  expensesTotal: number;
+  netProfit: number;
+  byExpenseCategory: ExpenseCategoryBreakdown[];
 }
 
 export interface ShopSalesReportRow {
@@ -68,7 +73,7 @@ export async function buildSalesReportSnapshot(
   const startIso = start.toISOString();
   const endIso = end.toISOString();
 
-  const [posRes, depositsRes, invoicesRes, profilesRes, rolesRes] = await Promise.all([
+  const [posRes, depositsRes, invoicesRes, profilesRes, rolesRes, expenseAgg] = await Promise.all([
     supabase
       .from("pos_sales" as any)
       .select(
@@ -88,11 +93,13 @@ export async function buildSalesReportSnapshot(
     supabase
       .from("invoices" as any)
       .select("id, total, paid_at")
+      .eq("organization_id", orgId)
       .eq("status", "paid")
       .gte("paid_at", startIso)
       .lte("paid_at", endIso),
     supabase.from("profiles").select("user_id, display_name"),
     supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+    aggregateExpensesForPeriod(orgId, startIso, endIso),
   ]);
 
   const posRows = (posRes.data || []) as Array<{
@@ -157,6 +164,9 @@ export async function buildSalesReportSnapshot(
   const invoiceRows = (invoicesRes.data || []) as Array<{ total: number }>;
   const invoicesTotal = invoiceRows.reduce((sum, r) => sum + Number(r.total || 0), 0);
 
+  const grandCollected = round2(deskTotal + depositsTotal + invoicesTotal);
+  const expensesTotal = expenseAgg.total;
+
   const snapshot: SalesReportSnapshot = {
     posCount: posRows.length,
     sessionTotal: round2(sessionTotal),
@@ -170,8 +180,12 @@ export async function buildSalesReportSnapshot(
     depositsTotal: round2(depositsTotal),
     invoicesCount: invoiceRows.length,
     invoicesTotal: round2(invoicesTotal),
-    grandCollected: round2(deskTotal + depositsTotal + invoicesTotal),
+    grandCollected,
     byArtist: Array.from(byArtistMap.values()).sort((a, b) => b.deskTotal - a.deskTotal),
+    expensesCount: expenseAgg.count,
+    expensesTotal,
+    netProfit: round2(grandCollected - expensesTotal),
+    byExpenseCategory: expenseAgg.byCategory,
   };
 
   return { periodStart, periodEnd, snapshot };

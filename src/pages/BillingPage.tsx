@@ -15,7 +15,11 @@ import CreateInvoiceDialog from "@/components/billing/CreateInvoiceDialog";
 import EditInvoiceDialog from "@/components/billing/EditInvoiceDialog";
 import BillingSettingsCard from "@/components/billing/BillingSettingsCard";
 import PosSalesCard from "@/components/billing/PosSalesCard";
+import SalesReportsPanel from "@/components/dashboard/SalesReportsPanel";
+import ExpensesPanel from "@/components/billing/ExpensesPanel";
+import AccountingPanel from "@/components/billing/AccountingPanel";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
+import { refreshDashboardSalesReports } from "@/lib/salesReports";
 import { toast } from "sonner";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
@@ -65,6 +69,12 @@ const BillingPage = () => {
   const [invoiceFromDate, setInvoiceFromDate] = useState("");
   const [invoiceToDate, setInvoiceToDate] = useState("");
   const [shopCurrency, setShopCurrency] = useState("gbp");
+  const [reportVersion, setReportVersion] = useState(0);
+
+  const handleFinancialChange = () => {
+    setReportVersion((v) => v + 1);
+    void refreshDashboardSalesReports(shopCurrency);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -255,6 +265,28 @@ const BillingPage = () => {
           </Card>
         </div>
 
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="flex flex-wrap h-auto gap-1">
+            <TabsTrigger value="overview">{t("billing.tabOverview")}</TabsTrigger>
+            <TabsTrigger value="invoices">{t("billing.invoicesTitle")}</TabsTrigger>
+            <TabsTrigger value="expenses">{t("expenses.title")}</TabsTrigger>
+            <TabsTrigger value="accounting">{t("accounting.title")}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4 mt-0">
+            <SalesReportsPanel key={reportVersion} currency={shopCurrency} />
+            <PosSalesCard />
+          </TabsContent>
+
+          <TabsContent value="expenses" className="mt-0">
+            <ExpensesPanel currency={shopCurrency} onChanged={handleFinancialChange} />
+          </TabsContent>
+
+          <TabsContent value="accounting" className="mt-0">
+            <AccountingPanel currency={shopCurrency} />
+          </TabsContent>
+
+          <TabsContent value="invoices" className="space-y-4 mt-0">
         {/* Per-company breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {companies.map((company) => {
@@ -466,8 +498,8 @@ const BillingPage = () => {
             </>
           )}
         </div>
-
-        <PosSalesCard />
+          </TabsContent>
+        </Tabs>
 
         <BillingSettingsCard />
 
