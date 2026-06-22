@@ -220,8 +220,24 @@ const OrgPosSetupChecklist = ({
                   onBlur={() => void persistSettings({ shop_split_percent: settings.shop_split_percent })}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t("pos.artistGets", { percent: settings.artist_split_percent })}
+                  {settings.shop_split_percent >= 100
+                    ? t("pos.shopOnlyDefaultSplit")
+                    : t("pos.artistGets", { percent: settings.artist_split_percent })}
                 </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={settings.shop_split_percent >= 100 ? "default" : "outline"}
+                    className="h-8"
+                    onClick={() => {
+                      patchSettings({ shop_split_percent: 100 });
+                      void persistSettings({ shop_split_percent: 100 });
+                    }}
+                  >
+                    {t("pos.shopOnlySplitPreset")}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
