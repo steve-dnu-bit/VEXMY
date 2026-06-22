@@ -129,9 +129,11 @@ export function resolveSplitPercents(
   if (artistOverride) {
     const shop = Number(artistOverride.shop_split_percent);
     const artist = Number(artistOverride.artist_split_percent);
+    if (shop >= 100 && artist <= 0) {
+      return { shopPercent: 100, artistPercent: 0 };
+    }
     const hasConnect = !!artistOverride.stripe_connect_account_id?.trim();
-    // Ignore stale rows that zero-out the artist without a Connect account (blocks all splits).
-    if (!hasConnect && shop >= 100 && artist <= 0) {
+    if (!hasConnect && artist > 0) {
       return {
         shopPercent: Number(shopDefaults.shop_split_percent),
         artistPercent: Number(shopDefaults.artist_split_percent),
@@ -145,12 +147,38 @@ export function resolveSplitPercents(
   };
 }
 
+export const POS_DEFAULT_CATEGORY = "General";
+
+export function parsePosQuantity(raw: string | number, min = 0.01): number {
+  const n = typeof raw === "number" ? raw : parseFloat(String(raw).replace(",", ".").trim());
+  if (!Number.isFinite(n) || n < min) return NaN;
+  return Math.round(n * 100) / 100;
+}
+
+export function formatPosQuantity(q: number): string {
+  if (!Number.isFinite(q)) return "0";
+  const rounded = Math.round(q * 100) / 100;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/\.?0+$/, "");
+}
+
+export function groupPosItemsByCategory(items: PosItemTemplate[]): [string, PosItemTemplate[]][] {
+  const groups = new Map<string, PosItemTemplate[]>();
+  for (const item of items) {
+    const cat = item.category?.trim() || POS_DEFAULT_CATEGORY;
+    const list = groups.get(cat) ?? [];
+    list.push(item);
+    groups.set(cat, list);
+  }
+  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+}
+
 export interface PosItemTemplate {
   id: string;
   name: string;
   unit_price: number;
   default_quantity: number;
   use_count: number;
+  category: string;
 }
 
 export async function loadPosItemTemplates(orgId?: string | null): Promise<PosItemTemplate[]> {
@@ -159,8 +187,9 @@ export async function loadPosItemTemplates(orgId?: string | null): Promise<PosIt
 
   const { data, error } = await supabase
     .from("pos_item_templates" as any)
-    .select("id, name, unit_price, default_quantity, use_count")
+    .select("id, name, unit_price, default_quantity, use_count, category")
     .eq("organization_id", resolvedOrgId)
+    .order("category")
     .order("use_count", { ascending: false })
     .order("name");
 
@@ -172,6 +201,7 @@ export interface PosProductCsvRow {
   name: string;
   unitPrice: number;
   defaultQuantity: number;
+  category: string;
 }
 
 export const MAX_POS_PRODUCT_IMPORT_ROWS = 500;
@@ -197,6 +227,7 @@ export function parsePosProductsFromCsv(raw: string): { rows: PosProductCsvRow[]
   const nameIndex = headerIndex(headers, ["name", "product", "item", "description", "title"]);
   const priceIndex = headerIndex(headers, ["price", "unit_price", "unit price", "amount", "cost"]);
   const qtyIndex = headerIndex(headers, ["quantity", "qty", "default_quantity", "units"]);
+  const categoryIndex = headerIndex(headers, ["category", "group", "type", "section"]);
 
   if (nameIndex < 0 || priceIndex < 0) {
     return { rows: [], error: "csv_missing_columns" };
@@ -211,8 +242,11 @@ export function parsePosProductsFromCsv(raw: string): { rows: PosProductCsvRow[]
     const unitPrice = parseMoneyField(cols[priceIndex] || "");
     if (Number.isNaN(unitPrice) || unitPrice < 0) continue;
     const qtyRaw = qtyIndex >= 0 ? cols[qtyIndex] : "1";
-    const defaultQuantity = Math.max(1, parseInt(String(qtyRaw || "1"), 10) || 1);
-    rows.push({ name, unitPrice, defaultQuantity });
+    const defaultQuantity = parsePosQuantity(qtyRaw);
+    if (Number.isNaN(defaultQuantity)) continue;
+    const categoryRaw = categoryIndex >= 0 ? (cols[categoryIndex] || "").trim() : "";
+    const category = categoryRaw || POS_DEFAULT_CATEGORY;
+    rows.push({ name, unitPrice, defaultQuantity, category });
   }
 
   if (rows.length === 0) {
@@ -247,6 +281,7 @@ export async function importPosItemTemplates(
     name: item.name.trim(),
     unit_price: item.unitPrice,
     default_quantity: item.defaultQuantity,
+    category: item.category.trim() || POS_DEFAULT_CATEGORY,
   }));
 
   let imported = 0;
@@ -268,6 +303,7 @@ export async function savePosItemTemplate(
   unitPrice: number,
   defaultQuantity = 1,
   orgId?: string | null,
+  category = POS_DEFAULT_CATEGORY,
 ): Promise<{ error: string | null }> {
   const resolvedOrgId = orgId ?? (await getUserOrganizationId());
   if (!resolvedOrgId) return { error: "Organization not found" };
@@ -275,15 +311,35 @@ export async function savePosItemTemplate(
   const trimmed = name.trim();
   if (!trimmed) return { error: "Name is required" };
 
+  const qty = parsePosQuantity(defaultQuantity);
+  if (Number.isNaN(qty)) return { error: "Quantity must be greater than zero" };
+
   const { error } = await supabase.from("pos_item_templates" as any).upsert(
     {
       organization_id: resolvedOrgId,
       name: trimmed,
       unit_price: unitPrice,
-      default_quantity: Math.max(1, defaultQuantity),
+      default_quantity: qty,
+      category: category.trim() || POS_DEFAULT_CATEGORY,
     },
     { onConflict: "organization_id,name", ignoreDuplicates: false },
   );
+
+  return { error: error?.message ?? null };
+}
+
+export async function deletePosItemTemplate(
+  id: string,
+  orgId?: string | null,
+): Promise<{ error: string | null }> {
+  const resolvedOrgId = orgId ?? (await getUserOrganizationId());
+  if (!resolvedOrgId) return { error: "Organization not found" };
+
+  const { error } = await supabase
+    .from("pos_item_templates" as any)
+    .delete()
+    .eq("id", id)
+    .eq("organization_id", resolvedOrgId);
 
   return { error: error?.message ?? null };
 }
@@ -306,7 +362,7 @@ export async function recordPosItemUsage(
       p_org_id: resolvedOrgId,
       p_name: name,
       p_unit_price: item.unitPrice,
-      p_default_quantity: Math.max(1, item.quantity),
+      p_default_quantity: parsePosQuantity(item.quantity) || 1,
     });
   }
 }

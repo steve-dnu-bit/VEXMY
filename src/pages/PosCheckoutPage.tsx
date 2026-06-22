@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search, Settings2, ChevronDown } from "lucide-react";
+import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search, Settings2, ChevronDown, Trash2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
@@ -39,8 +39,13 @@ import {
   parsePosProductsFromCsv,
   recordPosItemUsage,
   savePosItemTemplate,
+  deletePosItemTemplate,
   resolveSplitPercents,
   splitPosAmount,
+  groupPosItemsByCategory,
+  parsePosQuantity,
+  formatPosQuantity,
+  POS_DEFAULT_CATEGORY,
   type PosBookingPrefill,
   type PosItemTemplate,
   type PosLineItem,
@@ -108,8 +113,11 @@ const PosCheckoutPage = () => {
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
-  const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1" });
+  const [customForm, setCustomForm] = useState({ name: "", price: "", quantity: "1", category: POS_DEFAULT_CATEGORY });
   const [saveForQuickAdd, setSaveForQuickAdd] = useState(true);
+  const [manageProducts, setManageProducts] = useState(false);
+  const [forceShopOnlySplit, setForceShopOnlySplit] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [linkedBooking, setLinkedBooking] = useState<PosBookingPrefill | null>(null);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [importingProducts, setImportingProducts] = useState(false);
@@ -314,16 +322,33 @@ const PosCheckoutPage = () => {
   const filteredQuickItems = useMemo(() => {
     const q = productSearch.trim().toLowerCase();
     if (!q) return quickItems;
-    return quickItems.filter((item) => item.name.toLowerCase().includes(q));
+    return quickItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        (item.category || POS_DEFAULT_CATEGORY).toLowerCase().includes(q),
+    );
   }, [quickItems, productSearch]);
 
+  const groupedQuickItems = useMemo(
+    () => groupPosItemsByCategory(filteredQuickItems),
+    [filteredQuickItems],
+  );
+
+  const productCategories = useMemo(() => {
+    const cats = new Set(quickItems.map((item) => item.category?.trim() || POS_DEFAULT_CATEGORY));
+    return [...cats].sort((a, b) => a.localeCompare(b));
+  }, [quickItems]);
+
   const activeSplit = useMemo(() => {
+    if (forceShopOnlySplit) {
+      return { shopPercent: 100, artistPercent: 0 };
+    }
     const override = artistSplits.find((s) => s.artist_id === artistId);
     return resolveSplitPercents(
       { shop_split_percent: shopSplit.shopPercent, artist_split_percent: shopSplit.artistPercent },
       override,
     );
-  }, [artistId, artistSplits, shopSplit]);
+  }, [artistId, artistSplits, shopSplit, forceShopOnlySplit]);
 
   const artistConnectAccountId = useMemo(() => {
     const override = artistSplits.find((s) => s.artist_id === artistId);
@@ -405,11 +430,13 @@ const PosCheckoutPage = () => {
 
   const addQuickItem = (item: PosItemTemplate) => {
     const unitPrice = Number(item.unit_price) || 0;
-    const quantity = Math.max(1, Number(item.default_quantity) || 1);
+    const quantity = parsePosQuantity(item.default_quantity) || 1;
     setCart((prev) => {
       const existing = prev.find((c) => c.templateId === item.id);
       if (existing) {
-        return prev.map((c) => (c.templateId === item.id ? { ...c, quantity: c.quantity + quantity } : c));
+        return prev.map((c) =>
+          c.templateId === item.id ? { ...c, quantity: Math.round((c.quantity + quantity) * 100) / 100 } : c,
+        );
       }
       return [
         ...prev,
@@ -427,22 +454,58 @@ const PosCheckoutPage = () => {
   const updateQty = (key: string, delta: number) => {
     setCart((prev) =>
       prev
-        .map((c) => (c.key === key ? { ...c, quantity: Math.max(0, c.quantity + delta) } : c))
+        .map((c) => {
+          if (c.key !== key) return c;
+          const next = Math.round((c.quantity + delta) * 100) / 100;
+          return { ...c, quantity: next };
+        })
         .filter((c) => c.quantity > 0),
     );
+  };
+
+  const setCartQty = (key: string, raw: string) => {
+    const parsed = parsePosQuantity(raw);
+    if (Number.isNaN(parsed)) return;
+    setCart((prev) =>
+      prev
+        .map((c) => (c.key === key ? { ...c, quantity: parsed } : c))
+        .filter((c) => c.quantity > 0),
+    );
+  };
+
+  const removeCartItem = (key: string) => {
+    setCart((prev) => prev.filter((c) => c.key !== key));
+  };
+
+  const deleteQuickItem = async (item: PosItemTemplate) => {
+    if (!organizationId) return;
+    setDeletingProductId(item.id);
+    try {
+      const { error } = await deletePosItemTemplate(item.id, organizationId);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      setCart((prev) => prev.filter((c) => c.templateId !== item.id));
+      await refreshQuickItems();
+      toast.success(t("pos.productDeleted"));
+    } finally {
+      setDeletingProductId(null);
+    }
   };
 
   const addCustomItem = async () => {
     const name = customForm.name.trim();
     const unitPrice = Number(customForm.price);
-    const quantity = Math.max(1, parseInt(customForm.quantity, 10) || 1);
-    if (!name || Number.isNaN(unitPrice) || unitPrice < 0) {
+    const quantity = parsePosQuantity(customForm.quantity);
+    const category = customForm.category.trim() || POS_DEFAULT_CATEGORY;
+    if (!name || Number.isNaN(unitPrice) || unitPrice < 0 || Number.isNaN(quantity)) {
       toast.error(t("pos.customItemInvalid"));
       return;
     }
 
     if (saveForQuickAdd) {
-      const { error } = await savePosItemTemplate(name, unitPrice, quantity, organizationId);
+      const { error } = await savePosItemTemplate(name, unitPrice, quantity, organizationId, category);
       if (error) {
         toast.error(error);
       } else {
@@ -453,7 +516,7 @@ const PosCheckoutPage = () => {
 
     const key = `custom-${Date.now()}`;
     setCart((prev) => [...prev, { key, templateId: null, name, unitPrice, quantity }]);
-    setCustomForm({ name: "", price: "", quantity: "1" });
+    setCustomForm({ name: "", price: "", quantity: "1", category: POS_DEFAULT_CATEGORY });
     setCustomOpen(false);
   };
 
@@ -478,7 +541,12 @@ const PosCheckoutPage = () => {
   };
 
   const downloadProductsCsvTemplate = () => {
-    const csv = ["name,price,quantity", "Small tattoo,120,1", "Touch-up,60,1", "Merchandise,25,1"].join("\n");
+    const csv = [
+      "name,price,quantity,category",
+      "Hourly rate,80,1,Services",
+      "Touch-up,60,1,Services",
+      "Merchandise,25,1,Retail",
+    ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -757,31 +825,61 @@ const PosCheckoutPage = () => {
                       aria-label={t("pos.searchProductsPlaceholder")}
                     />
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-3 max-h-[min(28rem,50vh)] overflow-y-auto themed-scrollbar pr-1">
-                    {filteredQuickItems.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => addQuickItem(item)}
-                        className="text-left rounded-xl border border-border bg-card/55 hover:bg-accent/40 transition-colors p-4 space-y-2"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="font-medium leading-snug">{item.name}</span>
-                          <span className="text-sm font-semibold tabular-nums shrink-0">
-                            {formatShopMoney(Number(item.unit_price) || 0, currency)}
-                          </span>
+                  <div className="space-y-4 max-h-[min(32rem,55vh)] overflow-y-auto themed-scrollbar pr-1">
+                    {groupedQuickItems.map(([category, items]) => (
+                      <div key={category} className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                          {category}
+                        </p>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {items.map((item) => (
+                            <div key={item.id} className="relative">
+                              <button
+                                type="button"
+                                onClick={() => !manageProducts && addQuickItem(item)}
+                                disabled={manageProducts}
+                                className={cn(
+                                  "w-full text-left rounded-xl border border-border bg-card/55 transition-colors p-4 space-y-2",
+                                  manageProducts ? "opacity-90" : "hover:bg-accent/40",
+                                )}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="font-medium leading-snug">{item.name}</span>
+                                  <span className="text-sm font-semibold tabular-nums shrink-0">
+                                    {formatShopMoney(Number(item.unit_price) || 0, currency)}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {t("pos.defaultQty", { qty: formatPosQuantity(Number(item.default_quantity) || 1) })}
+                                  {item.use_count > 0 ? ` · ${t("pos.usedCount", { count: item.use_count })}` : ""}
+                                </p>
+                              </button>
+                              {manageProducts ? (
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="destructive"
+                                  className="absolute top-2 right-2 h-7 w-7"
+                                  disabled={deletingProductId === item.id}
+                                  onClick={() => void deleteQuickItem(item)}
+                                  aria-label={t("pos.deleteProduct")}
+                                >
+                                  {deletingProductId === item.id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              ) : null}
+                            </div>
+                          ))}
                         </div>
-                        {item.use_count > 0 ? (
-                          <p className="text-xs text-muted-foreground">
-                            {t("pos.usedCount", { count: item.use_count })}
-                          </p>
-                        ) : null}
-                      </button>
+                      </div>
                     ))}
                     {quickItems.length === 0 ? (
-                      <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noServices")}</p>
+                      <p className="text-sm text-muted-foreground py-6 text-center">{t("pos.noServices")}</p>
                     ) : filteredQuickItems.length === 0 ? (
-                      <p className="text-sm text-muted-foreground col-span-2 py-6 text-center">{t("pos.noProductsMatch")}</p>
+                      <p className="text-sm text-muted-foreground py-6 text-center">{t("pos.noProductsMatch")}</p>
                     ) : null}
                   </div>
                   <div className="border-t border-border pt-3">
@@ -793,6 +891,10 @@ const PosCheckoutPage = () => {
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="pt-2 space-y-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox checked={manageProducts} onCheckedChange={(v) => setManageProducts(v === true)} />
+                          <span>{t("pos.manageProducts")}</span>
+                        </label>
                         <div className="flex flex-wrap gap-2">
                           <input
                             ref={productsCsvInputRef}
@@ -890,24 +992,54 @@ const PosCheckoutPage = () => {
                   ) : (
                     <div className="space-y-3">
                       {cart.map((item) => (
-                        <div key={item.key} className="flex items-start gap-3 text-sm">
+                        <div key={item.key} className="flex items-start gap-2 text-sm">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{item.name}</p>
                             <p className="text-muted-foreground text-xs tabular-nums">
-                              {formatShopMoney(item.unitPrice, currency)} × {item.quantity}
+                              {formatShopMoney(item.unitPrice, currency)} × {formatPosQuantity(item.quantity)}
                             </p>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            <Button type="button" size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.key, -1)}>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="outline"
+                              className="h-7 w-7"
+                              onClick={() => updateQty(item.key, -0.5)}
+                            >
                               <Minus className="h-3 w-3" />
                             </Button>
-                            <span className="w-6 text-center tabular-nums">{item.quantity}</span>
-                            <Button type="button" size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.key, 1)}>
+                            <Input
+                              type="number"
+                              min={0.01}
+                              step={0.25}
+                              value={formatPosQuantity(item.quantity)}
+                              onChange={(e) => setCartQty(item.key, e.target.value)}
+                              className="h-7 w-14 px-1 text-center tabular-nums text-xs"
+                              aria-label={t("pos.units")}
+                            />
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="outline"
+                              className="h-7 w-7"
+                              onClick={() => updateQty(item.key, 0.5)}
+                            >
                               <Plus className="h-3 w-3" />
                             </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                              onClick={() => removeCartItem(item.key)}
+                              aria-label={t("pos.removeFromCart")}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
-                          <p className="font-medium tabular-nums w-20 text-right">
-                            {formatShopMoney(item.unitPrice * item.quantity, currency)}
+                          <p className="font-medium tabular-nums w-20 text-right shrink-0">
+                            {formatShopMoney(Math.round(item.unitPrice * item.quantity * 100) / 100, currency)}
                           </p>
                         </div>
                       ))}
@@ -974,7 +1106,19 @@ const PosCheckoutPage = () => {
                   {cart.length > 0 ? (
                     <details className="rounded-lg bg-muted/40 p-3 text-xs">
                       <summary className="cursor-pointer font-medium text-sm">{t("pos.paymentSplit")}</summary>
-                      <div className="mt-2 space-y-1">
+                      <div className="mt-2 space-y-2">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={forceShopOnlySplit}
+                            onCheckedChange={(v) => setForceShopOnlySplit(v === true)}
+                            className="mt-0.5"
+                          />
+                          <span>
+                            <span className="font-medium text-sm block">{t("pos.shopOnlySplit")}</span>
+                            <span className="text-muted-foreground">{t("pos.shopOnlySplitHint")}</span>
+                          </span>
+                        </label>
+                        <div className="space-y-1 pt-1 border-t border-border/60">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t("pos.shopShare", { percent: activeSplit.shopPercent })}</span>
                           <span className="tabular-nums font-medium">{formatShopMoney(dueSplit.shopAmount, currency)}</span>
@@ -996,6 +1140,7 @@ const PosCheckoutPage = () => {
                             {t("pos.artistConnectConfigured", { accountId: artistConnectAccountId })}
                           </p>
                         ) : null}
+                        </div>
                       </div>
                     </details>
                   ) : null}
@@ -1303,12 +1448,30 @@ const PosCheckoutPage = () => {
                   <Input
                     id="custom-qty"
                     type="number"
-                    min={1}
+                    min={0.01}
+                    step={0.25}
                     value={customForm.quantity}
                     onChange={(e) => setCustomForm((f) => ({ ...f, quantity: e.target.value }))}
                     className="mt-1"
                   />
+                  <p className="text-[10px] text-muted-foreground mt-1">{t("pos.fractionalQtyHint")}</p>
                 </div>
+              </div>
+              <div>
+                <Label htmlFor="custom-category">{t("pos.productCategory")}</Label>
+                <Input
+                  id="custom-category"
+                  list="pos-product-categories"
+                  value={customForm.category}
+                  onChange={(e) => setCustomForm((f) => ({ ...f, category: e.target.value }))}
+                  placeholder={POS_DEFAULT_CATEGORY}
+                  className="mt-1"
+                />
+                <datalist id="pos-product-categories">
+                  {productCategories.map((cat) => (
+                    <option key={cat} value={cat} />
+                  ))}
+                </datalist>
               </div>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={saveForQuickAdd} onCheckedChange={(v) => setSaveForQuickAdd(v === true)} />

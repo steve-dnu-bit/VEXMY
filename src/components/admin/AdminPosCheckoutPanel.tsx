@@ -273,8 +273,28 @@ const AdminPosCheckoutPanel = () => {
                 <Percent className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {t("pos.artistGets", { percent: settings.artist_split_percent })}
+                {settings.shop_split_percent >= 100
+                  ? t("pos.shopOnlyDefaultSplit")
+                  : t("pos.artistGets", { percent: settings.artist_split_percent })}
               </p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={settings.shop_split_percent >= 100 ? "default" : "outline"}
+                  onClick={() => patchSettings({ shop_split_percent: 100 })}
+                >
+                  {t("pos.shopOnlySplitPreset")}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => patchSettings({ shop_split_percent: 50 })}
+                >
+                  {t("pos.split5050Preset")}
+                </Button>
+              </div>
             </div>
             <div>
               <Label htmlFor="pos-gratuity">{t("pos.defaultGratuity")}</Label>

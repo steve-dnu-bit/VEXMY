@@ -1,4 +1,8 @@
-# Logs
+# Android release binaries (too large for GitHub; deploy via Netlify CLI from local builds)
+releases/*.apk
+releases/*.aab
+public/downloads/velbok-android.apk
+
 logs
 *.log
 npm-debug.log*
