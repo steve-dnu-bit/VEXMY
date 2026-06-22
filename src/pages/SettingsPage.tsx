@@ -20,6 +20,7 @@ import { uploadFileToUploads } from "@/lib/uploadStorage";
 import { resizeProfileImageForUpload } from "@/lib/resizeProfileImage";
 import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 import ArtistPosPayoutCard from "@/components/settings/ArtistPosPayoutCard";
+import AccountDeletionRequestCard from "@/components/settings/AccountDeletionRequestCard";
 
 class SectionErrorBoundary extends React.Component<
   { title: string; children: React.ReactNode },
@@ -285,6 +286,8 @@ const SettingsPage = () => {
               <Link to="/cookies" className="text-primary hover:underline">{t("common.cookies")}</Link>
             </CardContent>
           </Card>
+
+          <AccountDeletionRequestCard />
 
         </div>
       </div>

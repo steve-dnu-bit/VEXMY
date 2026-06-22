@@ -873,6 +873,15 @@
     "timing1h": "1 hour before",
     "timing3h": "3 hours before"
   },
+  "accountDeletion": {
+    "title": "Delete account",
+    "desc": "Request permanent deletion of your Velbok login and personal data that Velbok (Inkaholics Limited) holds as platform controller.",
+    "bulletProfile": "Your profile, permissions, and sign-in access will be removed from Velbok.",
+    "bulletStudio": "Records your studio created (bookings, consent forms, messages) may be kept by the studio under their legal and insurance obligations.",
+    "bulletLegal": "Velbok may retain minimal billing, tax, or security records where the law requires.",
+    "responseTime": "We aim to respond within 30 days. See our",
+    "requestButton": "Request account deletion"
+  },
   "admin": {
     "title": "Admin",
     "subtitle": "Default roles and per-user access",

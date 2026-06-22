@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import AccountDeletionRequestCard from "@/components/settings/AccountDeletionRequestCard";
 
 function passwordChecks(pwd: string) {
   const minLen = pwd.length >= 8;
@@ -114,6 +115,8 @@ const CustomerSecurityPage = () => {
             </Button>
           </CardContent>
         </Card>
+
+        <AccountDeletionRequestCard />
       </div>
     </CustomerLayout>
   );
