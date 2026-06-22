@@ -86,7 +86,10 @@ export function buildArtistConnectExpressAccountParams(
     type: "express" as const,
     country: mapShopCountryToStripe(shop?.country),
     email: email.trim() || undefined,
+    // card_payments is required by Stripe for Express onboarding on most platforms.
+    // Desk/Tap to Pay charges always run on the studio Connect account — artists only receive split transfers.
     capabilities: {
+      card_payments: { requested: true },
       transfers: { requested: true },
     },
     business_type: "individual" as const,
@@ -99,6 +102,16 @@ export function buildArtistConnectExpressAccountParams(
       name: artistName.trim() || "Artist",
     },
   };
+}
+
+/** Request card_payments + transfers on existing artist accounts (fixes transfers-only onboarding blocks). */
+export async function ensureArtistConnectCapabilities(stripe: Stripe, accountId: string): Promise<void> {
+  await stripe.accounts.update(accountId, {
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  });
 }
 
 export async function findConnectAccountsForArtist(

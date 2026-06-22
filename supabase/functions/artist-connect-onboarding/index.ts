@@ -5,6 +5,7 @@ import {
   assertConnectPlatformReady,
   buildArtistConnectExpressAccountParams,
   canArtistSetupPosConnect,
+  ensureArtistConnectCapabilities,
   getArtistConnectStatus,
   getConnectStatusForOrg,
   resolveArtistConnectAccountId,
@@ -167,6 +168,7 @@ serve(async (req) => {
       accountId = account.id;
     }
 
+    await ensureArtistConnectCapabilities(stripe, accountId);
     await syncArtistConnectAccountFromStripe(admin, stripe, accountId);
 
     if (action === "dashboard") {
