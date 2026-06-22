@@ -517,6 +517,8 @@
     "monthlyChartHint": "Revenue, expenses, and net profit by month",
     "revenueSources": "Revenue sources",
     "revenueSourcesHint": "Latest month breakdown",
+    "artistBreakdown": "Desk revenue by artist",
+    "artistBreakdownHint": "POS desk totals per artist this month",
     "cashFlow": "Weekly cash flow",
     "cashFlowHint": "Money in vs out by week",
     "ledger": "Transaction ledger",

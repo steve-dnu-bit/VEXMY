@@ -12,6 +12,7 @@ interface FinancialChartsProps {
   dailyReports: ShopSalesReportRow[];
   monthlyReports: ShopSalesReportRow[];
   expenseCategories?: Array<{ name: string; total: number; color?: string }>;
+  artistBreakdown?: Array<{ name: string; value: number }>;
 }
 
 const chartConfig = {
@@ -25,7 +26,7 @@ const chartConfig = {
 
 const PIE_COLORS = ["#ef4444", "#f59e0b", "#8b5cf6", "#06b6d4", "#10b981", "#3b82f6", "#ec4899", "#6b7280"];
 
-const FinancialCharts = ({ currency, dailyReports, monthlyReports, expenseCategories = [] }: FinancialChartsProps) => {
+const FinancialCharts = ({ currency, dailyReports, monthlyReports, expenseCategories = [], artistBreakdown = [] }: FinancialChartsProps) => {
   const { t } = useTranslation();
   const money = (n: number) => formatShopMoney(n, currency);
 
@@ -71,6 +72,16 @@ const FinancialCharts = ({ currency, dailyReports, monthlyReports, expenseCatego
       fill: c.color || PIE_COLORS[i % PIE_COLORS.length],
     }));
   }, [expenseCategories]);
+
+  const artistPieData = useMemo(() => {
+    return artistBreakdown
+      .filter((a) => a.value > 0)
+      .map((a, i) => ({
+        name: a.name,
+        value: a.value,
+        fill: PIE_COLORS[(i + 3) % PIE_COLORS.length],
+      }));
+  }, [artistBreakdown]);
 
   if (dailyData.length === 0 && monthlyData.length === 0) return null;
 
@@ -140,6 +151,34 @@ const FinancialCharts = ({ currency, dailyReports, monthlyReports, expenseCatego
                 </Bar>
               </BarChart>
             </ChartContainer>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {artistPieData.length > 0 ? (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t("accounting.artistBreakdown")}</CardTitle>
+            <CardDescription>{t("accounting.artistBreakdownHint")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[220px] w-full aspect-auto">
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent formatter={(v) => money(Number(v))} />} />
+                <Pie data={artistPieData} dataKey="value" nameKey="name" innerRadius={48} outerRadius={80} paddingAngle={2}>
+                  {artistPieData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.fill} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            <div className="flex flex-wrap gap-2 justify-center mt-2">
+              {artistPieData.map((a) => (
+                <span key={a.name} className="text-xs text-muted-foreground">
+                  {a.name}: {money(a.value)}
+                </span>
+              ))}
+            </div>
           </CardContent>
         </Card>
       ) : null}

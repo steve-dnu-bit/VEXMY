@@ -109,6 +109,11 @@ const SalesReportsPanel = ({ currency, showCharts = true }: SalesReportsPanelPro
     total: c.total,
   }));
 
+  const artistBreakdown = (monthReport?.data.byArtist ?? []).map((a) => ({
+    name: a.artistName,
+    value: a.deskTotal,
+  }));
+
   const ReportMetrics = ({ report }: { report: ShopSalesReportRow }) => {
     const d = report.data;
     const expensesTotal = d.expensesTotal ?? 0;
@@ -185,6 +190,7 @@ const SalesReportsPanel = ({ currency, showCharts = true }: SalesReportsPanelPro
           dailyReports={chartDays}
           monthlyReports={chartMonths}
           expenseCategories={expenseCategories}
+          artistBreakdown={artistBreakdown}
         />
       ) : null}
 
