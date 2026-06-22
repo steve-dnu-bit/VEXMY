@@ -462,7 +462,7 @@ const PosCheckoutPage = () => {
 
   const addQuickItem = (item: PosItemTemplate, quantityOverride?: number) => {
     const unitPrice = Number(item.unit_price) || 0;
-    const quantity = quantityOverride ?? parsePosQuantity(item.default_quantity) || 1;
+    const quantity = quantityOverride ?? (parsePosQuantity(item.default_quantity) || 1);
     setCart((prev) => {
       const existing = prev.find((c) => c.templateId === item.id);
       if (existing) {
