@@ -22,6 +22,12 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+/** Some WisePad firmware/models reject setReaderDisplay — payment still works without it. */
+export function isUnsupportedReaderDisplayError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /does not support setting display/i.test(message) || /unsupported.*display/i.test(message);
+}
+
 /** Stripe requires total = sum(qty * unit amount) + tax (all in minor units). */
 export function buildReaderDisplayCart(input: {
   currency: string;
@@ -80,12 +86,14 @@ async function setDisplayWithRetry(payload: StripeDisplayPayload, attempts = 3):
       await StripeTerminal.setReaderDisplay(payload);
       return;
     } catch (error) {
+      if (isUnsupportedReaderDisplayError(error)) return;
       lastError = error;
       if (attempt < attempts - 1) {
         await sleep(350 * (attempt + 1));
       }
     }
   }
+  if (lastError && isUnsupportedReaderDisplayError(lastError)) return;
   throw lastError instanceof Error ? lastError : new Error("Could not update reader display");
 }
 

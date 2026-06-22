@@ -56,7 +56,7 @@ import {
   markWisePadFirmwareCompleted,
 } from "@/lib/terminal/wisePadSetupStorage";
 import { ensureTerminalLocation } from "@/lib/terminal/ensureTerminalLocation";
-import { buildReaderDisplayCart } from "@/lib/terminal/readerDisplay";
+import { buildReaderDisplayCart, isUnsupportedReaderDisplayError } from "@/lib/terminal/readerDisplay";
 import { setCachedTerminalLocationId } from "@/lib/terminal/terminalLocationCache";
 import { runStripeTerminalPreflight } from "@/lib/terminal/fetchConnectionToken";
 import {
@@ -377,7 +377,7 @@ const PosCheckoutPage = () => {
       }
     }
     const message = lastError instanceof Error ? lastError.message : t("pos.readerDisplayFailed");
-    if (!/not connected/i.test(message)) {
+    if (!/not connected/i.test(message) && !isUnsupportedReaderDisplayError(lastError)) {
       toast.error(message);
     }
   };
@@ -544,6 +544,10 @@ const PosCheckoutPage = () => {
     }
     if (!simulatedReader && !locationId && amountDue > 0) {
       toast.error(t("pos.locationRequired"));
+      return;
+    }
+    if (dueSplit.artistAmount > 0 && !artistConnectAccountId) {
+      toast.error(t("pos.artistConnectMissingBeforePay"));
       return;
     }
 
@@ -984,18 +988,12 @@ const PosCheckoutPage = () => {
                         ) : null}
                         {dueSplit.artistAmount > 0 && !artistConnectAccountId ? (
                           <p className="text-[11px] text-amber-600 pt-1">
-                            {t("pos.artistConnectMissing", {
-                              defaultValue:
-                                "Artist Stripe Connect (acct_…) is not saved — add it in Admin → POS and click Save for this artist, or select an artist with a payout account.",
-                            })}
+                            {t("pos.artistConnectMissing")}
                           </p>
                         ) : null}
                         {activeSplit.artistPercent > 0 && artistConnectAccountId ? (
                           <p className="text-[11px] text-muted-foreground pt-1 font-mono truncate">
-                            {t("pos.artistConnectConfigured", {
-                              defaultValue: "Payout account: {{accountId}}",
-                              accountId: artistConnectAccountId,
-                            })}
+                            {t("pos.artistConnectConfigured", { accountId: artistConnectAccountId })}
                           </p>
                         ) : null}
                       </div>

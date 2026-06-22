@@ -10,7 +10,11 @@ import {
 } from "../_shared/stripe-connect.ts";
 import { createConnectStripe, getConnectStripeSecret, stripeSecretMode } from "../_shared/stripe-keys.ts";
 import { getShopPaymentSettings, stripeMinimumChargeMajor } from "../_shared/shop-currency.ts";
-import { mapShopCountryToStripe } from "../_shared/stripe-connect.ts";
+import {
+  mapShopCountryToStripe,
+  resolveArtistConnectAccountId,
+  syncArtistConnectAccountFromStripe,
+} from "../_shared/stripe-connect.ts";
 import { callerHasPosAccess } from "../_shared/auth.ts";
 import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
 import { sendPosReceiptEmailIfNeeded } from "../_shared/pos-receipt-email.ts";
@@ -439,11 +443,23 @@ serve(async (req) => {
           .eq("organization_id", orgId)
           .eq("artist_id", artistId)
           .maybeSingle();
-        const artistConnectId = artistSplit?.stripe_connect_account_id?.trim();
+        let artistConnectId = artistSplit?.stripe_connect_account_id?.trim() || null;
+        if (!artistConnectId) {
+          artistConnectId = await resolveArtistConnectAccountId(
+            stripe,
+            orgId,
+            artistId,
+            artistSplit?.stripe_connect_account_id,
+          );
+          if (artistConnectId) {
+            await syncArtistConnectAccountFromStripe(admin, stripe, artistConnectId);
+          }
+        }
         if (!artistConnectId) {
           return new Response(
             JSON.stringify({
-              error: "Add the artist Stripe Connect account (acct_…) in Admin → POS → Artist overrides before taking a split payment.",
+              error:
+                "This artist has a payout share but no Stripe Connect account. The artist should open Settings → POS payout account and finish setup (or an admin can paste acct_… in Admin → POS → Artist overrides).",
               code: "artist_connect_required",
             }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
