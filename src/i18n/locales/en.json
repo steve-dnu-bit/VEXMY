@@ -503,6 +503,10 @@
   "accounting": {
     "title": "Accounting",
     "subtitle": "Profit & loss, cash flow, and a unified transaction ledger.",
+    "disclaimerTitle": "Not tax or legal advice",
+    "disclaimer": "Reports and exports are operational summaries for your studio only. They are not tax, VAT, or statutory accounts advice, and must not be used for official tax, corporate, or other regulatory filings without review by your qualified accountant. Payment splits and artist charts reflect money flows in Velbok — they do not determine employment status, VAT supply structure, or legal contracts between your studio and artists.",
+    "disclaimerShort": "Operational summaries only — not tax or legal advice. Confirm figures with your accountant before any official filing.",
+    "disclaimerCsv": "DISCLAIMER: Operational summary only — not for official tax or regulatory filings without professional review.",
     "totalRevenue": "Total revenue",
     "totalExpenses": "Total expenses",
     "netProfit": "Net profit",

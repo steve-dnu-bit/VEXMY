@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatShopMoney } from "@/lib/shopCurrency";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import FinancialCharts from "@/components/billing/FinancialCharts";
+import FinancialReportsDisclaimer from "@/components/billing/FinancialReportsDisclaimer";
 import {
   loadRecentSalesReports,
   loadSalesReport,
@@ -184,6 +185,7 @@ const SalesReportsPanel = ({ currency, showCharts = true }: SalesReportsPanelPro
 
   return (
     <div className="space-y-4">
+      {showCharts ? <FinancialReportsDisclaimer compact /> : null}
       {showCharts && (chartDays.length > 0 || chartMonths.length > 0) ? (
         <FinancialCharts
           currency={currency}

@@ -13,6 +13,7 @@ import { formatShopMoney } from "@/lib/shopCurrency";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { deleteExpense, loadExpenseCategories, loadExpenses, type ExpenseCategory, type ExpenseRow } from "@/lib/expenses";
 import CreateExpenseDialog from "@/components/billing/CreateExpenseDialog";
+import FinancialReportsDisclaimer from "@/components/billing/FinancialReportsDisclaimer";
 
 interface ExpensesPanelProps {
   currency: string;
@@ -87,6 +88,7 @@ const ExpensesPanel = ({ currency, onChanged }: ExpensesPanelProps) => {
         <CreateExpenseDialog currency={currency} onSaved={handleSaved} />
       </CardHeader>
       <CardContent className="space-y-4">
+        <FinancialReportsDisclaimer compact />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
           <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />

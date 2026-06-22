@@ -151,7 +151,7 @@ export function buildProfitLossFromSnapshot(
   };
 }
 
-export function buildLedgerCsv(entries: LedgerEntry[], currency: string): string {
+export function buildLedgerCsv(entries: LedgerEntry[], currency: string, disclaimer?: string): string {
   const header = ["Date", "Type", "Description", "Category", "Direction", "Amount", "Currency", "Reference"];
   const rows = entries.map((e) => [
     format(parseISO(e.date), "yyyy-MM-dd HH:mm"),
@@ -163,11 +163,19 @@ export function buildLedgerCsv(entries: LedgerEntry[], currency: string): string
     currency,
     csvEscape(e.reference || ""),
   ]);
-  return [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  const body = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  if (!disclaimer?.trim()) return body;
+  return `${csvEscape(disclaimer)}\n\n${body}`;
 }
 
-export function buildProfitLossCsv(summary: ProfitLossSummary, periodLabel: string, currency: string): string {
+export function buildProfitLossCsv(
+  summary: ProfitLossSummary,
+  periodLabel: string,
+  currency: string,
+  disclaimer?: string,
+): string {
   const lines = [
+    ...(disclaimer?.trim() ? [csvEscape(disclaimer), ""] : []),
     `Profit & Loss Report,${csvEscape(periodLabel)}`,
     `Currency,${currency}`,
     "",

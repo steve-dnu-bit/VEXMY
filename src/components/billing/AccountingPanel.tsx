@@ -22,6 +22,7 @@ import {
   type LedgerEntry,
 } from "@/lib/financialLedger";
 import { loadSalesReport, saveSalesReport, type ShopSalesReportRow } from "@/lib/salesReports";
+import FinancialReportsDisclaimer from "@/components/billing/FinancialReportsDisclaimer";
 
 interface AccountingPanelProps {
   currency: string;
@@ -89,24 +90,30 @@ const AccountingPanel = ({ currency }: AccountingPanelProps) => {
   const periodLabel = `${format(parseISO(fromDate), "d MMM yyyy")} – ${format(parseISO(toDate), "d MMM yyyy")}`;
 
   const exportLedger = () => {
-    const csv = buildLedgerCsv(ledger, currency);
+    const csv = buildLedgerCsv(ledger, currency, t("accounting.disclaimerCsv"));
     downloadTextFile(`velbok-ledger-${fromDate}-${toDate}.csv`, csv);
   };
 
   const exportPnl = () => {
     if (!pnl) return;
-    const csv = buildProfitLossCsv(pnl, periodLabel, currency);
+    const csv = buildProfitLossCsv(pnl, periodLabel, currency, t("accounting.disclaimerCsv"));
     downloadTextFile(`velbok-pnl-${fromDate}-${toDate}.csv`, csv);
   };
 
   const printPnl = () => {
     if (!pnl) return;
+    const disclaimer = t("accounting.disclaimerShort")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
     const w = window.open("", "_blank");
     if (!w) return;
     w.document.write(`
       <html><head><title>P&L ${periodLabel}</title>
-      <style>body{font-family:sans-serif;padding:24px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}th{text-align:left}.num{text-align:right}.total{font-weight:bold}</style>
+      <style>body{font-family:sans-serif;padding:24px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}th{text-align:left}.num{text-align:right}.total{font-weight:bold}.disclaimer{font-size:12px;color:#666;border:1px solid #ddd;padding:12px;margin-bottom:20px;background:#fafafa}</style>
       </head><body>
+      <div class="disclaimer">${disclaimer}</div>
       <h1>Profit & Loss</h1><p>${periodLabel}</p>
       <h2>Revenue</h2>
       <table><tr><td>Desk payments</td><td class="num">${money(pnl.revenueDesk)}</td></tr>
@@ -134,6 +141,7 @@ const AccountingPanel = ({ currency }: AccountingPanelProps) => {
 
   return (
     <div className="space-y-4" id="accounting-panel">
+      <FinancialReportsDisclaimer />
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
