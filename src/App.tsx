@@ -57,6 +57,7 @@ const CustomerDepositsPage = lazy(() => import("./pages/CustomerDepositsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
+const AccountDeletionPage = lazy(() => import("./pages/AccountDeletionPage"));
 const CustomerEmbedLoginPage = lazy(() => import("./pages/CustomerEmbedLoginPage"));
 const PosCheckoutPage = lazy(() => import("./pages/PosCheckoutPage"));
 
@@ -133,6 +134,7 @@ const App = () => (
                 <Route path="/docs/:slug" element={<DocsPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/account-deletion" element={<AccountDeletionPage />} />
                 <Route path="/cookies" element={<CookiePolicyPage />} />
                 <Route element={<CustomerPortalShell />}>
                   <Route path="/consent" element={<ConsentPage />} />

@@ -2315,6 +2315,7 @@
       "terms": "Terms",
       "privacy": "Privacy",
       "cookies": "Cookies",
+      "accountDeletion": "Account deletion",
       "home": "Home",
       "documentation": "Documentation",
       "studioLogin": "Studio login"
@@ -2403,7 +2404,9 @@
         },
         "rights": {
           "title": "Your rights",
-          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. Email",
+          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. To request account deletion, see our",
+          "accountDeletionLink": "account deletion page",
+          "p1AfterLink": "or email",
           "orWriteTo": "or write to:",
           "p2": "If we refuse a request, we will explain why. You may complain to the UK ICO or your local EU supervisory authority."
         },
@@ -2527,6 +2530,28 @@
           "p1": "We may update this policy to reflect legal, technical, or product changes. The latest version and update date are always published here."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Account deletion",
+      "lastUpdated": "22 June 2026",
+      "overviewTitle": "Request deletion of your Velbok account",
+      "overviewP1": "{{shopLegalName}} (trading as Velbok) lets you request deletion of your platform account and associated personal data we control.",
+      "overviewP2": "If you booked with a tattoo studio through Velbok, the studio may also hold client records separately. Contact the studio directly for in-studio records they control.",
+      "inAppTitle": "Delete from the app or website",
+      "inAppP1": "Signed-in users can start a deletion request from Settings:",
+      "inAppStaff": "Studio staff: Settings → Account deletion",
+      "inAppCustomer": "Customer portal: Account → Security → Account deletion",
+      "signInToRequest": "Sign in to pre-fill your account details in the deletion request email.",
+      "emailTitle": "Request by email",
+      "emailP1": "You can also email us from the address linked to your account. Include your full name and the email you use to sign in.",
+      "emailP2": "We may ask for additional verification before processing the request.",
+      "whatDeletedTitle": "What we delete",
+      "whatDeleted1": "Your Velbok login account and profile details we hold as platform controller.",
+      "whatDeleted2": "Platform-side preferences, notifications, and staff membership tied to your user account.",
+      "whatDeleted3": "Some records may be retained where required by law (for example tax, fraud prevention, or unresolved disputes).",
+      "timingTitle": "How long it takes",
+      "timingP1": "We aim to confirm receipt within a few business days and complete eligible deletion within 30 days, unless a longer period is required by law or to resolve an active subscription or dispute.",
+      "privacyLinkLead": "For full details on how we process personal data and your rights, see our"
     }
   },
   "depositCheckout": {

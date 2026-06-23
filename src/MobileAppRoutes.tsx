@@ -31,6 +31,7 @@ const ConsentPage = lazy(() => import("@/pages/ConsentPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("@/pages/CookiePolicyPage"));
+const AccountDeletionPage = lazy(() => import("@/pages/AccountDeletionPage"));
 const CustomerEmbedLoginPage = lazy(() => import("@/pages/CustomerEmbedLoginPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const PosCheckoutPage = lazy(() => import("@/pages/PosCheckoutPage"));
@@ -83,6 +84,7 @@ const MobileAppRoutes = () => (
     <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
     <Route path="/terms" element={<TermsPage />} />
     <Route path="/privacy" element={<PrivacyPage />} />
+    <Route path="/account-deletion" element={<AccountDeletionPage />} />
     <Route path="/cookies" element={<CookiePolicyPage />} />
     <Route element={<CustomerPortalShell />}>
       <Route path="/consent" element={<ConsentPage />} />
