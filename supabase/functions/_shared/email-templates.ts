@@ -54,6 +54,9 @@ function depositStatusLabel(
   currency = "gbp",
   locale: EmailLanguage = "en",
 ): string {
+  if (amount != null && amount <= 0) {
+    return t(locale, "depositStatus.notRequired");
+  }
   const formattedAmount = amount ? formatShopMoney(Number(amount), currency) : null;
   if (paid) {
     if (formattedAmount) return t(locale, "depositStatus.paidWithAmount", { amount: formattedAmount });

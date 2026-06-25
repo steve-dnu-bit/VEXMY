@@ -140,11 +140,30 @@ const StencilPage = () => {
       } else {
         generated = await generateLocalStencil(file, settings);
       }
-      const stored = await persistStencilSession(user.id, file, generated);
-      setSession(stored);
-      sessionRef.current = stored;
+
+      // Show the result immediately; cloud save is separate so a storage error
+      // does not hide a successful local/AI render.
       setStencilUrl(generated);
-      refreshRecent();
+
+      try {
+        const stored = await persistStencilSession(user.id, file, generated);
+        setSession(stored);
+        sessionRef.current = stored;
+        refreshRecent();
+      } catch (persistError: unknown) {
+        setSession(null);
+        sessionRef.current = null;
+        toast({
+          title: t("stencil.generatedTitle"),
+          description:
+            persistError instanceof Error
+              ? `${t("stencil.saveFailedDesc")} ${persistError.message}`
+              : t("stencil.saveFailedDesc"),
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: t("stencil.generatedTitle"),
         description: t("stencil.generatedDesc"),
@@ -201,7 +220,7 @@ const StencilPage = () => {
   };
 
   const handleDownload = async () => {
-    if (!stencilUrl || !session) return;
+    if (!stencilUrl) return;
     setDownloading(true);
     try {
       await downloadStencilOnly(stencilUrl);
@@ -558,7 +577,7 @@ const StencilPage = () => {
                   size="sm"
                   className="w-full gap-2"
                   onClick={handleDownload}
-                  disabled={downloading || !session}
+                  disabled={downloading}
                 >
                   {downloading ? (
                     <>

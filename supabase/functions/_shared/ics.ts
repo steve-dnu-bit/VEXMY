@@ -44,10 +44,11 @@ function escapeIcsText(value: string): string {
 
 export function buildBookingIcs(event: IcsBookingEvent): string {
   const now = toIcsUtc(new Date().toISOString());
+  const prodId = event.organizerName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 40) || "Studio";
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Velbok//Booking//EN",
+    `PRODID:-//${prodId}//Booking//EN`,
     "CALSCALE:GREGORIAN",
     `METHOD:${event.method}`,
     "BEGIN:VEVENT",

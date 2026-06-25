@@ -18,8 +18,9 @@ import { useArtistSeats } from "@/hooks/useSubscription";
 import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
 import { getPlanById } from "@/lib/pricingPlans";
 import { useTranslation } from "react-i18next";
-import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import i18n from "@/i18n";
+import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
 import {
   loadAdminTeamData,
   type AdminDefaultRow,
@@ -341,13 +342,14 @@ const AdminPage = () => {
     }
     setInviting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("invite-user", {
-        body: {
+      const { data, error } = await invokeEdgeFunctionJson<{ ok?: boolean; error?: string; existingAccount?: boolean }>(
+        "invite-user",
+        {
           email,
           inviteType: "artist",
           redirectTo: `${window.location.origin.replace(/\/$/, "")}/auth?next=/artist-profile-settings`,
         },
-      });
+      );
       if (error) {
         toast.error(error.message || t("admin.inviteFailed"));
         return;
@@ -356,7 +358,11 @@ const AdminPage = () => {
         toast.error(data.error);
         return;
       }
-      toast.success(t("admin.inviteSent", { email }));
+      toast.success(
+        data?.existingAccount
+          ? t("admin.inviteLinkedExisting", { email, defaultValue: `Linked ${email} — they can sign in with Google or the email we sent.` })
+          : t("admin.inviteSent", { email }),
+      );
       setInviteEmail("");
       void refetchSeats();
     } catch (e) {

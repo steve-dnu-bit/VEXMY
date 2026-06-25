@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchHasStaffAccess, fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
+import { fetchHasNoAppRoles, fetchHasStaffAccess, fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
+import { isNativeApp } from "@/lib/platform";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 import { needsShopSetup } from "@/lib/shopSettings";
 import { useTranslation } from "react-i18next";
@@ -11,7 +12,9 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
-  const [redirect, setRedirect] = useState<"account" | "customer-profile-setup" | "shop-setup" | null | "wait">("wait");
+  const [redirect, setRedirect] = useState<
+    "account" | "customer-profile-setup" | "shop-setup" | "subscribe" | null | "wait"
+  >("wait");
   const staffVerifiedRef = useRef(false);
   const lastUserIdRef = useRef<string | null>(null);
   const userId = user?.id ?? null;
@@ -57,13 +60,19 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
       }, 8000);
 
       try {
-        const [isStaff, onlyCustomer] = await Promise.all([
+        const [isStaff, onlyCustomer, noAppRoles] = await Promise.all([
           fetchHasStaffAccess(userId),
           fetchIsOnlyCustomer(userId),
+          fetchHasNoAppRoles(userId),
         ]);
         if (cancelled) return;
         done = true;
         if (timer) window.clearTimeout(timer);
+
+        if (noAppRoles) {
+          setRedirect("subscribe");
+          return;
+        }
 
         if (isStaff) {
           const setupRequired = await needsShopSetup(userId);
@@ -111,6 +120,9 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   if (redirect === "account") return <Navigate to="/account" replace />;
+  if (redirect === "subscribe") {
+    return <Navigate to={isNativeApp() ? "/billing" : "/subscribe?plan=studio"} replace />;
+  }
   if (redirect === "customer-profile-setup")
     return <Navigate to="/customer-profile-setup" replace />;
   if (redirect === "shop-setup") return <Navigate to="/shop-setup" replace />;

@@ -14,7 +14,13 @@ const result = spawnSync("npx", ["vite", "build"], {
   cwd: root,
   stdio: "inherit",
   shell: true,
-  env: { ...process.env, VITE_MOBILE_BUILD: "1" },
+  env: {
+    ...process.env,
+    VITE_MOBILE_BUILD: "1",
+    VITE_GOOGLE_CLIENT_ID:
+      process.env.VITE_GOOGLE_CLIENT_ID ||
+      "843973604535-hh4010q2pagr6m72esbh9mlddattg65i.apps.googleusercontent.com",
+  },
 });
 
 if (result.status !== 0) {

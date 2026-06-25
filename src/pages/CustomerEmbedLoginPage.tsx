@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase, getSupabaseConfigError } from "@/integrations/supabase/client";
@@ -7,11 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import MFAVerify from "@/components/auth/MFAVerify";
+import AuthPasswordlessPanel from "@/components/auth/AuthPasswordlessPanel";
+import AuthSupportFootnote from "@/components/auth/AuthSupportFootnote";
 import { resolvePostLoginPath } from "@/hooks/useUserRoles";
 import { Mail } from "lucide-react";
 import PasswordField from "@/components/auth/PasswordField";
 import { BRANDING } from "@/lib/branding";
 import { useAuth } from "@/hooks/useAuth";
+import OAuthSocialButtons from "@/components/auth/OAuthSocialButtons";
+import { GOOGLE_SIGN_IN_ENABLED, APPLE_SIGN_IN_ENABLED } from "@/lib/authConfig";
+import { completeAuthProvisioningFromContext } from "@/lib/authProvisioning";
+import { getPrimaryVerifiedTotpFactorId } from "@/lib/mfa";
 
 function navigateAfterLogin(path: string) {
   if (typeof window !== "undefined" && window.self !== window.top) {
@@ -23,24 +29,61 @@ function navigateAfterLogin(path: string) {
 
 const CustomerEmbedLoginPage = () => {
   const { t } = useTranslation();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, mfaVerificationRequired } = useAuth();
   const [searchParams] = useSearchParams();
   const shopDisplay = searchParams.get("shop")?.trim() || BRANDING.shopName;
+  const organizationId = searchParams.get("org")?.trim() || searchParams.get("organization_id")?.trim() || null;
+  const showOAuth = (GOOGLE_SIGN_IN_ENABLED || APPLE_SIGN_IN_ENABLED) && !!organizationId;
+  const customerOAuthIntent = {
+    type: "customer" as const,
+    organizationId,
+    next: "/account",
+  };
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [showPasswordless, setShowPasswordless] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const redirectStarted = useRef(false);
   const { toast } = useToast();
   const configError = getSupabaseConfigError();
 
+  const needsMfaUi = mfaVerificationRequired || !!mfaFactorId;
+
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (!mfaVerificationRequired) {
+      setMfaFactorId(null);
+      return;
+    }
+    void getPrimaryVerifiedTotpFactorId().then((id) => {
+      if (id) setMfaFactorId(id);
+    });
+  }, [mfaVerificationRequired]);
+
+  useEffect(() => {
+    if (authLoading || !user || redirectStarted.current || needsMfaUi) return;
+    redirectStarted.current = true;
+    setRedirecting(true);
     void (async () => {
-      const path = await resolvePostLoginPath(user.id, "/account");
-      navigateAfterLogin(path);
+      try {
+        await completeAuthProvisioningFromContext(searchParams);
+        const path = await resolvePostLoginPath(user.id, searchParams.get("next") || "/account");
+        navigateAfterLogin(path);
+      } catch {
+        navigateAfterLogin("/account");
+      }
     })();
-  }, [authLoading, user]);
+  }, [authLoading, user, searchParams, needsMfaUi]);
+
+  if (redirecting || (user && !authLoading && !needsMfaUi)) {
+    return (
+      <div className="flex min-h-[440px] items-center justify-center bg-[#101216] px-4 py-5 text-zinc-100">
+        <p className="text-sm text-zinc-400">{t("embed.signingIn")}</p>
+      </div>
+    );
+  }
 
   const authErrorMessage = (error: { message?: string }) => {
     const msg = error.message || t("common.error");
@@ -56,11 +99,9 @@ const CustomerEmbedLoginPage = () => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      const { data: factorsData } = await supabase.auth.mfa.listFactors();
-      const verifiedFactors = factorsData?.totp?.filter((f: { status: string }) => f.status === "verified") || [];
-
-      if (verifiedFactors.length > 0) {
-        setMfaFactorId(verifiedFactors[0].id);
+      const factorId = await getPrimaryVerifiedTotpFactorId();
+      if (factorId) {
+        setMfaFactorId(factorId);
         setLoading(false);
         return;
       }
@@ -84,6 +125,7 @@ const CustomerEmbedLoginPage = () => {
   };
 
   const handleMFAVerified = async () => {
+    setMfaFactorId(null);
     const {
       data: { user: u },
     } = await supabase.auth.getUser();
@@ -111,42 +153,64 @@ const CustomerEmbedLoginPage = () => {
         ) : null}
 
         <div className="mt-4 rounded-xl border border-gold/30 bg-[#090a0f]/90 p-4">
-          {mfaFactorId ? (
-            <MFAVerify factorId={mfaFactorId} onVerified={handleMFAVerified} onCancel={handleMFACancel} />
+          {needsMfaUi ? (
+            mfaFactorId ? (
+              <MFAVerify factorId={mfaFactorId} onVerified={handleMFAVerified} onCancel={handleMFACancel} compact />
+            ) : (
+              <p className="text-sm text-zinc-400 text-center py-4">{t("common.loading")}</p>
+            )
+          ) : showPasswordless ? (
+            <>
+              <AuthPasswordlessPanel compact defaultEmail={email} onCancel={() => setShowPasswordless(false)} />
+              <AuthSupportFootnote className="mt-3" />
+            </>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <Label className="text-[10px] uppercase tracking-widest text-gold">{t("common.email")}</Label>
-                <div className="relative mt-1.5">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gold/85" />
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t("auth.enterEmail")}
-                    className="h-10 border-gold/20 bg-black/30 pl-10 text-sm text-zinc-100 placeholder:text-zinc-500"
+            <>
+              {showOAuth ? (
+                <OAuthSocialButtons intent={customerOAuthIntent} disabled={loading || !!configError} />
+              ) : null}
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div>
+                  <Label className="text-[10px] uppercase tracking-widest text-gold">{t("common.email")}</Label>
+                  <div className="relative mt-1.5">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gold/85" />
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t("auth.enterEmail")}
+                      className="h-10 border-gold/20 bg-black/30 pl-10 text-sm text-zinc-100 placeholder:text-zinc-500"
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px] uppercase tracking-widest text-gold">{t("common.password")}</Label>
+                  <PasswordField
+                    value={password}
+                    onChange={setPassword}
+                    placeholder={t("auth.enterPassword")}
+                    className="mt-1.5"
+                    inputClassName="h-10 border-gold/20 bg-black/30 text-sm text-zinc-100 placeholder:text-zinc-500"
                     required
-                    autoComplete="email"
+                    minLength={6}
+                    autoComplete="current-password"
                   />
                 </div>
-              </div>
-              <div>
-                <Label className="text-[10px] uppercase tracking-widest text-gold">{t("common.password")}</Label>
-                <PasswordField
-                  value={password}
-                  onChange={setPassword}
-                  placeholder={t("auth.enterPassword")}
-                  className="mt-1.5"
-                  inputClassName="h-10 border-gold/20 bg-black/30 text-sm text-zinc-100 placeholder:text-zinc-500"
-                  required
-                  minLength={6}
-                  autoComplete="current-password"
-                />
-              </div>
-              <Button type="submit" variant="gold" className="h-10 w-full text-sm" disabled={loading}>
-                {loading ? t("common.loading") : t("common.signIn")}
-              </Button>
-            </form>
+                <Button type="submit" variant="gold" className="h-10 w-full text-sm" disabled={loading}>
+                  {loading ? t("common.loading") : t("common.signIn")}
+                </Button>
+                <button
+                  type="button"
+                  className="mx-auto block text-[11px] text-zinc-500 hover:text-zinc-300 hover:underline"
+                  onClick={() => setShowPasswordless(true)}
+                >
+                  {t("auth.signInWithoutPassword")}
+                </button>
+              </form>
+              <AuthSupportFootnote className="mt-3" />
+            </>
           )}
         </div>
 

@@ -34,6 +34,7 @@ interface Booking {
   starts_at: string;
   ends_at: string;
   deposit_paid: boolean | null;
+  deposit_amount?: number | null;
 }
 
 interface Profile {
@@ -379,7 +380,9 @@ const TimeGrid = ({
                         </p>
                         <p className="text-xs text-muted-foreground mt-1 truncate">
                           {artistName}
-                          {b.deposit_paid ? ` · ${t("schedule.depositPaid", { defaultValue: "Deposit paid" })}` : ""}
+                          {b.deposit_amount !== 0 && b.deposit_paid
+                            ? ` · ${t("schedule.depositPaid", { defaultValue: "Deposit paid" })}`
+                            : ""}
                         </p>
                       </button>
                     );

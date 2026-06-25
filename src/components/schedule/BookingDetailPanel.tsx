@@ -23,11 +23,13 @@ import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
+import ClientAppointmentsDialog from "@/components/schedule/ClientAppointmentsDialog";
 import { loadPosSaleForBooking, type PosSaleRow } from "@/lib/posCheckout";
 import { formatShopMoney } from "@/lib/shopCurrency";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
-import ClientAppointmentsDialog from "@/components/schedule/ClientAppointmentsDialog";
+import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
+import { getBookingDepositStatus } from "@/lib/serviceDeposit";
 
 interface Booking {
   id: string;
@@ -45,6 +47,8 @@ interface Booking {
   starts_at: string;
   ends_at: string;
   deposit_paid: boolean | null;
+  deposit_amount?: number | null;
+  vip_client?: boolean | null;
   organization_id?: string | null;
 }
 
@@ -72,9 +76,10 @@ type ClientConductRow = {
 };
 
 const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtistName, onSelectClientBooking }: BookingDetailPanelProps) => {
-  const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
+  const { t, bookingTypeLabel, tattooSizeLabel, depositStatusLabel } = useScheduleI18n();
   const { user } = useAuth();
   const { hasFeature } = useSubscription();
+  const [shopDefaultDeposit, setShopDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
   const [conductLoading, setConductLoading] = useState(true);
   const [savingConduct, setSavingConduct] = useState(false);
@@ -110,6 +115,15 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
     late_cancellations_count: lateCancellationsCount,
     reschedules_count: reschedulesCount,
   });
+
+  const depositStatus = useMemo(
+    () => getBookingDepositStatus(booking, shopDefaultDeposit),
+    [booking, shopDefaultDeposit],
+  );
+
+  useEffect(() => {
+    void loadShopDefaultDepositAmount(booking.organization_id).then(setShopDefaultDeposit);
+  }, [booking.organization_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -241,8 +255,10 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
   };
 
   const sendDepositReminder = async () => {
-    if (booking.deposit_paid) {
-      toast.info(t("schedule.depositAlreadyPaid"));
+    if (depositStatus !== "pending") {
+      toast.info(
+        depositStatus === "paid" ? t("schedule.depositAlreadyPaid") : t("schedule.noDepositForService"),
+      );
       return;
     }
     if (!booking.client_email) {
@@ -478,27 +494,34 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
 
           <div className="pt-2 border-t border-border">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.deposit")}</p>
-            <Badge variant={booking.deposit_paid ? "default" : "outline"} className="text-[10px]">
-              {booking.deposit_paid ? t("schedule.depositPaidBadge") : t("schedule.depositPendingBadge")}
-            </Badge>
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full h-8 mt-2 text-xs gap-1"
-              onClick={sendDepositReminder}
-              disabled={sendingDepositReminder || !!booking.deposit_paid}
+            <Badge
+              variant={depositStatus === "paid" ? "default" : "outline"}
+              className="text-[10px]"
             >
-              <Send className="h-3 w-3" />
-              {sendingDepositReminder ? t("schedule.sending") : t("schedule.sendReminder")}
-            </Button>
-            <Button size="sm" variant="secondary" className="w-full h-8 mt-2 text-xs gap-1" asChild>
-              <Link
-                to={`/checkout?bookingId=${encodeURIComponent(booking.id)}&artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
-              >
-                <CreditCard className="h-3 w-3" />
-                {t("schedule.payAtDesk")}
-              </Link>
-            </Button>
+              {depositStatusLabel(booking, shopDefaultDeposit)}
+            </Badge>
+            {depositStatus === "pending" ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full h-8 mt-2 text-xs gap-1"
+                  onClick={sendDepositReminder}
+                  disabled={sendingDepositReminder}
+                >
+                  <Send className="h-3 w-3" />
+                  {sendingDepositReminder ? t("schedule.sending") : t("schedule.sendReminder")}
+                </Button>
+                <Button size="sm" variant="secondary" className="w-full h-8 mt-2 text-xs gap-1" asChild>
+                  <Link
+                    to={`/checkout?bookingId=${encodeURIComponent(booking.id)}&artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
+                  >
+                    <CreditCard className="h-3 w-3" />
+                    {t("schedule.payAtDesk")}
+                  </Link>
+                </Button>
+              </>
+            ) : null}
             {posSaleLoading ? (
               <p className="text-xs text-muted-foreground mt-2">{t("schedule.checkingPosPayment")}</p>
             ) : posSale ? (

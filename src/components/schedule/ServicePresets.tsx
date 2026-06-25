@@ -1,20 +1,7 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { loadOrgServices, type OrgService } from "@/lib/shopServices";
 
-export interface Service {
-  id: string;
-  name: string;
-  duration: number;
-  booking_type: string;
-  /** Tattoo / piercing / laser / consultation — drives consent + aftercare, not booking_type. */
-  service_category: string;
-  color: string;
-  price: number | null;
-  deposit_required: boolean;
-  deposit_amount: number | null;
-  is_active: boolean;
-  sort_order: number;
-}
+export type Service = OrgService;
 
 const COLOR_MAP: Record<string, string> = {
   blue: "bg-blue-500/20 border-blue-500/40 text-blue-300",
@@ -42,12 +29,8 @@ export const useServices = () => {
   const [loading, setLoading] = useState(true);
 
   const fetch = async () => {
-    const { data } = await supabase
-      .from("services")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order");
-    if (data) setServices(data as Service[]);
+    const data = await loadOrgServices({ activeOnly: true });
+    setServices(data);
     setLoading(false);
   };
 

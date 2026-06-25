@@ -19,21 +19,10 @@ import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { loadShopSettings } from "@/lib/shopSettings";
 import { maxDepositAmountForCurrency, minDepositAmountForCurrency } from "@/lib/depositLimits";
 import { parseDepositInput } from "@/lib/shopDepositSettings";
+import { getUserOrganizationId } from "@/lib/shopSettings";
+import { loadOrgServices, type OrgService } from "@/lib/shopServices";
 
-interface Service {
-  id: string;
-  name: string;
-  duration: number;
-  booking_type: string;
-  service_category: string;
-  color: string;
-  price: number | null;
-  deposit_required: boolean;
-  deposit_amount: number | null;
-  is_active: boolean;
-  sort_order: number;
-  created_by: string;
-}
+interface Service extends OrgService {}
 
 const COLOR_OPTIONS = [
   { value: "blue", label: "Blue", class: "bg-blue-500" },
@@ -77,11 +66,8 @@ const ServicesPage = () => {
   }, []);
 
   const fetchServices = async () => {
-    const { data } = await supabase
-      .from("services")
-      .select("*")
-      .order("sort_order");
-    if (data) setServices(data as Service[]);
+    const data = await loadOrgServices();
+    setServices(data);
   };
 
   const openNew = () => {
@@ -156,8 +142,14 @@ const ServicesPage = () => {
       }
       toast({ title: t("services.serviceUpdated") });
     } else {
+      const orgId = await getUserOrganizationId();
+      if (!orgId) {
+        toast({ title: t("services.errorCreating"), description: "No studio organization found.", variant: "destructive" });
+        return;
+      }
       const { error } = await supabase.from("services").insert({
         ...payload,
+        organization_id: orgId,
         created_by: user.id,
         sort_order: services.length,
       });

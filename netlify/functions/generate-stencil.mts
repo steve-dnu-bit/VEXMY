@@ -96,16 +96,43 @@ Style — blackwork:
 
 const DEFAULT_STYLE = "valoonia";
 
-type GeminiPart = {
-  text?: string;
-  inlineData?: { mimeType?: string; data?: string };
-  inline_data?: { mime_type?: string; data?: string };
-};
+const CORS_ALLOW_ORIGINS = new Set([
+  "https://velbok.com",
+  "https://www.velbok.com",
+  "https://localhost",
+  "http://localhost",
+  "capacitor://localhost",
+  "ionic://localhost",
+  "https://com.velbok.app",
+]);
 
-function json(body: unknown, status = 200): Response {
+function isCapacitorOrigin(origin: string): boolean {
+  return (
+    origin.startsWith("capacitor://") ||
+    origin.startsWith("ionic://") ||
+    origin === "https://com.velbok.app" ||
+    /^https?:\/\/localhost(?::\d+)?$/.test(origin)
+  );
+}
+
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") || "";
+  const allow =
+    CORS_ALLOW_ORIGINS.has(origin) || isCapacitorOrigin(origin) ? origin : "https://velbok.com";
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers": "authorization, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+function json(body: unknown, status = 200, req?: Request): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(req ? corsHeaders(req) : {}),
+    },
   });
 }
 
@@ -129,6 +156,12 @@ function parseImage(image: string): { mimeType: string; base64: string } | null 
 }
 
 /** Pull the first generated image out of a Gemini generateContent response. */
+type GeminiPart = {
+  text?: string;
+  inlineData?: { mimeType?: string; data?: string };
+  inline_data?: { mime_type?: string; data?: string };
+};
+
 function extractStencil(data: any): string | null {
   const parts: GeminiPart[] = data?.candidates?.[0]?.content?.parts ?? [];
   for (const part of parts) {
@@ -164,6 +197,66 @@ async function getUserId(req: Request): Promise<string | null> {
   }
 }
 
+/** Upload a generated stencil and return a short signed HTTPS URL (for mobile clients). */
+async function uploadStencilSignedUrl(
+  req: Request,
+  userId: string,
+  dataUrl: string,
+): Promise<string | null> {
+  const env = supabaseEnv();
+  if (!env) return null;
+
+  const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/s);
+  if (!match) return null;
+
+  const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!token) return null;
+
+  const mime = match[1];
+  const bytes = Uint8Array.from(Buffer.from(match[2], "base64"));
+  const id = crypto.randomUUID();
+  const path = `stencils/${userId}/${id}/preview-stencil.png`;
+
+  try {
+    const uploadRes = await fetch(`${env.url}/storage/v1/object/uploads/${encodeURI(path)}`, {
+      method: "POST",
+      headers: {
+        apikey: env.anonKey,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": mime,
+        "x-upsert": "false",
+      },
+      body: bytes,
+    });
+    if (!uploadRes.ok) {
+      console.error("Stencil preview upload failed:", uploadRes.status, await uploadRes.text().catch(() => ""));
+      return null;
+    }
+
+    const signRes = await fetch(`${env.url}/storage/v1/object/sign/uploads/${encodeURI(path)}`, {
+      method: "POST",
+      headers: {
+        apikey: env.anonKey,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ expiresIn: 3600 }),
+    });
+    if (!signRes.ok) {
+      console.error("Stencil preview sign failed:", signRes.status, await signRes.text().catch(() => ""));
+      return null;
+    }
+
+    const signData = (await signRes.json().catch(() => null)) as { signedURL?: string } | null;
+    const signedPath = signData?.signedURL;
+    if (!signedPath) return null;
+    return signedPath.startsWith("http") ? signedPath : `${env.url}/storage/v1${signedPath}`;
+  } catch (e) {
+    console.error("Stencil preview upload error:", e);
+    return null;
+  }
+}
+
 /** Call a Postgres RPC through PostgREST using the caller's bearer token. */
 async function callRpc(req: Request, fn: string, args: Record<string, unknown>): Promise<any> {
   const env = supabaseEnv();
@@ -187,40 +280,46 @@ async function callRpc(req: Request, fn: string, args: Record<string, unknown>):
 }
 
 export default async (req: Request): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders(req) });
+  }
+
   if (req.method !== "POST") {
-    return json({ error: "Method not allowed" }, 405);
+    return json({ error: "Method not allowed" }, 405, req);
   }
 
   const userId = await getUserId(req);
   if (!userId) {
-    return json({ error: "Not authorized. Please sign in again." }, 401);
+    return json({ error: "Not authorized. Please sign in again." }, 401, req);
   }
 
-  let body: { image?: string; style?: string } = {};
+  let body: { image?: string; style?: string; delivery?: string } = {};
   try {
     body = await req.json();
   } catch {
-    return json({ error: "Invalid request body" }, 400);
+    return json({ error: "Invalid request body" }, 400, req);
   }
 
   const parsed = body.image ? parseImage(body.image) : null;
   if (!parsed) {
-    return json({ error: "A reference image is required." }, 400);
+    return json({ error: "A reference image is required." }, 400, req);
   }
 
   const styleKey =
     typeof body.style === "string" && STENCIL_STYLES[body.style] ? body.style : DEFAULT_STYLE;
   const style = STENCIL_STYLES[styleKey];
 
-  const baseUrl = process.env.GOOGLE_GEMINI_BASE_URL;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const baseUrl =
+    process.env.GOOGLE_GEMINI_BASE_URL || process.env.NETLIFY_AI_GATEWAY_BASE_URL;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.NETLIFY_AI_GATEWAY_KEY;
   if (!baseUrl || !apiKey) {
     return json(
       {
         error:
-          "Netlify AI Gateway is not enabled. Enable AI features for this site and redeploy.",
+          "Netlify AI Gateway is not available. Enable AI features for this site in Netlify (Team settings → AI) and ensure you have credits.",
       },
       503,
+      req,
     );
   }
 
@@ -233,6 +332,7 @@ export default async (req: Request): Promise<Response> => {
         quota: claim,
       },
       429,
+      req,
     );
   }
   const usageId: string | null = claim?.usage_id ?? null;
@@ -264,7 +364,7 @@ export default async (req: Request): Promise<Response> => {
     });
   } catch (e) {
     await refund();
-    return json({ error: "Could not reach the AI service. Please try again." }, 502);
+    return json({ error: "Could not reach the AI service. Please try again." }, 502, req);
   }
 
   if (!aiRes.ok) {
@@ -273,17 +373,19 @@ export default async (req: Request): Promise<Response> => {
       return json(
         { error: "Rate limit reached. Please try again in a moment." },
         429,
+        req,
       );
     }
     if (aiRes.status === 402) {
       return json(
         { error: "Netlify AI credits exhausted. Top up your account to continue." },
         402,
+        req,
       );
     }
     const detail = await aiRes.text().catch(() => "");
     console.error("AI Gateway error:", aiRes.status, detail.slice(0, 500));
-    return json({ error: "The AI service returned an error. Please try again." }, 502);
+    return json({ error: "The AI service returned an error. Please try again." }, 502, req);
   }
 
   const data = await aiRes.json().catch(() => null);
@@ -294,10 +396,17 @@ export default async (req: Request): Promise<Response> => {
     return json(
       { error: "No stencil image was generated. Try a clearer reference image." },
       502,
+      req,
     );
   }
 
-  return json({ stencilUrl, style: styleKey, quota: claim ?? null });
+  let responseUrl = stencilUrl;
+  if (body.delivery === "url") {
+    const signed = await uploadStencilSignedUrl(req, userId, stencilUrl);
+    if (signed) responseUrl = signed;
+  }
+
+  return json({ stencilUrl: responseUrl, style: styleKey, quota: claim ?? null }, 200, req);
 };
 
 export const config = {

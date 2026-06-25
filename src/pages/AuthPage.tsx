@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getSupabaseConfigError, supabase } from "@/integrations/supabase/client";
@@ -6,35 +6,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import MFAVerify from "@/components/auth/MFAVerify";
+import AuthPasswordlessPanel from "@/components/auth/AuthPasswordlessPanel";
+import AuthSupportFootnote from "@/components/auth/AuthSupportFootnote";
+import { getPrimaryVerifiedTotpFactorId } from "@/lib/mfa";
 import { Mail } from "lucide-react";
 import PasswordField from "@/components/auth/PasswordField";
 import { BRANDING } from "@/lib/branding";
 import LanguageSelector from "@/components/i18n/LanguageSelector";
 import VelbokBrand from "@/components/brand/VelbokBrand";
-import { GOOGLE_SIGN_IN_ENABLED } from "@/lib/authConfig";
-import { isNativeApp } from "@/lib/platform";
-
-/** Password-reset links must match Supabase Auth → URL Configuration allow list. */
-function getAuthSiteOrigin(): string {
-  const fromEnv =
-    import.meta.env.VITE_SITE_URL?.trim() || import.meta.env.VITE_SHOP_WEBSITE_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
-  return window.location.origin;
-}
-
+import OAuthSocialButtons from "@/components/auth/OAuthSocialButtons";
+import { GOOGLE_SIGN_IN_ENABLED, APPLE_SIGN_IN_ENABLED } from "@/lib/authConfig";
+import { authIntentFromSearchParams } from "@/lib/authIntent";
+import { isSupabaseAuthLockError } from "@/lib/authErrors";
+import { getAuthSiteOrigin } from "@/lib/oauth";
 const AuthPage = () => {
   const { t } = useTranslation();
+  const { mfaVerificationRequired } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [recoveryPassword, setRecoveryPassword] = useState("");
   const [recoveryPasswordConfirm, setRecoveryPasswordConfirm] = useState("");
+  const [showMfaVerify, setShowMfaVerify] = useState(false);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [showPasswordless, setShowPasswordless] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -42,15 +42,45 @@ const AuthPage = () => {
     searchParams.get("mode") === "recovery" ||
     (typeof window !== "undefined" && window.location.hash.includes("type=recovery"));
 
+  const inviteToken = searchParams.get("invite");
+  const oauthIntent =
+    authIntentFromSearchParams(searchParams) ??
+    (searchParams.get("org") || searchParams.get("organization_id")
+      ? {
+          type: "customer" as const,
+          organizationId: searchParams.get("org") || searchParams.get("organization_id"),
+          next: searchParams.get("next"),
+        }
+      : inviteToken
+        ? {
+            type: "invite" as const,
+            next: searchParams.get("next"),
+            inviteToken,
+          }
+        : {
+            type: "staff" as const,
+            next: searchParams.get("next"),
+          });
+
+  const showOAuth = GOOGLE_SIGN_IN_ENABLED || APPLE_SIGN_IN_ENABLED;
   const configError = getSupabaseConfigError();
 
-  const getOAuthRedirectUrl = () => {
-    const next = searchParams.get("next");
-    const base = `${getAuthSiteOrigin()}/auth`;
-    return next ? `${base}?next=${encodeURIComponent(next)}` : base;
-  };
+  useEffect(() => {
+    if (!mfaVerificationRequired) {
+      setShowMfaVerify(false);
+      setMfaFactorId(null);
+      return;
+    }
+    setShowMfaVerify(true);
+    void getPrimaryVerifiedTotpFactorId().then((id) => {
+      if (id) setMfaFactorId(id);
+    });
+  }, [mfaVerificationRequired]);
 
   const authErrorMessage = (error: { message?: string }) => {
+    if (isSupabaseAuthLockError(error)) {
+      return t("auth.sessionSyncRetry", { defaultValue: "Session sync interrupted. Please try again." });
+    }
     const msg = error.message || t("common.error");
     if (/invalid login credentials/i.test(msg)) {
       return t("auth.invalidCredentialsHint");
@@ -70,13 +100,11 @@ const AuthPage = () => {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        // Check if user has MFA factors
-        const { data: factorsData } = await supabase.auth.mfa.listFactors();
-        const verifiedFactors = factorsData?.totp?.filter((f: any) => f.status === "verified") || [];
+        const factorId = await getPrimaryVerifiedTotpFactorId();
 
-        if (verifiedFactors.length > 0) {
-          // Need MFA verification
-          setMfaFactorId(verifiedFactors[0].id);
+        if (factorId) {
+          setMfaFactorId(factorId);
+          setShowMfaVerify(true);
           setLoading(false);
           return;
         }
@@ -108,41 +136,14 @@ const AuthPage = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    if (isNativeApp()) {
-      toast({
-        title: t("common.error"),
-        description: t("auth.googleSignInFailed"),
-        variant: "destructive",
-      });
-      return;
-    }
-    if (configError) return;
-    setGoogleLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: getOAuthRedirectUrl() },
-      });
-      if (error) throw error;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : t("auth.googleSignInFailed");
-      toast({
-        title: t("common.error"),
-        description: message,
-        variant: "destructive",
-      });
-      setGoogleLoading(false);
-    }
-  };
-
   const handleMFAVerified = async () => {
+    setShowMfaVerify(false);
     setMfaFactorId(null);
-    // AuthRoute → AuthHomeRedirect handles post-login routing.
   };
 
   const handleMFACancel = async () => {
     await supabase.auth.signOut();
+    setShowMfaVerify(false);
     setMfaFactorId(null);
   };
 
@@ -240,12 +241,17 @@ const AuthPage = () => {
         ) : null}
 
         <div className="rounded-2xl border border-gold/40 bg-[#101216]/82 p-5 shadow-[0_14px_32px_rgba(0,0,0,0.48)] backdrop-blur-sm">
-          {mfaFactorId ? (
-            <MFAVerify
-              factorId={mfaFactorId}
-              onVerified={handleMFAVerified}
-              onCancel={handleMFACancel}
-            />
+          {showMfaVerify ? (
+            mfaFactorId ? (
+              <MFAVerify factorId={mfaFactorId} onVerified={handleMFAVerified} onCancel={handleMFACancel} />
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-6">{t("common.loading")}</p>
+            )
+          ) : showPasswordless ? (
+            <>
+              <AuthPasswordlessPanel defaultEmail={email} onCancel={() => setShowPasswordless(false)} />
+              <AuthSupportFootnote className="mt-4" />
+            </>
           ) : recoveryMode ? (
             <>
               <h2 className="font-display text-xl font-semibold mb-2">{t("auth.setNewPassword")}</h2>
@@ -296,42 +302,11 @@ const AuthPage = () => {
               <div className="mx-auto mb-4 h-px w-20 bg-gradient-to-r from-transparent via-gold/80 to-transparent" />
               <p className="mb-4 text-center text-[11px] leading-[1.4] text-zinc-300">{t("auth.authSubtitle")}</p>
 
-              {GOOGLE_SIGN_IN_ENABLED && !isNativeApp() ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mb-4 h-11 w-full border-gold/25 bg-black/20 text-zinc-100 hover:bg-black/40"
-                    onClick={() => void handleGoogleSignIn()}
-                    disabled={loading || googleLoading || !!configError}
-                  >
-                    <svg className="mr-2 h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                      <path
-                        fill="#4285F4"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    {googleLoading ? t("auth.continuingWithGoogle") : t("auth.continueWithGoogle")}
-                  </Button>
-
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-zinc-700/70" />
-                    <span className="text-xs text-zinc-500">{t("auth.or")}</span>
-                    <div className="h-px flex-1 bg-zinc-700/70" />
-                  </div>
-                </>
+              {showOAuth && !recoveryMode ? (
+                <OAuthSocialButtons
+                  intent={oauthIntent}
+                  disabled={loading || !!configError}
+                />
               ) : null}
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -380,7 +355,7 @@ const AuthPage = () => {
                     autoComplete={isLogin ? "current-password" : "new-password"}
                   />
                 </div>
-                <Button type="submit" variant="gold" className="h-11 w-full text-sm tracking-[0.12em]" disabled={loading || googleLoading}>
+                <Button type="submit" variant="gold" className="h-11 w-full text-sm tracking-[0.12em]" disabled={loading}>
                   {loading ? t("common.loading") : isLogin ? t("common.signIn") : t("auth.signUp")}
                 </Button>
                 {isLogin ? (
@@ -398,6 +373,13 @@ const AuthPage = () => {
                     >
                       {forgotPasswordLoading ? t("auth.sendingReset") : t("auth.forgotPassword")}
                     </button>
+                    <button
+                      type="button"
+                      className="mx-auto block text-xs text-zinc-500 hover:text-zinc-300 hover:underline"
+                      onClick={() => setShowPasswordless(true)}
+                    >
+                      {t("auth.signInWithoutPassword")}
+                    </button>
                   </>
                 ) : null}
               </form>
@@ -411,6 +393,7 @@ const AuthPage = () => {
                   {isLogin ? t("auth.signUp") : t("common.signIn")}
                 </button>
               </p>
+              <AuthSupportFootnote className="mt-3" />
             </>
           )}
         </div>

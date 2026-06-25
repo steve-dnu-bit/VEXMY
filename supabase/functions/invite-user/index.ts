@@ -196,6 +196,188 @@ function buildArtistInviteHtml(params: { magicLink: string }) {
   });
 }
 
+function isExistingUserError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("already registered") ||
+    m.includes("already been registered") ||
+    m.includes("email address has already") ||
+    m.includes("user already exists") ||
+    m.includes("email_exists") ||
+    m.includes("user already registered")
+  );
+}
+
+async function resolveInviterOrgId(
+  adminClient: ReturnType<typeof createClient>,
+  inviterUserId: string,
+): Promise<string | null> {
+  const { data: resolvedOrgId } = await adminClient.rpc("get_user_organization_id", {
+    _user_id: inviterUserId,
+  });
+  if (resolvedOrgId) return resolvedOrgId as string;
+  const { data: soleOrg } = await adminClient.from("organizations").select("id").limit(1).maybeSingle();
+  return soleOrg?.id ?? null;
+}
+
+async function grantRoleDefaults(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string,
+  roleTemplate: "customer" | "artist",
+): Promise<void> {
+  const { data: defaults } = await adminClient
+    .from("permission_role_defaults")
+    .select("feature, granted")
+    .eq("role_template", roleTemplate);
+
+  for (const row of defaults ?? []) {
+    await adminClient.from("user_permissions").upsert(
+      { user_id: userId, feature: row.feature, granted: row.granted },
+      { onConflict: "user_id,feature" },
+    );
+  }
+}
+
+async function provisionInvitedUser(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string,
+  inviteType: "customer" | "artist",
+  orgId: string | null,
+): Promise<void> {
+  const { error: roleErr } = await adminClient.from("user_roles").upsert(
+    { user_id: userId, role: inviteType },
+    { onConflict: "user_id,role" },
+  );
+  if (roleErr?.message?.includes("artist_seat_limit_reached")) {
+    throw new Error("artist_seat_limit_reached");
+  }
+  if (roleErr) throw roleErr;
+
+  if (orgId) {
+    await adminClient.from("organization_members").upsert(
+      { organization_id: orgId, user_id: userId, role: "member" },
+      { onConflict: "organization_id,user_id" },
+    );
+  }
+
+  await grantRoleDefaults(adminClient, userId, inviteType);
+
+  if (inviteType === "customer") {
+    await adminClient.rpc("link_customer_records_by_email", { _user_id: userId });
+  }
+}
+
+async function sendInviteLink(params: {
+  adminClient: ReturnType<typeof createClient>;
+  email: string;
+  inviteType: "customer" | "artist";
+  redirectTo: string;
+  inviteDataPayload: Record<string, string>;
+  preferMagicLink?: boolean;
+}): Promise<{ user: { id: string } | null; error: string | null; existingAccount: boolean }> {
+  const { adminClient, email, inviteType, redirectTo, inviteDataPayload, preferMagicLink = false } = params;
+  const linkType = preferMagicLink ? "magiclink" : "invite";
+
+  const { data: linkData, error: linkErr } = await (adminClient.auth.admin as any).generateLink({
+    type: linkType,
+    email,
+    options: {
+      redirectTo,
+      data: inviteDataPayload,
+    },
+  });
+
+  if (!linkErr && linkData?.properties?.action_link && linkData?.user?.id) {
+    try {
+      await sendInviteEmail({
+        to: email,
+        subject:
+          inviteType === "customer"
+            ? preferMagicLink
+              ? `Your ${getShopBranding().shopName} customer portal is ready`
+              : `Your ${getShopBranding().shopName} invite — magic link to set up your profile`
+            : preferMagicLink
+              ? `You now have artist access at ${getShopBranding().shopName}`
+              : `You are invited to ${getShopBranding().shopName} (Magic Link)`,
+        html:
+          inviteType === "customer"
+            ? preferMagicLink
+              ? buildInviteEmailHtml({
+                  roleLabel: "Customer Portal",
+                  heading: `Your ${getShopBranding().shopName} portal is ready`,
+                  intro:
+                    "Your account already exists. We linked you to this studio — use the button below to sign in and view bookings.",
+                  steps: [
+                    "Open the secure sign-in link below (or continue with Google if you use that).",
+                    "Confirm your profile details if prompted.",
+                    "View bookings, deposits, and messages in one place.",
+                  ],
+                  buttonLabel: "Open Customer Portal",
+                  magicLink: linkData.properties.action_link,
+                })
+              : buildCustomerInviteHtml({ magicLink: linkData.properties.action_link })
+            : preferMagicLink
+              ? buildInviteEmailHtml({
+                  roleLabel: "Artist Portal",
+                  heading: `Artist access at ${getShopBranding().shopName}`,
+                  intro:
+                    "Your account already exists. We added artist access for this studio — sign in with the link below to continue.",
+                  steps: [
+                    "Open your secure sign-in link.",
+                    "Complete your artist profile if prompted.",
+                    "Manage schedule, bookings, and clients.",
+                  ],
+                  buttonLabel: "Open Artist Hub",
+                  magicLink: linkData.properties.action_link,
+                })
+              : buildArtistInviteHtml({ magicLink: linkData.properties.action_link }),
+      });
+      return { user: linkData.user, error: null, existingAccount: preferMagicLink };
+    } catch (_smtpErr) {
+      if (!preferMagicLink) {
+        const fallback = await adminClient.auth.admin.inviteUserByEmail(email, {
+          redirectTo,
+          data: inviteDataPayload,
+        });
+        if (fallback.error && isExistingUserError(fallback.error.message || "")) {
+          return sendInviteLink({ ...params, preferMagicLink: true });
+        }
+        return {
+          user: fallback.data?.user ?? null,
+          error: fallback.error?.message ?? null,
+          existingAccount: false,
+        };
+      }
+      return { user: linkData.user, error: "Email delivery failed", existingAccount: true };
+    }
+  }
+
+  if (!preferMagicLink && isExistingUserError(linkErr?.message || "")) {
+    return sendInviteLink({ ...params, preferMagicLink: true });
+  }
+
+  if (!preferMagicLink) {
+    const fallback = await adminClient.auth.admin.inviteUserByEmail(email, {
+      redirectTo,
+      data: inviteDataPayload,
+    });
+    if (fallback.error && isExistingUserError(fallback.error.message || "")) {
+      return sendInviteLink({ ...params, preferMagicLink: true });
+    }
+    return {
+      user: fallback.data?.user ?? null,
+      error: fallback.error?.message ?? null,
+      existingAccount: false,
+    };
+  }
+
+  return {
+    user: linkData?.user ?? null,
+    error: linkErr?.message || "Invite failed",
+    existingAccount: preferMagicLink,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -286,147 +468,52 @@ serve(async (req) => {
           : baseAuth;
     }
 
-    let inviteData: any = null;
-    let inviteErr: any = null;
-
     const inviteDataPayload = { invite_type: inviteType, ...(displayName ? { display_name: displayName } : {}) };
 
-    // For artist invites, send a custom branded email with explicit "Magic Link" CTA.
-    if (inviteType === "artist") {
-      const { data: linkData, error: linkErr } = await (adminClient.auth.admin as any).generateLink({
-        type: "invite",
-        email,
-        options: {
-          redirectTo,
-          data: inviteDataPayload,
-        },
-      });
+    const orgId = await resolveInviterOrgId(adminClient, authResult.user.id);
 
-      if (linkErr || !linkData?.properties?.action_link) {
-        // If custom-link generation fails, gracefully fall back to default invite flow.
-        const fallback = await adminClient.auth.admin.inviteUserByEmail(email, {
-          redirectTo,
-          data: inviteDataPayload,
-        });
-        inviteData = fallback.data;
-        inviteErr = fallback.error;
-      } else {
-        try {
-          await sendInviteEmail({
-            to: email,
-            subject: `You are invited to ${getShopBranding().shopName} (Magic Link)`,
-            html: buildArtistInviteHtml({ magicLink: linkData.properties.action_link }),
-          });
-          inviteData = { user: linkData.user };
-        } catch (_smtpErr) {
-          // Fallback to Supabase default invite email if SMTP is unavailable.
-          const fallback = await adminClient.auth.admin.inviteUserByEmail(email, {
-            redirectTo,
-            data: inviteDataPayload,
-          });
-          inviteData = fallback.data;
-          inviteErr = fallback.error;
-        }
-      }
-    } else {
-      // Customer: same magic-link + branded email as artists; link uses redirectTo (e.g. /auth?next=/customer-profile-setup).
-      const { data: linkData, error: linkErr } = await (adminClient.auth.admin as any).generateLink({
-        type: "invite",
-        email,
-        options: {
-          redirectTo,
-          data: inviteDataPayload,
-        },
-      });
+    const inviteResult = await sendInviteLink({
+      adminClient,
+      email,
+      inviteType,
+      redirectTo,
+      inviteDataPayload,
+    });
 
-      if (linkErr || !linkData?.properties?.action_link) {
-        const fallback = await adminClient.auth.admin.inviteUserByEmail(email, {
-          redirectTo,
-          data: inviteDataPayload,
-        });
-        inviteData = fallback.data;
-        inviteErr = fallback.error;
-      } else {
-        try {
-          await sendInviteEmail({
-            to: email,
-            subject: `Your ${getShopBranding().shopName} invite — magic link to set up your profile`,
-            html: buildCustomerInviteHtml({ magicLink: linkData.properties.action_link }),
-          });
-          inviteData = { user: linkData.user };
-        } catch (_smtpErr) {
-          const fallback = await adminClient.auth.admin.inviteUserByEmail(email, {
-            redirectTo,
-            data: inviteDataPayload,
-          });
-          inviteData = fallback.data;
-          inviteErr = fallback.error;
-        }
-      }
-    }
-
-    if (inviteErr) {
-      return new Response(JSON.stringify({ error: withCustomerMigrationHint(inviteErr.message || "Invite failed", inviteType) }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Ensure invited artists always get an `artist` role row so they appear in schedule/booking UIs
-    // (covers cases where auth trigger metadata did not assign the role).
-    if (inviteType === "artist" && inviteData?.user?.id) {
-      const { error: roleErr } = await adminClient.from("user_roles").upsert(
-        { user_id: inviteData.user.id, role: "artist" },
-        { onConflict: "user_id,role" },
+    if (inviteResult.error || !inviteResult.user?.id) {
+      return jsonResponse(
+        { error: withCustomerMigrationHint(inviteResult.error || "Invite failed", inviteType) },
+        400,
       );
-      if (roleErr?.message?.includes("artist_seat_limit_reached")) {
+    }
+
+    const invitedUserId = inviteResult.user.id;
+
+    if (inviteResult.existingAccount) {
+      await adminClient.auth.admin.updateUserById(invitedUserId, {
+        user_metadata: {
+          ...inviteDataPayload,
+        },
+      });
+    }
+
+    try {
+      await provisionInvitedUser(adminClient, invitedUserId, inviteType, orgId);
+    } catch (provisionErr) {
+      const msg = provisionErr instanceof Error ? provisionErr.message : "Provisioning failed";
+      if (msg.includes("artist_seat_limit_reached")) {
         return jsonResponse(
           { error: "Artist seat limit reached for your plan. Upgrade to add more artists.", code: "seat_limit_reached" },
           403,
         );
       }
-
-      let orgId: string | null = null;
-      const { data: resolvedOrgId } = await adminClient.rpc("get_user_organization_id", {
-        _user_id: authResult.user.id,
-      });
-      orgId = resolvedOrgId ?? null;
-      if (!orgId) {
-        const { data: soleOrg } = await adminClient.from("organizations").select("id").limit(1).maybeSingle();
-        orgId = soleOrg?.id ?? null;
-      }
-      if (orgId) {
-        await adminClient.from("organization_members").upsert(
-          { organization_id: orgId, user_id: inviteData.user.id, role: "member" },
-          { onConflict: "organization_id,user_id" },
-        );
-      }
-    }
-    if (inviteType === "customer" && inviteData?.user?.id) {
-      await adminClient.from("user_roles").upsert(
-        { user_id: inviteData.user.id, role: "customer" },
-        { onConflict: "user_id,role" },
-      );
-
-      let orgId: string | null = null;
-      const { data: resolvedOrgId } = await adminClient.rpc("get_user_organization_id", {
-        _user_id: authResult.user.id,
-      });
-      orgId = resolvedOrgId ?? null;
-      if (!orgId) {
-        const { data: soleOrg } = await adminClient.from("organizations").select("id").limit(1).maybeSingle();
-        orgId = soleOrg?.id ?? null;
-      }
-      if (orgId) {
-        await adminClient.from("organization_members").upsert(
-          { organization_id: orgId, user_id: inviteData.user.id, role: "member" },
-          { onConflict: "organization_id,user_id" },
-        );
-      }
+      return jsonResponse({ error: withCustomerMigrationHint(msg, inviteType) }, 400);
     }
 
-    return new Response(JSON.stringify({ ok: true, userId: inviteData.user?.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return jsonResponse({
+      ok: true,
+      userId: invitedUserId,
+      existingAccount: inviteResult.existingAccount,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";

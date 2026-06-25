@@ -9,6 +9,10 @@ const config: CapacitorConfig = {
     iosScheme: "https",
   },
   plugins: {
+    // Route fetch/XHR through native HTTP so cross-origin calls (e.g. velbok.com/api/*) work in the WebView.
+    CapacitorHttp: {
+      enabled: true,
+    },
     SplashScreen: {
       launchShowDuration: 1800,
       launchAutoHide: true,

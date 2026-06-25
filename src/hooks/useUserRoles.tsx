@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { getSafeNextPath, needsArtistProfileSetup } from "@/lib/artistProfileSetup";
+import { getSafeNextPath, needsArtistProfileSetup, canUsePostLoginNext } from "@/lib/artistProfileSetup";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 import { hasActiveOrganizationSubscription, needsShopSetup } from "@/lib/shopSettings";
 import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
@@ -37,8 +37,9 @@ export function useUserRoles() {
 
   const hasStaffRole = roles.some((r) => r === "admin" || r === "artist");
   const isOnlyCustomer = roles.includes("customer") && !hasStaffRole;
+  const hasNoAppRoles = !loading && roles.length === 0;
 
-  return { roles, hasStaffRole, isOnlyCustomer, loading };
+  return { roles, hasStaffRole, isOnlyCustomer, hasNoAppRoles, loading };
 }
 
 export async function fetchIsOnlyCustomer(userId: string): Promise<boolean> {
@@ -69,7 +70,7 @@ export async function resolvePostLoginPath(userId: string, rawNext: string | nul
   if (await needsArtistProfileSetup(userId)) return "/artist-profile-settings";
   if (await needsCustomerProfileSetup(userId)) return "/customer-profile-setup";
   const next = getSafeNextPath(rawNext);
-  if (next) return next;
+  if (next && (await canUsePostLoginNext(userId, next))) return next;
   if (await fetchIsOnlyCustomer(userId)) return "/account";
   if (await fetchHasStaffAccess(userId)) {
     if (!(await hasActiveOrganizationSubscription(userId))) {

@@ -48,18 +48,19 @@ const PageFallback = () => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   if (loading) return <PageFallback />;
   if (!user) return <Navigate to="/auth" replace />;
+  if (mfaVerificationRequired) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   const isRecoveryFlow =
     typeof window !== "undefined" && window.location.hash.includes("type=recovery");
   if (loading) return <PageFallback />;
-  if (user && !isRecoveryFlow) return <AuthHomeRedirect />;
+  if (user && !isRecoveryFlow && !mfaVerificationRequired) return <AuthHomeRedirect />;
   return <>{children}</>;
 };
 
@@ -70,8 +71,9 @@ const CustomerPortalShell = () => (
 );
 
 const MobileRootRedirect = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   if (loading) return <PageFallback />;
+  if (user && mfaVerificationRequired) return <Navigate to="/auth" replace />;
   if (user) return <AuthHomeRedirect />;
   return <Navigate to="/auth" replace />;
 };

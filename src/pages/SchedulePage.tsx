@@ -17,7 +17,7 @@ import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours
 import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { isImportedContactPlaceholderBooking } from "@/lib/importedContacts";
 import { type SidebarBookingDraft, type BookingPrefill, buildBookingPrefillFromSlot } from "@/lib/bookingPrefill";
-import type { Service } from "@/components/schedule/ServicePresets";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -300,19 +300,24 @@ const SchedulePage = () => {
       return;
     }
     setInviting(true);
-    const { data, error } = await supabase.functions.invoke("invite-user", {
-      body: {
+    const { data, error } = await invokeEdgeFunctionJson<{ ok?: boolean; error?: string; existingAccount?: boolean }>(
+      "invite-user",
+      {
         email,
         inviteType: "customer",
         redirectTo: `${window.location.origin.replace(/\/$/, "")}/auth?next=/customer-profile-setup`,
       },
-    });
+    );
     setInviting(false);
     if (error || data?.error) {
-      toast.error((data as any)?.error || error?.message || t("schedule.inviteFailed"));
+      toast.error(error?.message || data?.error || t("schedule.inviteFailed"));
       return;
     }
-    toast.success(t("schedule.inviteSent"));
+    toast.success(
+      data?.existingAccount
+        ? t("schedule.inviteLinkedExisting", { defaultValue: "Invite sent — they can sign in with Google or the email link." })
+        : t("schedule.inviteSent"),
+    );
     setInviteEmail("");
   };
 

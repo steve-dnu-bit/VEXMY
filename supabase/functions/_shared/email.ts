@@ -196,7 +196,8 @@ export function getEmailFrom(kind: EmailFromKind = "notification"): string | nul
 export function buildEmailFromAddress(displayName: string, kind: EmailFromKind = "notification"): string {
   const base = getEmailFrom(kind) ?? "Velbok <no-reply@velbok.com>";
   const { email } = parseEmailFromAddress(base);
-  const safeName = displayName.replace(/[\r\n<>]/g, "").trim() || "Velbok";
+  const platformName = getShopBranding().platformName;
+  const safeName = displayName.replace(/[\r\n<>]/g, "").trim() || platformName;
   return `${safeName} <${email}>`;
 }
 
@@ -326,6 +327,7 @@ export async function sendTransactionalEmail(params: {
     (fromKind === "booking" ? getBookingReplyEmail() : Deno.env.get("SHOP_SUPPORT_EMAIL") ?? null);
 
   const apiKey = (Deno.env.get("RESEND_API_KEY") ?? Deno.env.get("SMTP_PASS") ?? Deno.env.get("SMTP_PASSWORD") ?? "").trim();
+  const resendApiKey = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
   if (apiKey) {
     try {
       await sendViaResendApi({
@@ -340,7 +342,12 @@ export async function sendTransactionalEmail(params: {
       return { provider: "resend" };
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      console.error("Resend API send failed, trying SMTP fallback:", message);
+      console.error("Resend API send failed:", message);
+      // Avoid duplicate delivery when Resend is configured but SMTP is also present.
+      if (resendApiKey && Deno.env.get("ALLOW_SMTP_FALLBACK") !== "true") {
+        throw e;
+      }
+      console.error("Trying SMTP fallback after Resend failure");
     }
   }
 

@@ -7,6 +7,7 @@ export const BRANDING = {
   shopTradingName: import.meta.env.VITE_SHOP_TRADING_NAME || import.meta.env.VITE_SHOP_NAME || "Velbok",
   supportEmail:
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL || "support@velbok.com",
+  supportPhone: import.meta.env.VITE_SHOP_SUPPORT_PHONE || "",
   privacyEmail:
     import.meta.env.VITE_SHOP_PRIVACY_EMAIL ||
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL ||

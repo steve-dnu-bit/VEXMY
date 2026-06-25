@@ -1,5 +1,23 @@
 project_id = "tkremoxfkgoiuwghtzwd"
 
+# TOTP MFA only (no Advanced Phone MFA add-on)
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+
+[auth.sms.twilio]
+enabled = false
+
+[auth.hook.send_sms]
+enabled = false
+
 [functions.send-test-email]
 verify_jwt = true
 
@@ -91,4 +109,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-review-request]
+verify_jwt = false
+
+[functions.mfa-trusted-device]
+verify_jwt = true
+
+[functions.vapi-webhook]
 verify_jwt = false

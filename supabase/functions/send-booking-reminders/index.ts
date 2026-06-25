@@ -164,7 +164,7 @@ serve(async (req) => {
       if (shopSettings.appointment_reminder) {
         candidates.push({ type: "appointment", timing: shopSettings.appointment_reminder_timing });
       }
-      if (shopSettings.deposit_reminder && !booking.deposit_paid && !isPiercingBooking(booking)) {
+      if (shopSettings.deposit_reminder && !booking.deposit_paid && !isPiercingBooking(booking) && booking.deposit_amount !== 0) {
         candidates.push({ type: "deposit", timing: shopSettings.deposit_reminder_timing });
       }
 

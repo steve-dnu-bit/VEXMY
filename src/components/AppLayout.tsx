@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type Feature } from "@/hooks/usePermissions";
 import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { getThemePresetByBgColor } from "@/lib/themePresets";
 import { readCachedPortalTheme, writeCachedPortalTheme } from "@/lib/artistThemeCache";
 import { STORAGE_PREFIX } from "@/lib/branding";
@@ -118,6 +119,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const { hasPermission, loading: permLoading } = usePermissions();
   const { data: isPlatformAdmin } = usePlatformAdminAccess();
+  const { hasStaffRole, hasNoAppRoles, loading: rolesLoading } = useUserRoles();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const raw = localStorage.getItem(`${STORAGE_PREFIX}.sidebarCollapsed`);
@@ -126,12 +128,17 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [portalBgColor, setPortalBgColor] = useState<string | null>(null);
   const [portalBgImageUrl, setPortalBgImageUrl] = useState<string | null>(null);
 
-  const navItems = allNavItems.filter(
-    (item) =>
+  const canSeeStaffDashboard =
+    !rolesLoading && !hasNoAppRoles && (hasStaffRole || !!isPlatformAdmin);
+
+  const navItems = allNavItems.filter((item) => {
+    if (item.feature === "dashboard" && !canSeeStaffDashboard) return false;
+    return (
       (item.feature === "admin" && isPlatformAdmin) ||
       hasPermission(item.feature) ||
-      (item.alsoAllow?.some((f) => hasPermission(f)) ?? false),
-  );
+      (item.alsoAllow?.some((f) => hasPermission(f)) ?? false)
+    );
+  });
 
   useLayoutEffect(() => {
     if (!user?.id) return;

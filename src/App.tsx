@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import StaffRoute from "./components/StaffRoute";
 import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
+import NativeOAuthBootstrap from "./components/auth/NativeOAuthBootstrap";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -87,20 +88,21 @@ const AppErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   if (loading) return <PageFallback />;
   if (!user) return <Navigate to="/auth" replace />;
+  if (mfaVerificationRequired) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   const location = useLocation();
   const isRecoveryFlow =
     new URLSearchParams(location.search).get("mode") === "recovery" ||
     (typeof window !== "undefined" && window.location.hash.includes("type=recovery"));
   if (loading) return <PageFallback />;
-  if (user && !isRecoveryFlow) return <AuthHomeRedirect />;
+  if (user && !isRecoveryFlow && !mfaVerificationRequired) return <AuthHomeRedirect />;
   return <>{children}</>;
 };
 
@@ -118,6 +120,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <NativeOAuthBootstrap />
             <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 {isNativeApp() ? (

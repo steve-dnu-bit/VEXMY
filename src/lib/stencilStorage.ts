@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toUploadsStorageRef } from "@/lib/uploadStorage";
+import { blobFromImageSource, dataUrlToBlob } from "@/lib/stencilImage";
+import { resolveUploadUrl, toUploadsStorageRef } from "@/lib/uploadStorage";
 
 export type StencilSession = {
   id: string;
@@ -33,14 +34,26 @@ export async function fetchRecentStencils(userId: string): Promise<RecentStencil
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
-  return data
-    .filter((row) => !!row.stencil_image_url)
-    .map((row) => ({
-      id: row.id,
-      originalUrl: row.original_image_url,
-      stencilUrl: row.stencil_image_url as string,
-      createdAt: row.created_at,
-    }));
+
+  const rows = await Promise.all(
+    data
+      .filter((row) => !!row.stencil_image_url)
+      .map(async (row) => {
+        const [originalUrl, stencilUrl] = await Promise.all([
+          resolveUploadUrl(row.original_image_url),
+          resolveUploadUrl(row.stencil_image_url),
+        ]);
+        if (!stencilUrl) return null;
+        return {
+          id: row.id,
+          originalUrl: originalUrl ?? row.original_image_url,
+          stencilUrl,
+          createdAt: row.created_at,
+        };
+      }),
+  );
+
+  return rows.filter((row): row is RecentStencil => row !== null);
 }
 
 function extFromFile(file: File) {
@@ -49,12 +62,6 @@ function extFromFile(file: File) {
   if (file.type === "image/png") return "png";
   if (file.type === "image/webp") return "webp";
   return "jpg";
-}
-
-async function dataUrlToBlob(dataUrl: string) {
-  const res = await fetch(dataUrl);
-  if (!res.ok) throw new Error("Failed to read generated stencil");
-  return res.blob();
 }
 
 export async function persistStencilSession(
@@ -73,7 +80,7 @@ export async function persistStencilSession(
   });
   if (originalError) throw new Error(originalError.message);
 
-  const stencilBlob = await dataUrlToBlob(stencilDataUrl);
+  const stencilBlob = dataUrlToBlob(stencilDataUrl);
   const { error: stencilError } = await supabase.storage.from("uploads").upload(stencilPath, stencilBlob, {
     upsert: false,
     contentType: "image/png",
@@ -83,12 +90,14 @@ export async function persistStencilSession(
     throw new Error(stencilError.message);
   }
 
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const { error: dbError } = await supabase.from("stencils").insert({
     id,
     created_by: userId,
     original_image_url: toUploadsStorageRef(originalPath),
     stencil_image_url: toUploadsStorageRef(stencilPath),
     status: "completed",
+    expires_at: expiresAt,
   });
 
   if (dbError) {
@@ -123,7 +132,7 @@ export async function downloadBlob(blob: Blob, filename: string) {
 }
 
 export async function downloadStencilAndDelete(session: StencilSession, stencilDataUrl: string) {
-  const blob = await dataUrlToBlob(stencilDataUrl);
+  const blob = await blobFromImageSource(stencilDataUrl);
   await downloadBlob(blob, "stencil.png");
   await deleteStencilSession(session);
 }
@@ -133,7 +142,7 @@ export async function downloadStencilAndDelete(session: StencilSession, stencilD
  * 24 hours and then removed automatically by the scheduled purge job, so the
  * artist can re-download within that window.
  */
-export async function downloadStencilOnly(stencilDataUrl: string) {
-  const blob = await dataUrlToBlob(stencilDataUrl);
+export async function downloadStencilOnly(stencilSrc: string) {
+  const blob = await blobFromImageSource(stencilSrc);
   await downloadBlob(blob, "stencil.png");
 }

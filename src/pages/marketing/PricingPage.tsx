@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, X } from "lucide-react";
 import { BRANDING } from "@/lib/branding";
 import { useComparisonRowsI18n, usePricingFaqI18n, usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
+import { PlanTrialBadge } from "@/components/marketing/PlanTrialBadge";
 
 const PricingPage = () => {
   const { t } = useTranslation();
@@ -43,6 +44,7 @@ const PricingPage = () => {
                 {plan.price}
                 {plan.period ? <span className="text-base font-normal text-muted-foreground">{plan.period}</span> : null}
               </p>
+              <PlanTrialBadge planId={plan.id} />
               <p className="mt-2 text-xs text-muted-foreground">{plan.seats}</p>
               <ul className="mt-8 flex-1 space-y-3">
                 {plan.features.map((f) => (

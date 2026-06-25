@@ -3,6 +3,7 @@ import { Navigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { resolvePostLoginPath } from "@/hooks/useUserRoles";
+import { completeAuthProvisioningFromContext } from "@/lib/authProvisioning";
 
 /** After login: customers → /account, staff → /schedule */
 const AuthHomeRedirect = () => {
@@ -15,6 +16,7 @@ const AuthHomeRedirect = () => {
     if (!user) return;
     (async () => {
       try {
+        await completeAuthProvisioningFromContext(searchParams);
         setPath(await resolvePostLoginPath(user.id, searchParams.get("next")));
       } catch {
         setPath("/account");

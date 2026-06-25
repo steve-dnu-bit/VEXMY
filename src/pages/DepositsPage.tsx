@@ -16,6 +16,7 @@ import {
   parseDepositInput,
   saveShopDefaultDepositAmount,
 } from "@/lib/shopDepositSettings";
+import { bookingRequiresDeposit } from "@/lib/serviceDeposit";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
@@ -245,11 +246,16 @@ const DepositsPage = () => {
 
   const isUpcomingBooking = useCallback((startsAt: string) => isAfter(parseISO(startsAt), new Date()), []);
 
+  const depositBookings = useMemo(
+    () => bookings.filter((b) => !b.vip_client && (b.deposit_amount ?? defaultDeposit) > 0),
+    [bookings, defaultDeposit],
+  );
+
   /** Filter + sort: upcoming = soonest first; past = most recent past first; all = closest to “now” in time. */
   const filteredBookings = useMemo(() => {
     const now = new Date().getTime();
-    const upcoming = bookings.filter((b) => isUpcomingBooking(b.starts_at));
-    const past = bookings.filter((b) => !isUpcomingBooking(b.starts_at));
+    const upcoming = depositBookings.filter((b) => isUpcomingBooking(b.starts_at));
+    const past = depositBookings.filter((b) => !isUpcomingBooking(b.starts_at));
 
     let list: BookingWithDeposit[];
     if (timeFilter === "upcoming") {
@@ -259,7 +265,7 @@ const DepositsPage = () => {
       list = past;
       list = [...list].sort((a, b) => parseISO(b.starts_at).getTime() - parseISO(a.starts_at).getTime());
     } else {
-      list = [...bookings].sort((a, b) => {
+      list = [...depositBookings].sort((a, b) => {
         const da = Math.abs(parseISO(a.starts_at).getTime() - now);
         const db = Math.abs(parseISO(b.starts_at).getTime() - now);
         if (da !== db) return da - db;
@@ -267,12 +273,12 @@ const DepositsPage = () => {
       });
     }
     return list;
-  }, [bookings, timeFilter, isUpcomingBooking]);
+  }, [depositBookings, timeFilter, isUpcomingBooking]);
 
-  const unpaidCount = bookings.filter((b) => !b.deposit_paid).length;
-  const paidCount = bookings.filter((b) => !!b.deposit_paid).length;
-  const upcomingCount = bookings.filter((b) => isUpcomingBooking(b.starts_at)).length;
-  const totalCollected = bookings
+  const unpaidCount = depositBookings.filter((b) => bookingRequiresDeposit(b, defaultDeposit)).length;
+  const paidCount = depositBookings.filter((b) => !!b.deposit_paid && (b.deposit_amount ?? defaultDeposit) > 0).length;
+  const upcomingCount = depositBookings.filter((b) => isUpcomingBooking(b.starts_at)).length;
+  const totalCollected = depositBookings
     .filter((b) => !!b.deposit_paid)
     .reduce((sum, b) => sum + (b.deposit_amount || defaultDeposit), 0);
 

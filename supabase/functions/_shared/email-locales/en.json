@@ -12,7 +12,8 @@
     "paid": "Paid",
     "paidWithAmount": "Paid ({{amount}})",
     "outstanding": "Outstanding",
-    "outstandingWithAmount": "Outstanding ({{amount}})"
+    "outstandingWithAmount": "Outstanding ({{amount}})",
+    "notRequired": "Not required"
   },
   "bookingNotification": {
     "badge": "Booking",

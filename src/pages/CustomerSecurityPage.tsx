@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import AccountDeletionRequestCard from "@/components/settings/AccountDeletionRequestCard";
+import MFAEnrollment from "@/components/auth/MFAEnrollment";
 
 function passwordChecks(pwd: string) {
   const minLen = pwd.length >= 8;
@@ -115,6 +116,8 @@ const CustomerSecurityPage = () => {
             </Button>
           </CardContent>
         </Card>
+
+        <MFAEnrollment />
 
         <AccountDeletionRequestCard />
       </div>

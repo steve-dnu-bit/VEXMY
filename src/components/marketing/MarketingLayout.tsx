@@ -9,14 +9,17 @@ import VelbokBrand from "@/components/brand/VelbokBrand";
 import VelbokLogo from "@/components/brand/VelbokLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
 import { supabase } from "@/integrations/supabase/client";
 
 const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { hasStaffRole, loading: rolesLoading } = useUserRoles();
+  const { hasStaffRole, hasNoAppRoles, loading: rolesLoading } = useUserRoles();
+  const { data: isPlatformAdmin } = usePlatformAdminAccess();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const showStaffNav = !!user && hasStaffRole && !rolesLoading;
+  const showStaffNav =
+    !!user && !rolesLoading && !hasNoAppRoles && (hasStaffRole || !!isPlatformAdmin);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

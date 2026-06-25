@@ -7,7 +7,7 @@ export type OrgServiceRow = {
   name: string;
 };
 
-/** Active services for a studio (org members), falling back to the booking artist. */
+/** Active services for a studio organization. */
 export async function loadActiveServicesForBooking(
   admin: SupabaseClient,
   params: { organizationId?: string | null; artistId?: string | null },
@@ -15,28 +15,29 @@ export async function loadActiveServicesForBooking(
   const select = "booking_type, service_category, duration, name";
 
   if (params.organizationId) {
-    const { data: members } = await admin
-      .from("organization_members")
-      .select("user_id")
-      .eq("organization_id", params.organizationId);
-    const userIds = [...new Set((members || []).map((m) => m.user_id as string).filter(Boolean))];
-    if (userIds.length > 0) {
-      const { data: services } = await admin
-        .from("services")
-        .select(select)
-        .eq("is_active", true)
-        .in("created_by", userIds);
-      if (services?.length) return services as OrgServiceRow[];
-    }
-  }
+    await admin.rpc("ensure_default_org_services", { _org_id: params.organizationId });
 
-  if (params.artistId) {
     const { data: services } = await admin
       .from("services")
       .select(select)
+      .eq("organization_id", params.organizationId)
       .eq("is_active", true)
-      .eq("created_by", params.artistId);
+      .order("sort_order");
+
     return (services || []) as OrgServiceRow[];
+  }
+
+  if (params.artistId) {
+    const { data: member } = await admin
+      .from("organization_members")
+      .select("organization_id")
+      .eq("user_id", params.artistId)
+      .limit(1)
+      .maybeSingle();
+
+    if (member?.organization_id) {
+      return loadActiveServicesForBooking(admin, { organizationId: member.organization_id as string });
+    }
   }
 
   return [];

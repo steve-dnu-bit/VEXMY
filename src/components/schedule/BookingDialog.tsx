@@ -814,7 +814,7 @@ const BookingDialog = ({
                 </SelectContent>
               </Select>
             </div>
-            {bookingToEdit ? (
+            {bookingToEdit && (bookingToEdit.deposit_amount ?? shopDefaultDeposit) > 0 ? (
               <div>
                 <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
                 <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
@@ -839,7 +839,12 @@ const BookingDialog = ({
                 : t("schedule.noDepositForService")}
             </p>
           ) : null}
-          {bookingToEdit ? (
+          {bookingToEdit && (bookingToEdit.deposit_amount ?? shopDefaultDeposit) <= 0 ? (
+            <p className="text-xs text-muted-foreground rounded-md border border-border/60 bg-secondary/20 px-3 py-2">
+              {t("schedule.noDepositForService")}
+            </p>
+          ) : null}
+          {bookingToEdit && (bookingToEdit.deposit_amount ?? shopDefaultDeposit) > 0 ? (
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositAmount")}</Label>
               <Input

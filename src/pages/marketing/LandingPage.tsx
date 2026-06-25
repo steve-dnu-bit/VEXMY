@@ -11,12 +11,16 @@ import { Shield, ArrowRight, CheckCircle2, LayoutDashboard } from "lucide-react"
 import { useLandingI18n } from "@/hooks/useLandingI18n";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
+import { GooglePlayInstallButton } from "@/components/marketing/GooglePlayInstallButton";
 
 const LandingPage = () => {
   const { features, steps, audiences, faqs, heroSubtitle, t } = useLandingI18n();
   const { user } = useAuth();
-  const { hasStaffRole, loading: rolesLoading } = useUserRoles();
-  const showStaffHome = !!user && hasStaffRole && !rolesLoading;
+  const { hasStaffRole, hasNoAppRoles, loading: rolesLoading } = useUserRoles();
+  const { data: isPlatformAdmin } = usePlatformAdminAccess();
+  const showStaffHome =
+    !!user && !rolesLoading && !hasNoAppRoles && (hasStaffRole || !!isPlatformAdmin);
 
   return (
     <MarketingLayout>
@@ -59,6 +63,12 @@ const LandingPage = () => {
               </>
             )}
           </div>
+          {!showStaffHome ? (
+            <div className="mt-8 flex flex-col items-center gap-2">
+              <GooglePlayInstallButton />
+              <p className="text-xs text-muted-foreground">{t("landing.getOnGooglePlay")}</p>
+            </div>
+          ) : null}
           {!showStaffHome ? (
           <p className="mt-6 text-xs text-muted-foreground">
             {t("landing.alreadyHaveStudio")}{" "}
