@@ -1,4 +1,4 @@
-import { loadImage, readFileAsDataUrl } from "@/lib/stencilImage";
+import { fileToDataUrl, loadImage } from "@/lib/stencilImage";
 
 export type LocalStencilSettings = {
   /** 1 = fewer lines, 10 = more fine detail */
@@ -451,7 +451,8 @@ export async function generateLocalStencilFromDataUrl(
 export async function generateLocalStencil(
   file: File,
   settings: LocalStencilSettings,
+  cachedDataUrl?: string | null,
 ): Promise<string> {
-  const dataUrl = await readFileAsDataUrl(file);
+  const dataUrl = await fileToDataUrl(file, cachedDataUrl);
   return generateLocalStencilFromDataUrl(dataUrl, settings);
 }

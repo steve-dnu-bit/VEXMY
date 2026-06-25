@@ -1,7 +1,7 @@
 import { CapacitorHttp } from "@capacitor/core";
 import { getFreshAccessToken, invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { resolveAppApiUrl } from "@/lib/apiOrigin";
-import { loadImage, readFileAsDataUrl } from "@/lib/stencilImage";
+import { prepareStencilUploadDataUrl } from "@/lib/stencilImage";
 import { isNativeApp } from "@/lib/platform";
 
 // Longest edge (px) sent to the AI. Keeps the request payload comfortably under
@@ -67,21 +67,8 @@ function stencilRequestBody(image: string, style: StencilStyle): StencilRequestB
 }
 
 /** Downscale + re-encode the reference so the request stays small and fast. */
-async function toUploadDataUrl(file: File): Promise<string> {
-  const original = await readFileAsDataUrl(file);
-  const img = await loadImage(original);
-  const longest = Math.max(img.width, img.height);
-  const scale = longest > MAX_UPLOAD_SIDE ? MAX_UPLOAD_SIDE / longest : 1;
-  const width = Math.round(img.width * scale);
-  const height = Math.round(img.height * scale);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return original;
-  ctx.drawImage(img, 0, 0, width, height);
-  return canvas.toDataURL("image/jpeg", 0.92);
+async function toUploadDataUrl(file: File, cachedDataUrl?: string | null): Promise<string> {
+  return prepareStencilUploadDataUrl(file, cachedDataUrl, MAX_UPLOAD_SIDE);
 }
 
 export function parseStencilApiResponse(
@@ -230,11 +217,12 @@ async function generateOnNative(
 export async function generateAiStencil(
   file: File,
   style: StencilStyle = DEFAULT_STENCIL_STYLE,
+  cachedDataUrl?: string | null,
 ): Promise<AiStencilResult> {
   const token = await getFreshAccessToken();
   if (!token) throw new Error("Session expired. Please sign in again.");
 
-  const image = await toUploadDataUrl(file);
+  const image = await toUploadDataUrl(file, cachedDataUrl);
 
   if (isNativeApp()) {
     return generateOnNative(image, style, token);

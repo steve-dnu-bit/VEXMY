@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { AuthIntent } from "@/lib/authIntent";
 import { mountGoogleSignInOverlay } from "@/lib/googleIdentity";
+import { isNativeApp } from "@/lib/platform";
 import {
   isOAuthProviderEnabled,
   prefersGoogleIdentitySignIn,
@@ -56,7 +57,7 @@ const OAuthSocialButtons = ({ intent, disabled, className }: OAuthSocialButtonsP
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
   const [googleOverlayFailed, setGoogleOverlayFailed] = useState(false);
   const googleOverlayRef = useRef<HTMLDivElement>(null);
-  const useGoogleOverlay = prefersGoogleIdentitySignIn() && !googleOverlayFailed;
+  const useGoogleOverlay = prefersGoogleIdentitySignIn() && !googleOverlayFailed && !isNativeApp();
 
   const showGoogle = isOAuthProviderEnabled("google");
   const showApple = shouldOfferAppleSignIn();
@@ -91,11 +92,6 @@ const OAuthSocialButtons = ({ intent, disabled, className }: OAuthSocialButtonsP
       .catch((e) => {
         console.error("[google] overlay mount failed:", e);
         setGoogleOverlayFailed(true);
-        toast({
-          title: t("common.error"),
-          description: t("auth.googleSignInFailed"),
-          variant: "destructive",
-        });
       });
 
     return () => {

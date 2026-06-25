@@ -22,6 +22,7 @@ import {
   type RecentStencil,
   type StencilSession,
 } from "@/lib/stencilStorage";
+import { fileForStencilUpload, fileToDataUrl } from "@/lib/stencilImage";
 import { fetchStencilQuota, type StencilQuota } from "@/lib/stencilQuota";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -102,16 +103,25 @@ const StencilPage = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
+    e.target.value = "";
     await removeStoredSession(sessionRef.current);
     setFile(selected);
     setStencilUrl(null);
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(selected);
+    setPreview(null);
+    try {
+      setPreview(await fileToDataUrl(selected));
+    } catch {
+      setFile(null);
+      toast({
+        title: t("stencil.generationFailedTitle"),
+        description: t("stencil.failedToReadImage"),
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGenerate = async () => {
-    if (!file || !user) return;
+    if (!file || !preview || !user) return;
     if (mode === "ai" && quota && quota.remaining <= 0) {
       toast({
         title: t("stencil.quotaReachedTitle"),
@@ -127,7 +137,7 @@ const StencilPage = () => {
 
       let generated: string;
       if (mode === "ai") {
-        const result = await generateAiStencil(file, style);
+        const result = await generateAiStencil(file, style, preview);
         generated = result.stencilUrl;
         if (result.quota) {
           setQuota((prev) => ({
@@ -138,7 +148,7 @@ const StencilPage = () => {
           }));
         }
       } else {
-        generated = await generateLocalStencil(file, settings);
+        generated = await generateLocalStencil(file, settings, preview);
       }
 
       // Show the result immediately; cloud save is separate so a storage error
@@ -146,7 +156,8 @@ const StencilPage = () => {
       setStencilUrl(generated);
 
       try {
-        const stored = await persistStencilSession(user.id, file, generated);
+        const uploadFile = await fileForStencilUpload(file, preview);
+        const stored = await persistStencilSession(user.id, uploadFile, generated);
         setSession(stored);
         sessionRef.current = stored;
         refreshRecent();

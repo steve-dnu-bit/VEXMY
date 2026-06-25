@@ -1,3 +1,5 @@
+import { isNativeApp } from "@/lib/platform";
+
 /**
  * Web OAuth client ID — same as Supabase Google provider (public).
  * Fallback matches .env.example so mobile builds without a local .env still get Velbok-branded sign-in.
@@ -36,7 +38,8 @@ declare global {
 }
 
 export function isGoogleIdentitySignInAvailable(): boolean {
-  return !!GOOGLE_WEB_CLIENT_ID && typeof window !== "undefined";
+  // GIS only works reliably on velbok.com — native uses Browser OAuth (see oauth.ts).
+  return !!GOOGLE_WEB_CLIENT_ID && typeof window !== "undefined" && !isNativeApp();
 }
 
 let scriptPromise: Promise<void> | null = null;
