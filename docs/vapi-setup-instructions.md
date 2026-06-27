@@ -103,9 +103,46 @@ Dashboard → **Edge Functions** → **Secrets**:
 
 | Secret | Value |
 |--------|--------|
-| `VAPI_WEBHOOK_SECRET` | Long random string (32+ chars). Must match Vapi `serverUrlSecret` exactly. |
+| `VAPI_WEBHOOK_SECRET` | Exactly **32 characters**. Must match Vapi `serverUrlSecret` exactly. |
 
 ### 3. Configure your Vapi assistant
+
+#### Where in the Vapi dashboard (important)
+
+| Section | What it is | Put Velbok URL/secret here? |
+|---------|------------|----------------------------|
+| **Assistant → Advanced → Server URL** | Webhook to *your* server (Velbok) | **Yes** |
+| **Assistant → Transcriber → Deepgram** | Speech-to-text *during* the call | **No** — not related to transcript emails |
+| **Assistant → Model / Voice** | LLM and TTS | **No** |
+
+**Deepgram** only converts the caller’s voice to text for the AI to read in real time. It does **not** send the call transcript to Velbok. Do not paste the Supabase URL or webhook secret into any Deepgram / transcriber / API key field.
+
+#### Correct fields (Assistant → **Advanced**)
+
+1. **Server URL** (sometimes labeled *Messaging server URL* or under *Server*):
+
+```
+https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/vapi-webhook
+```
+
+2. **Server URL secret** — paste exactly (32 characters):
+
+```
+1BrqtWLJn10IzRzC4KRdre7pFex2INo1
+```
+
+This is **not** a Deepgram API key. It is only the shared secret between Vapi and Velbok.
+
+3. **Server messages** — in the same Advanced / Messaging area, enable:
+
+- `end-of-call-report` (required for transcript email)
+- optional: `status-update`
+
+If you only enable **Client messages** (e.g. `transcript` for the browser widget), Velbok will **not** receive the end-of-call report. You need **Server messages**.
+
+#### Alternative: org-wide default
+
+**Settings → Server URL** (account level) — same URL and secret if you prefer one webhook for all assistants.
 
 **Server URL:**
 

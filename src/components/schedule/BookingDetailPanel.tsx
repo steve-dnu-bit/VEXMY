@@ -25,11 +25,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
 import ClientAppointmentsDialog from "@/components/schedule/ClientAppointmentsDialog";
 import { loadPosSaleForBooking, type PosSaleRow } from "@/lib/posCheckout";
-import { formatShopMoney } from "@/lib/shopCurrency";
+import { formatShopMoney, currencyForShopCountry } from "@/lib/shopCurrency";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
 import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
-import { getBookingDepositStatus } from "@/lib/serviceDeposit";
+import { getBookingDepositStatus, resolveBookingDepositAmount } from "@/lib/serviceDeposit";
+import { loadShopSettings } from "@/lib/shopSettings";
 
 interface Booking {
   id: string;
@@ -76,10 +77,11 @@ type ClientConductRow = {
 };
 
 const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtistName, onSelectClientBooking }: BookingDetailPanelProps) => {
-  const { t, bookingTypeLabel, tattooSizeLabel, depositStatusLabel } = useScheduleI18n();
+  const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
   const { user } = useAuth();
   const { hasFeature } = useSubscription();
   const [shopDefaultDeposit, setShopDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
   const [conductLoading, setConductLoading] = useState(true);
   const [savingConduct, setSavingConduct] = useState(false);
@@ -121,8 +123,18 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
     [booking, shopDefaultDeposit],
   );
 
+  const depositBadgeLabel = useMemo(() => {
+    if (booking.vip_client) return t("deposits.badgeVip");
+    const amount = resolveBookingDepositAmount(booking, shopDefaultDeposit);
+    if (depositStatus === "not_required") return t("services.noDeposit");
+    const money = formatShopMoney(amount, shopCurrency);
+    if (depositStatus === "paid") return `${money} ${t("deposits.badgePaid")}`;
+    return `${money} ${t("deposits.badgePending")}`;
+  }, [booking, shopDefaultDeposit, shopCurrency, depositStatus, t]);
+
   useEffect(() => {
     void loadShopDefaultDepositAmount(booking.organization_id).then(setShopDefaultDeposit);
+    void loadShopSettings().then((shop) => setShopCurrency(currencyForShopCountry(shop?.country)));
   }, [booking.organization_id]);
 
   useEffect(() => {
@@ -495,10 +507,22 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
           <div className="pt-2 border-t border-border">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.deposit")}</p>
             <Badge
-              variant={depositStatus === "paid" ? "default" : "outline"}
-              className="text-[10px]"
+              variant={
+                booking.vip_client
+                  ? "secondary"
+                  : depositStatus === "paid"
+                    ? "default"
+                    : "outline"
+              }
+              className={
+                booking.vip_client
+                  ? "text-[10px] bg-yellow-500/15 text-yellow-300 border-yellow-500/30"
+                  : depositStatus === "pending"
+                    ? "text-[10px] bg-amber-500/15 text-amber-200 border-amber-500/25"
+                    : "text-[10px]"
+              }
             >
-              {depositStatusLabel(booking, shopDefaultDeposit)}
+              {depositBadgeLabel}
             </Badge>
             {depositStatus === "pending" ? (
               <>

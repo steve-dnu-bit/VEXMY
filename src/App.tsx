@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 import StaffRoute from "./components/StaffRoute";
 import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
-import NativeOAuthBootstrap from "./components/auth/NativeOAuthBootstrap";
+import OAuthNativeHandler from "./components/auth/OAuthNativeHandler";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -120,7 +120,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <NativeOAuthBootstrap />
+            <OAuthNativeHandler />
             <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 {isNativeApp() ? (
@@ -150,6 +150,9 @@ const App = () => (
                   <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
                 </Route>
                 <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
+                <Route path="/auth/app-google" element={<Navigate to="/auth" replace />} />
+                <Route path="/auth/mobile-oauth-start" element={<Navigate to="/auth" replace />} />
+                <Route path="/auth/mobile-oauth-done" element={<Navigate to="/auth" replace />} />
                 <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
                 <Route path="/deposit-checkout" element={<ProtectedRoute><LegacyDepositCheckoutRedirect /></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><StaffRoute><SchedulePage /></StaffRoute></ProtectedRoute>} />

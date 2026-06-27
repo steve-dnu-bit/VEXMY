@@ -136,14 +136,16 @@ function json(body: unknown, status = 200, req?: Request): Response {
   });
 }
 
-function supabaseEnv(): { url: string; anonKey: string } | null {
+function supabaseEnv(): { url: string; anonKey: string; serviceKey: string | null } | null {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
   const anonKey =
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     process.env.SUPABASE_ANON_KEY ||
     "";
   if (!url || !anonKey) return null;
-  return { url: url.replace(/\/$/, ""), anonKey };
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
+  return { url: url.replace(/\/$/, ""), anonKey, serviceKey: serviceKey || null };
 }
 
 /** Parse a data URL or raw base64 into { mimeType, base64 }. */
@@ -197,7 +199,7 @@ async function getUserId(req: Request): Promise<string | null> {
   }
 }
 
-/** Upload a generated stencil and return a short signed HTTPS URL (for mobile clients). */
+/** Upload a generated stencil and return a short signed HTTPS URL (required for mobile). */
 async function uploadStencilSignedUrl(
   req: Request,
   userId: string,
@@ -209,20 +211,22 @@ async function uploadStencilSignedUrl(
   const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/s);
   if (!match) return null;
 
-  const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!token) return null;
+  const userToken = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!userToken) return null;
 
   const mime = match[1];
   const bytes = Uint8Array.from(Buffer.from(match[2], "base64"));
   const id = crypto.randomUUID();
   const path = `stencils/${userId}/${id}/preview-stencil.png`;
+  const storageAuth = env.serviceKey || userToken;
+  const storageKey = env.serviceKey || env.anonKey;
 
   try {
     const uploadRes = await fetch(`${env.url}/storage/v1/object/uploads/${encodeURI(path)}`, {
       method: "POST",
       headers: {
-        apikey: env.anonKey,
-        Authorization: `Bearer ${token}`,
+        apikey: storageKey,
+        Authorization: `Bearer ${storageAuth}`,
         "Content-Type": mime,
         "x-upsert": "false",
       },
@@ -236,8 +240,8 @@ async function uploadStencilSignedUrl(
     const signRes = await fetch(`${env.url}/storage/v1/object/sign/uploads/${encodeURI(path)}`, {
       method: "POST",
       headers: {
-        apikey: env.anonKey,
-        Authorization: `Bearer ${token}`,
+        apikey: storageKey,
+        Authorization: `Bearer ${storageAuth}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ expiresIn: 3600 }),
@@ -400,13 +404,23 @@ export default async (req: Request): Promise<Response> => {
     );
   }
 
-  let responseUrl = stencilUrl;
   if (body.delivery === "url") {
     const signed = await uploadStencilSignedUrl(req, userId, stencilUrl);
-    if (signed) responseUrl = signed;
+    if (!signed) {
+      await refund();
+      return json(
+        {
+          error:
+            "Could not store the generated stencil. Please try again — if this keeps happening, contact support.",
+        },
+        502,
+        req,
+      );
+    }
+    return json({ stencilUrl: signed, style: styleKey, quota: claim ?? null }, 200, req);
   }
 
-  return json({ stencilUrl: responseUrl, style: styleKey, quota: claim ?? null }, 200, req);
+  return json({ stencilUrl, style: styleKey, quota: claim ?? null }, 200, req);
 };
 
 export const config = {

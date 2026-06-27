@@ -1,0 +1,83 @@
+{
+  "packageId": "com.velbok.app",
+  "exportedAt": "2026-06-27",
+  "note": "OAuth fix: native Google sign-in returns to app via /auth/app-callback deep link.",
+  "releases": [
+    {
+      "versionName": "1.0.34",
+      "versionCode": 35,
+      "format": "apk",
+      "file": "apk/velbok-1.0.34-build35.apk",
+      "status": "latest",
+      "installable": true
+    },
+    {
+      "versionName": "1.0.34",
+      "versionCode": 35,
+      "format": "aab",
+      "file": "aab/velbok-1.0.34-build35.aab",
+      "status": "play-store-bundle",
+      "installable": false
+    },
+    {
+      "versionName": "1.0.20",
+      "versionCode": 21,
+      "format": "apk",
+      "file": "apk/velbok-1.0.20-build21.apk",
+      "status": "archived",
+      "installable": true
+    },
+    {
+      "versionName": "1.0.17",
+      "versionCode": 18,
+      "format": "aab",
+      "file": "aab/velbok-1.0.17-build18.aab",
+      "status": "play-store-bundle",
+      "installable": false
+    },
+    {
+      "versionName": "1.0.15",
+      "versionCode": 16,
+      "format": "aab",
+      "file": "aab/velbok-1.0.15.aab",
+      "status": "play-store-bundle",
+      "installable": false
+    },
+    {
+      "versionName": "1.0.14",
+      "versionCode": 15,
+      "format": "aab",
+      "file": "aab/velbok-1.0.14.aab",
+      "status": "play-store-bundle",
+      "installable": false
+    },
+    {
+      "versionName": "1.0.13",
+      "versionCode": 14,
+      "format": "aab",
+      "file": "aab/velbok-1.0.13.aab",
+      "status": "play-store-bundle",
+      "installable": false
+    },
+    {
+      "versionName": "1.0.12",
+      "versionCode": 13,
+      "format": "aab",
+      "file": "aab/velbok-1.0.12.aab",
+      "status": "play-store-bundle",
+      "installable": false
+    },
+    {
+      "versionName": "1.0.7",
+      "versionCode": 8,
+      "format": "apk",
+      "file": "apk/velbok-1.0.7-build8.apk",
+      "status": "archived",
+      "installable": true
+    }
+  ],
+  "knownButNotExported": [
+    { "versionName": "1.0.10", "versionCode": 11, "reason": "APK not kept on disk; rebuild from git tag 0e80154 if needed" },
+    { "versionName": "1.0.8", "versionCode": 9, "reason": "APK not kept on disk; rebuild from git tag 3542859 if needed" }
+  ]
+}

@@ -14,14 +14,27 @@ const AuthHomeRedirect = () => {
 
   useEffect(() => {
     if (!user) return;
+
+    let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      if (!cancelled) setPath((current) => current ?? "/schedule");
+    }, 12_000);
+
     (async () => {
       try {
         await completeAuthProvisioningFromContext(searchParams);
-        setPath(await resolvePostLoginPath(user.id, searchParams.get("next")));
+        if (!cancelled) {
+          setPath(await resolvePostLoginPath(user.id, searchParams.get("next")));
+        }
       } catch {
-        setPath("/account");
+        if (!cancelled) setPath("/account");
       }
     })();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
   }, [searchParams, user]);
 
   if (!path) {

@@ -7,7 +7,7 @@ import {
   requireEmailDeliveryConfig,
   sendTransactionalEmail,
 } from "./email.ts";
-import { verifyVapiWebhookSignature } from "./webhook-signatures.ts";
+import { timingSafeEqual, verifyVapiWebhookSignature } from "./webhook-signatures.ts";
 
 export type VapiServerMessage = {
   type?: string;
@@ -40,16 +40,59 @@ export type VapiServerMessage = {
 
 export type VapiWebhookPayload = {
   message?: VapiServerMessage;
+  call?: VapiServerMessage["call"];
+  type?: string;
 };
 
-export function verifyVapiRequest(rawBody: string, req: Request): boolean {
+export function normalizeVapiMessage(payload: VapiWebhookPayload): VapiServerMessage | null {
+  const message = (payload.message ?? payload) as VapiServerMessage;
+  if (!message || typeof message !== "object") return null;
+
+  const rootCall = payload.call ?? {};
+  const messageCall = message.call ?? {};
+  const type = message.type ?? payload.type;
+
+  return {
+    ...message,
+    type,
+    call: { ...rootCall, ...messageCall },
+  };
+}
+
+export async function verifyVapiRequest(rawBody: string, req: Request): Promise<boolean> {
   const secret = (Deno.env.get("VAPI_WEBHOOK_SECRET") ?? "").trim();
   if (!secret) return false;
+
+  const plainSecret =
+    req.headers.get("x-vapi-secret") ??
+    req.headers.get("X-VAPI-Secret") ??
+    req.headers.get("X-Vapi-Secret");
+  if (plainSecret && timingSafeEqual(plainSecret.trim(), secret)) return true;
+
   const signature =
     req.headers.get("x-vapi-signature") ??
     req.headers.get("X-Vapi-Signature") ??
     req.headers.get("X-VAPI-Signature");
-  return verifyVapiWebhookSignature(rawBody, signature, secret);
+  if (!signature) return false;
+
+  if (await verifyVapiWebhookSignature(rawBody, signature, secret)) return true;
+
+  try {
+    const normalized = JSON.stringify(JSON.parse(rawBody));
+    return verifyVapiWebhookSignature(normalized, signature, secret);
+  } catch {
+    return false;
+  }
+}
+
+function transcriptEmailTo(brandSupportEmail: string): string {
+  const explicit = (Deno.env.get("VAPI_TRANSCRIPT_EMAIL") ?? "").trim();
+  if (explicit) return explicit;
+
+  const forward = (Deno.env.get("RESEND_INBOUND_FORWARD_TO") ?? "").trim();
+  if (forward) return forward;
+
+  return brandSupportEmail;
 }
 
 function formatDuration(seconds: number | null | undefined): string {
@@ -134,7 +177,7 @@ export async function storeVapiEndOfCallReport(
 
   const { data, error } = await admin
     .from("vapi_call_logs")
-    .upsert(row, { onConflict: "vapi_call_id", ignoreDuplicates: true })
+    .upsert(row, { onConflict: "vapi_call_id" })
     .select("id")
     .maybeSingle();
 
@@ -186,8 +229,9 @@ export async function emailVapiEndOfCallReport(message: VapiServerMessage): Prom
     footerNote: "Transcripts are also stored in Velbok for platform admins.",
   });
 
+  const to = transcriptEmailTo(brand.supportEmail);
   await sendTransactionalEmail({
-    to: brand.supportEmail,
+    to,
     subject: subjectParts.join(" — "),
     html,
     fromKind: "notification",

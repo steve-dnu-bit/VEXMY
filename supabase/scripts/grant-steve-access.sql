@@ -1,4 +1,4 @@
--- Manual dev access grant (no Stripe). User: mr.steve.dnu@gmail.com
+-- Manual dev access grant (no Stripe). User: mr.steve.dnu@gmail.com — Solo plan
 DO $$
 DECLARE
   uid uuid := '1c9d946d-b8ae-4321-a234-e7f93ed0082b';
@@ -43,7 +43,7 @@ BEGIN
   INSERT INTO public.platform_subscriptions (
     organization_id, plan_id, status, trial_end, current_period_end
   ) VALUES (
-    org_id, 'enterprise', 'active', NULL, now() + interval '1 year'
+    org_id, 'solo', 'active', NULL, now() + interval '1 year'
   )
   ON CONFLICT (organization_id) DO UPDATE SET
     plan_id = EXCLUDED.plan_id,

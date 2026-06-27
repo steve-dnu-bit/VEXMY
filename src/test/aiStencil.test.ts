@@ -8,10 +8,14 @@ describe("parseStencilApiResponse", () => {
   it("returns stencil on success", () => {
     const result = parseStencilApiResponse(
       200,
-      { stencilUrl: "data:image/png;base64,abc", style: "bold", quota: { remaining: 2 } },
+      {
+        stencilUrl: "https://example.supabase.co/storage/v1/object/sign/uploads/stencil.png",
+        style: "bold",
+        quota: { remaining: 2 },
+      },
       "valoonia",
     );
-    expect(result.stencilUrl).toBe("data:image/png;base64,abc");
+    expect(result.stencilUrl).toContain("https://");
     expect(result.style).toBe("bold");
   });
 

@@ -1,6 +1,7 @@
 import { Copy, Instagram, Mail, MessageCircle, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildInstagramDmUrl, buildMailtoUrl, buildSmsUrl, buildWhatsAppUrl } from "@/lib/messagingLinks";
+import { openExternalUrl } from "@/lib/openExternalUrl";
 import { useTranslation } from "react-i18next";
 import { toast } from "@/hooks/use-toast";
 
@@ -49,40 +50,50 @@ const ExternalMessageActions = ({
     }
   };
 
+  const openLink = (url: string) => {
+    void openExternalUrl(url).catch(() => {
+      toast({ title: t("common.error"), variant: "destructive" });
+    });
+  };
+
   if (!whatsAppUrl && !smsUrl && !mailtoUrl && !instagramUrl && !copyValue) return null;
 
   return (
     <div className={`flex gap-2 ${layout === "column" ? "flex-col" : "flex-wrap items-center"} ${className}`}>
       {whatsAppUrl ? (
-        <Button size={size} variant="outline" className="gap-1.5 text-xs h-8" asChild>
-          <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
-            {t("messaging.whatsapp")}
-          </a>
+        <Button
+          size={size}
+          variant="outline"
+          className="gap-1.5 text-xs h-8"
+          type="button"
+          onClick={() => openLink(whatsAppUrl)}
+        >
+          <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
+          {t("messaging.whatsapp")}
         </Button>
       ) : null}
       {smsUrl ? (
-        <Button size={size} variant="outline" className="gap-1.5 text-xs h-8" asChild>
-          <a href={smsUrl}>
-            <MessageSquareText className="h-3.5 w-3.5 text-sky-400" />
-            {t("messaging.sms")}
-          </a>
+        <Button size={size} variant="outline" className="gap-1.5 text-xs h-8" type="button" onClick={() => openLink(smsUrl)}>
+          <MessageSquareText className="h-3.5 w-3.5 text-sky-400" />
+          {t("messaging.sms")}
         </Button>
       ) : null}
       {mailtoUrl ? (
-        <Button size={size} variant="outline" className="gap-1.5 text-xs h-8" asChild>
-          <a href={mailtoUrl}>
-            <Mail className="h-3.5 w-3.5 text-blue-400" />
-            {t("messaging.email")}
-          </a>
+        <Button size={size} variant="outline" className="gap-1.5 text-xs h-8" type="button" onClick={() => openLink(mailtoUrl)}>
+          <Mail className="h-3.5 w-3.5 text-blue-400" />
+          {t("messaging.email")}
         </Button>
       ) : null}
       {instagramUrl ? (
-        <Button size={size} variant="outline" className="gap-1.5 text-xs h-8" asChild>
-          <a href={instagramUrl} target="_blank" rel="noopener noreferrer">
-            <Instagram className="h-3.5 w-3.5 text-pink-400" />
-            {t("messaging.instagram")}
-          </a>
+        <Button
+          size={size}
+          variant="outline"
+          className="gap-1.5 text-xs h-8"
+          type="button"
+          onClick={() => openLink(instagramUrl)}
+        >
+          <Instagram className="h-3.5 w-3.5 text-pink-400" />
+          {t("messaging.instagram")}
         </Button>
       ) : null}
       {showCopy && copyValue ? (

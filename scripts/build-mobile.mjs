@@ -17,6 +17,8 @@ const result = spawnSync("npx", ["vite", "build"], {
   env: {
     ...process.env,
     VITE_MOBILE_BUILD: "1",
+    VITE_SITE_URL: process.env.VITE_SITE_URL || "https://velbok.com",
+    VITE_SHOP_WEBSITE_URL: process.env.VITE_SHOP_WEBSITE_URL || "https://velbok.com",
     VITE_GOOGLE_CLIENT_ID:
       process.env.VITE_GOOGLE_CLIENT_ID ||
       "843973604535-hh4010q2pagr6m72esbh9mlddattg65i.apps.googleusercontent.com",

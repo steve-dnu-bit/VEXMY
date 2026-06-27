@@ -1,5 +1,15 @@
 project_id = "tkremoxfkgoiuwghtzwd"
 
+[auth]
+site_url = "https://velbok.com"
+additional_redirect_urls = [
+  "https://velbok.com/**",
+  "https://velbok.com/auth/app-callback",
+  "com.velbok.app://auth/callback",
+  "http://localhost:5173/**",
+  "http://localhost:8080/**",
+]
+
 # TOTP MFA only (no Advanced Phone MFA add-on)
 [auth.mfa]
 max_enrolled_factors = 10

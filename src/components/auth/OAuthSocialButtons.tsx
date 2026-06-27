@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Browser } from "@capacitor/browser";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import type { AuthIntent } from "@/lib/authIntent";
-import { mountGoogleSignInOverlay } from "@/lib/googleIdentity";
 import { isNativeApp } from "@/lib/platform";
 import {
   isOAuthProviderEnabled,
-  prefersGoogleIdentitySignIn,
   shouldOfferAppleSignIn,
-  signInWithGoogleIdToken,
+  startGoogleSignIn,
   startOAuthSignIn,
   type OAuthProvider,
 } from "@/lib/oauth";
@@ -54,64 +54,68 @@ function AppleIcon() {
 const OAuthSocialButtons = ({ intent, disabled, className }: OAuthSocialButtonsProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
-  const [googleOverlayFailed, setGoogleOverlayFailed] = useState(false);
-  const googleOverlayRef = useRef<HTMLDivElement>(null);
-  const useGoogleOverlay = prefersGoogleIdentitySignIn() && !googleOverlayFailed && !isNativeApp();
+
+  useEffect(() => {
+    if (user) setLoadingProvider(null);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!isNativeApp()) return;
+
+    const clearLoading = () => setLoadingProvider(null);
+    window.addEventListener("velbok:oauth-success", clearLoading);
+    window.addEventListener("velbok:oauth-error", clearLoading);
+    const browserFinished = Browser.addListener("browserFinished", clearLoading);
+
+    return () => {
+      window.removeEventListener("velbok:oauth-success", clearLoading);
+      window.removeEventListener("velbok:oauth-error", clearLoading);
+      void browserFinished.then((handle) => handle.remove());
+    };
+  }, []);
 
   const showGoogle = isOAuthProviderEnabled("google");
   const showApple = shouldOfferAppleSignIn();
 
-  useEffect(() => {
-    const container = googleOverlayRef.current;
-    if (!showGoogle || !useGoogleOverlay || !container) return;
+  if (!showGoogle && !showApple) return null;
 
-    let cleanup: (() => void) | undefined;
-    let cancelled = false;
+  const isOAuthCancelNoise = (error: unknown): boolean => {
+    const msg = error instanceof Error ? error.message : String(error);
+    return /cancelled by user|canceled by user|user cancelled|user canceled|popup closed|window was closed/i.test(
+      msg,
+    );
+  };
 
-    void mountGoogleSignInOverlay(container, async (credential) => {
-      setLoadingProvider("google");
-      try {
-        await signInWithGoogleIdToken(intent, credential);
-      } catch (e) {
+  const runGoogle = async () => {
+    setLoadingProvider("google");
+    try {
+      await startGoogleSignIn(intent);
+    } catch (e) {
+      if (!isOAuthCancelNoise(e)) {
         toast({
           title: t("common.error"),
           description: e instanceof Error ? e.message : t("auth.googleSignInFailed"),
           variant: "destructive",
         });
-        setLoadingProvider(null);
       }
-    })
-      .then((unmount) => {
-        if (cancelled) {
-          unmount();
-          return;
-        }
-        cleanup = unmount;
-      })
-      .catch((e) => {
-        console.error("[google] overlay mount failed:", e);
-        setGoogleOverlayFailed(true);
-      });
-
-    return () => {
-      cancelled = true;
-      cleanup?.();
-    };
-  }, [intent, showGoogle, toast, t, useGoogleOverlay]);
-
-  if (!showGoogle && !showApple) return null;
+      setLoadingProvider(null);
+    }
+  };
 
   const run = async (provider: OAuthProvider) => {
+    if (provider === "google") {
+      await runGoogle();
+      return;
+    }
     setLoadingProvider(provider);
     try {
       await startOAuthSignIn(provider, intent);
     } catch (e) {
-      const fallback =
-        provider === "apple" ? t("auth.appleSignInFailed") : t("auth.googleSignInFailed");
       toast({
         title: t("common.error"),
-        description: e instanceof Error ? e.message : fallback,
+        description: e instanceof Error ? e.message : t("auth.appleSignInFailed"),
         variant: "destructive",
       });
       setLoadingProvider(null);
@@ -121,34 +125,16 @@ const OAuthSocialButtons = ({ intent, disabled, className }: OAuthSocialButtonsP
   return (
     <div className={className}>
       {showGoogle ? (
-        <div className="relative mb-3 h-11 w-full">
-          <Button
-            type="button"
-            variant="outline"
-            className="pointer-events-none h-11 w-full border-gold/25 bg-black/20 text-zinc-100 hover:bg-black/40"
-            disabled={disabled || loadingProvider !== null}
-            tabIndex={-1}
-            aria-hidden={useGoogleOverlay}
-          >
-            <GoogleIcon />
-            {loadingProvider === "google" ? t("auth.continuingWithGoogle") : t("auth.continueWithGoogle")}
-          </Button>
-          {useGoogleOverlay ? (
-            <div
-              ref={googleOverlayRef}
-              className="absolute inset-0 z-10 overflow-hidden opacity-[0.011]"
-              aria-label={t("auth.continueWithGoogle")}
-            />
-          ) : (
-            <button
-              type="button"
-              className="absolute inset-0 z-10 cursor-pointer disabled:cursor-not-allowed"
-              onClick={() => void run("google")}
-              disabled={disabled || loadingProvider !== null}
-              aria-label={t("auth.continueWithGoogle")}
-            />
-          )}
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="mb-3 h-11 w-full border-gold/25 bg-black/20 text-zinc-100 hover:bg-black/40"
+          onClick={() => void runGoogle()}
+          disabled={disabled || loadingProvider !== null}
+        >
+          <GoogleIcon />
+          {loadingProvider === "google" ? t("auth.continuingWithGoogle") : t("auth.continueWithGoogle")}
+        </Button>
       ) : null}
       {showApple ? (
         <Button

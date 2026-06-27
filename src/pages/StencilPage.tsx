@@ -22,6 +22,8 @@ import {
   type RecentStencil,
   type StencilSession,
 } from "@/lib/stencilStorage";
+import { isNativeApp } from "@/lib/platform";
+import { pickStencilPhotoFromDevice } from "@/lib/pickStencilPhoto";
 import { fileForStencilUpload, fileToDataUrl } from "@/lib/stencilImage";
 import { fetchStencilQuota, type StencilQuota } from "@/lib/stencilQuota";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -100,16 +102,34 @@ const StencilPage = () => {
     setSettings((s) => ({ ...s, [key]: value }));
   };
 
+  const applyPickedPhoto = async (picked: { file: File; dataUrl: string }) => {
+    await removeStoredSession(sessionRef.current);
+    setFile(picked.file);
+    setPreview(picked.dataUrl);
+    setStencilUrl(null);
+  };
+
+  const handlePickPhoto = async () => {
+    try {
+      const picked = await pickStencilPhotoFromDevice();
+      await applyPickedPhoto(picked);
+    } catch (error: unknown) {
+      toast({
+        title: t("stencil.generationFailedTitle"),
+        description: error instanceof Error ? error.message : t("stencil.failedToReadImage"),
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
     e.target.value = "";
-    await removeStoredSession(sessionRef.current);
-    setFile(selected);
-    setStencilUrl(null);
     setPreview(null);
     try {
-      setPreview(await fileToDataUrl(selected));
+      const dataUrl = await fileToDataUrl(selected);
+      await applyPickedPhoto({ file: selected, dataUrl });
     } catch {
       setFile(null);
       toast({
@@ -270,13 +290,29 @@ const StencilPage = () => {
             {preview ? (
               <div className="space-y-4">
                 <img src={preview} alt={t("stencil.originalLabel")} loading="lazy" className="w-full rounded-lg object-cover aspect-square" />
-                <label className="block">
-                  <Button variant="ghost" size="sm" className="w-full" asChild>
-                    <span>{t("stencil.changeImage")}</span>
+                {isNativeApp() ? (
+                  <Button variant="ghost" size="sm" className="w-full" type="button" onClick={() => void handlePickPhoto()}>
+                    {t("stencil.changeImage")}
                   </Button>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                </label>
+                ) : (
+                  <label className="block">
+                    <Button variant="ghost" size="sm" className="w-full" asChild>
+                      <span>{t("stencil.changeImage")}</span>
+                    </Button>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+                  </label>
+                )}
               </div>
+            ) : isNativeApp() ? (
+              <button
+                type="button"
+                onClick={() => void handlePickPhoto()}
+                className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-secondary p-12 transition-colors hover:border-primary/50 aspect-square"
+              >
+                <Upload className="mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground text-center">{t("stencil.dropOrUpload")}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("stencil.fileHint")}</p>
+              </button>
             ) : (
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-secondary p-12 transition-colors hover:border-primary/50 aspect-square">
                 <Upload className="mb-3 h-10 w-10 text-muted-foreground" />

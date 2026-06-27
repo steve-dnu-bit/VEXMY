@@ -80,7 +80,7 @@ export async function persistStencilSession(
   });
   if (originalError) throw new Error(originalError.message);
 
-  const stencilBlob = dataUrlToBlob(stencilDataUrl);
+  const stencilBlob = await blobFromImageSource(stencilDataUrl);
   const { error: stencilError } = await supabase.storage.from("uploads").upload(stencilPath, stencilBlob, {
     upsert: false,
     contentType: "image/png",

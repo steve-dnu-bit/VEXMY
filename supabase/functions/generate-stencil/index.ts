@@ -112,23 +112,38 @@ serve(async (req) => {
     let responseUrl = aiResult.stencilUrl;
     if (body.delivery === "url") {
       const match = aiResult.stencilUrl.match(/^data:([^;]+);base64,(.*)$/s);
-      if (match) {
-        const id = crypto.randomUUID();
-        const path = `stencils/${authResult.user.id}/${id}/preview-stencil.png`;
-        const bytes = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
-        const { error: uploadError } = await userClient.storage.from("uploads").upload(path, bytes, {
-          contentType: match[1],
-          upsert: false,
-        });
-        if (!uploadError) {
-          const { data: signed, error: signError } = await userClient.storage
-            .from("uploads")
-            .createSignedUrl(path, 3600);
-          if (!signError && signed?.signedUrl) responseUrl = signed.signedUrl;
-        } else {
-          console.error("Stencil preview upload failed:", uploadError);
-        }
+      if (!match) {
+        await refund();
+        return jsonResponse({ error: "Unexpected stencil format from AI." }, 502);
       }
+      const id = crypto.randomUUID();
+      const path = `stencils/${authResult.user.id}/${id}/preview-stencil.png`;
+      const bytes = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
+      const { error: uploadError } = await admin.storage.from("uploads").upload(path, bytes, {
+        contentType: match[1],
+        upsert: false,
+      });
+      if (uploadError) {
+        console.error("Stencil preview upload failed:", uploadError);
+        await refund();
+        return jsonResponse(
+          {
+            error:
+              "Could not store the generated stencil. Please try again — if this keeps happening, contact support.",
+          },
+          502,
+        );
+      }
+      const { data: signed, error: signError } = await admin.storage
+        .from("uploads")
+        .createSignedUrl(path, 3600);
+      if (signError || !signed?.signedUrl) {
+        console.error("Stencil preview sign failed:", signError);
+        await admin.storage.from("uploads").remove([path]);
+        await refund();
+        return jsonResponse({ error: "Could not prepare stencil download link." }, 502);
+      }
+      responseUrl = signed.signedUrl;
     }
 
     return new Response(

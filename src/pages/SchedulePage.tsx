@@ -41,6 +41,7 @@ interface Booking {
   ends_at: string;
   deposit_paid: boolean | null;
   deposit_amount?: number | null;
+  vip_client?: boolean | null;
   organization_id?: string | null;
 }
 
@@ -174,7 +175,7 @@ const SchedulePage = () => {
     let query = supabase
       .from("bookings")
       .select(
-        "id, artist_id, client_name, client_phone, client_email, client_user_id, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, deposit_paid, deposit_amount, organization_id",
+        "id, artist_id, client_name, client_phone, client_email, client_user_id, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, deposit_paid, deposit_amount, vip_client, organization_id",
       )
       .gte("starts_at", from)
       .lt("starts_at", to)

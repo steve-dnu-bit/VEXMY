@@ -63,7 +63,17 @@ type StencilRequestBody = {
 };
 
 function stencilRequestBody(image: string, style: StencilStyle): StencilRequestBody {
-  return isNativeApp() ? { image, style, delivery: "url" } : { image, style };
+  return { image, style, delivery: "url" };
+}
+
+/** Inline data URLs are too large for the Capacitor native bridge — require HTTPS. */
+function assertDeliverableStencilUrl(stencilUrl: string): void {
+  if (!isNativeApp()) return;
+  if (stencilUrl.startsWith("data:")) {
+    throw new Error(
+      "Stencil response was too large for the app. Please try again — a signed download link is required on mobile.",
+    );
+  }
 }
 
 /** Downscale + re-encode the reference so the request stays small and fast. */
@@ -85,6 +95,7 @@ export function parseStencilApiResponse(
   if (!payload.stencilUrl) {
     throw new Error("No stencil image was returned.");
   }
+  assertDeliverableStencilUrl(payload.stencilUrl);
   return {
     stencilUrl: payload.stencilUrl,
     style: payload.style || style,
@@ -187,7 +198,10 @@ function shouldTryFallback(error: unknown): boolean {
     msg.includes("network") ||
     msg.includes("fetch") ||
     msg.includes("timeout") ||
-    msg.includes("no stencil image")
+    msg.includes("no stencil image") ||
+    msg.includes("could not store") ||
+    msg.includes("not configured yet") ||
+    msg.includes("ai gateway")
   );
 }
 
@@ -196,18 +210,32 @@ async function generateOnNative(
   style: StencilStyle,
   token: string,
 ): Promise<AiStencilResult> {
-  try {
-    return await generateViaNativeHttp(image, style, token);
-  } catch (nativeError) {
-    if (!shouldTryFallback(nativeError)) throw nativeError;
-  }
-
+  // Supabase edge uploads with service role — most reliable signed URL on mobile.
   try {
     return await generateViaSupabaseFunction(image, style);
   } catch (supabaseError) {
     if (!shouldTryFallback(supabaseError)) throw supabaseError;
+  }
+
+  try {
+    return await generateViaNativeHttp(image, style, token);
+  } catch (nativeError) {
+    if (!shouldTryFallback(nativeError)) throw nativeError;
     return generateViaNetlifyFetch(image, style, token);
   }
+}
+
+async function generateOnWeb(
+  image: string,
+  style: StencilStyle,
+  token: string,
+): Promise<AiStencilResult> {
+  try {
+    return await generateViaNetlifyFetch(image, style, token);
+  } catch (netlifyError) {
+    if (!shouldTryFallback(netlifyError)) throw netlifyError;
+  }
+  return generateViaSupabaseFunction(image, style);
 }
 
 /**
@@ -227,5 +255,5 @@ export async function generateAiStencil(
   if (isNativeApp()) {
     return generateOnNative(image, style, token);
   }
-  return generateViaNetlifyFetch(image, style, token);
+  return generateOnWeb(image, style, token);
 }

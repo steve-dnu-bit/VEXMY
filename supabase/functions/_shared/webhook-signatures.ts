@@ -44,16 +44,18 @@ export async function verifyMetaWebhookSignature(
   return timingSafeEqual(actual, expected);
 }
 
-/** Vapi X-Vapi-Signature HMAC-SHA256 of the raw request body. */
+/** Vapi X-Vapi-Signature HMAC-SHA256 of the request body. */
 export async function verifyVapiWebhookSignature(
-  rawBody: string,
+  body: string,
   signatureHeader: string | null,
   secret: string,
 ): Promise<boolean> {
   if (!secret || !signatureHeader) return false;
-  const actual = await hmacSha256Hex(secret, rawBody);
+  const actual = await hmacSha256Hex(secret, body);
   return timingSafeEqual(actual, signatureHeader.trim());
 }
+
+export { timingSafeEqual };
 
 /** Twilio X-Twilio-Signature validation for form POST webhooks. */
 export async function verifyTwilioWebhookSignature(

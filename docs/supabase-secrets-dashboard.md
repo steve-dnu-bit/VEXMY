@@ -30,7 +30,7 @@ Add or update each row. You only need to paste your **Resend API key** yourself 
 | `RESEND_INBOUND_DOMAIN` | `velbok.com` (receiving domain — use root on free Resend plan; Pro can use `email.velbok.com`) |
 | `BOOKINGS_REPLY_TO` | `bookings@velbok.com` (reply-to on booking emails when inbound is on root domain) |
 | `RESEND_INBOUND_FORWARD_TO` | Optional — forward inbound mail to this inbox (defaults to `SHOP_SUPPORT_EMAIL`) |
-| `VAPI_WEBHOOK_SECRET` | Long random string — must match Vapi assistant `serverUrlSecret` (see `docs/vapi-setup-instructions.md`) |
+| `VAPI_WEBHOOK_SECRET` | Exactly **32 characters** — must match Vapi assistant `serverUrlSecret` character-for-character (see `docs/vapi-setup-instructions.md`). Vapi's UI has been reported to drop the last character when saving — paste the secret, then add one extra character and delete it to force a full save. |
 
 Click **Save** after each secret (or bulk add if your dashboard supports it).
 

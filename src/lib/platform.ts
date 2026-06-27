@@ -5,6 +5,15 @@ export function isNativeApp(): boolean {
   return Capacitor.isNativePlatform();
 }
 
+/** True in the Capacitor WebView, not a Custom Tab on velbok.com. */
+export function isNativeAppShell(): boolean {
+  if (!isNativeApp()) return false;
+  if (typeof window === "undefined") return true;
+  const host = window.location.hostname;
+  if (host === "velbok.com" || host === "www.velbok.com") return false;
+  return true;
+}
+
 export function nativePlatform(): "android" | "ios" | "web" {
   const platform = Capacitor.getPlatform();
   if (platform === "android" || platform === "ios") return platform;

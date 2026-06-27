@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { jsonCorsHeaders, jsonResponse } from "../_shared/auth.ts";
 import {
   emailVapiEndOfCallReport,
+  normalizeVapiMessage,
   storeVapiEndOfCallReport,
   verifyVapiRequest,
   type VapiWebhookPayload,
@@ -25,13 +26,16 @@ serve(async (req) => {
 
   try {
     const rawBody = await req.text();
-    if (!verifyVapiRequest(rawBody, req)) {
+    if (!(await verifyVapiRequest(rawBody, req))) {
+      console.warn("vapi-webhook: rejected request (bad or missing signature)");
       return jsonResponse({ error: "Invalid signature" }, 401);
     }
 
     const payload = JSON.parse(rawBody) as VapiWebhookPayload;
-    const message = payload.message;
+    const message = normalizeVapiMessage(payload);
     const messageType = message?.type ?? "";
+
+    console.log("vapi-webhook: received", messageType || "unknown");
 
     if (messageType === "tool-calls") {
       return jsonResponse({ results: [] });
@@ -45,15 +49,14 @@ serve(async (req) => {
       }
 
       const admin = createClient(supabaseUrl, serviceKey);
-      const { inserted } = await storeVapiEndOfCallReport(admin, message);
+      await storeVapiEndOfCallReport(admin, message);
 
-      if (inserted) {
-        try {
-          await emailVapiEndOfCallReport(message);
-        } catch (emailError) {
-          const detail = emailError instanceof Error ? emailError.message : "Unknown email error";
-          console.error("vapi-webhook: transcript email failed", detail);
-        }
+      try {
+        await emailVapiEndOfCallReport(message);
+        console.log("vapi-webhook: transcript emailed for call", message.call?.id ?? "unknown");
+      } catch (emailError) {
+        const detail = emailError instanceof Error ? emailError.message : "Unknown email error";
+        console.error("vapi-webhook: transcript email failed", detail);
       }
     }
 
