@@ -18,6 +18,7 @@ dist-ssr
 .netlify
 
 # Firebase service account (server push — never commit)
+**/*firebase-adminsdk*.json
 android/app/*firebase-adminsdk*.json
 .firebase-secret.env
 
