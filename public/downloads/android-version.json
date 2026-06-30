@@ -1,9 +1,9 @@
 {
-  "versionName": "1.0.34",
-  "versionCode": 35,
+  "versionName": "1.0.35",
+  "versionCode": 36,
   "packageId": "com.velbok.app",
   "filename": "velbok-android.apk",
   "downloadUrl": "/downloads/velbok-android.apk",
-  "sizeBytes": 51573244,
-  "updatedAt": "2026-06-27"
+  "sizeBytes": 52169935,
+  "updatedAt": "2026-06-30"
 }

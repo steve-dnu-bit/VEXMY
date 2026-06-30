@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isAfter, parseISO, startOfDay, subDays } from "date-fns";
-import { Send, CheckCircle, Clock, Star, Settings2 } from "lucide-react";
+import { Send, CheckCircle, Clock, Settings2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { maxDepositAmountForCurrency } from "@/lib/depositLimits";
@@ -230,17 +230,6 @@ const DepositsPage = () => {
       .update({ deposit_paid: false } as any)
       .eq("id", bookingId);
     toast.success(t("deposits.markedUnpaid"));
-    fetchBookings();
-  };
-
-  const handleToggleVip = async (booking: BookingWithDeposit) => {
-    const nextVip = !booking.vip_client;
-    const { error } = await supabase.from("bookings").update({ vip_client: nextVip } as any).eq("id", booking.id);
-    if (error) {
-      toast.error(error.message || t("deposits.failedVipUpdate"));
-      return;
-    }
-    toast.success(nextVip ? t("deposits.markedVip") : t("deposits.vipRemoved"));
     fetchBookings();
   };
 
@@ -486,14 +475,6 @@ const DepositsPage = () => {
                             </Button>
                             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleMarkUnpaid(b.id)} disabled={!b.deposit_paid}>
                               {t("deposits.unpaid")}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={b.vip_client ? "secondary" : "outline"}
-                              className="h-7 text-xs gap-1"
-                              onClick={() => handleToggleVip(b)}
-                            >
-                              <Star className="h-3 w-3" /> {t("deposits.badgeVip")}
                             </Button>
                           </div>
                         </TableCell>

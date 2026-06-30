@@ -14,6 +14,7 @@ import { resolveEmailLocale, t, type EmailLanguage } from "../_shared/email-i18n
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildBookingNotificationEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
+import { sendBookingPushNotifications } from "../_shared/booking-push.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -341,12 +342,30 @@ serve(async (req) => {
     });
 
     if (sendJobs.length === 0) {
+      let pushOnly: Awaited<ReturnType<typeof sendBookingPushNotifications>> | null = null;
+      try {
+        pushOnly = await sendBookingPushNotifications(adminClient, {
+          action,
+          booking: {
+            id: booking.id,
+            artist_id: booking.artist_id,
+            client_user_id: (booking as { client_user_id?: string | null }).client_user_id ?? null,
+            client_name: booking.client_name,
+            starts_at: booking.starts_at,
+          },
+          shopName: brand.shopName,
+        });
+      } catch (pushErr) {
+        console.error("Booking push notification failed", pushErr);
+      }
+
       return jsonResponse({
         ok: true,
         emailAttempted: false,
         attempted: 0,
         sent: 0,
         failedCount: 0,
+        push: pushOnly,
         skipped: !isValidEmail(customerEmailRaw) && !isValidEmail(artistEmailRaw) ? "no_valid_recipient_email" : "no_recipients",
       });
     }
@@ -377,6 +396,23 @@ serve(async (req) => {
       }
     }
 
+    let pushResult: Awaited<ReturnType<typeof sendBookingPushNotifications>> | null = null;
+    try {
+      pushResult = await sendBookingPushNotifications(adminClient, {
+        action,
+        booking: {
+          id: booking.id,
+          artist_id: booking.artist_id,
+          client_user_id: (booking as { client_user_id?: string | null }).client_user_id ?? null,
+          client_name: booking.client_name,
+          starts_at: booking.starts_at,
+        },
+        shopName: brand.shopName,
+      });
+    } catch (pushErr) {
+      console.error("Booking push notification failed", pushErr);
+    }
+
     return jsonResponse({
       ok: failedCount === 0,
       emailAttempted: true,
@@ -384,6 +420,7 @@ serve(async (req) => {
       sent,
       failedCount,
       failed,
+      push: pushResult,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";

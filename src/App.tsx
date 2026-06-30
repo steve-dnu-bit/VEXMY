@@ -13,6 +13,7 @@ import StaffRoute from "./components/StaffRoute";
 import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import OAuthNativeHandler from "./components/auth/OAuthNativeHandler";
+import PushNotificationHandler from "./components/PushNotificationHandler";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -121,6 +122,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <OAuthNativeHandler />
+            <PushNotificationHandler />
             <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 {isNativeApp() ? (

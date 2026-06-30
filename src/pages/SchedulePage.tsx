@@ -401,6 +401,24 @@ const SchedulePage = () => {
                 setEditingBooking(selectedBooking);
                 setDialogOpen(true);
               }}
+              onBookingUpdated={(patch) => {
+                setSelectedBooking((prev) => (prev ? { ...prev, ...patch } : prev));
+                setBookings((prev) =>
+                  prev.map((b) => {
+                    if (selectedBooking?.client_user_id && b.client_user_id === selectedBooking.client_user_id) {
+                      return { ...b, ...patch };
+                    }
+                    if (selectedBooking?.client_email && b.client_email?.toLowerCase() === selectedBooking.client_email.toLowerCase()) {
+                      return { ...b, ...patch };
+                    }
+                    if (selectedBooking?.client_phone && b.client_phone === selectedBooking.client_phone) {
+                      return { ...b, ...patch };
+                    }
+                    if (b.id === selectedBooking?.id) return { ...b, ...patch };
+                    return b;
+                  }),
+                );
+              }}
             />
           )}
         </div>

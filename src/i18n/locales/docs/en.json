@@ -379,17 +379,25 @@
     },
     "inbox": {
       "title": "Inbox & messaging",
-      "description": "Staff–client chat threads with optional email notifications.",
+      "description": "Support tickets, client contact links, and optional Twilio SMS for reminders.",
       "sections": [
         {
-          "heading": "Threads",
+          "heading": "Support tickets",
           "paragraphs": [
-            "Each conversation is tied to a client. Staff with inbox permission can reply, attach media, and see typing indicators when active."
+            "The Inbox page is your client contact centre: customers raise tickets from the portal and staff reply in Velbok. This replaces a complex unified inbox for Facebook, Instagram, and email APIs."
           ]
         },
         {
-          "heading": "Email notifications",
-          "note": "When SMTP is configured, clients can receive email alerts for new messages. Configure templates and sender details in your studio environment."
+          "heading": "Contact links (all plans)",
+          "paragraphs": [
+            "Reach clients via WhatsApp, SMS, or email links from bookings and the contact hub — no API setup required."
+          ]
+        },
+        {
+          "heading": "SMS reminders (optional Twilio)",
+          "paragraphs": [
+            "Studios that want automated SMS appointment or deposit reminders can connect their own Twilio account on the Inbox page. See the SMS & Twilio setup guide."
+          ]
         }
       ]
     },
@@ -498,6 +506,53 @@
           "paragraphs": [
             "See docs/Velbok-go-live-checklist.md in the repository for auth URLs, admin user setup, and production verification steps."
           ]
+        }
+      ]
+    },
+    "sms-twilio-setup": {
+      "title": "SMS & Twilio setup",
+      "description": "Connect your studio's own Twilio account for SMS appointment and deposit reminders.",
+      "sections": [
+        {
+          "heading": "Overview",
+          "paragraphs": [
+            "SMS is not included as a Velbok-wide service. Each studio creates a Twilio account, buys a phone number, and connects it in Velbok Inbox. Twilio bills you directly for messages and number rental.",
+            "Use a dedicated number for Velbok if another service (e.g. Vapi voice AI) already controls the Twilio webhook on your existing number."
+          ]
+        },
+        {
+          "heading": "Step 1 — Connect in Velbok",
+          "bullets": [
+            "Staff app → Inbox → SMS (Twilio) card → Connect Twilio",
+            "Enter Account SID, Auth Token, and phone number in E.164 format (+353…, +44…, +1…)",
+            "Credentials are stored per organization only"
+          ]
+        },
+        {
+          "heading": "Step 2 — Twilio webhook",
+          "bullets": [
+            "Twilio Console → Phone Numbers → your number → Messaging",
+            "A message comes in → Webhook → https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/sms-webhook",
+            "HTTP POST. Optional Supabase secret TWILIO_SMS_WEBHOOK_URL with the same URL (no trailing slash)"
+          ]
+        },
+        {
+          "heading": "Step 3 — SMS reminders",
+          "bullets": [
+            "Admin → Emails & reminders → Notification channel → SMS or Email & SMS",
+            "Enable appointment and/or deposit reminders",
+            "Bookings need a client phone number; VIP clients skip deposit SMS"
+          ]
+        },
+        {
+          "heading": "Testing & troubleshooting",
+          "bullets": [
+            "Inbound: text your Twilio number; optional for reminder-only setups",
+            "Twilio Monitor → Messaging → webhook should return 200 when using two-way SMS",
+            "401 Invalid signature → Auth Token mismatch between Twilio and Velbok",
+            "no_matching_org → phone number in Velbok must match Twilio exactly"
+          ],
+          "note": "Ireland (+353) numbers work well for UK/EU studios when +44 is unavailable in Twilio. Do not share Auth Tokens in support tickets."
         }
       ]
     }

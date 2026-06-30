@@ -41,7 +41,7 @@ export function buildReminderDueWindows(nowMs: number, toleranceMs: number): Rem
 }
 
 const BOOKING_REMINDER_SELECT =
-  "id, organization_id, artist_id, client_user_id, client_name, client_email, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount, notes, suppress_booking_notifications";
+  "id, organization_id, artist_id, client_user_id, client_name, client_email, client_phone, starts_at, ends_at, booking_type, service_category, deposit_paid, deposit_amount, vip_client, notes, suppress_booking_notifications";
 
 /** Fetch bookings whose starts_at falls in any due window (deduped, sorted). */
 export async function fetchBookingsDueForReminders(

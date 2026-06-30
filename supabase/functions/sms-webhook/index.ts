@@ -23,8 +23,8 @@ serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const webhookUrl = twilioWebhookUrl(req, "TWILIO_WEBHOOK_URL");
-    const verified = await verifyTwilioInboundSignature(admin, "whatsapp", req, form, webhookUrl);
+    const webhookUrl = twilioWebhookUrl(req, "TWILIO_SMS_WEBHOOK_URL");
+    const verified = await verifyTwilioInboundSignature(admin, "sms", req, form, webhookUrl);
 
     if (!verified.ok) {
       if (verified.message === "no_matching_org") {
@@ -35,10 +35,10 @@ serve(async (req) => {
       return new Response(verified.message, { status: verified.status });
     }
 
-    return await handleTwilioInboundMessage(admin, "whatsapp", verified.organizationId, form);
+    return await handleTwilioInboundMessage(admin, "sms", verified.organizationId, form);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    console.error("whatsapp-webhook error:", message);
+    console.error("sms-webhook error:", message);
     return new Response(message, { status: 400 });
   }
 });

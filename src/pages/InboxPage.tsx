@@ -2,6 +2,7 @@ import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import ContactHub from "@/components/inbox/ContactHub";
 import StaffTicketsPanel from "@/components/tickets/StaffTicketsPanel";
+import SmsTwilioSetupCard from "@/components/inbox/SmsTwilioSetupCard";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -10,6 +11,7 @@ const InboxPage = () => {
   const [searchParams] = useSearchParams();
   const customerId = searchParams.get("customerId") || undefined;
   const ticketId = searchParams.get("ticketId") || undefined;
+  const openSmsConnect = searchParams.get("connect") === "sms";
 
   return (
     <AppLayout>
@@ -19,6 +21,9 @@ const InboxPage = () => {
             <h1 className="font-display text-2xl font-semibold">{t("tickets.pageTitle")}</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("tickets.pageSubtitle")}</p>
           </div>
+
+          <SmsTwilioSetupCard defaultOpen={openSmsConnect} />
+
           <StaffTicketsPanel highlightCustomerId={customerId} highlightTicketId={ticketId} />
           <ContactHub />
         </div>

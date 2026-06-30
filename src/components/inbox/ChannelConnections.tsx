@@ -83,9 +83,12 @@ const channels: ChannelConfig[] = [
 interface ChannelConnectionsProps {
   open: boolean;
   onClose: () => void;
+  initialChannel?: string | null;
+  /** When set, only these channels are shown (e.g. `["sms"]` from the inbox page). */
+  channelIds?: string[];
 }
 
-const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
+const ChannelConnections = ({ open, onClose, initialChannel = null, channelIds }: ChannelConnectionsProps) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [connectedChannels, setConnectedChannels] = useState<Record<string, boolean>>({});
@@ -96,7 +99,8 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
 
   useEffect(() => {
     if (open && user) fetchConnections();
-  }, [open, user]);
+    if (open && initialChannel) setExpandedChannel(initialChannel);
+  }, [open, user, initialChannel]);
 
   const fetchConnections = async () => {
     if (!user) return;
@@ -126,6 +130,11 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
   };
 
   if (!open) return null;
+
+  const visibleChannels = channelIds?.length
+    ? channels.filter((ch) => channelIds.includes(ch.id))
+    : channels;
+  const smsOnly = visibleChannels.length === 1 && visibleChannels[0]?.id === "sms";
 
   const handleConnect = async (channelId: string) => {
     if (!user) return;
@@ -187,7 +196,9 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10">
           <div className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold">{t("channel.title", { defaultValue: "My Channel Connections" })}</h2>
+            <h2 className="font-display text-lg font-semibold">
+              {smsOnly ? t("channel.smsDialogTitle", { defaultValue: "Connect Twilio SMS" }) : t("channel.title", { defaultValue: "My Channel Connections" })}
+            </h2>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -196,7 +207,12 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
 
         <div className="p-4 space-y-3">
           <p className="text-sm text-muted-foreground">
-            {t("channel.subtitle", { defaultValue: "Connect your personal messaging accounts. Each artist manages their own channels independently." })}
+            {smsOnly
+              ? t("channel.smsDialogSubtitle", {
+                  defaultValue:
+                    "Connect your studio's Twilio number for SMS appointment and deposit reminders. Each organization uses its own Twilio account.",
+                })
+              : t("channel.subtitle", { defaultValue: "Connect your personal messaging accounts. Each artist manages their own channels independently." })}
           </p>
 
           {loading ? (
@@ -204,7 +220,7 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            channels.map((ch) => {
+            visibleChannels.map((ch) => {
               const connected = connectedChannels[ch.id];
               const expanded = expandedChannel === ch.id;
               const Icon = ch.icon;
@@ -257,6 +273,14 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
                             />
                           </div>
                         ))}
+                        {ch.id === "sms" ? (
+                          <p className="text-[11px] text-muted-foreground leading-relaxed rounded-md border border-border/60 bg-secondary/20 p-2">
+                            {t("channel.smsWebhookHint", {
+                              defaultValue:
+                                "In Twilio → your number → Messaging, set the inbound webhook to: https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/sms-webhook (HTTP POST). Use the same Auth Token you enter here. Full guide: /docs/sms-twilio-setup",
+                            })}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="gold" size="sm" className="flex-1" onClick={() => handleConnect(ch.id)} disabled={saving}>
@@ -277,7 +301,15 @@ const ChannelConnections = ({ open, onClose }: ChannelConnectionsProps) => {
           <div className="rounded-lg border border-border bg-secondary/20 p-3 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-xs text-muted-foreground">
-              {t("channel.securityNote", { defaultValue: "Your credentials are stored securely per-artist. Each team member connects their own accounts independently." })}
+              {smsOnly
+                ? t("channel.smsSecurityNote", {
+                    defaultValue:
+                      "Twilio credentials are stored once per studio (organization). Any admin or owner who connects Twilio updates the shared studio number — reminders and inbound SMS use that same connection for everyone in the studio.",
+                  })
+                : t("channel.securityNote", {
+                    defaultValue:
+                      "Your credentials are stored securely per-artist. Each team member connects their own accounts independently.",
+                  })}
             </p>
           </div>
         </div>

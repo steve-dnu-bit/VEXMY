@@ -896,6 +896,9 @@
     "emailOnly": "Email only",
     "smsOnly": "SMS only",
     "emailAndSms": "Email & SMS",
+    "smsTwilioRequiredDesc": "SMS reminders use your studio's own Twilio account and phone number (not Velbok's). Connect Twilio before choosing SMS.",
+    "smsTwilioConnectLink": "Connect in Inbox",
+    "smsTwilioGuideLink": "Setup guide",
     "timing12h": "12 hours before",
     "timing24h": "24 hours before",
     "timing48h": "48 hours before",
@@ -1559,6 +1562,22 @@
       "aftercare": "Aftercare"
     }
   },
+  "inbox": {
+    "smsSetupTitle": "SMS (Twilio)",
+    "smsSetupDesc": "Optional: connect your studio's Twilio number to send SMS appointment and deposit reminders. Client contact uses tickets and WhatsApp/email links from bookings.",
+    "smsSetupBullet1": "Create a Twilio account and buy an SMS-capable phone number",
+    "smsSetupBullet2": "Set the Twilio inbound webhook (see setup guide) if you want two-way SMS",
+    "smsSetupBullet3": "Each organization uses its own Twilio account — Velbok does not provide a shared SMS number",
+    "smsConnected": "Twilio connected",
+    "smsNotConnected": "Not connected",
+    "smsConnectTwilio": "Connect Twilio",
+    "smsManageConnection": "Manage Twilio connection",
+    "smsSetupGuide": "Setup guide",
+    "smsReminderSettings": "Reminder settings"
+  },
+  "channel": {
+    "smsSecurityNote": "Twilio credentials are stored once per studio (organization). Any admin or owner who connects Twilio updates the shared studio number — reminders and inbound SMS use that same connection for everyone in the studio."
+  },
   "unifiedInbox": {
     "title": "Inbox",
     "contactTitle": "Client contact centre",
@@ -2031,6 +2050,10 @@
     "reschedules": "Reschedules ({{count}}/{{max}})",
     "banReason": "Ban reason",
     "banReasonPlaceholder": "Why is this client banned?",
+    "vipNoDepositHint": "VIP clients are not required to pay a deposit. Toggle off to remove VIP.",
+    "markedVip": "Marked VIP on {{count}} appointment(s)",
+    "vipRemoved": "VIP removed from {{count}} appointment(s)",
+    "vipUpdateFailed": "Could not update VIP status",
     "conductSavedByStaff": "Manual score saved by staff.",
     "saveConduct": "Save conduct",
     "conductOrgMissing": "Could not determine your studio organization for this conduct record.",
