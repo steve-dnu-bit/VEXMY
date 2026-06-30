@@ -17,6 +17,7 @@ import {
 import { loadShopReminderSettings, type ShopReminderSettingsRow } from "../_shared/shop-reminder-settings.ts";
 import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
 import { loadChannelCredentials, sendTwilioMessage } from "../_shared/inbox-webhook.ts";
+import { normalizeSmsE164 } from "../_shared/phone-normalize.ts";
 import {
   buildAppointmentReminderSms,
   buildDepositReminderSms,
@@ -41,9 +42,7 @@ function isPiercingBooking(booking: { booking_type: string; service_category?: s
 }
 
 function normalizeSmsRecipient(phone: string | null | undefined): string | null {
-  const trimmed = (phone || "").trim();
-  if (!trimmed) return null;
-  return trimmed.startsWith("+") ? trimmed : `+${trimmed.replace(/[^\d]/g, "")}`;
+  return normalizeSmsE164(phone);
 }
 
 async function orgCanSendSmsReminders(

@@ -133,5 +133,8 @@ verify_jwt = true
 [functions.ticket-push-notify]
 verify_jwt = false
 
+[functions.sms-test-send]
+verify_jwt = false
+
 [functions.vapi-webhook]
 verify_jwt = false
