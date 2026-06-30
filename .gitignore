@@ -1,7 +1,7 @@
 # Android release binaries (too large for GitHub; deploy via Netlify CLI from local builds)
 releases/*.apk
 releases/*.aab
-public/downloads/velbok-android.apk
+public/downloads/*.apk
 
 logs
 *.log

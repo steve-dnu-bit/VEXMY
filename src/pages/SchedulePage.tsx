@@ -324,7 +324,7 @@ const SchedulePage = () => {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-screen bg-background/35 backdrop-blur-[1px]">
+      <div className="flex flex-col h-[calc(100dvh-var(--safe-area-inset-top,env(safe-area-inset-top,0px))-var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))-3.5rem)] md:h-screen bg-background/35 backdrop-blur-[1px]">
         <ScheduleHeader
           view={view}
           setView={setView}

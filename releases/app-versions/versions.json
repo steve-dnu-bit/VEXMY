@@ -1,83 +1,82 @@
-{
-  "packageId": "com.velbok.app",
-  "exportedAt": "2026-06-27",
-  "note": "OAuth fix: native Google sign-in returns to app via /auth/app-callback deep link.",
-  "releases": [
-    {
-      "versionName": "1.0.34",
-      "versionCode": 35,
-      "format": "apk",
-      "file": "apk/velbok-1.0.34-build35.apk",
-      "status": "latest",
-      "installable": true
-    },
-    {
-      "versionName": "1.0.34",
-      "versionCode": 35,
-      "format": "aab",
-      "file": "aab/velbok-1.0.34-build35.aab",
-      "status": "play-store-bundle",
-      "installable": false
-    },
-    {
-      "versionName": "1.0.20",
-      "versionCode": 21,
-      "format": "apk",
-      "file": "apk/velbok-1.0.20-build21.apk",
-      "status": "archived",
-      "installable": true
-    },
-    {
-      "versionName": "1.0.17",
-      "versionCode": 18,
-      "format": "aab",
-      "file": "aab/velbok-1.0.17-build18.aab",
-      "status": "play-store-bundle",
-      "installable": false
-    },
-    {
-      "versionName": "1.0.15",
-      "versionCode": 16,
-      "format": "aab",
-      "file": "aab/velbok-1.0.15.aab",
-      "status": "play-store-bundle",
-      "installable": false
-    },
-    {
-      "versionName": "1.0.14",
-      "versionCode": 15,
-      "format": "aab",
-      "file": "aab/velbok-1.0.14.aab",
-      "status": "play-store-bundle",
-      "installable": false
-    },
-    {
-      "versionName": "1.0.13",
-      "versionCode": 14,
-      "format": "aab",
-      "file": "aab/velbok-1.0.13.aab",
-      "status": "play-store-bundle",
-      "installable": false
-    },
-    {
-      "versionName": "1.0.12",
-      "versionCode": 13,
-      "format": "aab",
-      "file": "aab/velbok-1.0.12.aab",
-      "status": "play-store-bundle",
-      "installable": false
-    },
-    {
-      "versionName": "1.0.7",
-      "versionCode": 8,
-      "format": "apk",
-      "file": "apk/velbok-1.0.7-build8.apk",
-      "status": "archived",
-      "installable": true
-    }
-  ],
-  "knownButNotExported": [
-    { "versionName": "1.0.10", "versionCode": 11, "reason": "APK not kept on disk; rebuild from git tag 0e80154 if needed" },
-    { "versionName": "1.0.8", "versionCode": 9, "reason": "APK not kept on disk; rebuild from git tag 3542859 if needed" }
-  ]
-}
+{
+  "packageId": "com.velbok.app",
+  "exportedAt": "2026-06-30",
+  "note": "Google Play compliance: photo permissions removed, Android 15 edge-to-edge and login keyboard fixes. App bundle size fixed (no nested APKs).",
+  "releases": [
+    {
+      "versionName": "1.0.38",
+      "versionCode": 39,
+      "format": "apk",
+      "file": "apk/velbok-1.0.38-build39.apk",
+      "status": "latest",
+      "installable": true,
+      "sizeBytes": 52170911,
+      "changes": [
+        "Fixed bloated app size (~380 MB → ~50 MB) by excluding nested APKs from web assets",
+        "Removed broad photo/storage permissions (Google Play policy); stencil and receipts use the system picker",
+        "Android 15 edge-to-edge safe-area fixes for headers and bottom bars",
+        "Fixed white status bar band on login and main screens",
+        "Fixed login form hidden when keyboard opens"
+      ]
+    },
+    {
+      "versionName": "1.0.38",
+      "versionCode": 39,
+      "format": "aab",
+      "file": "aab/velbok-1.0.38-build39.aab",
+      "status": "play-store-bundle",
+      "installable": false,
+      "sizeBytes": 53204648,
+      "changes": [
+        "Fixed bloated app size (~380 MB → ~50 MB) by excluding nested APKs from web assets",
+        "Removed broad photo/storage permissions (Google Play policy); stencil and receipts use the system picker",
+        "Android 15 edge-to-edge safe-area fixes for headers and bottom bars",
+        "Fixed white status bar band on login and main screens",
+        "Fixed login form hidden when keyboard opens"
+      ]
+    },
+    {
+      "versionName": "1.0.37",
+      "versionCode": 38,
+      "format": "apk",
+      "file": "apk/velbok-1.0.37-build38.apk",
+      "status": "superseded",
+      "installable": false,
+      "reason": "Bloated build (~380 MB); do not upload to Play — use 1.0.38 instead"
+    },
+    {
+      "versionName": "1.0.37",
+      "versionCode": 38,
+      "format": "aab",
+      "file": "aab/velbok-1.0.37-build38.aab",
+      "status": "superseded",
+      "installable": false,
+      "reason": "Bloated build (~380 MB); do not upload to Play — use 1.0.38 instead"
+    },
+    {
+      "versionName": "1.0.20",
+      "versionCode": 21,
+      "format": "apk",
+      "file": "apk/velbok-1.0.20-build21.apk",
+      "status": "archived",
+      "installable": false,
+      "reason": "APK removed from disk to save space; rebuild from git if needed"
+    },
+    {
+      "versionName": "1.0.7",
+      "versionCode": 8,
+      "format": "apk",
+      "file": "apk/velbok-1.0.7-build8.apk",
+      "status": "archived",
+      "installable": false,
+      "reason": "APK removed from disk to save space; rebuild from git if needed"
+    }
+  ],
+  "knownButNotExported": [
+    { "versionName": "1.0.36", "versionCode": 37, "reason": "Superseded by 1.0.38; rebuild from git if needed" },
+    { "versionName": "1.0.35", "versionCode": 36, "reason": "Superseded by 1.0.38; rebuild from git if needed" },
+    { "versionName": "1.0.34", "versionCode": 35, "reason": "Superseded by 1.0.38; AAB/APK removed from disk" },
+    { "versionName": "1.0.10", "versionCode": 11, "reason": "APK not kept on disk; rebuild from git tag 0e80154 if needed" },
+    { "versionName": "1.0.8", "versionCode": 9, "reason": "APK not kept on disk; rebuild from git tag 3542859 if needed" }
+  ]
+}

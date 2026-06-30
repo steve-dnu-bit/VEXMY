@@ -29,7 +29,45 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-for (const name of ["velbok-android.apk", "android-version.json"]) {
+/** Never ship APK download artifacts inside the Capacitor WebView bundle. */
+function removeApkArtifactsFromDist() {
+  const removed = [];
+  const downloadsDir = distDownloads;
+  if (fs.existsSync(downloadsDir)) {
+    for (const entry of fs.readdirSync(downloadsDir)) {
+      if (entry.toLowerCase().endsWith(".apk")) {
+        const file = path.join(downloadsDir, entry);
+        fs.unlinkSync(file);
+        removed.push(path.relative(root, file));
+      }
+    }
+  }
+  for (const entry of fs.readdirSync(path.join(root, "dist"))) {
+    if (entry.toLowerCase().endsWith(".apk")) {
+      const file = path.join(root, "dist", entry);
+      fs.unlinkSync(file);
+      removed.push(path.relative(root, file));
+    }
+  }
+  for (const rel of removed) {
+    console.log(`[build-mobile] Removed ${rel} from dist`);
+  }
+}
+
+const publicDownloads = path.join(root, "public/downloads");
+if (fs.existsSync(publicDownloads)) {
+  const strayApks = fs.readdirSync(publicDownloads).filter((n) => n.toLowerCase().endsWith(".apk"));
+  if (strayApks.length > 0) {
+    console.warn(
+      `[build-mobile] Warning: public/downloads contains APK(s) that would bloat the mobile app: ${strayApks.join(", ")}. ` +
+        "Keep release APKs in releases/ only; public/downloads should have android-version.json.",
+    );
+  }
+}
+
+removeApkArtifactsFromDist();
+
+for (const name of ["android-version.json"]) {
   const file = path.join(distDownloads, name);
   if (fs.existsSync(file)) {
     fs.unlinkSync(file);

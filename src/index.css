@@ -136,6 +136,11 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
+    min-height: 100dvh;
+  }
+
+  html {
+    background-color: hsl(var(--background));
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -144,6 +149,23 @@
 }
 
 @layer utilities {
+  .pt-safe {
+    padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  }
+
+  .pb-safe {
+    padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  }
+
+  .top-safe {
+    top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  }
+
+  /* Mobile header (h-14) + status bar inset */
+  .header-offset {
+    padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 3.5rem);
+  }
+
   .text-gradient-gold {
     background: linear-gradient(135deg, hsl(var(--gold-light)), hsl(var(--gold)), hsl(var(--gold-dark)));
     -webkit-background-clip: text;

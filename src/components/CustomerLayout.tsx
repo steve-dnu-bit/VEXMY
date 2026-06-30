@@ -66,8 +66,8 @@ const CustomerLayoutInner = ({
 
   return (
     <div className="min-h-screen bg-background flex flex-col" style={shellStyle}>
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
-        <div className="flex h-14 items-center justify-between px-4 max-w-lg mx-auto w-full">
+      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur pt-safe">
+        <div className="flex min-h-14 items-center justify-between px-4 max-w-lg mx-auto w-full">
           {showPlatformLogo ? (
             <VelbokBrand variant="dashboard" href={null} />
           ) : (
@@ -117,7 +117,7 @@ const CustomerLayoutInner = ({
           </div>
         )}
       </header>
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-24">
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-[calc(6rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))]">
         <CustomerShopSelector />
         {selectedShop?.logoUrl && hasMultipleShops ? (
           <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-card/90 p-3">

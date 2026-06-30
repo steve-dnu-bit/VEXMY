@@ -1,40 +1,38 @@
-# Velbok Android build archive
-
-Exported builds found on this machine, renamed with version numbers.
-
-## Install APKs (side-load)
-
-| Version | Build | File |
-|---------|-------|------|
-| **1.0.34** (latest) | 35 | `apk/velbok-1.0.34-build35.apk` |
-| 1.0.20 | 21 | `apk/velbok-1.0.20-build21.apk` |
-| 1.0.7 | 8 | `apk/velbok-1.0.7-build8.apk` |
-
-```powershell
-adb install -r "apk\velbok-1.0.20-build21.apk"
-```
-
-## Play Store bundles (AAB)
-
-Upload these to Google Play Console — not installable directly on a phone.
-
-| Version | File |
-|---------|------|
-| **1.0.34** (build 35) | `aab/velbok-1.0.34-build35.aab` |
-| 1.0.17 (build 18) | `aab/velbok-1.0.17-build18.aab` |
-| 1.0.15 | `aab/velbok-1.0.15.aab` |
-| 1.0.14 | `aab/velbok-1.0.14.aab` |
-| 1.0.13 | `aab/velbok-1.0.13.aab` |
-| 1.0.12 | `aab/velbok-1.0.12.aab` |
-
-## Missing APKs
-
-Versions **1.0.8**, **1.0.10**, **1.0.12–1.0.17** were released as AABs only; standalone APK files were not kept. To regenerate an APK from an old commit:
-
-```powershell
-git checkout <commit>
-npm run android:release
-copy android\app\build\outputs\apk\release\app-release.apk releases\app-versions\apk\velbok-X.Y.Z-buildN.apk
-```
-
-See `versions.json` for the full manifest.
+# Velbok Android build archive
+
+Exported builds found on this machine, renamed with version numbers.
+
+## Latest — 1.0.38 (build 39)
+
+**Google Play:** upload `aab/velbok-1.0.38-build39.aab` (~51 MB)
+
+**Side-load APK:** `apk/velbok-1.0.38-build39.apk` (~50 MB)
+
+### Changes
+- Fixed bloated app size (~380 MB → ~50 MB) by excluding nested APKs from web assets
+- Removed broad photo/storage permissions (Google Play policy); stencil and receipts use the system picker
+- Android 15 edge-to-edge safe-area fixes for headers and bottom bars
+- Fixed white status bar band on login and main screens
+- Fixed login form hidden when keyboard opens
+
+## Install APK (side-load)
+
+```powershell
+adb install -r "apk\velbok-1.0.38-build39.apk"
+```
+
+## Play Store bundle (AAB)
+
+Upload `aab/velbok-1.0.38-build39.aab` to Google Play Console — not installable directly on a phone.
+
+## Google Play release notes (paste)
+
+```
+• Google Play compliance: app no longer requests broad gallery access; photo picking uses the system picker
+• Improved layout on Android 15+ (status bar and navigation bar)
+• Fixed login screen display when the keyboard is open
+• Reduced app download size
+• Bug fixes and stability improvements
+```
+
+See `versions.json` for the full manifest.

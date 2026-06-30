@@ -210,7 +210,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-screen bg-background overflow-hidden" style={shellStyle}>
       {/* Mobile header */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur px-4 md:hidden">
+      <div className="fixed top-0 left-0 right-0 z-50 flex min-h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur px-4 pt-safe md:hidden">
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -220,7 +220,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Sidebar */}
       <aside
-        className={`themed-scrollbar fixed inset-y-0 left-0 z-40 overflow-y-scroll overflow-x-hidden border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md flex flex-col transition-all duration-200 md:relative md:translate-x-0 ${
+        className={`themed-scrollbar fixed bottom-0 left-0 z-40 overflow-y-scroll overflow-x-hidden border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md flex flex-col transition-all duration-200 top-safe md:top-0 md:relative md:translate-x-0 ${
           sidebarCollapsed ? "md:w-16" : "md:w-56"
         } ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -332,7 +332,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       )}
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
+      <main className="flex-1 overflow-y-auto header-offset md:pt-0">
         {children}
       </main>
     </div>
