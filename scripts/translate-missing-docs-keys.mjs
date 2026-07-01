@@ -40,6 +40,12 @@ function protectBrands(text) {
 function restoreBrands(text) {
   let out = text;
   for (const [token, brand] of BRANDS) out = out.split(token).join(brand);
+  // Google Translate sometimes mangles protection tokens (e.g. ZZZTWILIOZZZ → ZTwilio).
+  out = out.replace(/Z{1,3}TwilioZ{0,3}/gi, "Twilio");
+  out = out.replace(/Z{1,3}StripeZ{0,3}/gi, "Stripe");
+  out = out.replace(/Z{1,3}VelbokZ{0,3}/gi, "Velbok");
+  out = out.replace(/Z{1,3}WisePadZ{0,3}/gi, "WisePad");
+  out = out.replace(/Z{1,3}SupabaseZ{0,3}/gi, "Supabase");
   return out;
 }
 

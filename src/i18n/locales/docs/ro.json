@@ -515,13 +515,13 @@
         {
           "heading": "Pasul 1 — Conectați-vă în Velbok",
           "bullets": [
-            "Aplicația personalului → Mesaje primite → Card SMS (Twilio) → Conectați ZTwilio",
-            "Introduceți SID-ul contului, simbolul de autentificare și numărul de telefon în format E.164 (+353…, +44…, +1…)",
+            "Aplicația personalului → Mesaje primite → Card SMS (Twilio) → Conectați Twilio",
+            "Introduceți SID-ul contului, tokenul de autorizare și numărul de telefon în format E.164 (+353…, +44…, +1…)",
             "Acreditările sunt stocate numai pentru fiecare organizație"
           ]
         },
         {
-          "heading": "Pasul 2 — ZTwilio webhook",
+          "heading": "Pasul 2 — Webhook Twilio",
           "bullets": [
             "Twilio Consola → Numere de telefon → numărul dvs. → Mesaje",
             "Apare un mesaj → Webhook → https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/sms-webhook",
@@ -541,10 +541,10 @@
           "bullets": [
             "Inbound: trimiteți un mesaj cu numărul dvs. Twilio; opțional pentru setările numai pentru memento",
             "Twilio Monitor → Mesaje → webhook ar trebui să returneze 200 atunci când utilizați SMS-uri bidirecționale",
-            "401 Semnătură nevalidă → Nepotrivire Token de autentificare între Twilio și Velbok",
+            "401 Semnătură nevalidă → Nepotrivire token de autorizare între Twilio și Velbok",
             "no_matching_org → numărul de telefon din Velbok trebuie să se potrivească exact cu Twilio"
           ],
-          "note": "Numerele din Irlanda (+353) funcționează bine pentru studiourile din Marea Britanie/UE când +44 nu este disponibil în ZTwilio. Nu distribuiți jetoane de autentificare în biletele de asistență."
+          "note": "Numerele din Irlanda (+353) funcționează bine pentru studiourile din Marea Britanie/UE când +44 nu este disponibil în Twilio. Nu distribuiți tokenuri de autorizare în biletele de asistență."
         }
       ]
     }
