@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { STORE_BADGE_BOX_CLASS, STORE_BADGE_IMG_CLASS } from "@/components/marketing/storeBadge";
+import { STORE_BADGE_BOX_CLASS, APP_STORE_BADGE_IMG_CLASS } from "@/components/marketing/storeBadge";
 
 const APP_STORE_BADGE_URL =
   "https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83";
@@ -39,7 +39,7 @@ export function AppStoreInstallButton({ className, badgeClassName }: AppStoreIns
         alt={t("download.appStoreBadgeAlt")}
         width={250}
         height={83}
-        className={cn(STORE_BADGE_IMG_CLASS, badgeClassName)}
+        className={cn(APP_STORE_BADGE_IMG_CLASS, badgeClassName)}
         loading="lazy"
         decoding="async"
       />

@@ -1,6 +1,6 @@
 import { PLAY_ANDROID_BETA_URL } from "@/lib/androidDownload";
 import { cn } from "@/lib/utils";
-import { STORE_BADGE_BOX_CLASS, STORE_BADGE_IMG_CLASS } from "@/components/marketing/storeBadge";
+import { STORE_BADGE_BOX_CLASS, GOOGLE_PLAY_BADGE_IMG_CLASS } from "@/components/marketing/storeBadge";
 
 type GooglePlayInstallButtonProps = {
   className?: string;
@@ -22,7 +22,7 @@ export function GooglePlayInstallButton({ className, badgeClassName }: GooglePla
         alt="Get it on Google Play"
         width={200}
         height={59}
-        className={cn(STORE_BADGE_IMG_CLASS, badgeClassName)}
+        className={cn(GOOGLE_PLAY_BADGE_IMG_CLASS, badgeClassName)}
         loading="lazy"
         decoding="async"
       />
