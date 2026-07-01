@@ -1,5 +1,6 @@
 import { PLAY_ANDROID_BETA_URL } from "@/lib/androidDownload";
 import { cn } from "@/lib/utils";
+import { STORE_BADGE_BOX_CLASS, STORE_BADGE_IMG_CLASS } from "@/components/marketing/storeBadge";
 
 type GooglePlayInstallButtonProps = {
   className?: string;
@@ -13,7 +14,7 @@ export function GooglePlayInstallButton({ className, badgeClassName }: GooglePla
       href={PLAY_ANDROID_BETA_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn("inline-block transition-opacity hover:opacity-90", className)}
+      className={cn("transition-opacity hover:opacity-90", STORE_BADGE_BOX_CLASS, className)}
       aria-label="Get Velbok on Google Play"
     >
       <img
@@ -21,7 +22,7 @@ export function GooglePlayInstallButton({ className, badgeClassName }: GooglePla
         alt="Get it on Google Play"
         width={200}
         height={59}
-        className={cn("h-12 w-auto sm:h-14", badgeClassName)}
+        className={cn(STORE_BADGE_IMG_CLASS, badgeClassName)}
         loading="lazy"
         decoding="async"
       />
