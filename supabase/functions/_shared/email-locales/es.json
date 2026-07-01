@@ -12,7 +12,8 @@
     "paid": "Pagada",
     "paidWithAmount": "Pagado ({{amount}})",
     "outstanding": "Pendiente",
-    "outstandingWithAmount": "Sobresaliente ({{amount}})"
+    "outstandingWithAmount": "Sobresaliente ({{amount}})",
+    "notRequired": "No requerido"
   },
   "bookingNotification": {
     "badge": "Reserva",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Nuevo mensaje en la bandeja de entrada: {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Su recibo {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Recibo",
+    "title": "Pago recibido",
+    "intro": "Gracias por su visita a {{shopName}}. Aquí está su recibo de su sesión con {{artistName}}; se adjunta una copia en PDF.",
+    "paymentMethod": {
+      "card": "Tarjeta (Toque para pagar / WisePad)"
+    },
+    "details": {
+      "artist": "Artista",
+      "studio": "Estudio",
+      "date": "Fecha",
+      "receiptNumber": "Recibo #",
+      "sessionTotal": "Total de sesiones",
+      "depositCredit": "Crédito de depósito",
+      "amountPaid": "Monto pagado"
+    },
+    "note": {
+      "title": "PDF adjunto",
+      "body": "Su recibo detallado se adjunta como PDF. Guárdelo para sus registros."
+    },
+    "footer": "Este recibo se envió automáticamente después de su pago en el estudio."
+  },
+  "reviewRequest": {
+    "badge": "Gracias",
+    "title": "Nos encantaría tu opinión",
+    "intro": "Gracias por visitar {{shopName}}. Si tuvo una gran experiencia con {{artistName}}, una breve reseña ayuda a otros clientes a encontrarnos y significa mucho para el equipo.",
+    "pickPlatform": "Deja una reseña",
+    "details": {
+      "artist": "Artista",
+      "visit": "tu visita"
+    },
+    "note": {
+      "title": "Opcional",
+      "body": "Las reseñas son públicas en la plataforma que elijas. Si algo no está bien, responda a este correo electrónico; preferimos solucionarlo primero de forma privada."
+    },
+    "footer": "Este correo electrónico se envió porque su estudio le pidió que compartiera sus comentarios después de su cita."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Recordatorio de cita con {{artist}} el {{when}}. Responda si necesita reprogramar.",
+      "deposit": "{{shopName}}: Recordatorio de depósito para su cita del {{when}}. Monto adeudado: {{amount}}. Contáctenos para pagar."
     }
   }
 }

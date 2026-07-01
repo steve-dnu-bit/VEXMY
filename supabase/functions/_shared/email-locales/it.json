@@ -12,7 +12,8 @@
     "paid": "Pagata",
     "paidWithAmount": "Pagato ({{amount}})",
     "outstanding": "Eccezionale",
-    "outstandingWithAmount": "Eccezionale ({{amount}})"
+    "outstandingWithAmount": "Eccezionale ({{amount}})",
+    "notRequired": "Non richiesto"
   },
   "bookingNotification": {
     "badge": "Prenotazione",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Nuovo messaggio di posta in arrivo — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "La tua ricevuta {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Ricevuta",
+    "title": "Pagamento ricevuto",
+    "intro": "Grazie per la tua visita a {{shopName}}. Ecco la ricevuta della sessione con {{artistName}}: è allegata una copia PDF.",
+    "paymentMethod": {
+      "card": "Carta (Tocca per pagare/WisePad)"
+    },
+    "details": {
+      "artist": "Artista",
+      "studio": "Studio",
+      "date": "Data",
+      "receiptNumber": "Ricevuta #",
+      "sessionTotal": "Totale della sessione",
+      "depositCredit": "Credito di deposito",
+      "amountPaid": "Importo pagato"
+    },
+    "note": {
+      "title": "PDF allegato",
+      "body": "La ricevuta dettagliata è allegata in formato PDF. Conservalo per i tuoi archivi."
+    },
+    "footer": "Questa ricevuta è stata inviata automaticamente dopo il pagamento in studio."
+  },
+  "reviewRequest": {
+    "badge": "Grazie",
+    "title": "Ci piacerebbe il tuo feedback",
+    "intro": "Grazie per aver visitato {{shopName}}. Se la tua esperienza con {{artistName}} è stata positiva, una breve recensione aiuta gli altri clienti a trovarci e significa molto per il team.",
+    "pickPlatform": "Lascia una recensione",
+    "details": {
+      "artist": "Artista",
+      "visit": "La tua visita"
+    },
+    "note": {
+      "title": "Opzionale",
+      "body": "Le recensioni sono pubbliche sulla piattaforma scelta. Se qualcosa non va, rispondi a questa email: preferiamo prima risolverlo in privato."
+    },
+    "footer": "Questa email è stata inviata perché il tuo studio ti ha chiesto di condividere un feedback dopo l'appuntamento."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: promemoria appuntamento con {{artist}} il {{when}}. Rispondi se hai bisogno di riprogrammare.",
+      "deposit": "{{shopName}}: promemoria di deposito per l'appuntamento del {{when}}. Importo dovuto: {{amount}}. Contattaci per pagare."
     }
   }
 }

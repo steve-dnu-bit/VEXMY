@@ -321,6 +321,232 @@
           ]
         }
       ]
+    },
+    "pos-checkout": {
+      "title": "Finalizare POS și Atingeți pentru a plăti",
+      "description": "Efectuați plăți cu cardul în persoană cu telefonul dvs. - nu este necesar un cititor de carduri separat - sau cu un WisePad.",
+      "sections": [
+        {
+          "heading": "Nu este necesar un cititor de carduri separat",
+          "paragraphs": [
+            "Velbok acceptă Stripe Tap to Pay: telefonul personalului dvs. devine terminalul de plată. Clientul deține un card fără contact sau portofelul mobil lângă partea de sus a dispozitivului dvs. - în același mod în care ar atinge un terminal de magazin.",
+            "Nu trebuie să cumpărați un WisePad sau alt hardware Stripe pentru acest mod. Tap to Pay folosește terminalul Stripe în fundal (indicativ de conectare și o locație a terminalului în contul Stripe Connect al studioului dvs.), dar niciun cititor fizic nu este asociat sau înregistrat în tabloul de bord Stripe.",
+            "Utilizați aplicația mobilă Velbok (Android sau iPhone), deschideți Checkout, alegeți Atingeți pentru a plăti (acest telefon), atingeți Activați plățile telefonice, apoi Încărcați ca de obicei."
+          ]
+        },
+        {
+          "heading": "Cu ce ​​pot plăti clienții",
+          "bullets": [
+            "Carduri de debit și credit fără contact (atingeți)",
+            "Google Pay (Android)",
+            "Apple Pay (iPhone și multe portofele Android)",
+            "Samsung Pay și alte portofele mobile NFC",
+            "Visa, Mastercard, American Express și Discover fără contact (în funcție de regiune)"
+          ],
+          "note": "Plățile cu portofel, de obicei, nu au nevoie de un PIN. Unele reguli de carduri de mare valoare sau regionale pot necesita un PIN sau o altă metodă de plată — Velbok va afișa mesajul Stripe de pe ecran dacă se întâmplă acest lucru."
+        },
+        {
+          "heading": "Configurare Stripe (fără achiziție de hardware)",
+          "bullets": [
+            "Finalizați Stripe Connect pentru studioul dvs. (Admin → POS checkout)",
+            "Creați o locație terminal în Velbok — Administrator → POS → Creare locație terminal (Velbok salvează acest lucru în contul dvs. Connect)",
+            "Activați checkout POS pentru personal",
+            "Instalați aplicația de lansare Velbok pe un telefon compatibil - nu o versiune de depanare. Descărcați de pe https://velbok.com/download",
+            "Nu există un comutator separat „Activați Atingeți pentru a plăti” în Stripe pentru Velbok; aveți nevoie doar de locația Connect + Terminal",
+            "Înregistrați un număr de serie al cititorului în Stripe Dashboard numai dacă utilizați un dispozitiv fizic (de exemplu, WisePad 3)"
+          ]
+        },
+        {
+          "heading": "Telefoane Android acceptate (Atingeți pentru a plăti)",
+          "paragraphs": [
+            "Stripe menține lista cu autoritate; Velbok urmează aceleași cerințe. Telefoanele trebuie să aibă NFC, Android 13+, Servicii Google Play și hardware de securitate Stripe (magazin de chei hardware cu ECDH). Opțiunile pentru dezvoltatori trebuie să fie DEZACTIVATE pentru plățile live."
+          ],
+          "bullets": [
+            "Google Pixel — Pixel 6 și mai nou (6, 6a, 6 Pro, 7 seria, 8 seria, 9 seria, 10 seria, Pixel Fold)",
+            "Samsung Galaxy S — S22, S22+, S22 Ultra, seria S23, seria S24, seria S25, seria S26",
+            "Samsung Galaxy Z — Z Flip4, Z Flip5, Z Flip6, Z Flip7, Z Flip7 FE, Z Fold4, Z Fold5, Z Fold6, Z Fold7, Z TriFold",
+            "Samsung Galaxy A / M / F - multe modele recente (de exemplu, A14 5G și mai noua serie A, A53 5G+, M14 5G+, F34 5G+) - consultați linkul Stripe de mai jos pentru lista completă",
+            "Samsung — Seria Tab Active5, XCover7, XCover7 Pro, Wide8",
+            "Motorola — seria edge (2022+), razr / razr+ (2022+), multe modele moto g cu NFC",
+            "OnePlus — seria 10 și mai nou, Nord 3 5G+, Open",
+            "Xiaomi / Redmi — seria 12 și mai nouă, multe modele Note 13+ / 14+, MIX Flip / MIX Fold",
+            "Honor, Oppo, Asus ROG/Zenfone, Infinix — numeroase modele listate de Stripe"
+          ],
+          "note": "Lista oficială completă (actualizată de Stripe): https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=android#device-types"
+        },
+        {
+          "heading": "Telefoane Android care NU funcționează",
+          "bullets": [
+            "Samsung Galaxy S21, S20, S10 și produse emblematice mai vechi din seria S - lipsește hardware-ul de securitate necesar (confirmat: S21 Ultra eșuează; utilizați S22+ sau WisePad)",
+            "Orice telefon fără NFC sau fără depozit de chei hardware ECDH (eroare Stripe TAP_TO_PAY_UNSUPPORTED_DEVICE)",
+            "Telefoane rootate, emulatoare sau telefoane fără Servicii Google Play",
+            "Android 12 sau mai vechi",
+            "Depanați instalările Velbok sau telefoanele cu opțiunile pentru dezvoltatori ACTIVATE (pentru live Tap to Pay)"
+          ]
+        },
+        {
+          "heading": "iPhone (Atingeți pentru a plăti pe iPhone)",
+          "bullets": [
+            "iPhone compatibil cu NFC — în general iPhone XS sau o versiune ulterioară",
+            "iOS 16.4 sau o versiune ulterioară",
+            "Aplicația Velbok iOS cu dreptul Apple Tap to Pay pe iPhone (proprietarul studioului solicită acest lucru de la Apple pentru aplicație)",
+            "Aceleași tipuri de plată pentru clienți: carduri contactless și Apple Pay",
+            "Stripe Connect + Locația terminalului în Velbok Admin → POS, la fel ca Android"
+          ],
+          "note": "Detalii Apple Tap to Pay: https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios"
+        },
+        {
+          "heading": "WisePad și alți cititori (opțional)",
+          "paragraphs": [
+            "Dacă telefonul dvs. nu este acceptat sau dacă preferați un dispozitiv dedicat, utilizați WisePad (Bluetooth) în Checkout. WisePOS E and Stripe Reader S700 work as Wi‑Fi/standalone readers. Register WisePad serial numbers in Stripe Dashboard → Terminal → Readers on your Connect account."
+          ]
+        },
+        {
+          "heading": "Depanare",
+          "bullets": [
+            "Instalați cea mai recentă versiune APK de pe https://velbok.com/download — dezinstalați mai întâi vechiul Velbok, dacă este necesar.",
+            "Atingeți Testați linkul serverului Stripe pe Checkout pentru a verifica locația Connect + Terminal înainte de Activare",
+            "Permiteți permisiunea de locație pentru Velbok (necesar de terminalul Stripe pe Android)",
+            "Dezactivați opțiunile pentru dezvoltatori și reporniți telefonul dacă Stripe raportează un mediu nesigur",
+            "Utilizatori Galaxy S21: comutați la modul WisePad sau utilizați un telefon Galaxy S22+ / Z Flip7+ pentru Tap to Pay"
+          ]
+        },
+        {
+          "heading": "Împărțirea plății cu un artist",
+          "paragraphs": [
+            "Dacă studioul dvs. împarte încasările POS cu artiști rezidenți sau invitați, atât studioul, cât și fiecare artist au nevoie de propriul cont de plată Stripe Connect. Velbok direcționează automat cota artistului după ce clientul plătește.",
+            "Consultați ghidul complet: https://velbok.com/docs/pos-split-payments — inclusiv pașii de configurare, modul în care este înregistrată cifra de afaceri în scopuri fiscale și declinări importante de responsabilitate contabilă."
+          ]
+        }
+      ]
+    },
+    "pos-split-payments": {
+      "title": "Plăți divizate POS",
+      "description": "Împărtășiți în persoană încasările din card între studioul dvs. și artiști — Configurația Connect, cum se mișcă banii și ce înseamnă procentajul împărțit pentru conturile dvs.",
+      "sections": [
+        {
+          "heading": "Ce fac plățile divizate",
+          "paragraphs": [
+            "Când un artist este alocat cu o taxă POS, Velbok colectează întreaga sumă de la client în contul Stripe Connect al studioului dvs., păstrează cota de magazin configurată în acel cont și transferă cota artistului în contul Connect al artistului.",
+            "Procentul de împărțire controlează cât primește fiecare parte în Stripe - nu înseamnă că fiecare parte declară doar acel procent din plata clientului în scopuri fiscale sau de cifra de afaceri. Vezi mai jos modelul cifrei de afaceri și al subcontractantului."
+          ]
+        },
+        {
+          "heading": "Atât studioul, cât și artistul au nevoie de un cont Connect",
+          "paragraphs": [
+            "Plățile divizate funcționează numai atunci când există două conturi Stripe Connect separate și sunt complet integrate:",
+            "1. Studioul (magazinul) dvs. — primește plata clientului și deține cota magazinului.",
+            "2. Fiecare artist care primește o împărțire — își primește cota prin transfer în propriul cont Connect.",
+            "Dacă vreun cont lipsește, este incomplet sau a fost creat în afara platformei Connect a Velbok, transferul artistului va eșua chiar dacă clientul a fost taxat cu succes. Reîncercați este disponibil din Admin → POS checkout după ce artistul termină configurarea."
+          ],
+          "note": "Artiștii trebuie să se înscrie prin Velbok (Setări → Cont de plată POS). Un ID de cont Stripe copiat de pe o altă platformă sau un vechi cont personal Connect nu va funcționa."
+        },
+        {
+          "heading": "Configurare studio (cont Shop Connect)",
+          "bullets": [
+            "Conectați-vă ca administrator de studio și deschideți Admin → POS checkout.",
+            "Finalizați Stripe Connect folosind cardul Payouts / Connect de pe pagina respectivă - identitate, detalii comerciale și cont bancar.",
+            "Creați o locație de terminal (Admin → POS checkout → Creați locație terminal) astfel încât Atingeți pentru a plăti și cititoarele de carduri funcționează.",
+            "Setați procentul implicit de împărțire a magazinului (de exemplu, 50% magazin / 50% artist) și activați plata POS pentru personal.",
+            "Opțional, setați înlocuiri pentru fiecare artist: % magazin personalizat și/sau un ID de cont Connect, dacă artistul nu s-a autoservit încă."
+          ],
+          "paragraphs": [
+            "Contul Studio Connect este comerciantul de înregistrare pentru plata clientului: chitanța clientului și extrasul cardului arată contul Stripe al studioului dvs."
+          ]
+        },
+        {
+          "heading": "Configurare artist (cont de plată Connect)",
+          "bullets": [
+            "Artistul se conectează la Velbok cu propriul cont de utilizator (conectat la studioul tău).",
+            "Deschideți Setări → Contul de plată POS.",
+            "Atingeți Conectați contul de plată și finalizați înscrierea Stripe Express - nume legal, data nașterii, adresă și detalii bancare.",
+            "Reveniți la Velbok; cardul ar trebui să arate Conectat când plățile sunt activate.",
+            "Artiștii pot deschide tabloul de bord Stripe Express de pe același card pentru a vedea transferurile și a actualiza detaliile bancare."
+          ],
+          "paragraphs": [
+            "Fiecare artist care primește divizări POS are nevoie de propria sa onboarding. Artiștii invitați au nevoie de o autentificare Velbok pentru studioul dvs. înainte de a se putea conecta.",
+            "Administratorii studioului pot în continuare să insereze ID-ul contului Connect al unui artist (acct_…) sub Administrator → Verificare POS → Modificare artist, dar se recomandă autoservire prin Setări, astfel încât contul să fie înregistrat pe platforma Connect corectă."
+          ]
+        },
+        {
+          "heading": "La casă",
+          "bullets": [
+            "Personalul selectează artistul cu taxa POS (atunci când diviziunile sunt activate pentru studioul dvs.).",
+            "Clientul plătește întreaga sumă — de ex. 200 GBP - pe terminalul studioului sau Tap to Pay.",
+            "Stripe decontează plata către contul Studio Connect minus taxele Stripe.",
+            "Velbok transferă cota configurată a artistului (de exemplu, 100 GBP la 50/50) în contul Connect al artistului.",
+            "Cota magazinului rămâne în contul Studio Connect.",
+            "Dacă un transfer eșuează, vânzarea este încă plătită; remediați configurarea Connect și utilizați Admin → POS pentru a reîncerca transferul artistului."
+          ]
+        },
+        {
+          "heading": "Modelul subcontractantului și cifra de afaceri",
+          "paragraphs": [
+            "Velbok este construit în jurul unui model comun de studio: magazinul aprovizionează clientul și spațiile, iar artistul lucrează ca subcontractant (sau antreprenor independent) plătit o taxă sau comision de la studio.",
+            "În conformitate cu acest model, suma totală pe care o plătește clientul la POS face, în mod normal, parte din încasările brute sau din cifra de afaceri a studioului - 100% din ceea ce a plătit clientul, nu doar procentul de împărțire a magazinului.",
+            "Venitul artistului în scopuri contabile este de obicei taxa sau comisionul pe care studioul le plătește (suma lor împărțită), nu o cotă directă din chitanța clientului. Modul în care etichetați acest lucru în cărțile dvs. – comision, închiriere scaun, factură subcontractant – depinde de structura dumneavoastră juridică și de regulile locale.",
+            "Procentul împărțit în Velbok împarte doar banii în Stripe între două conturi Connect. Nu înlocuiește obligațiile de plată, de facturare sau de raportare fiscală între studio și artist."
+          ],
+          "note": "Această descriere reflectă câte studiouri de tatuaje operează cu artiști rezidenți, similar modelelor de închiriere / comision de scaune „Opțiunea B” de la HMRC din alte industrii. Structura dvs. poate diferi - confirmați cu un consilier calificat."
+        },
+        {
+          "heading": "Impozite, TVA și contabilitate - declinare importantă a răspunderii",
+          "paragraphs": [
+            "Velbok oferă software pentru a prelua plăți și a direcționa împărțirile între conturile Connect. Nu oferim consultanță fiscală, TVA, contabilă sau juridică.",
+            "Nu suntem responsabili pentru statutul fiscal, înregistrările, returnările sau conformitatea dvs. în nicio țară. Regulile pentru cifra de afaceri, TVA, impozitul pe venit, angajarea pe cont propriu și relațiile cu subcontractanții variază foarte mult - Regatul Unit, UE, SUA și alte jurisdicții au fiecare cerințe diferite.",
+            "Dumneavoastră și artiștii dvs. ar trebui să discutați cu un contabil sau un consilier fiscal calificat despre: ce contează ca cifra de afaceri în studio vs venitul artistului, dacă TVA se aplică pentru plata integrală a clientului sau doar o parte din aceasta, cum să documentați plățile dintre studio și artist și păstrarea evidențelor pentru audituri.",
+            "Stripe poate emite formulare fiscale sau raportări în funcție de tipul de cont și de regiune; asta este între tine, artiștii tăi și Stripe — nu ceva ce Velbok determină.",
+            "Prin utilizarea plăților divizate, confirmați că veți obține sfaturi profesionale adecvate pentru situația dvs. și că Velbok este doar un instrument de rutare a plăților, nu agentul fiscal sau contabilul dvs."
+          ]
+        }
+      ]
+    },
+    "sms-twilio-setup": {
+      "title": "Configurare SMS și Twilio",
+      "description": "Conectați propriul cont Twilio al studioului dvs. pentru programări prin SMS și mementouri de depunere.",
+      "sections": [
+        {
+          "heading": "Prezentare generală",
+          "paragraphs": [
+            "SMS-ul nu este inclus ca serviciu la nivelul întregii Velbok. Fiecare studio creează un cont Twilio, cumpără un număr de telefon și îl conectează în Inbox Velbok. Twilio vă facturează direct mesajele și închirierea numerelor.",
+            "Utilizați un număr dedicat pentru Velbok dacă un alt serviciu (de exemplu, Vapi voice AI) controlează deja webhook-ul Twilio pe numărul dvs. existent."
+          ]
+        },
+        {
+          "heading": "Pasul 1 — Conectați-vă în Velbok",
+          "bullets": [
+            "Aplicația personalului → Mesaje primite → Card SMS (Twilio) → Conectați ZTwilio",
+            "Introduceți SID-ul contului, simbolul de autentificare și numărul de telefon în format E.164 (+353…, +44…, +1…)",
+            "Acreditările sunt stocate numai pentru fiecare organizație"
+          ]
+        },
+        {
+          "heading": "Pasul 2 — ZTwilio webhook",
+          "bullets": [
+            "Twilio Consola → Numere de telefon → numărul dvs. → Mesaje",
+            "Apare un mesaj → Webhook → https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/sms-webhook",
+            "HTTP POST. Opțional Supabase secret TWILIO_SMS_WEBHOOK_URL cu aceeași adresă URL (fără bară oblică finală)"
+          ]
+        },
+        {
+          "heading": "Pasul 3 — Mementouri prin SMS",
+          "bullets": [
+            "Administrator → E-mailuri și mementouri → Canal de notificare → SMS sau E-mail și SMS",
+            "Activați mementourile privind programarea și/sau depunerea",
+            "Rezervările necesită un număr de telefon al clientului; Clienții VIP omit SMS-urile de depunere"
+          ]
+        },
+        {
+          "heading": "Testare și depanare",
+          "bullets": [
+            "Inbound: trimiteți un mesaj cu numărul dvs. Twilio; opțional pentru setările numai pentru memento",
+            "Twilio Monitor → Mesaje → webhook ar trebui să returneze 200 atunci când utilizați SMS-uri bidirecționale",
+            "401 Semnătură nevalidă → Nepotrivire Token de autentificare între Twilio și Velbok",
+            "no_matching_org → numărul de telefon din Velbok trebuie să se potrivească exact cu Twilio"
+          ],
+          "note": "Numerele din Irlanda (+353) funcționează bine pentru studiourile din Marea Britanie/UE când +44 nu este disponibil în ZTwilio. Nu distribuiți jetoane de autentificare în biletele de asistență."
+        }
+      ]
     }
   }
 }

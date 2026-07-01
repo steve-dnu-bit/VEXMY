@@ -279,6 +279,7 @@
     "getStarted": "Get started",
     "viewPricing": "View pricing",
     "getOnGooglePlay": "Android app on Google Play (internal test)",
+    "mobileAppsCaption": "Android on Google Play · iPhone App Store coming soon",
     "alreadyHaveStudio": "Already have a studio?",
     "signInApp": "Sign in to your app",
     "studioWelcomeBack": "Welcome back — open your schedule or review studio stats.",
@@ -446,7 +447,11 @@
     "installHint3": "For Tap to Pay: use a supported phone (see docs), turn Developer options OFF, allow Location.",
     "tapToPayDocs": "Supported phones and Tap to Pay setup:",
     "tapToPayDocsLink": "POS checkout & Tap to Pay",
-    "iphoneNote": "iPhone: Velbok for iOS is distributed via TestFlight or App Store when available for your studio — not from this page."
+    "iphoneNote": "iPhone: Velbok for iOS is distributed via TestFlight or App Store when available for your studio — not from this page.",
+    "appStoreBadgeAlt": "Download on the App Store",
+    "appStoreBadgeAria": "Velbok on the App Store — coming soon",
+    "appStoreComingSoonTitle": "iPhone app coming soon",
+    "appStoreComingSoonDesc": "Velbok for iPhone will be on the App Store soon. Use the Android app or web dashboard in the meantime."
   },
   "cookies": {
     "bannerText": "We use cookies and similar technologies for core functionality and, with your consent, to improve performance and marketing. You can change your choice at any time in Cookie Settings.",

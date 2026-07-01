@@ -12,7 +12,8 @@
     "paid": "Payé",
     "paidWithAmount": "Payé ({{amount}})",
     "outstanding": "Remarquable",
-    "outstandingWithAmount": "Exceptionnel ({{amount}})"
+    "outstandingWithAmount": "Exceptionnel ({{amount}})",
+    "notRequired": "Non requis"
   },
   "bookingNotification": {
     "badge": "Réservation",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Nouveau message dans la boîte de réception — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Votre reçu {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Reçu",
+    "title": "Paiement reçu",
+    "intro": "Merci de votre visite à {{shopName}}. Voici votre reçu pour votre séance avec {{artistName}} — une copie PDF est jointe.",
+    "paymentMethod": {
+      "card": "Carte (Appuyez pour payer / WisePad)"
+    },
+    "details": {
+      "artist": "Artiste",
+      "studio": "Studio",
+      "date": "Date",
+      "receiptNumber": "Reçu #",
+      "sessionTotal": "Total de la séance",
+      "depositCredit": "Crédit de dépôt",
+      "amountPaid": "Montant payé"
+    },
+    "note": {
+      "title": "PDF ci-joint",
+      "body": "Votre reçu détaillé est joint au format PDF. Gardez-le pour vos dossiers."
+    },
+    "footer": "Ce reçu a été envoyé automatiquement après votre paiement en studio."
+  },
+  "reviewRequest": {
+    "badge": "Merci",
+    "title": "Nous aimerions recevoir vos commentaires",
+    "intro": "Merci d'avoir visité {{shopName}}. Si vous avez eu une excellente expérience avec {{artistName}}, un court avis aide d'autres clients à nous trouver et compte beaucoup pour l'équipe.",
+    "pickPlatform": "Laisser un avis",
+    "details": {
+      "artist": "Artiste",
+      "visit": "Votre visite"
+    },
+    "note": {
+      "title": "Facultative",
+      "body": "Les avis sont publics sur la plateforme que vous choisissez. Si quelque chose ne va pas, répondez à cet e-mail. Nous préférons d'abord le corriger en privé."
+    },
+    "footer": "Cet e-mail a été envoyé car votre studio vous a demandé de partager vos commentaires après votre rendez-vous."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}} : Rappel de rendez-vous avec {{artist}} le {{when}}. Répondez si vous devez reporter.",
+      "deposit": "{{shopName}} : Rappel de dépôt pour votre rendez-vous du {{when}}. Montant dû : {{amount}}. Contactez-nous pour payer."
     }
   }
 }

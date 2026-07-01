@@ -321,6 +321,232 @@
           ]
         }
       ]
+    },
+    "pos-checkout": {
+      "title": "POS-kasse og trykk for å betale",
+      "description": "Ta personlig kortbetalinger med telefonen – ingen separat kortleser kreves – eller med en WisePad.",
+      "sections": [
+        {
+          "heading": "Ingen egen kortleser nødvendig",
+          "paragraphs": [
+            "Velbok støtter Stripe Trykk for å betale: personaltelefonen din blir betalingsterminal. Kunden holder et kontaktløst kort eller mobillommeboken sin nær toppen av enheten din - på samme måte som de ville trykke på en butikkterminal.",
+            "Du trenger ikke å kjøpe en WisePad eller annen Stripe maskinvare for denne modusen. Tap to Pay bruker Stripe Terminal i bakgrunnen (tilkoblingstoken og en terminalplassering på studioets Stripe Connect-konto), men ingen fysisk leser er sammenkoblet eller registrert i Stripe Dashboard.",
+            "Bruk Velbok-mobilappen (Android eller iPhone), åpne Checkout, velg Trykk for å betale (denne telefonen), trykk på Aktiver telefonbetalinger og deretter Lad som vanlig."
+          ]
+        },
+        {
+          "heading": "Hva kundene kan betale med",
+          "bullets": [
+            "Kontaktløse debet- og kredittkort (trykk)",
+            "Google Pay (Android)",
+            "Apple Pay (iPhone og mange Android-lommebøker)",
+            "Samsung Pay og andre NFC-mobillommebøker",
+            "Visa, Mastercard, American Express og Discover kontaktløst (regionavhengig)"
+          ],
+          "note": "Wallet-betalinger trenger vanligvis ikke en PIN-kode. Noen høyverdi eller regionale kortregler kan kreve en PIN-kode eller en annen betalingsmåte – Velbok vil vise Stripes melding på skjermen hvis det skjer."
+        },
+        {
+          "heading": "Stripe-oppsett (ingen maskinvarekjøp)",
+          "bullets": [
+            "Fullfør Stripe Connect for studioet ditt (Admin → POS-kasse)",
+            "Opprett en terminalplassering i Velbok — Admin → POS → Opprett terminalplassering (Velbok lagrer dette på Connect-kontoen din)",
+            "Aktiver POS-kasse for ansatte",
+            "Installer utgivelsen Velbok-appen på en kompatibel telefon – ikke en feilsøkingsbygg. Last ned fra https://velbok.com/download",
+            "Det er ingen separat \"aktiver Tap for å betale\"-bryter i Stripe for Velbok; du trenger bare Connect + Terminal plassering",
+            "Du registrerer bare et leserserienummer i Stripe Dashboard hvis du bruker en fysisk enhet (f.eks. WisePad 3)"
+          ]
+        },
+        {
+          "heading": "Støttede Android-telefoner (trykk for å betale)",
+          "paragraphs": [
+            "Stripe opprettholder den autoritative listen; Velbok følger de samme kravene. Telefoner må ha NFC, Android 13+, Google Play Services og Stripes sikkerhetsmaskinvare (maskinvarenøkkellager med ECDH). Utvikleralternativer må være AV for direktebetalinger."
+          ],
+          "bullets": [
+            "Google Pixel – Pixel 6 og nyere (6, 6a, 6 Pro, 7-serien, 8-serien, 9-serien, 10-serien, Pixel Fold)",
+            "Samsung Galaxy S — S22, S22+, S22 Ultra, S23-serien, S24-serien, S25-serien, S26-serien",
+            "Samsung Galaxy Z — Z Flip4, Z Flip5, Z Flip6, Z Flip7, Z Flip7 FE, Z Fold4, Z Fold5, Z Fold6, Z Fold7, Z TriFold",
+            "Samsung Galaxy A/M/F — mange nyere modeller (f.eks. A14 5G og nyere A-series, A53 5G+, M14 5G+, F34 5G+) — se Stripe-lenken nedenfor for hele listen",
+            "Samsung — Tab Active5-serien, XCover7, XCover7 Pro, Wide8",
+            "Motorola — edge-serien (2022+), razr / razr+ (2022+), mange moto g-modeller med NFC",
+            "OnePlus — 10-serien og nyere, Nord 3 5G+, Open",
+            "Xiaomi / Redmi — 12-serien og nyere, mange Note 13+ / 14+-modeller, MIX Flip / MIX Fold",
+            "Honor, Oppo, Asus ROG/Zenfone, Infinix — mange modeller oppført av Stripe"
+          ],
+          "note": "Full offisiell liste (oppdatert av Stripe): https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=android#device-types"
+        },
+        {
+          "heading": "Android-telefoner som IKKE fungerer",
+          "bullets": [
+            "Samsung Galaxy S21, S20, S10 og eldre flaggskip i S-serien — mangler nødvendig sikkerhetsmaskinvare (bekreftet: S21 Ultra feiler; bruk S22+ eller WisePad)",
+            "Enhver telefon uten NFC eller uten maskinvarenøkkellager ECDH (Stripe feil TAP_TO_PAY_UNSUPPORTED_DEVICE)",
+            "Roterte telefoner, emulatorer eller telefoner uten Google Play-tjenester",
+            "Android 12 eller eldre",
+            "Feilsøk Velbok-installasjoner eller telefoner med utvikleralternativer PÅ (for direkte Trykk for å betale)"
+          ]
+        },
+        {
+          "heading": "iPhone (Trykk for å betale på iPhone)",
+          "bullets": [
+            "Kompatibel iPhone med NFC - vanligvis iPhone XS eller nyere",
+            "iOS 16.4 eller nyere",
+            "Velbok iOS-app med Apples tap for å betale på iPhone-rettigheter (studioeier ber om dette fra Apple for appen)",
+            "Samme kundebetalingstyper: kontaktløse kort og Apple Pay",
+            "Stripe Connect + Terminalplassering i Velbok Admin → POS, samme som Android"
+          ],
+          "note": "Apple Tap to Pay-detaljer: https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios"
+        },
+        {
+          "heading": "WisePad og andre lesere (valgfritt)",
+          "paragraphs": [
+            "Hvis telefonen din ikke støttes, eller du foretrekker en dedikert enhet, bruk WisePad (Bluetooth) i Checkout. WisePOS E og Stripe Reader S700 fungerer som Wi-Fi/frittstående lesere. Registrer WisePad serienumre i Stripe Dashboard → Terminal → Lesere på din Connect-konto."
+          ]
+        },
+        {
+          "heading": "Feilsøking",
+          "bullets": [
+            "Installer den nyeste versjonen av APK fra https://velbok.com/download — avinstaller gamle Velbok først hvis nødvendig.",
+            "Trykk på Test Stripe-serverkoblingen på Checkout for å bekrefte Connect + Terminal-plasseringen før Aktiver",
+            "Tillat plasseringstillatelse for Velbok (kreves av Stripe Terminal på Android)",
+            "Slå AV utvikleralternativer og start telefonen på nytt hvis Stripe rapporterer et usikkert miljø",
+            "Galaxy S21-brukere: bytt til WisePad-modus eller bruk en Galaxy S22+ / Z Flip7+-telefon for Tap for å betale"
+          ]
+        },
+        {
+          "heading": "Oppdeling av betaling med artist",
+          "paragraphs": [
+            "Hvis studioet ditt deler POS-inntekter med residente eller gjesteartister, trenger både studioet og hver artist sin egen Stripe Connect-utbetalingskonto. Velbok ruter artistens andel automatisk etter at klienten har betalt.",
+            "Se hele veiledningen: https://velbok.com/docs/pos-split-payments — inkludert oppsettstrinn, hvordan omsetning registreres for skatteformål og viktige regnskapsfraskrivelser."
+          ]
+        }
+      ]
+    },
+    "pos-split-payments": {
+      "title": "POS delte betalinger",
+      "description": "Del personlige kortopptak mellom studioet ditt og artistene – Connect-oppsett, hvordan penger beveger seg og hva delprosenten betyr for kontoene dine.",
+      "sections": [
+        {
+          "heading": "Hva delte betalinger gjør",
+          "paragraphs": [
+            "Når en artist tildeles en POS-avgift, samler Velbok inn hele beløpet fra klienten på studioets Stripe Connect-konto, beholder din konfigurerte butikkandel på den kontoen og overfører artistens andel til artistens egen Connect-konto.",
+            "Delt prosentandelen kontrollerer hvor mye hver part mottar i Stripe - det betyr ikke at hver part bare erklærer den prosentandelen av klientbetalingen for skatte- eller omsetningsformål. Se Omsetning og underleverandørmodell nedenfor."
+          ]
+        },
+        {
+          "heading": "Både studio og artist trenger en Connect-konto",
+          "paragraphs": [
+            "Delte utbetalinger fungerer bare når to separate Stripe Connect-kontoer eksisterer og er fullt ombord:",
+            "1. Studioet ditt (butikken) – mottar kundebetalingen og har butikkandelen.",
+            "2. Hver artist som mottar en splittelse — mottar sin andel ved overføring til sin egen Connect-konto.",
+            "Hvis en av kontoen mangler, er ufullstendig eller ble opprettet utenfor Velboks Connect-plattform, vil artistoverføringen mislykkes selv om klienten ble belastet. Prøv på nytt er tilgjengelig fra Admin → POS-kasse etter at artisten er ferdig med oppsettet."
+          ],
+          "note": "Artister må ombord via Velbok (Innstillinger → POS-utbetalingskonto). En Stripe-konto-ID kopiert fra en annen plattform eller en gammel personlig Connect-konto vil ikke fungere."
+        },
+        {
+          "heading": "Studiooppsett (shop Connect-konto)",
+          "bullets": [
+            "Logg på som studioadministrator og åpne Admin → POS-kasse.",
+            "Fullfør Stripe Connect ved å bruke Payouts / Connect-kortet på den siden – identitet, forretningsinformasjon og bankkonto.",
+            "Opprett en terminalplassering (Admin → POS-kasse → Opprett terminalplassering) så Trykk for å betale og kortlesere fungerer.",
+            "Angi standard butikkdeling % (f.eks. 50 % butikk / 50 % artist) og aktiver POS-kasse for ansatte.",
+            "Valgfritt angi per-artist-overstyringer: tilpasset butikk % og/eller en Connect-konto-ID hvis artisten ikke har selvbetjent ennå."
+          ],
+          "paragraphs": [
+            "Studio Connect-kontoen er den registrerte selgeren for klientbetalingen: kundens kvittering og kortutskrift viser studioets Stripe-konto."
+          ]
+        },
+        {
+          "heading": "Artistoppsett (utbetaling Connect-konto)",
+          "bullets": [
+            "Artisten logger på Velbok med sin egen brukerkonto (lenket til ditt studio).",
+            "Åpne Innstillinger → POS-utbetalingskonto.",
+            "Trykk på Koble til utbetalingskonto og fullfør Stripes Express-onboarding – juridisk navn, fødselsdato, adresse og bankdetaljer.",
+            "Gå tilbake til Velbok; kortet skal vise Connected når utbetalinger er aktivert.",
+            "Artister kan åpne Stripe Express-dashbordet fra samme kort for å se overføringer og oppdatere bankdetaljer."
+          ],
+          "paragraphs": [
+            "Hver artist som mottar POS-splitter trenger sin egen onboarding. Gjesteartister trenger en Velbok-pålogging for studioet ditt før de kan koble til.",
+            "Studioadministratorer kan fortsatt lime inn en artists Connect-konto-ID (acct_…) under Admin → POS-utsjekking → Artistoverstyringer, men selvbetjening via Innstillinger anbefales slik at kontoen er registrert på riktig Connect-plattform."
+          ]
+        },
+        {
+          "heading": "I kassen",
+          "bullets": [
+            "Personalet velger artisten på POS-avgiften (når splitting er aktivert for studioet ditt).",
+            "Klienten betaler hele beløpet — f.eks. £200 - på studioets terminal eller Tap to Pay.",
+            "Stripe gjør opp betalingen til studio Connect-kontoen minus Stripe-avgifter.",
+            "Velbok overfører artistens konfigurerte andel (f.eks. £100 på 50/50) til artistens Connect-konto.",
+            "Butikkandelen forblir på studio Connect-kontoen.",
+            "Hvis en overføring mislykkes, er salget fortsatt betalt; fiks Connect-oppsettet og bruk Admin → POS for å prøve artistoverføringen på nytt."
+          ]
+        },
+        {
+          "heading": "Underleverandørmodell og omsetning",
+          "paragraphs": [
+            "Velbok er bygget rundt en felles studiomodell: butikken forsyner kunden og lokaler, og kunstneren jobber som underleverandør (eller uavhengig entreprenør) betalt et gebyr eller provisjon fra studioet.",
+            "Under denne modellen er hele beløpet kunden betaler på POS normalt en del av studioets bruttoinntekter eller omsetning - 100 % av det kunden betalte, ikke bare butikkens delprosent.",
+            "Kunstnerens inntekt for regnskapsformål er vanligvis honoraret eller provisjonen studioet betaler dem (deres delte beløp), ikke en direkte andel av kundens kvittering. Hvordan du merker dette i bøkene dine - provisjon, stolleie, underleverandørfaktura - avhenger av din juridiske struktur og lokale regler.",
+            "Delt % i Velbok deler kun penger i Stripe mellom to Connect-kontoer. Den erstatter ikke lønns-, fakturerings- eller skatterapporteringsforpliktelser mellom studio og artist."
+          ],
+          "note": "Denne beskrivelsen gjenspeiler hvor mange tatoveringsstudioer som opererer med hjemmehørende kunstnere, på samme måte som HMRCs \"Alternativ B\" stolutleie / provisjonsmodeller i andre bransjer. Strukturen din kan variere – bekreft med en kvalifisert rådgiver."
+        },
+        {
+          "heading": "Skatt, moms og regnskap – viktig ansvarsfraskrivelse",
+          "paragraphs": [
+            "Velbok tilbyr programvare for å ta betalinger og ruteoppdelinger mellom Connect-kontoer. Vi gir ikke skatt, moms, regnskap eller juridisk rådgivning.",
+            "Vi er ikke ansvarlige for din skattestatus, registreringer, returer eller samsvar i noe land. Regler for omsetning, moms, inntektsskatt, selvstendig næringsvirksomhet og underleverandørforhold varierer mye - Storbritannia, EU, USA og andre jurisdiksjoner har forskjellige krav.",
+            "Du og artistene dine bør snakke med en kvalifisert regnskapsfører eller skatterådgiver om: hva som teller som studioomsetning vs artistinntekt, om moms gjelder for hele klientbetalingen eller bare deler av den, hvordan dokumentere betalinger mellom studio og artist, og journalføring for revisjoner.",
+            "Stripe kan utstede skatteskjemaer eller rapportering avhengig av kontotype og region; det er mellom deg, artistene dine og Stripe - ikke noe Velbok bestemmer.",
+            "Ved å bruke delte betalinger bekrefter du at du vil få passende profesjonelle råd for din situasjon og at Velbok kun er et betalingsrutingsverktøy, ikke din skatteagent eller regnskapsfører."
+          ]
+        }
+      ]
+    },
+    "sms-twilio-setup": {
+      "title": "SMS & Twilio oppsett",
+      "description": "Koble til studioets egen Twilio-konto for SMS-avtale og påminnelser om innskudd.",
+      "sections": [
+        {
+          "heading": "Oversikt",
+          "paragraphs": [
+            "SMS er ikke inkludert som en tjeneste for hele Velbok. Hvert studio oppretter en Twilio-konto, kjøper et telefonnummer og kobler det til Velbok-innboksen. Twilio fakturerer deg direkte for meldinger og nummerleie.",
+            "Bruk et dedikert nummer for Velbok hvis en annen tjeneste (f.eks. Vapi voice AI) allerede kontrollerer Twilio webhook på ditt eksisterende nummer."
+          ]
+        },
+        {
+          "heading": "Trinn 1 — Koble til i Velbok",
+          "bullets": [
+            "Personalapp → Innboks → SMS-kort (Twilio) → Koble til Twilio",
+            "Skriv inn konto-SID, Auth Token og telefonnummer i E.164-format (+353…, +44…, +1…)",
+            "Legitimasjon lagres kun per organisasjon"
+          ]
+        },
+        {
+          "heading": "Trinn 2 — Twilio webhook",
+          "bullets": [
+            "Twilio Konsoll → Telefonnumre → nummeret ditt → Meldinger",
+            "En melding kommer inn → Webhook → https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/sms-webhook",
+            "HTTP POST. Valgfri Supabase-hemmelighet TWILIO_SMS_WEBHOOK_URL med samme URL (ingen etterfølgende skråstrek)"
+          ]
+        },
+        {
+          "heading": "Trinn 3 — SMS-påminnelser",
+          "bullets": [
+            "Admin → E-poster og påminnelser → Varslingskanal → SMS eller E-post og SMS",
+            "Aktiver avtale- og/eller innskuddspåminnelser",
+            "Bestillinger trenger et kundetelefonnummer; VIP-kunder hopper over innskudds-SMS"
+          ]
+        },
+        {
+          "heading": "Testing og feilsøking",
+          "bullets": [
+            "Innkommende: send SMS med Twilio-nummeret ditt; valgfritt for påminnelsesoppsett",
+            "Twilio Monitor → Meldinger → webhook skal returnere 200 når du bruker toveis SMS",
+            "401 Ugyldig signatur → Auth Token-mismatch mellom Twilio og Velbok",
+            "no_matching_org → telefonnummer i Velbok må samsvare nøyaktig med Twilio"
+          ],
+          "note": "Tall fra Irland (+353) fungerer bra for studioer i Storbritannia/EU når +44 ikke er tilgjengelig i Twilio. Ikke del Auth Tokens i støttebilletter."
+        }
+      ]
     }
   }
 }

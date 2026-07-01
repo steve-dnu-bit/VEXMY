@@ -12,7 +12,8 @@
     "paid": "Bezahlt",
     "paidWithAmount": "Bezahlt ({{amount}})",
     "outstanding": "Hervorragend",
-    "outstandingWithAmount": "Hervorragend ({{amount}})"
+    "outstandingWithAmount": "Hervorragend ({{amount}})",
+    "notRequired": "Nicht erforderlich"
   },
   "bookingNotification": {
     "badge": "Buchung",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Neue Posteingangsnachricht – {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Ihre Quittung {{receiptNumber}} – {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Quittung",
+    "title": "Zahlung erhalten",
+    "intro": "Vielen Dank für Ihren Besuch bei {{shopName}}. Hier ist Ihre Quittung für Ihre Sitzung mit {{artistName}} – eine PDF-Kopie ist beigefügt.",
+    "paymentMethod": {
+      "card": "Karte (Tap to Pay / WisePad)"
+    },
+    "details": {
+      "artist": "Künstlerin",
+      "studio": "Studio",
+      "date": "Datum",
+      "receiptNumber": "Quittung #",
+      "sessionTotal": "Sitzung insgesamt",
+      "depositCredit": "Guthaben einzahlen",
+      "amountPaid": "Gezahlter Betrag"
+    },
+    "note": {
+      "title": "PDF beigefügt",
+      "body": "Ihre detaillierte Rechnung ist als PDF beigefügt. Bewahren Sie es für Ihre Unterlagen auf."
+    },
+    "footer": "Diese Quittung wurde automatisch nach Ihrer Zahlung im Studio verschickt."
+  },
+  "reviewRequest": {
+    "badge": "Danke",
+    "title": "Wir würden uns über Ihr Feedback freuen",
+    "intro": "Vielen Dank für Ihren Besuch {{shopName}}. Wenn Sie eine tolle Erfahrung mit {{artistName}} gemacht haben, hilft eine kurze Bewertung anderen Kunden, uns zu finden, und bedeutet dem Team sehr viel.",
+    "pickPlatform": "Hinterlassen Sie eine Bewertung",
+    "details": {
+      "artist": "Künstlerin",
+      "visit": "Ihr Besuch"
+    },
+    "note": {
+      "title": "Optional",
+      "body": "Bewertungen sind auf der von Ihnen gewählten Plattform öffentlich. Wenn etwas nicht stimmt, antworten Sie auf diese E-Mail – wir beheben es lieber zunächst privat."
+    },
+    "footer": "Diese E-Mail wurde gesendet, weil Ihr Studio Sie gebeten hat, nach Ihrem Termin Feedback zu geben."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Terminerinnerung mit {{artist}} am {{when}}. Antworten Sie, wenn Sie einen neuen Termin vereinbaren müssen.",
+      "deposit": "{{shopName}}: Anzahlungserinnerung für Ihren Termin am {{when}}. Fälliger Betrag: {{amount}}. Kontaktieren Sie uns, um zu bezahlen."
     }
   }
 }

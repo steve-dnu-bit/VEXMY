@@ -12,7 +12,8 @@
     "paid": "Plătit",
     "paidWithAmount": "Plătit ({{amount}})",
     "outstanding": "Remarcabil",
-    "outstandingWithAmount": "Remarcabil ({{amount}})"
+    "outstandingWithAmount": "Remarcabil ({{amount}})",
+    "notRequired": "Nu este necesar"
   },
   "bookingNotification": {
     "badge": "Rezervare",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Mesaj nou inbox — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Chitanța dvs. {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "chitanta",
+    "title": "Plata primita",
+    "intro": "Vă mulțumim pentru vizita pe {{shopName}}. Iată chitanța dvs. pentru sesiunea dvs. cu {{artistName}} — este atașată o copie PDF.",
+    "paymentMethod": {
+      "card": "Card (Atingeți pentru a plăti / WisePad)"
+    },
+    "details": {
+      "artist": "Artist",
+      "studio": "Studio",
+      "date": "Data",
+      "receiptNumber": "Chitanța #",
+      "sessionTotal": "Total sesiune",
+      "depositCredit": "Credit de depozit",
+      "amountPaid": "Suma plătită"
+    },
+    "note": {
+      "title": "PDF atașat",
+      "body": "Chitanța dvs. detaliată este atașată ca PDF. Păstrați-l pentru evidențele dvs."
+    },
+    "footer": "Această chitanță a fost trimisă automat după plata în studio."
+  },
+  "reviewRequest": {
+    "badge": "Multumesc",
+    "title": "Ne-ar plăcea feedback-ul dvs",
+    "intro": "Vă mulțumim că ați vizitat {{shopName}}. Dacă ați avut o experiență grozavă cu {{artistName}}, o scurtă recenzie îi ajută pe alți clienți să ne găsească și înseamnă foarte mult pentru echipă.",
+    "pickPlatform": "Lasă o recenzie",
+    "details": {
+      "artist": "Artist",
+      "visit": "Vizita ta"
+    },
+    "note": {
+      "title": "Opțional",
+      "body": "Recenziile sunt publice pe platforma pe care o alegeți. Dacă ceva nu a fost în regulă, răspundeți la acest e-mail - mai degrabă am remedia în mod privat mai întâi."
+    },
+    "footer": "Acest e-mail a fost trimis deoarece studioul dvs. v-a cerut să trimiteți feedback după programare."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Memento de întâlnire cu {{artist}} pe {{when}}. Răspundeți dacă trebuie să reprogramați.",
+      "deposit": "{{shopName}}: Memento de depunere pentru programarea dvs. pe {{when}}. Suma datorată: {{amount}}. Contactează-ne pentru a plăti."
     }
   }
 }

@@ -321,6 +321,232 @@
           ]
         }
       ]
+    },
+    "pos-checkout": {
+      "title": "POS-Kaufabwicklung und Tap-to-Pay",
+      "description": "Nehmen Sie persönliche Kartenzahlungen mit Ihrem Telefon vor – kein separates Kartenlesegerät erforderlich – oder mit einem WisePad.",
+      "sections": [
+        {
+          "heading": "Kein separater Kartenleser erforderlich",
+          "paragraphs": [
+            "Velbok unterstützt Stripe Tap to Pay: Ihr Mitarbeitertelefon wird zum Zahlungsterminal. Der Kunde hält eine kontaktlose Karte oder sein mobiles Portemonnaie an die Oberseite Ihres Geräts – genauso, wie er auf ein Ladenterminal tippen würde.",
+            "Für diesen Modus müssen Sie kein WisePad oder andere Stripe-Hardware kaufen. Tap to Pay nutzt das Stripe-Terminal im Hintergrund (Verbindungstoken und einen Terminalstandort im Stripe Connect-Konto Ihres Studios), es ist jedoch kein physisches Lesegerät im Stripe-Dashboard gekoppelt oder registriert.",
+            "Verwenden Sie die mobile Velbok-App (Android oder iPhone), öffnen Sie die Kasse, wählen Sie „Zum Bezahlen tippen“ (dieses Telefon), tippen Sie auf „Telefonzahlungen aktivieren“ und dann auf „Wie gewohnt aufladen“."
+          ]
+        },
+        {
+          "heading": "Womit Kunden bezahlen können",
+          "bullets": [
+            "Kontaktlose Debit- und Kreditkarten (tippen)",
+            "Google Pay (Android)",
+            "Apple Pay (iPhone und viele Android-Wallets)",
+            "Samsung Pay und andere mobile NFC-Geldbörsen",
+            "Visa, Mastercard, American Express und Discover kontaktlos (regionsabhängig)"
+          ],
+          "note": "Für Wallet-Zahlungen ist in der Regel keine PIN erforderlich. Bei einigen Regeln für hochwertige oder regionale Karten ist möglicherweise eine PIN oder eine andere Zahlungsmethode erforderlich. Velbok zeigt in diesem Fall die Aufforderung von Stripe auf dem Bildschirm an."
+        },
+        {
+          "heading": "Stripe-Setup (kein Hardware-Kauf)",
+          "bullets": [
+            "Beenden Sie Stripe Connect für Ihr Studio (Admin → POS-Kasse)",
+            "Erstellen Sie einen Terminalstandort in Velbok – Admin → POS → Terminalstandort erstellen (Velbok speichert dies in Ihrem Connect-Konto)",
+            "Aktivieren Sie POS-Kassen für Mitarbeiter",
+            "Installieren Sie die Release-App Velbok auf einem kompatiblen Telefon – kein Debug-Build. Von https://velbok.com/download herunterladen",
+            "Für Velbok gibt es in Stripe keinen separaten Schalter „Tap to Pay aktivieren“. Sie benötigen lediglich den Connect + Terminal-Standort",
+            "Sie registrieren eine Leserseriennummer im Stripe Dashboard nur, wenn Sie ein physisches Gerät verwenden (z. B. WisePad 3)."
+          ]
+        },
+        {
+          "heading": "Unterstützte Android-Telefone (Tap to Pay)",
+          "paragraphs": [
+            "Stripe führt die maßgebliche Liste; Velbok folgt den gleichen Anforderungen. Telefone müssen über NFC, Android 13+, Google Play Services und die Sicherheitshardware von Stripe (Hardware-Keystore mit ECDH) verfügen. Für Live-Zahlungen müssen die Entwickleroptionen deaktiviert sein."
+          ],
+          "bullets": [
+            "Google Pixel – Pixel 6 und neuer (6, 6a, 6 Pro, 7-Serie, 8-Serie, 9-Serie, 10-Serie, Pixel Fold)",
+            "Samsung Galaxy S – S22, S22+, S22 Ultra, S23-Serie, S24-Serie, S25-Serie, S26-Serie",
+            "Samsung Galaxy Z – Z Flip4, Z Flip5, Z Flip6, Z Flip7, Z Flip7 FE, Z Fold4, Z Fold5, Z Fold6, Z Fold7, Z TriFold",
+            "Samsung Galaxy A / M / F – viele neuere Modelle (z. B. A14 5G und neuere A-Serie, A53 5G+, M14 5G+, F34 5G+) – siehe Link Stripe unten für die vollständige Liste",
+            "Samsung – Tab Active5-Serie, XCover7, XCover7 Pro, Wide8",
+            "Motorola – Edge-Serie (2022+), Razr / Razr+ (2022+), viele Moto-G-Modelle mit NFC",
+            "OnePlus – 10er-Serie und neuer, Nord 3 5G+, Open",
+            "Xiaomi / Redmi – 12-Serie und neuer, viele Note 13+ / 14+-Modelle, MIX Flip / MIX Fold",
+            "Honor, Oppo, Asus ROG/Zenfone, Infinix – zahlreiche Modelle gelistet von Stripe"
+          ],
+          "note": "Vollständige offizielle Liste (aktualisiert von Stripe): https://docs.stripe.com/terminal/zahlungen/setup-reader/tap-to-pay?platform=android#device-types"
+        },
+        {
+          "heading": "Android-Telefone, die NICHT funktionieren",
+          "bullets": [
+            "Samsung Galaxy S21, S20, S10 und ältere Flaggschiffe der S-Serie – erforderliche Sicherheitshardware fehlt (bestätigt: S21 Ultra schlägt fehl; verwenden Sie S22+ oder WisePad)",
+            "Jedes Telefon ohne NFC oder ohne Hardware-Keystore ECDH (Stripe-Fehler TAP_TO_PAY_UNSUPPORTED_DEVICE)",
+            "Gerootete Telefone, Emulatoren oder Telefone ohne Google Play-Dienste",
+            "Android 12 oder älter",
+            "Debuggen Sie Velbok-Installationen oder Telefone mit aktivierten Entwickleroptionen (für Live-Tap-to-Pay)."
+          ]
+        },
+        {
+          "heading": "iPhone (Zum Bezahlen auf dem iPhone tippen)",
+          "bullets": [
+            "Kompatibles iPhone mit NFC – im Allgemeinen iPhone XS oder neuer",
+            "iOS 16.4 oder höher",
+            "Velbok iOS-App mit Apples Tap-to-Pay-Berechtigung auf dem iPhone (Studiobesitzer fordert dies bei Apple für die App an)",
+            "Gleiche Zahlungsarten für Kunden: kontaktlose Karten und Apple Pay",
+            "Stripe Connect + Terminalstandort in Velbok Admin → POS, wie bei Android"
+          ],
+          "note": "Apple Tap-to-Pay-Details: https://docs.stripe.com/terminal/zahlungen/setup-reader/tap-to-pay?platform=ios"
+        },
+        {
+          "heading": "WisePad und andere Leser (optional)",
+          "paragraphs": [
+            "Wenn Ihr Telefon nicht unterstützt wird oder Sie ein dediziertes Gerät bevorzugen, verwenden Sie WisePad (Bluetooth) im Checkout. WisePOS E und Stripe Reader S700 funktionieren als WLAN-/Standalone-Lesegeräte. Registrieren Sie WisePad-Seriennummern in Stripe Dashboard → Terminal → Leser in Ihrem Connect-Konto."
+          ]
+        },
+        {
+          "heading": "Fehlerbehebung",
+          "bullets": [
+            "Installieren Sie die neueste APK-Version von https://velbok.com/download – deinstallieren Sie bei Bedarf zuerst das alte Velbok.",
+            "Tippen Sie beim Bezahlen auf „Stripe-Server-Link testen“, um den Connect + Terminal-Standort vor der Aktivierung zu überprüfen",
+            "Standortberechtigung für Velbok zulassen (erforderlich für das Stripe-Terminal auf Android)",
+            "Schalten Sie die Entwickleroptionen aus und starten Sie das Telefon neu, wenn Stripe eine unsichere Umgebung meldet",
+            "Benutzer eines Galaxy S21: Wechseln Sie in den WisePad-Modus oder verwenden Sie ein Galaxy S22+ / Z Flip7+-Telefon für Tap to Pay"
+          ]
+        },
+        {
+          "heading": "Teilen Sie die Zahlung mit einem Künstler",
+          "paragraphs": [
+            "Wenn Ihr Studio POS-Einnahmen mit ansässigen oder Gastkünstlern teilt, benötigen sowohl das Studio als auch jeder Künstler ein eigenes Stripe Connect-Auszahlungskonto. Velbok leitet den Künstleranteil automatisch weiter, nachdem der Kunde bezahlt hat.",
+            "Sehen Sie sich den vollständigen Leitfaden an: https://velbok.com/docs/pos-split-zahlungen – einschließlich Einrichtungsschritten, Art und Weise, wie Umsätze für Steuerzwecke erfasst werden, und wichtigen Haftungsausschlüssen für die Buchhaltung."
+          ]
+        }
+      ]
+    },
+    "pos-split-payments": {
+      "title": "POS-Split-Zahlungen",
+      "description": "Teilen Sie persönliche Karteneinnahmen zwischen Ihrem Studio und den Künstlern – Connect-Einrichtung, wie sich Geld bewegt und was der Aufteilungsprozentsatz für Ihre Konten bedeutet.",
+      "sections": [
+        {
+          "heading": "Was Split-Payments bewirken",
+          "paragraphs": [
+            "Wenn einem Künstler eine POS-Gebühr zugewiesen wird, zieht Velbok den vollen Betrag vom Kunden auf dem Stripe Connect-Konto Ihres Studios ein, behält Ihren konfigurierten Shop-Anteil auf diesem Konto und überträgt den Anteil des Künstlers auf das eigene Connect-Konto des Künstlers.",
+            "Der Split-Prozentsatz steuert, wie viel jede Partei in Stripe erhält. Dies bedeutet nicht, dass jede Partei nur diesen Prozentsatz der Kundenzahlung für Steuer- oder Umsatzzwecke angibt. Siehe Umsatz- und Subunternehmermodell unten."
+          ]
+        },
+        {
+          "heading": "Sowohl Studio als auch Künstler benötigen ein Connect-Konto",
+          "paragraphs": [
+            "Geteilte Auszahlungen funktionieren nur, wenn zwei separate Stripe Connect-Konten vorhanden und vollständig integriert sind:",
+            "1. Ihr Studio (Shop) – erhält die Kundenzahlung und hält den Shop-Anteil.",
+            "2. Jeder Künstler, der einen Split erhält, erhält seinen Anteil durch Überweisung auf sein eigenes Connect-Konto.",
+            "Wenn eines der Konten fehlt, unvollständig ist oder außerhalb der Connect-Plattform von Velbok erstellt wurde, schlägt die Künstlerübertragung fehl, obwohl der Kunde erfolgreich belastet wurde. Ein erneuter Versuch ist über Admin → POS-Kasse möglich, nachdem der Künstler die Einrichtung abgeschlossen hat."
+          ],
+          "note": "Künstler müssen über Velbok (Einstellungen → POS-Auszahlungskonto) an Bord sein. Eine von einer anderen Plattform kopierte Stripe-Konto-ID oder ein altes persönliches Connect-Konto funktioniert nicht."
+        },
+        {
+          "heading": "Studio-Setup (Shop Connect-Konto)",
+          "bullets": [
+            "Melden Sie sich als Studio-Administrator an und öffnen Sie Admin → POS-Checkout.",
+            "Füllen Sie Stripe Connect mit der Auszahlungs-/Connect-Karte auf dieser Seite aus – Identität, Geschäftsdaten und Bankkonto.",
+            "Erstellen Sie einen Terminalstandort (Admin → POS-Kasse → Terminalstandort erstellen), damit Tap to Pay und Kartenleser funktionieren.",
+            "Legen Sie den Standard-Shop-Split-Prozentsatz fest (z. B. 50 % Shop / 50 % Künstler) und aktivieren Sie den POS-Checkout für das Personal.",
+            "Legen Sie optional pro Künstler Überschreibungen fest: benutzerdefinierte Shop-% und/oder eine Connect-Konto-ID, wenn der Künstler noch nicht selbst bedient hat."
+          ],
+          "paragraphs": [
+            "Das Studio Connect-Konto ist der eingetragene Händler für die Kundenzahlung: Auf der Quittung und der Kartenabrechnung des Kunden ist das Stripe-Konto Ihres Studios aufgeführt."
+          ]
+        },
+        {
+          "heading": "Künstlereinrichtung (Payout Connect-Konto)",
+          "bullets": [
+            "Der Künstler meldet sich bei Velbok mit seinem eigenen Benutzerkonto an (verknüpft mit Ihrem Studio).",
+            "Öffnen Sie Einstellungen → POS-Auszahlungskonto.",
+            "Tippen Sie auf Auszahlungskonto verbinden und schließen Sie das Express-Onboarding von Stripe ab – offizieller Name, Geburtsdatum, Adresse und Bankdaten.",
+            "Zurück zu Velbok; Wenn Auszahlungen aktiviert sind, sollte auf der Karte „Verbunden“ angezeigt werden.",
+            "Künstler können das Stripe Express-Dashboard über dieselbe Karte öffnen, um Überweisungen anzuzeigen und Bankdaten zu aktualisieren."
+          ],
+          "paragraphs": [
+            "Jeder Künstler, der POS-Splits erhält, benötigt sein eigenes Onboarding. Gastkünstler benötigen ein Velbok-Login für Ihr Studio, bevor sie eine Verbindung herstellen können.",
+            "Studioadministratoren können weiterhin die Connect-Konto-ID (acct_…) eines Künstlers unter Admin → POS-Checkout → Künstlerüberschreibungen einfügen, es wird jedoch die Selbstbedienung über die Einstellungen empfohlen, damit das Konto auf der richtigen Connect-Plattform registriert wird."
+          ]
+        },
+        {
+          "heading": "An der Kasse",
+          "bullets": [
+            "Das Personal wählt den Künstler anhand der POS-Gebühr aus (wenn Aufteilungen für Ihr Studio aktiviert sind).",
+            "Der Kunde zahlt den vollen Betrag – z.B. 200 £ – am Terminal des Studios oder per Tap-to-Pay.",
+            "Stripe rechnet die Zahlung abzüglich der Stripe-Gebühren auf das Studio Connect-Konto ab.",
+            "Velbok überträgt den konfigurierten Anteil des Künstlers (z. B. 100 £ bei 50/50) auf das Connect-Konto des Künstlers.",
+            "Der Shop-Anteil verbleibt im Studio Connect-Konto.",
+            "Schlägt eine Übertragung fehl, wird der Verkauf trotzdem bezahlt; Korrigieren Sie die Connect-Einrichtung und verwenden Sie Admin → POS, um die Künstlerübertragung erneut zu versuchen."
+          ]
+        },
+        {
+          "heading": "Subunternehmermodell und Umsatz",
+          "paragraphs": [
+            "Velbok basiert auf einem gemeinsamen Studiomodell: Der Laden stellt dem Kunden die Räumlichkeiten zur Verfügung, und der Künstler arbeitet als Subunternehmer (oder unabhängiger Auftragnehmer) und zahlt eine Gebühr oder Provision vom Studio.",
+            "Bei diesem Modell ist der volle Betrag, den der Kunde am POS zahlt, normalerweise Teil der Bruttoeinnahmen oder des Umsatzes des Studios – 100 % dessen, was der Kunde bezahlt hat, und nicht nur der Split-Prozentsatz des Shops.",
+            "Das Einkommen des Künstlers für Buchhaltungszwecke ist in der Regel die Gebühr oder Provision, die ihm das Studio zahlt (der aufgeteilte Betrag), und kein direkter Anteil am Erlös des Kunden. Wie Sie dies in Ihren Büchern kennzeichnen – Provision, Stuhlmiete, Subunternehmerrechnung – hängt von Ihrer Rechtsform und den örtlichen Vorschriften ab.",
+            "Der Split-Prozentsatz in Velbok teilt das Geld in Stripe nur auf zwei Connect-Konten auf. Sie ersetzen nicht die Gehalts-, Rechnungs- oder Steuermeldepflichten zwischen Studio und Künstler."
+          ],
+          "note": "Diese Beschreibung spiegelt wider, wie viele Tattoo-Studios mit ansässigen Künstlern zusammenarbeiten, ähnlich den Stuhlmiet-/Provisionsmodellen „Option B“ von HMRC in anderen Branchen. Ihre Struktur kann abweichen – lassen Sie sich dies von einem qualifizierten Berater bestätigen."
+        },
+        {
+          "heading": "Steuern, Mehrwertsteuer und Buchhaltung – wichtiger Haftungsausschluss",
+          "paragraphs": [
+            "Velbok bietet Software zur Entgegennahme von Zahlungen und zur Weiterleitung von Aufteilungen zwischen Connect-Konten. Wir bieten keine Steuer-, Mehrwertsteuer-, Buchhaltungs- oder Rechtsberatung an.",
+            "Wir sind nicht verantwortlich für Ihren Steuerstatus, Ihre Registrierungen, Rücksendungen oder die Einhaltung der Vorschriften in irgendeinem Land. Die Regeln für Umsatz, Mehrwertsteuer, Einkommensteuer, Selbstständigkeit und Subunternehmerbeziehungen sind sehr unterschiedlich – im Vereinigten Königreich, in der EU, in den USA und anderen Rechtsordnungen gelten jeweils unterschiedliche Anforderungen.",
+            "Sie und Ihre Künstler sollten mit einem qualifizierten Buchhalter oder Steuerberater darüber sprechen, was als Studioumsatz im Vergleich zum Künstlereinkommen gilt, ob die Mehrwertsteuer auf die gesamte Kundenzahlung oder nur auf einen Teil davon anfällt, wie Zahlungen zwischen Studio und Künstler dokumentiert werden und wie Aufzeichnungen für Audits geführt werden.",
+            "Stripe kann je nach Kontotyp und Region Steuerformulare oder Berichte ausstellen; Das ist zwischen Ihnen, Ihren Künstlern und Stripe – nicht etwas, was Velbok bestimmt.",
+            "Durch die Verwendung von geteilten Zahlungen bestätigen Sie, dass Sie für Ihre Situation eine angemessene professionelle Beratung erhalten und dass Velbok lediglich ein Tool zur Zahlungsweiterleitung und nicht Ihr Steuerberater oder Buchhalter ist."
+          ]
+        }
+      ]
+    },
+    "sms-twilio-setup": {
+      "title": "SMS- und Twilio-Einrichtung",
+      "description": "Verknüpfen Sie das eigene Twilio-Konto Ihres Studios für SMS-Termin- und Anzahlungserinnerungen.",
+      "sections": [
+        {
+          "heading": "Überblick",
+          "paragraphs": [
+            "SMS ist nicht als Velbok-weiter Dienst enthalten. Jedes Studio erstellt ein Twilio-Konto, kauft eine Telefonnummer und verbindet diese mit dem Velbok-Posteingang. Twilio stellt Ihnen Nachrichten und Nummernmiete direkt in Rechnung.",
+            "Verwenden Sie eine dedizierte Nummer für Velbok, wenn ein anderer Dienst (z. B. Vapi Voice AI) bereits den Twilio-Webhook auf Ihrer vorhandenen Nummer steuert."
+          ]
+        },
+        {
+          "heading": "Schritt 1 – Verbinden Sie sich in Velbok",
+          "bullets": [
+            "Mitarbeiter-App → Posteingang → SMS-Karte (Twilio) → Twilio verbinden",
+            "Geben Sie die Konto-SID, das Authentifizierungs-Token und die Telefonnummer im E.164-Format ein (+353…, +44…, +1…)",
+            "Anmeldeinformationen werden nur pro Organisation gespeichert"
+          ]
+        },
+        {
+          "heading": "Schritt 2 – Twilio-Webhook",
+          "bullets": [
+            "Twilio Konsole → Telefonnummern → Ihre Nummer → Nachrichten",
+            "Es kommt eine Nachricht → Webhook → https://tkremoxfkgoiuwghtzwd.supabase.co/functions/v1/sms-webhook",
+            "HTTP-POST. Optionales Supabase-Geheimnis TWILIO_SMS_WEBHOOK_URL mit derselben URL (kein abschließender Schrägstrich)"
+          ]
+        },
+        {
+          "heading": "Schritt 3 – SMS-Erinnerungen",
+          "bullets": [
+            "Admin → E-Mails und Erinnerungen → Benachrichtigungskanal → SMS oder E-Mail und SMS",
+            "Aktivieren Sie Termin- und/oder Anzahlungserinnerungen",
+            "Für Buchungen ist die Telefonnummer des Kunden erforderlich. VIP-Kunden überspringen Einzahlungs-SMS"
+          ]
+        },
+        {
+          "heading": "Tests und Fehlerbehebung",
+          "bullets": [
+            "Eingehend: Senden Sie eine SMS mit Ihrer Twilio-Nummer. optional für reine Erinnerungs-Setups",
+            "Twilio Monitor → Messaging → Webhook sollte 200 zurückgeben, wenn bidirektionale SMS verwendet wird",
+            "401 Ungültige Signatur → Nichtübereinstimmung des Auth-Tokens zwischen Twilio und Velbok",
+            "no_matching_org → Telefonnummer in Velbok muss genau mit Twilio übereinstimmen"
+          ],
+          "note": "Irland-Nummern (+353) eignen sich gut für Studios in Großbritannien/EU, wenn +44 in Twilio nicht verfügbar ist. Geben Sie Auth-Tokens nicht in Support-Tickets weiter."
+        }
+      ]
     }
   }
 }

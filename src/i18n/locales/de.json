@@ -68,7 +68,7 @@
   "marketing": {
     "footerTagline": "Die All-in-One-Plattform für Tattoo-Studios — Terminplanung, Anzahlungen, Einwilligung, Abrechnung und Kundenkommunikation an einem Ort.",
     "pricingTitle": "Tarife, die mit Ihrem Studio wachsen",
-    "pricingSubtitle": "Transparente monatliche Preise. Jeder Plan beinhaltet die vollständige Plattform – nur die Sitzplatzbeschränkungen für Künstler unterscheiden sich.",
+    "pricingSubtitle": "Von Einzelkünstlern bis hin zu Multi-Künstler-Shops – transparente monatliche Preise mit einer 14-tägigen kostenlosen Testversion. Enterprise von der 14-tägigen Testversion ausgeschlossen.",
     "comparePlans": "Tarife vergleichen",
     "pricingFaq": "Preis-FAQ",
     "notSurePlan": "Unsicher, welcher Tarif passt?",
@@ -114,7 +114,7 @@
     "starter": {
       "name": "Anlasser",
       "tagline": "Kleines Team",
-      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 3 Künstlern.",
+      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 3 Künstlern. Support-Tickets und WhatsApp-Links inklusive.",
       "seats": "Bis zu 3 Künstlerplätze",
       "cta": "Mit Starter starten",
       "features": {
@@ -129,7 +129,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Wachsendes Studio",
-      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 6 Künstlern.",
+      "description": "Vollständige Plattform für Shops mit bis zu 6 Künstlern. Support-Tickets und WhatsApp-Links inklusive.",
       "seats": "Bis zu 6 Künstlerplätze",
       "cta": "Kostenlos testen",
       "features": {
@@ -145,7 +145,7 @@
     "enterprise": {
       "name": "Unternehmen",
       "tagline": "Großes Studio",
-      "description": "Die vollständige Velbok-Plattform für Shops mit bis zu 10 Künstlern.",
+      "description": "Vollständige Plattform für Shops mit bis zu 10 Künstlern. Support-Tickets und WhatsApp-Links inklusive.",
       "seats": "Bis zu 10 Künstlerplätze",
       "cta": "Mit Enterprise starten",
       "features": {
@@ -175,17 +175,19 @@
       "unifiedInbox": "Support-Tickets",
       "contactCentre": "WhatsApp- und Kontaktlinks",
       "inboxStudio": "E-Mail + 1 Kanal",
-      "inboxEnterprise": "Alle Kanäle"
+      "inboxEnterprise": "Alle Kanäle",
+      "ticketImages": "Ticketbilder pro Person",
+      "stencilsPerDay": "AI-Schablonen pro 24 Stunden"
     },
     "faq": {
       "trialQ": "Gibt es eine kostenlose Testphase?",
-      "trialA": "Alle Tarife beinhalten eine 14-tägige kostenlose Testphase. Wählen Sie einen Tarif auf der Abonnementseite — Sie geben Kartendaten bei Stripe ein, werden aber erst nach Ende der Testphase belastet.",
+      "trialA": "Solo, Starter und Studio beinhalten eine 14-tägige kostenlose Testversion – Sie geben Ihre Kartendaten auf Stripe ein, es wird Ihnen jedoch erst nach Ablauf der Testversion eine Gebühr berechnet. Enterprise wird sofort bei Abschluss Ihres Abonnements in Rechnung gestellt.",
       "includedQ": "Was ist in jedem Tarif enthalten?",
-      "includedA": "Jeder Plan beinhaltet die vollständige Velbok-Plattform – Terminplanung, CRM, Einzahlungen, Einwilligung, Posteingang, Lagerbestand, Abrechnung und mehr. Der einzige Unterschied besteht darin, wie viele Künstler Sie hinzufügen können.",
+      "includedA": "Jeder Plan umfasst Terminplanung, CRM, Anzahlungen, Einwilligung, Lagerbestand, Abrechnung, Portal-Support-Tickets und WhatsApp/SMS/E-Mail-Kontaktlinks aus Buchungen.",
       "stripeFeesQ": "Sind Stripe-Gebühren enthalten?",
       "stripeFeesA": "Nein. Kartenzahlungsgebühren werden von Stripe zusätzlich zu Ihrem Abonnement berechnet. Velbok ist mit Ihrem Stripe-Konto für Anzahlungen und Rechnungen verbunden.",
       "switchQ": "Kann ich später den Tarif wechseln?",
-      "switchA": "Ja. Upgraden oder downgraden Sie, wenn Ihr Team wächst — Starter (3 Künstler), Studio (6) oder Enterprise (10).",
+      "switchA": "Ja. Upgraden oder Downgrade jederzeit über Admin – Solo (1 Künstler), Starter (3), Studio (6) oder Enterprise (10).",
       "migrateQ": "Helfen Sie bei der Migration von meinem aktuellen System?",
       "migrateA": "Studio- und Enterprise-Tarife beinhalten CSV-Import von Kunden in der App. Enterprise umfasst persönliche Migrationshilfe für Buchungen und Datensätze."
     },
@@ -223,7 +225,21 @@
         "0": "Support-Tickets im Kundenportal",
         "1": "WhatsApp-, SMS- und E-Mail-Links von jeder Buchung",
         "2": "Automatisierte Buchungserinnerungen und Nachbetreuungs-E-Mails"
+      },
+      "solo": {
+        "0": "Support-Tickets im Kundenportal",
+        "1": "WhatsApp-, SMS- und E-Mail-Links von jeder Buchung",
+        "2": "Automatisierte Buchungserinnerungen und Nachbetreuungs-E-Mails"
       }
+    },
+    "trialBadge": "14-tägige kostenlose Testversion",
+    "paidImmediatelyBadge": "Sofort bezahlt · Keine kostenlose Testversion",
+    "solo": {
+      "name": "Solo",
+      "tagline": "Solokünstler",
+      "description": "Das Wesentliche für einen Künstler – Zeitplan, CRM, Einwilligung, Anzahlungen und Support-Tickets.",
+      "seats": "1 Künstlersitz",
+      "cta": "Beginnen Sie mit Solo"
     }
   },
   "auth": {
@@ -275,7 +291,29 @@
     "cookiePolicy": "Cookie-Richtlinie",
     "continueWithGoogle": "Weiter mit Google",
     "continuingWithGoogle": "Weiterleitung zu Google…",
-    "googleSignInFailed": "Die Google-Anmeldung konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
+    "googleSignInFailed": "Die Google-Anmeldung konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
+    "phoneTab": "Telefon",
+    "appBridgeDesc": "Melden Sie sich mit Google auf velbok.com an, um zur App zurückzukehren.",
+    "continueWithApple": "Weiter mit Apple",
+    "continuingWithApple": "Weiterleitung zu Apple…",
+    "appleSignInFailed": "Die Apple-Anmeldung konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
+    "signInWithoutPassword": "Melden Sie sich stattdessen per E-Mail oder Telefon an",
+    "passwordlessTitle": "Melden Sie sich ohne Passwort an",
+    "passwordlessDesc": "Wir senden Ihnen per E-Mail einen sicheren Link oder senden Ihnen einen Einmalcode per SMS, wenn die telefonische Anmeldung für Ihr Konto aktiviert ist.",
+    "sendMagicLink": "Schicken Sie mir einen Anmeldelink per E-Mail",
+    "magicLinkSent": "Überprüfen Sie Ihre E-Mails",
+    "magicLinkSentDesc": "Wir haben einen sicheren Anmeldelink gesendet. Es läuft in etwa einer Stunde ab.",
+    "phoneLabel": "Handynummer",
+    "invalidPhone": "Geben Sie eine gültige Nummer mit Ländervorwahl ein (z. B. +44…).",
+    "phoneSignInDisabled": "Die telefonische Anmeldung ist für dieses Konto nicht aktiviert. Verwenden Sie eine E-Mail oder wenden Sie sich an den Support.",
+    "sendPhoneCode": "Schicken Sie mir einen Anmeldecode",
+    "phoneCodeSent": "Code gesendet",
+    "phoneCodeSentDesc": "Geben Sie den 6-stelligen Code aus Ihrer SMS ein.",
+    "verifyPhoneCode": "Code überprüfen",
+    "resendPhoneCode": "Code erneut senden",
+    "backToSignIn": "Zurück zur Passwort-Anmeldung",
+    "backToAuthenticator": "Zurück zum Authentifizierungscode",
+    "needHelp": "Brauchen Sie Hilfe?"
   },
   "subscribe": {
     "label": "Abonnieren",
@@ -304,7 +342,8 @@
     "termsCheckboxLead": "Ich habe gelesen und stimme zu:",
     "termsCheckboxBody": "Ich bestätige, dass ich befugt bin, im Namen meines Studios zu abonnieren, und dass Inkaholics Limited (Velbok) den gewählten Tarif (einschließlich nach einer kostenlosen Testphase) über Stripe belasten darf.",
     "termsVersionLabel": "Version {{version}}",
-    "termsRequired": "Bitte akzeptieren Sie die AGB und den Datenschutzhinweis, um fortzufahren."
+    "termsRequired": "Bitte akzeptieren Sie die AGB und den Datenschutzhinweis, um fortzufahren.",
+    "trialNoteImmediate": "Sofort in Rechnung gestellt · Jederzeit kündbar"
   },
   "subscription": {
     "title": "Abonnement",
@@ -415,7 +454,10 @@
     "artistProfileShopThemeNote": "Ihr Shop verwendet einen gemeinsamen Dashboard-Look, der vom Administrator festgelegt wurde. Du kannst weiterhin deinen Namen, deine Biografie und deine Kontaktdaten bearbeiten.",
     "consentHandSignNotice": "Kunden müssen die vorab ausgefüllte Einwilligung in Ihrem Studio handschriftlich mit einem Stift unterschreiben. Bewahren Sie das unterzeichnete Originalexemplar sicher in Ihren Räumlichkeiten auf.",
     "legalTitle": "Legal",
-    "legalDesc": "Datenschutz, Bedingungen und Cookie-Informationen für Velbok."
+    "legalDesc": "Datenschutz, Bedingungen und Cookie-Informationen für Velbok.",
+    "smsTwilioRequiredDesc": "Für SMS-Erinnerungen werden das eigene Twilio-Konto und die Telefonnummer Ihres Studios verwendet (nicht die von Velbok). Verbinden Sie Twilio, bevor Sie SMS wählen.",
+    "smsTwilioConnectLink": "Im Posteingang verbinden",
+    "smsTwilioGuideLink": "Einrichtungsanleitung"
   },
   "admin": {
     "title": "Administration",
@@ -454,7 +496,7 @@
     "artistDefaults": "Künstlervorgaben",
     "customerNav": "Kundenmenü",
     "staffFeatureAccess": "Zugriff auf Mitarbeiterfunktionen",
-    "staffFeatureAccessDesc": "Künstler und Administratoren – keine reinen Kundenkonten",
+    "staffFeatureAccessDesc": "Künstler und Administratoren – Künstler aus dem Shop entfernen, um einen Platz freizugeben. Vergangene Buchungen bleiben im Zeitplan.",
     "user": "Benutzer",
     "all": "Alle",
     "revoke": "Widerrufen",
@@ -605,7 +647,41 @@
     "reviewLinkRemove": "Link entfernen",
     "reviewEmailMessage": "Optionale persönliche Notiz",
     "reviewEmailMessagePlaceholder": "Nochmals vielen Dank, dass Sie heute so gut zurechtgekommen sind – wir würden uns sehr über eine kurze Bewertung freuen, wenn Sie einen Moment Zeit haben.",
-    "reviewEmailMessageHint": "Wird oben in der Bewertungsanfrage-E-Mail über dem Standard-Dankeschön-Text angezeigt."
+    "reviewEmailMessageHint": "Wird oben in der Bewertungsanfrage-E-Mail über dem Standard-Dankeschön-Text angezeigt.",
+    "tabArtistPrivacy": "Privatsphäre des Künstlers",
+    "artistPrivacyTitle": "Privatsphäre des Künstlers",
+    "artistPrivacyDesc": "Begrenzen Sie, was Künstler im Zeitplan und in der Kundenliste sehen können.",
+    "artistPrivacyToggle": "Künstler sehen nur ihre eigenen Buchungen und Kunden",
+    "artistPrivacyToggleHint": "Wenn diese Option aktiviert ist, sieht jeder Künstler nur seine Zeitplanspalte und die Kunden, mit denen er zusammengearbeitet hat. Shop-Administratoren und der Besitzer sehen weiterhin alles.",
+    "artistPrivacyEnabledDesc": "Künstler sind nun auf ihre eigenen Buchungen und Kunden beschränkt.",
+    "artistPrivacyDisabledDesc": "Künstler können wieder alle Studiobuchungen und Kunden sehen.",
+    "artistPrivacyBullet1": "Zeitplan: Künstler sehen nur ihre eigene Kolumne.",
+    "artistPrivacyBullet2": "Kunden: Nur Personen aus den Buchungen dieses Künstlers (plus Importe, die er erstellt hat oder die mit seinen Kunden übereinstimmen).",
+    "artistPrivacyBullet3": "Shop-Administratoren, Inhaber und Rezeptionsmitarbeiter ohne die Rolle „Künstler“ sehen weiterhin alles.",
+    "artistPrivacyOwnerBypassNote": "Ihr Konto ist ein Shop-Inhaber oder Administrator, sodass Sie weiterhin die Buchungen aller Künstler sehen können. Melden Sie sich als Künstlerkonto an, um den Datenschutz zu überprüfen.",
+    "tabClients": "Kundenliste",
+    "websiteEmbedHeaderTab": "Obere Leiste/Kopfzeile",
+    "websiteEmbedHeaderDesc": "Kompakte Stile für den Header oder die Navigationsleiste Ihrer Website.",
+    "websiteEmbedPreviewHeader": "Vorschau in einer Beispielleiste oben",
+    "websiteEmbedTheme": "Knopffarbe",
+    "websiteEmbedTheme_gold": "Gold (Velbok)",
+    "websiteEmbedTheme_light": "Licht",
+    "websiteEmbedTheme_dark": "Dunkel",
+    "websiteEmbedTheme_outline": "Goldumriss",
+    "websiteEmbedOrgHint": "Die Links enthalten Ihre Studio-ID, sodass Kunden nach der Google- oder E-Mail-Anmeldung zum richtigen Portal gelangen.",
+    "websiteEmbedNoOrg": "Schließen Sie zunächst die Shop-Einrichtung ab, damit wir Kunden-Login-Links für Ihr Studio generieren können.",
+    "websiteEmbedVariantCard": "Große Karte",
+    "websiteEmbedVariantCardDesc": "Shop-Name + Button + Powered by – am besten für Fußzeilen.",
+    "websiteEmbedVariantCompact": "Kompakte Karte",
+    "websiteEmbedVariantCompactDesc": "Kleinere Karte, weniger Polsterung.",
+    "websiteEmbedVariantNavbar": "Balken mit Shopnamen",
+    "websiteEmbedVariantNavbarDesc": "Shopname und Pillenschaltfläche inline – passt in eine Kopfzeile.",
+    "websiteEmbedVariantPillSm": "Kleine Pille",
+    "websiteEmbedVariantPillSmDesc": "Minimal abgerundete Schaltfläche – knappe Kopfzeilen.",
+    "websiteEmbedVariantPillMd": "Mittlere Pille",
+    "websiteEmbedVariantPillMdDesc": "Etwas größeres Tablet für die Hauptnavigation.",
+    "websiteEmbedVariantLink": "Textlink",
+    "websiteEmbedVariantLinkDesc": "Nur Link unterstreichen – kleinste Option."
   },
   "notFound": {
     "title": "Seite nicht gefunden",
@@ -833,7 +909,12 @@
     "regionsSubtitle": "Studios in 13 Ländern – lokale Währungs- und Sprachunterstützung integriert.",
     "regionsCarouselLabel": "Unterstützte Länder",
     "studioWelcomeBack": "Willkommen zurück – öffnen Sie Ihren Terminplan oder sehen Sie sich die Studiostatistiken an.",
-    "returnToSchedule": "Zurück zum Zeitplan"
+    "returnToSchedule": "Zurück zum Zeitplan",
+    "getOnGooglePlay": "Android-App bei Google Play (interner Test)",
+    "pricingTitle": "Einfache monatliche Preisgestaltung",
+    "pricingSubtitle": "Von Einzelkünstlern bis hin zu Multi-Künstler-Shops – transparente monatliche Preise mit einer 14-tägigen kostenlosen Testversion. Enterprise von der 14-tägigen Testversion ausgeschlossen.",
+    "pricingCompare": "Vergleichen Sie alle Pläne und Funktionen",
+    "mobileAppsCaption": "Android auf Google Play · iPhone App Store bald verfügbar"
   },
   "contact": {
     "title": "Kontakt aufnehmen",
@@ -859,7 +940,8 @@
     "messageSent": "Nachricht gesendet",
     "messageSentDesc": "Wir melden uns so schnell wie möglich bei Ihnen.",
     "couldNotSend": "Senden fehlgeschlagen",
-    "couldNotSendDesc": "Bitte schreiben Sie uns direkt an {{email}}."
+    "couldNotSendDesc": "Bitte schreiben Sie uns direkt an {{email}}.",
+    "customerService": "Kundendienst"
   },
   "cookies": {
     "bannerText": "Wir verwenden Cookies und ähnliche Technologien für Kernfunktionen und, mit Ihrer Zustimmung, zur Verbesserung von Leistung und Marketing. Sie können Ihre Wahl jederzeit in den Cookie-Einstellungen ändern.",
@@ -1107,7 +1189,8 @@
     "defaultPaymentTermDays": "Standard-Zahlungsziel (Tage)",
     "defaultPaymentMethod": "Standard-Zahlungsart",
     "saveBillingSettings": "Abrechnungseinstellungen speichern",
-    "connectRequired": "Richten Sie unten Kundenauszahlungen ein, bevor Sie Links zur Rechnungszahlung erstellen."
+    "connectRequired": "Richten Sie unten Kundenauszahlungen ein, bevor Sie Links zur Rechnungszahlung erstellen.",
+    "tabOverview": "Übersicht & Berichte"
   },
   "deposits": {
     "title": "Einlagen",
@@ -1335,7 +1418,7 @@
   },
   "stencil": {
     "title": "Schablonengenerator",
-    "subtitle": "Laden Sie eine Referenz hoch und generieren Sie eine schwarze Strichzeichnungsschablone in Ihrem Browser – keine externe API.",
+    "subtitle": "Laden Sie eine Referenz hoch und erstellen Sie eine saubere schwarze Strichzeichnungsschablone – wählen Sie einen KI-Stil oder die einfache Browser-Engine.",
     "originalImage": "Originalbild",
     "changeImage": "Bild ändern",
     "dropOrUpload": "Legen Sie hier ein Bild ab oder klicken Sie zum Hochladen",
@@ -1358,15 +1441,15 @@
     "dragCompare": "Ziehen Sie den Schieberegler, um das Original mit der Schablone zu vergleichen",
     "downloading": "Herunterladen...",
     "downloadStencil": "Schablone herunterladen",
-    "downloadRemovesFiles": "Durch den Download werden das Original und die Schablone aus dem Cloud-Speicher entfernt.",
+    "downloadRemovesFiles": "24 Stunden lang gespeichert und dann automatisch aus dem Speicher gelöscht.",
     "extractingLines": "Klare Linien extrahieren...",
     "uploadPromptOutput": "Laden Sie ein Bild hoch und generieren Sie es – vergleichen Sie hier Original mit Schablone",
     "generatedTitle": "Schablone generiert",
-    "generatedDesc": "Ziehen Sie den Schieberegler, um zu vergleichen.Dateien werden nach dem Herunterladen vom Server entfernt.",
+    "generatedDesc": "Ziehen Sie den Schieberegler, um zu vergleichen. 24 Stunden lang gespeichert und dann automatisch gelöscht.",
     "generationFailedTitle": "Die Generierung ist fehlgeschlagen",
     "genericFailure": "Etwas ist schief gelaufen",
     "downloadStartedTitle": "Download gestartet",
-    "downloadStartedDesc": "Original und Schablone wurden aus dem Lager genommen.",
+    "downloadStartedDesc": "Ihre Schablone wird heruntergeladen. Es bleibt 24 Stunden im Speicher und wird dann automatisch gelöscht.",
     "downloadFailedTitle": "Der Download ist fehlgeschlagen",
     "downloadFailedDesc": "Der Download konnte nicht abgeschlossen werden",
     "originalLabel": "Original",
@@ -1411,7 +1494,9 @@
     "recentDownload": "Herunterladen",
     "justNow": "Gerade jetzt",
     "minutesAgo": "vor {{count}} Min.",
-    "hoursAgo": "vor {{count}}h"
+    "hoursAgo": "vor {{count}}h",
+    "saveFailedDesc": "Schablone gerendert, aber das Speichern in Ihrem Konto ist fehlgeschlagen:",
+    "failedToReadImage": "Das ausgewählte Foto konnte nicht gelesen werden. Versuchen Sie es mit einem anderen Bild oder machen Sie ein neues Foto."
   },
   "mfa": {
     "title": "Zwei-Faktor-Authentifizierung",
@@ -1434,7 +1519,23 @@
     "verifyPrompt": "Geben Sie den 6-stelligen Code aus Ihrer Authentifizierungs-App ein",
     "signInDifferent": "Melden Sie sich mit einem anderen Konto an",
     "hidePassword": "Passwort verbergen",
-    "showPassword": "Passwort anzeigen"
+    "showPassword": "Passwort anzeigen",
+    "verifyPromptNewDevice": "Neues Gerät oder neuer Browser – geben Sie Ihren Authentifizierungscode ein, um fortzufahren.",
+    "trustDevice": "Dieses Gerät 60 Tage lang merken (Überprüfung in diesem Browser überspringen)",
+    "revokeTrustedDevices": "Vergessen Sie vertrauenswürdige Geräte",
+    "trustedDevicesRevoked": "Vertrauenswürdige Geräte entfernt. Sie werden dies bei der nächsten Anmeldung bestätigen.",
+    "cantAccessAuthenticator": "Sie können nicht auf Ihren Authentifikator zugreifen?",
+    "recoveryTitle": "Kontowiederherstellung",
+    "recoveryDesc": "Verwenden Sie beim Einrichten von MFA einen Wiederherstellungscode oder melden Sie sich mit einem E-Mail-Link an.",
+    "recoveryCodeTab": "Wiederherstellungscode",
+    "recoveryCodeLabel": "Wiederherstellungscode",
+    "recoveryCodeInvalid": "Dieser Wiederherstellungscode hat nicht funktioniert. Versuchen Sie es mit einem anderen oder wenden Sie sich an den Support.",
+    "recoveryCodesTitle": "Speichern Sie Ihre Wiederherstellungscodes",
+    "recoveryCodesDesc": "Bewahren Sie diese an einem sicheren Ort auf. Jeder Code funktioniert einmal, wenn Sie Ihren Authentifikator verlieren.",
+    "recoveryCodesCopied": "Wiederherstellungscodes kopiert",
+    "copyRecoveryCodes": "Codes kopieren",
+    "recoveryCodesSaved": "Ich habe meine Codes gespeichert",
+    "recoveryCodesHint": "Haben Sie Ihre Wiederherstellungscodes verloren? Nutzen Sie die Anmeldung ohne Passwort oder wenden Sie sich an den Support."
   },
   "schedule": {
     "title": "Zeitplan",
@@ -1599,7 +1700,11 @@
     "noClientEmailReview": "Fügen Sie dieser Buchung eine Kunden-E-Mail-Adresse hinzu, um eine Bewertungsanfrage zu senden.",
     "reviewLinksNotConfigured": "Fügen Sie zuerst Bewertungslinks unter Admin → E-Mails hinzu.",
     "reviewRequestFailed": "Bewertungsanfrage konnte nicht gesendet werden",
-    "conductOrgMissing": "Ihre Studioorganisation für diesen Verhaltensdatensatz konnte nicht ermittelt werden."
+    "conductOrgMissing": "Ihre Studioorganisation für diesen Verhaltensdatensatz konnte nicht ermittelt werden.",
+    "vipNoDepositHint": "VIP-Kunden müssen keine Anzahlung leisten. Schalten Sie die Option aus, um VIP zu entfernen.",
+    "markedVip": "Als VIP am {{count}} Termin(en) markiert",
+    "vipRemoved": "VIP aus {{count}} Termin(en) entfernt",
+    "vipUpdateFailed": "Der VIP-Status konnte nicht aktualisiert werden"
   },
   "staff": {
     "loading": "Laden…"
@@ -1668,7 +1773,8 @@
   },
   "embed": {
     "customerPortalSubtitle": "Kundenportal",
-    "poweredBy": "Unterstützt von {{platform}}"
+    "poweredBy": "Unterstützt von {{platform}}",
+    "signingIn": "Ich melde mich an…"
   },
   "stripeConnect": {
     "title": "Kundenzahlungen und -auszahlungen",
@@ -1872,7 +1978,46 @@
     "terminalDiagnose": "Diagnostizieren Sie das Stripe-Terminal",
     "terminalDiagnoseOk": "Das Stripe-Terminal sieht in Ordnung aus (Standort + Verbindungstoken).",
     "terminalDiagnoseIssues": "Beim Stripe-Terminal gibt es Probleme – siehe Details unten.",
-    "terminalDiagnoseFailed": "Die Terminaldiagnose konnte nicht ausgeführt werden."
+    "terminalDiagnoseFailed": "Die Terminaldiagnose konnte nicht ausgeführt werden.",
+    "allCategories": "Alle",
+    "setupHourlyRate": "Stundensatz",
+    "hourlyRatePresetHint": "Erstellt einen Schnellartikel „Stundensatz“ – tippen Sie an der Kasse darauf und geben Sie Stunden ein (z. B. 4,5 × 110).",
+    "hourlyRateSaved": "Stundensatz für die Kasse gespeichert.",
+    "hourlyRateLabel": "Preis pro Stunde",
+    "perHourShort": "/Std",
+    "hoursLabel": "Std",
+    "hoursShort": "H",
+    "hourlyItemHint": "Tippen Sie, um die Stunden einzugeben",
+    "hourlyQtyHint": "Geben Sie Stunden ein, z.B. 4.5",
+    "chargePerHour": "Gebühr pro Stunde",
+    "defaultHoursLabel": "Standardstunden",
+    "lineTotalPreview": "Gesamt: {{total}}",
+    "noProductsInCategory": "Keine Produkte in dieser Kategorie.",
+    "manageProductsShort": "Verwalten",
+    "doneManaging": "Erledigt",
+    "manageProductsHint": "Tippen Sie auf das rote Papierkorbsymbol bei einem Produkt, um es aus Ihrer Liste zum schnellen Hinzufügen zu entfernen.",
+    "quantityLabel": "Menge",
+    "each": "jede",
+    "sessionPayout": "Künstler oder Shop",
+    "sessionPayoutHint": "Tippen Sie auf einen Künstler, um eine normale Sitzung aufzuteilen, oder auf „Einkaufen“, wenn 100 % im Studio verbleiben.",
+    "shopOnlySession": "Geschäft",
+    "shopOnlySessionHint": "100 % dieses Verkaufs bleiben beim Shop – keine Künstlerauszahlung.",
+    "artistConnectMissing": "Künstler-Auszahlungskonto nicht eingerichtet – der Künstler sollte Einstellungen → POS-Auszahlungskonto abschließen, oder ein Administrator kann acct_… in Admin → POS hinzufügen.",
+    "artistConnectMissingBeforePay": "Dieser Künstler hat einen Auszahlungsanteil, aber kein Stripe Connect-Konto. Bitten Sie sie, Einstellungen → POS-Auszahlungskonto zu öffnen, die Einrichtung abzuschließen und es dann erneut zu versuchen.",
+    "artistConnectConfigured": "Auszahlungskonto: {{accountId}}",
+    "shopOnlySplit": "Shop behält 100 % (keine Künstleraufteilung)",
+    "shopOnlySplitHint": "Tippen Sie oben nur für diese Bestellung auf „100 % einkaufen“ – der Künstler ist weiterhin für die Sitzung aufgezeichnet.",
+    "shopOnlySplitPreset": "100 % Shop",
+    "shopOnlyDefaultSplit": "Die Standardaufteilung erfolgt zu 100 % im Shop – keine Künstlerauszahlung bei POS-Verkäufen.",
+    "splitDefaultShort": "Standard ({{shop}}% / {{artist}}%)",
+    "paymentSplitDetails": "Split-Aufschlüsselung",
+    "manageProducts": "Gespeicherte Produkte verwalten (löschen)",
+    "deleteProduct": "Produkt löschen",
+    "productDeleted": "Produkt aus der Schnellhinzufügen-Liste entfernt",
+    "productCategory": "Kategorie",
+    "defaultQty": "Standardmenge {{qty}}",
+    "fractionalQtyHint": "Verwenden Sie Dezimalzahlen für Stunden, z. B. 1.5",
+    "removeFromCart": "Aus dem Warenkorb entfernen"
   },
   "platformAdmin": {
     "title": "Plattform",
@@ -2169,10 +2314,11 @@
       "lastUpdated": "Zuletzt aktualisiert:",
       "terms": "AGB",
       "privacy": "Datenschutz",
-      "cookies": "Cookies",
+      "cookies": "Kekse",
       "home": "Startseite",
       "documentation": "Dokumentation",
-      "studioLogin": "Studio-Anmeldung"
+      "studioLogin": "Studio-Anmeldung",
+      "accountDeletion": "Kontolöschung"
     },
     "privacy": {
       "title": "Datenschutzhinweis (UK/EU GDPR)",
@@ -2260,7 +2406,9 @@
           "title": "Ihre Rechte",
           "p1": "Sie können Auskunft, Berichtigung, Löschung (sofern anwendbar), Einschränkung, Widerspruch, Datenübertragbarkeit und Widerruf der Einwilligung verlangen. Senden Sie eine E-Mail an",
           "orWriteTo": "oder schreiben Sie an:",
-          "p2": "Lehnen wir eine Anfrage ab, erklären wir die Gründe. Sie können sich beim UK ICO oder Ihrer lokalen EU-Aufsichtsbehörde beschweren."
+          "p2": "Lehnen wir eine Anfrage ab, erklären wir die Gründe. Sie können sich beim UK ICO oder Ihrer lokalen EU-Aufsichtsbehörde beschweren.",
+          "accountDeletionLink": "Seite zum Löschen des Kontos",
+          "p1AfterLink": "oder E-Mail"
         },
         "updates": {
           "title": "Aktualisierungen der Richtlinie",
@@ -2382,6 +2530,28 @@
           "p1": "Wir können diese Richtlinie aktualisieren, um rechtliche, technische oder produktbezogene Änderungen widerzuspiegeln. Die aktuelle Version und das Aktualisierungsdatum werden stets hier veröffentlicht."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Kontolöschung",
+      "lastUpdated": "22. Juni 2026",
+      "overviewTitle": "Fordern Sie die Löschung Ihres Velbok-Kontos an",
+      "overviewP1": "Mit {{shopLegalName}} (firmierend als Velbok) können Sie die Löschung Ihres Plattformkontos und der damit verbundenen personenbezogenen Daten, die wir kontrollieren, beantragen.",
+      "overviewP2": "Wenn Sie über Velbok bei einem Tattoo-Studio gebucht haben, kann das Studio die Kundendaten möglicherweise auch separat aufbewahren. Kontaktieren Sie das Studio direkt für In-Studio-Aufnahmen, die es kontrolliert.",
+      "inAppTitle": "Aus der App oder Website löschen",
+      "inAppP1": "Angemeldete Benutzer können über die Einstellungen eine Löschanforderung starten:",
+      "inAppStaff": "Studiomitarbeiter: Einstellungen → Kontolöschung",
+      "inAppCustomer": "Kundenportal: Konto → Sicherheit → Kontolöschung",
+      "signInToRequest": "Melden Sie sich an, um Ihre Kontodaten in der Löschanforderungs-E-Mail vorab einzugeben.",
+      "emailTitle": "Anfrage per E-Mail",
+      "emailP1": "Sie können uns auch eine E-Mail von der mit Ihrem Konto verknüpften Adresse senden. Geben Sie Ihren vollständigen Namen und die E-Mail-Adresse an, mit der Sie sich anmelden.",
+      "emailP2": "Möglicherweise verlangen wir eine zusätzliche Überprüfung, bevor wir die Anfrage bearbeiten.",
+      "whatDeletedTitle": "Was wir löschen",
+      "whatDeleted1": "Ihr Velbok-Anmeldekonto und Ihre Profildaten werden von uns als Plattformverantwortlicher gespeichert.",
+      "whatDeleted2": "Plattformseitige Präferenzen, Benachrichtigungen und Mitarbeitermitgliedschaften sind an Ihr Benutzerkonto gebunden.",
+      "whatDeleted3": "Einige Aufzeichnungen können aufbewahrt werden, wenn dies gesetzlich vorgeschrieben ist (z. B. aus Steuer-, Betrugs- und Betrugspräventionsgründen oder bei ungelösten Streitigkeiten).",
+      "timingTitle": "Wie lange dauert es",
+      "timingP1": "Unser Ziel ist es, den Empfang innerhalb weniger Werktage zu bestätigen und die berechtigte Löschung innerhalb von 30 Tagen abzuschließen, es sei denn, eine längere Frist ist gesetzlich vorgeschrieben oder zur Beilegung eines aktiven Abonnements oder einer Streitigkeit erforderlich.",
+      "privacyLinkLead": "Ausführliche Informationen darüber, wie wir personenbezogene Daten und Ihre Rechte verarbeiten, finden Sie in unserer"
     }
   },
   "depositCheckout": {
@@ -2520,6 +2690,114 @@
     "installHint3": "Für Tap-to-Pay: Verwenden Sie ein unterstütztes Telefon (siehe Dokumente), schalten Sie die Entwickleroptionen aus und erlauben Sie den Standort.",
     "tapToPayDocs": "Unterstützte Telefone und Tap-to-Pay-Einrichtung:",
     "tapToPayDocsLink": "POS-Kaufabwicklung und Tap-to-Pay",
-    "iphoneNote": "iPhone: Velbok für iOS wird über TestFlight oder den App Store vertrieben, sofern für Ihr Studio verfügbar – nicht über diese Seite."
+    "iphoneNote": "iPhone: Velbok für iOS wird über TestFlight oder den App Store vertrieben, sofern für Ihr Studio verfügbar – nicht über diese Seite.",
+    "playBetaTitle": "Google Play (interne Tests)",
+    "playBetaDesc": "Installieren Sie Version 1.0.12 (Build 13) von Google Play. Ihr Google-Konto muss auf der internen Testerliste stehen.",
+    "playBetaButton": "Holen Sie sich Velbok bei Google Play",
+    "playBetaHint": "Verwenden Sie dasselbe Google-Konto, das Sie unter Interne Tests → Tester hinzugefügt haben. Öffnen Sie den Link in Chrome auf Ihrem Telefon, tippen Sie auf „Tester werden“ und dann auf „Installieren“. Wenn Play sagt: Versuchen Sie es erneut: Leeren Sie den Play Store-Cache, aktivieren Sie die interne App-Freigabe in den Play Store-Einstellungen, warten Sie 15 Minuten nach dem Beitritt und versuchen Sie es dann erneut.",
+    "apkTitle": "Direkter APK-Download",
+    "appStoreBadgeAlt": "Im App Store herunterladen",
+    "appStoreBadgeAria": "Velbok im App Store – bald verfügbar",
+    "appStoreComingSoonTitle": "iPhone-App kommt bald",
+    "appStoreComingSoonDesc": "Velbok für iPhone wird bald im App Store erhältlich sein. Nutzen Sie in der Zwischenzeit die Android-App oder das Web-Dashboard."
+  },
+  "accounting": {
+    "typeColumn": "Typ",
+    "source": {
+      "deposits": "Einlagen",
+      "desk": "Schreibtisch",
+      "invoices": "Rechnungen"
+    },
+    "type": {
+      "deposit": "Kaution",
+      "pos": "Schreibtisch",
+      "invoice": "Rechnung",
+      "expense": "Kosten"
+    },
+    "title": "Buchhaltung",
+    "subtitle": "Gewinn und Verlust, Cashflow und ein einheitliches Transaktionsbuch.",
+    "disclaimerTitle": "Keine Steuer- oder Rechtsberatung",
+    "disclaimer": "Berichte und Exporte sind lediglich betriebliche Zusammenfassungen für Ihr Studio. Sie stellen keine Steuer-, Mehrwertsteuer- oder gesetzliche Buchhaltungsberatung dar und dürfen ohne Prüfung durch Ihren qualifizierten Buchhalter nicht für offizielle Steuer-, Unternehmens- oder andere behördliche Einreichungen verwendet werden. Zahlungsaufteilungen und Künstlerdiagramme spiegeln die Geldströme in Velbok wider – sie bestimmen nicht den Beschäftigungsstatus, die Mehrwertsteuer-Lieferstruktur oder rechtliche Verträge zwischen Ihrem Studio und den Künstlern.",
+    "disclaimerShort": "Nur operative Zusammenfassungen – keine Steuer- oder Rechtsberatung. Bestätigen Sie die Zahlen vor jeder offiziellen Einreichung mit Ihrem Buchhalter.",
+    "disclaimerCsv": "HAFTUNGSAUSSCHLUSS: Nur operative Zusammenfassung – nicht für offizielle Steuer- oder behördliche Einreichungen ohne professionelle Prüfung.",
+    "totalRevenue": "Gesamtumsatz",
+    "totalExpenses": "Gesamtkosten",
+    "netProfit": "Reingewinn",
+    "netProfitHint": "Einnahmen abzüglich Ausgaben",
+    "margin": "Gewinnspanne",
+    "revenueBreakdown": "Umsatzaufschlüsselung",
+    "expenseBreakdown": "Aufschlüsselung der Ausgaben",
+    "expenseBreakdownHint": "Ausgaben nach Kategorie in diesem Monat",
+    "dailyRevenueChart": "Tägliche Einnahmen und Ausgaben",
+    "dailyRevenueChartHint": "Letzte 30 gespeicherte Tage",
+    "monthlyChart": "Monatliche Gewinn- und Verlustrechnung",
+    "monthlyChartHint": "Einnahmen, Ausgaben und Nettogewinn pro Monat",
+    "revenueSources": "Einnahmequellen",
+    "revenueSourcesHint": "Aufschlüsselung des letzten Monats",
+    "artistBreakdown": "Schreibtischeinnahmen nach Künstler",
+    "artistBreakdownHint": "POS-Desk-Gesamtzahlen pro Künstler in diesem Monat",
+    "cashFlow": "Wöchentlicher Cashflow",
+    "cashFlowHint": "Geldeingang vs. Geldausgang pro Woche",
+    "ledger": "Transaktionsbuch",
+    "ledgerHint": "Alle Einnahmen und Ausgaben im ausgewählten Zeitraum",
+    "ledgerEmpty": "Keine Transaktionen in diesem Zeitraum.",
+    "ledgerTruncated": "Zeigt 100 von {{count}} Transaktionen. Exportieren Sie CSV für die vollständige Liste.",
+    "from": "Aus",
+    "to": "Zu",
+    "apply": "Anwenden",
+    "exportLedger": "Hauptbuch CSV exportieren",
+    "exportPnl": "GuV-CSV exportieren",
+    "printPnl": "GuV drucken"
+  },
+  "inbox": {
+    "smsNotConnected": "Nicht verbunden",
+    "smsSetupTitle": "SMS (Twilio)",
+    "smsSetupDesc": "Optional: Verbinden Sie die Twilio-Nummer Ihres Studios, um Termin- und Anzahlungserinnerungen per SMS zu versenden. Für den Kundenkontakt werden Tickets und WhatsApp-/E-Mail-Links aus Buchungen verwendet.",
+    "smsSetupBullet1": "Erstellen Sie ein Twilio-Konto und kaufen Sie eine SMS-fähige Telefonnummer",
+    "smsSetupBullet2": "Legen Sie den Twilio-Inbound-Webhook fest (siehe Einrichtungsanleitung), wenn Sie bidirektionale SMS wünschen",
+    "smsSetupBullet3": "Jede Organisation verwendet ihr eigenes Twilio-Konto – Velbok stellt keine gemeinsame SMS-Nummer bereit",
+    "smsConnected": "Twilio verbunden",
+    "smsConnectTwilio": "Verbinden Sie Twilio",
+    "smsManageConnection": "Twilio-Verbindung verwalten",
+    "smsSetupGuide": "Einrichtungsanleitung",
+    "smsReminderSettings": "Erinnerungseinstellungen"
+  },
+  "expenses": {
+    "title": "Kosten",
+    "subtitle": "Verfolgen Sie die Studiokosten – Miete, Material, Marketing und mehr.",
+    "addExpense": "Kosten hinzufügen",
+    "editExpense": "Ausgaben bearbeiten",
+    "amount": "Menge",
+    "amountRequired": "Geben Sie einen gültigen Betrag größer als Null ein",
+    "date": "Datum",
+    "category": "Kategorie",
+    "selectCategory": "Kategorie auswählen",
+    "allCategories": "Alle Kategorien",
+    "vendor": "Verkäuferin",
+    "vendorPlaceholder": "Lieferant oder Zahlungsempfänger",
+    "notes": "Notizen",
+    "receipt": "Quittung (optional)",
+    "periodTotal": "Periodensumme",
+    "empty": "Keine Ausgaben in diesem Zeitraum. Fügen Sie Ihre erste Ausgabe hinzu, um die Kosten zu verfolgen.",
+    "items": "Artikel",
+    "created": "Aufwand erfasst",
+    "updated": "Ausgaben aktualisiert",
+    "deleted": "Ausgabe gelöscht",
+    "saveFailed": "Konnte keine Kosten sparen",
+    "deleteFailed": "Die Ausgabe konnte nicht gelöscht werden",
+    "confirmDelete": "Diese Ausgabe löschen?",
+    "delete": "Löschen"
+  },
+  "accountDeletion": {
+    "title": "Konto löschen",
+    "desc": "Fordern Sie die dauerhafte Löschung Ihres Velbok-Logins und Ihrer persönlichen Daten an, die Velbok (Inkaholics Limited) als Plattformverantwortlicher speichert.",
+    "bulletProfile": "Ihr Profil, Ihre Berechtigungen und Ihr Anmeldezugriff werden von Velbok entfernt.",
+    "bulletStudio": "Von Ihrem Studio erstellte Aufzeichnungen (Buchungen, Einverständniserklärungen, Nachrichten) können vom Studio im Rahmen seiner gesetzlichen und versicherungstechnischen Verpflichtungen aufbewahrt werden.",
+    "bulletLegal": "Velbok kann nur minimale Abrechnungs-, Steuer- oder Sicherheitsunterlagen aufbewahren, sofern dies gesetzlich vorgeschrieben ist.",
+    "responseTime": "Unser Ziel ist es, innerhalb von 30 Tagen zu antworten. Sehen Sie sich unsere an",
+    "requestButton": "Fordern Sie die Löschung Ihres Kontos an"
+  },
+  "channel": {
+    "smsSecurityNote": "Twilio-Anmeldeinformationen werden einmal pro Studio (Organisation) gespeichert. Jeder Administrator oder Besitzer, der Twilio verbindet, aktualisiert die gemeinsame Studionummer – Erinnerungen und eingehende SMS verwenden für alle im Studio dieselbe Verbindung."
   }
 }

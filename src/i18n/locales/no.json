@@ -68,7 +68,7 @@
   "marketing": {
     "footerTagline": "Alt-i-ett-plattformen for tatoveringsstudioer — timeplan, depositum, samtykke, fakturering og kundekommunikasjon på ett sted.",
     "pricingTitle": "Planer som vokser med studioet ditt",
-    "pricingSubtitle": "Transparente månedspriser. Hver plan inkluderer hele plattformen — bare antall artistplasser er forskjellig.",
+    "pricingSubtitle": "Fra soloartister til butikker med flere artister – transparente månedlige priser med en 14-dagers gratis prøveperiode. Enterprise ekskludert fra 14-dagers prøveversjon.",
     "comparePlans": "Sammenlign planer",
     "pricingFaq": "Pris-FAQ",
     "notSurePlan": "Usikker på hvilken plan som passer?",
@@ -91,7 +91,7 @@
       "inWindow": "I vinduet",
       "paid": "Betalt",
       "pending": "I påvente av",
-      "sendLink": "Send link",
+      "sendLink": "Send lenke",
       "stencilTitle": "velbok.com/stencil",
       "stencilLabel": "AI sjablong",
       "stencilSubtitle": "Design forberedende arbeidsområde",
@@ -114,7 +114,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Lite team",
-      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+      "description": "Den komplette Velbok-plattformen for butikker med opptil 3 artister. Støttebilletter og WhatsApp-lenker inkludert.",
       "seats": "Opptil 3 artistplasser",
       "cta": "Start med Starter",
       "features": {
@@ -129,7 +129,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Voksende studio",
-      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+      "description": "Full plattform for butikker med opptil 6 artister. Støttebilletter og WhatsApp-lenker inkludert.",
       "seats": "Opptil 6 artistplasser",
       "cta": "Start gratis prøveperiode",
       "features": {
@@ -145,7 +145,7 @@
     "enterprise": {
       "name": "Enterprise",
       "tagline": "Stort studio",
-      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
+      "description": "Full plattform for butikker med opptil 10 artister. Støttebilletter og WhatsApp-lenker inkludert.",
       "seats": "Opptil 10 artistplasser",
       "cta": "Start med Enterprise",
       "features": {
@@ -172,20 +172,22 @@
       "included": "✓",
       "notIncluded": "—",
       "fullPlatform": "Fullstendige plattformfunksjoner",
-      "unifiedInbox": "Unified inbox",
+      "unifiedInbox": "Støttebilletter",
       "inboxStudio": "E-post + 1 kanal",
       "inboxEnterprise": "Alle kanaler",
-      "contactCentre": "Client contact centre"
+      "contactCentre": "WhatsApp og kontaktlenker",
+      "ticketImages": "Billettbilder per person",
+      "stencilsPerDay": "AI-sjablonger per 24 timer"
     },
     "faq": {
       "trialQ": "Finnes det en gratis prøveperiode?",
-      "trialA": "Alle planer inkluderer en 14 dagers gratis prøveperiode. Velg en plan på abonnementssiden — du oppgir kortdetaljer hos Stripe, men blir ikke belastet før prøveperioden er over.",
+      "trialA": "Solo, Starter og Studio inkluderer en 14-dagers gratis prøveperiode - du skriver inn kortdetaljer på Stripe, men vil ikke bli belastet før prøveperioden er over. Enterprise faktureres umiddelbart når du abonnerer.",
       "includedQ": "Hva er inkludert i hver plan?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+      "includedA": "Hver plan inkluderer planlegging, CRM, innskudd, samtykke, lager, fakturering, portalstøttebilletter og WhatsApp/SMS/e-postkontaktlenker fra bestillinger.",
       "stripeFeesQ": "Er Stripe-gebyrer inkludert?",
       "stripeFeesA": "Nei. Kortbehandlingsgebyrer belastes av Stripe i tillegg til abonnementet ditt. Velbok integreres med Stripe-kontoen din for depositum og fakturaer.",
       "switchQ": "Kan jeg bytte plan senere?",
-      "switchA": "Ja. Oppgrader eller nedgrader etter hvert som teamet vokser — Starter (3 artister), Studio (6) eller Enterprise (10).",
+      "switchA": "Ja. Oppgrader eller nedgrader når som helst fra Admin – Solo (1 artist), Starter (3), Studio (6) eller Enterprise (10).",
       "migrateQ": "Hjelper dere med migrering fra mitt nåværende system?",
       "migrateA": "Studio- og Enterprise-planer inkluderer CSV-import av kunder i appen. Enterprise inkluderer praktisk migreringshjelp for bookinger og registre."
     },
@@ -210,20 +212,34 @@
     },
     "inboxFeatures": {
       "starter": {
-        "0": "Client contact centre from every booking",
-        "1": "WhatsApp, SMS & email with message templates",
+        "0": "Supportbilletter i kundeportalen",
+        "1": "WhatsApp, SMS og e-postlenker fra hver bestilling",
         "2": "Automatiserte bestillingspåminnelser og etterverns-e-poster"
       },
       "studio": {
-        "0": "Unified inbox (email + 1 channel)",
+        "0": "Supportbilletter i kundeportalen",
         "1": "WhatsApp, SMS og e-postlenker fra hver bestilling",
         "2": "Automatiserte bestillingspåminnelser og etterverns-e-poster"
       },
       "enterprise": {
-        "0": "Unified inbox (all channels)",
+        "0": "Supportbilletter i kundeportalen",
+        "1": "WhatsApp, SMS og e-postlenker fra hver bestilling",
+        "2": "Automatiserte bestillingspåminnelser og etterverns-e-poster"
+      },
+      "solo": {
+        "0": "Supportbilletter i kundeportalen",
         "1": "WhatsApp, SMS og e-postlenker fra hver bestilling",
         "2": "Automatiserte bestillingspåminnelser og etterverns-e-poster"
       }
+    },
+    "trialBadge": "14-dagers gratis prøveperiode",
+    "paidImmediatelyBadge": "Betales umiddelbart · Ingen gratis prøveperiode",
+    "solo": {
+      "name": "Solo",
+      "tagline": "Soloartist",
+      "description": "Nødvendigheter for én artist – tidsplan, CRM, samtykke, innskudd og støttebilletter.",
+      "seats": "1 artistsete",
+      "cta": "Start med Solo"
     }
   },
   "auth": {
@@ -275,7 +291,29 @@
     "cookiePolicy": "Retningslinjer for informasjonskapsler",
     "continueWithGoogle": "Fortsett med Google",
     "continuingWithGoogle": "Omdirigerer til Google …",
-    "googleSignInFailed": "Kunne ikke starte Google-pålogging. Vennligst prøv igjen."
+    "googleSignInFailed": "Kunne ikke starte Google-pålogging. Vennligst prøv igjen.",
+    "phoneTab": "Telefon",
+    "appBridgeDesc": "Logg på med Google på velbok.com for å gå tilbake til appen.",
+    "continueWithApple": "Fortsett med Apple",
+    "continuingWithApple": "Omdirigerer til Apple …",
+    "appleSignInFailed": "Kunne ikke starte Apple-pålogging. Vennligst prøv igjen.",
+    "signInWithoutPassword": "Logg på med e-post eller telefon i stedet",
+    "passwordlessTitle": "Logg på uten passord",
+    "passwordlessDesc": "Vi sender deg en sikker lenke på e-post eller tekst en engangskode hvis telefonpålogging er aktivert for kontoen din.",
+    "sendMagicLink": "Send meg en påloggingslenke via e-post",
+    "magicLinkSent": "Sjekk e-posten din",
+    "magicLinkSentDesc": "Vi sendte en sikker påloggingslenke. Den utløper om omtrent en time.",
+    "phoneLabel": "Mobilnummer",
+    "invalidPhone": "Skriv inn et gyldig nummer med landskode (f.eks. +44...).",
+    "phoneSignInDisabled": "Telefonpålogging er ikke aktivert på denne kontoen. Bruk e-post eller kontakt support.",
+    "sendPhoneCode": "Send meg en påloggingskode",
+    "phoneCodeSent": "Kode sendt",
+    "phoneCodeSentDesc": "Skriv inn den 6-sifrede koden fra tekstmeldingen.",
+    "verifyPhoneCode": "Bekreft koden",
+    "resendPhoneCode": "Send kode på nytt",
+    "backToSignIn": "Tilbake til passordpålogging",
+    "backToAuthenticator": "Tilbake til autentiseringskode",
+    "needHelp": "Trenger du hjelp?"
   },
   "subscribe": {
     "label": "Abonner",
@@ -304,7 +342,8 @@
     "termsCheckboxLead": "Jeg har lest og godtar",
     "termsCheckboxBody": "Jeg bekrefter at jeg er autorisert til å abonnere på vegne av mitt studio og at Inkaholics Limited (Velbok) kan belaste valgt abonnement (inkludert etter eventuell gratis prøveperiode) via Stripe.",
     "termsVersionLabel": "versjon {{version}}",
-    "termsRequired": "Vennligst godta vilkårene og personvernerklæringen for å fortsette."
+    "termsRequired": "Vennligst godta vilkårene og personvernerklæringen for å fortsette.",
+    "trialNoteImmediate": "Faktureres umiddelbart · Avbryt når som helst"
   },
   "subscription": {
     "title": "Abonnement",
@@ -415,7 +454,10 @@
     "checkingPosPayment": "Sjekker skrivebordsbetaling …",
     "posPaidAtDesk": "Betales ved skranken · {{amount}}",
     "legalTitle": "Lovlig",
-    "legalDesc": "Personvern, vilkår og informasjonskapselinformasjon for Velbok."
+    "legalDesc": "Personvern, vilkår og informasjonskapselinformasjon for Velbok.",
+    "smsTwilioRequiredDesc": "SMS-påminnelser bruker studioets egen Twilio-konto og telefonnummer (ikke Velbok sine). Koble til Twilio før du velger SMS.",
+    "smsTwilioConnectLink": "Koble til i innboksen",
+    "smsTwilioGuideLink": "Oppsettveiledning"
   },
   "admin": {
     "title": "Admin",
@@ -454,7 +496,7 @@
     "artistDefaults": "Artiststandarder",
     "customerNav": "kundemeny",
     "staffFeatureAccess": "Tilgang til personalfunksjoner",
-    "staffFeatureAccessDesc": "Artists and admins - not customer-only accounts",
+    "staffFeatureAccessDesc": "Artister og administratorer – fjern artister fra butikken for å frigjøre et sete. Tidligere bestillinger holder seg på timeplanen.",
     "user": "Bruker",
     "all": "Alle",
     "revoke": "Tilbakekall",
@@ -605,7 +647,41 @@
     "reviewLinkRemove": "Fjern lenken",
     "reviewEmailMessage": "Valgfritt personlig notat",
     "reviewEmailMessagePlaceholder": "Takk igjen for at du sitter så bra i dag – vi vil virkelig sette pris på en rask anmeldelse hvis du har et øyeblikk.",
-    "reviewEmailMessageHint": "Vist øverst i e-posten med forespørsel om anmeldelse, over standard takketeksten."
+    "reviewEmailMessageHint": "Vist øverst i e-posten med forespørsel om anmeldelse, over standard takketeksten.",
+    "tabArtistPrivacy": "Artistens personvern",
+    "artistPrivacyTitle": "Artistens personvern",
+    "artistPrivacyDesc": "Begrens hva artister kan se i timeplanen og kundelisten.",
+    "artistPrivacyToggle": "Artister ser kun sine egne bestillinger og kunder",
+    "artistPrivacyToggleHint": "Når den er på, ser hver artist bare sin tidsplankolonne og klienter de har jobbet med. Butikkadministratorer og eieren ser fortsatt alt.",
+    "artistPrivacyEnabledDesc": "Artister er nå begrenset til sine egne bestillinger og kunder.",
+    "artistPrivacyDisabledDesc": "Artister kan se alle studiobestillinger og klienter igjen.",
+    "artistPrivacyBullet1": "Tidsplan: artister ser kun sin egen kolonne.",
+    "artistPrivacyBullet2": "Klienter: bare personer fra artistens bestillinger (pluss importer de har opprettet eller som samsvarer med kundene deres).",
+    "artistPrivacyBullet3": "Butikkadministratorer, eiere og skrankepersonale uten artistrollen ser fortsatt alt.",
+    "artistPrivacyOwnerBypassNote": "Kontoen din er en butikkeier eller administrator, så du vil fortsatt se alle artisters bestillinger. Logg på som artistkonto for å bekrefte personvernet.",
+    "tabClients": "Kundeliste",
+    "websiteEmbedHeaderTab": "Topplinje / topptekst",
+    "websiteEmbedHeaderDesc": "Kompakte stiler for overskriften eller navigasjonslinjen på nettstedet ditt.",
+    "websiteEmbedPreviewHeader": "Forhåndsvisning i et eksempel på topplinjen",
+    "websiteEmbedTheme": "Knapp farge",
+    "websiteEmbedTheme_gold": "Gull (Velbok)",
+    "websiteEmbedTheme_light": "Lys",
+    "websiteEmbedTheme_dark": "Mørk",
+    "websiteEmbedTheme_outline": "Gull omriss",
+    "websiteEmbedOrgHint": "Lenker inkluderer studio-ID-en din slik at kundene får riktig portal etter pålogging på Google eller e-post.",
+    "websiteEmbedNoOrg": "Fullfør butikkoppsettet først, slik at vi kan generere kundepåloggingslenker for studioet ditt.",
+    "websiteEmbedVariantCard": "Stort kort",
+    "websiteEmbedVariantCardDesc": "Butikknavn + knapp + Drevet av — best for bunntekst.",
+    "websiteEmbedVariantCompact": "Kompakt kort",
+    "websiteEmbedVariantCompactDesc": "Mindre kort, mindre polstring.",
+    "websiteEmbedVariantNavbar": "Bar med butikknavn",
+    "websiteEmbedVariantNavbarDesc": "Butikknavn og pilleknapp innebygd – passer til en overskriftsrad.",
+    "websiteEmbedVariantPillSm": "Liten pille",
+    "websiteEmbedVariantPillSmDesc": "Minimal avrundet knapp — stramme overskrifter.",
+    "websiteEmbedVariantPillMd": "Middels pille",
+    "websiteEmbedVariantPillMdDesc": "Litt større pille for hovednavigering.",
+    "websiteEmbedVariantLink": "Tekstlenke",
+    "websiteEmbedVariantLinkDesc": "Kun understreking - det minste alternativet."
   },
   "notFound": {
     "title": "Siden ble ikke funnet",
@@ -684,7 +760,7 @@
     "passwordTooWeak": "Passordet er for svakt",
     "passwordTooWeakDesc": "Bruk minst 8 tegn, med stor bokstav, tall og symbol.",
     "invalidInviteEmail": "Invitasjons-e-post er ugyldig",
-    "depositSubtitle": "Pay your £{{amount}} deposit to secure your booking",
+    "depositSubtitle": "Betal depositumet på {{amount}} for å sikre bestillingen din",
     "upcomingDepositsTitle": "Kommende depositum",
     "upcomingDepositsDesc": "Bare bookinger med ubetalt depositum vises her.",
     "noUnpaidDeposits": "Ingen ubetalte depositum akkurat nå.",
@@ -833,7 +909,12 @@
     "regionsSubtitle": "Studioer i 13 land — lokal valuta og språkstøtte innebygd.",
     "regionsCarouselLabel": "Støttede land",
     "studioWelcomeBack": "Velkommen tilbake – åpne timeplanen din eller se studiostatistikk.",
-    "returnToSchedule": "Gå tilbake til timeplanen"
+    "returnToSchedule": "Gå tilbake til timeplanen",
+    "getOnGooglePlay": "Android-app på Google Play (intern test)",
+    "pricingTitle": "Enkel månedlig prissetting",
+    "pricingSubtitle": "Fra soloartister til butikker med flere artister – transparente månedlige priser med en 14-dagers gratis prøveperiode. Enterprise ekskludert fra 14-dagers prøveversjon.",
+    "pricingCompare": "Sammenlign alle planer og funksjoner",
+    "mobileAppsCaption": "Android på Google Play · iPhone App Store kommer snart"
   },
   "contact": {
     "title": "Ta kontakt",
@@ -859,7 +940,8 @@
     "messageSent": "Melding sendt",
     "messageSentDesc": "Vi tar kontakt så snart vi kan.",
     "couldNotSend": "Kunne ikke sende",
-    "couldNotSendDesc": "Send oss e-post direkte på {{email}}."
+    "couldNotSendDesc": "Send oss e-post direkte på {{email}}.",
+    "customerService": "Kundeservice"
   },
   "cookies": {
     "bannerText": "Vi bruker informasjonskapsler og lignende teknologier for kjernefunksjonalitet og, med ditt samtykke, for å forbedre ytelse og markedsføring. Du kan endre valget ditt når som helst i Innstillinger for informasjonskapsler.",
@@ -1080,7 +1162,8 @@
     "saveBillingSettings": "Lagre faktureringsinnstillinger",
     "connectRequired": "Sett opp kundeutbetalinger nedenfor før du oppretter fakturabetalingslenker.",
     "invoicePrefixHint": "Still inn automatisk fra studiosluggen ({{slug}}).",
-    "invoicePrefixExample": "Eksempel: {{example}}"
+    "invoicePrefixExample": "Eksempel: {{example}}",
+    "tabOverview": "Oversikt og rapporter"
   },
   "deposits": {
     "title": "Depositum",
@@ -1308,7 +1391,7 @@
   },
   "stencil": {
     "title": "Stencil-generator",
-    "subtitle": "Upload a reference and generate a black line-art stencil in your browser - no external API.",
+    "subtitle": "Last opp en referanse og generer en ren, svart linjekunststensil – velg en AI-stil eller den grunnleggende nettlesermotoren.",
     "originalImage": "Originalbilde",
     "changeImage": "Bytt bilde",
     "dropOrUpload": "Slipp et bilde her eller klikk for å laste opp",
@@ -1331,15 +1414,15 @@
     "dragCompare": "Dra glidebryteren for å sammenligne original og stencil",
     "downloading": "Laster ned…",
     "downloadStencil": "Last ned stencil",
-    "downloadRemovesFiles": "Download removes the original and stencil from cloud storage.",
+    "downloadRemovesFiles": "Lagret i 24 timer, og deretter automatisk slettet fra lagringen.",
     "extractingLines": "Ekstraherer rene linjer…",
     "uploadPromptOutput": "Last opp et bilde og generer – sammenlign original og stencil her",
     "generatedTitle": "Stencil generert",
-    "generatedDesc": "Drag the slider to compare. Files are removed from the server after you download.",
+    "generatedDesc": "Dra glidebryteren for å sammenligne. Lagret i 24 timer, og deretter automatisk slettet.",
     "generationFailedTitle": "Generering mislyktes",
     "genericFailure": "Noe gikk galt",
     "downloadStartedTitle": "Nedlasting startet",
-    "downloadStartedDesc": "Original and stencil have been removed from storage.",
+    "downloadStartedDesc": "Sjablongen din lastes ned. Den blir lagret i 24 timer, og blir deretter automatisk slettet.",
     "downloadFailedTitle": "Nedlasting mislyktes",
     "downloadFailedDesc": "Kunne ikke fullføre nedlasting",
     "originalLabel": "Originalbilde",
@@ -1384,7 +1467,9 @@
     "recentDownload": "Last ned",
     "justNow": "Akkurat nå",
     "minutesAgo": "{{count}} min siden",
-    "hoursAgo": "{{count}} t siden"
+    "hoursAgo": "{{count}} t siden",
+    "saveFailedDesc": "Sjablong gjengitt, men lagring på kontoen din mislyktes:",
+    "failedToReadImage": "Kunne ikke lese det valgte bildet. Prøv et annet bilde eller ta et nytt bilde."
   },
   "mfa": {
     "title": "Tofaktorautentisering",
@@ -1407,7 +1492,23 @@
     "verifyPrompt": "Angi den 6-sifrede koden fra autentiseringsappen",
     "signInDifferent": "Logg inn med en annen konto",
     "hidePassword": "Skjul passord",
-    "showPassword": "Vis passord"
+    "showPassword": "Vis passord",
+    "verifyPromptNewDevice": "Ny enhet eller nettleser – skriv inn autentiseringskoden for å fortsette.",
+    "trustDevice": "Husk denne enheten i 60 dager (hopp over bekreftelse i denne nettleseren)",
+    "revokeTrustedDevices": "Glem pålitelige enheter",
+    "trustedDevicesRevoked": "Klarerte enheter fjernet. Du bekrefter ved neste pålogging.",
+    "cantAccessAuthenticator": "Får du ikke tilgang til autentiseringsverktøyet?",
+    "recoveryTitle": "Kontogjenoppretting",
+    "recoveryDesc": "Bruk en gjenopprettingskode fra når du konfigurerte MFA, eller logg på med en e-postkobling.",
+    "recoveryCodeTab": "Gjenopprettingskode",
+    "recoveryCodeLabel": "Gjenopprettingskode",
+    "recoveryCodeInvalid": "Den gjenopprettingskoden fungerte ikke. Prøv en annen eller kontakt kundestøtte.",
+    "recoveryCodesTitle": "Lagre gjenopprettingskodene dine",
+    "recoveryCodesDesc": "Oppbevar disse et trygt sted. Hver kode fungerer én gang hvis du mister autentiseringsverktøyet.",
+    "recoveryCodesCopied": "Gjenopprettingskoder er kopiert",
+    "copyRecoveryCodes": "Kopier koder",
+    "recoveryCodesSaved": "Jeg har lagret kodene mine",
+    "recoveryCodesHint": "Mistet gjenopprettingskodene dine? Bruk pålogging uten passord eller kontakt support."
   },
   "schedule": {
     "title": "Timeplan",
@@ -1572,7 +1673,11 @@
     "noClientEmailReview": "Legg til en klient-e-postadresse på denne bestillingen for å sende en vurderingsforespørsel.",
     "reviewLinksNotConfigured": "Legg til gjennomgangskoblinger i Admin → E-post først.",
     "reviewRequestFailed": "Kunne ikke sende gjennomgangsforespørsel",
-    "conductOrgMissing": "Kunne ikke fastslå studioorganisasjonen din for denne oppførselsposten."
+    "conductOrgMissing": "Kunne ikke fastslå studioorganisasjonen din for denne oppførselsposten.",
+    "vipNoDepositHint": "VIP-kunder er ikke pålagt å betale depositum. Slå av for å fjerne VIP.",
+    "markedVip": "Merket som VIP på {{count}} avtale(r)",
+    "vipRemoved": "VIP fjernet fra {{count}} avtale(r)",
+    "vipUpdateFailed": "Kunne ikke oppdatere VIP-status"
   },
   "staff": {
     "loading": "Laster…"
@@ -1641,7 +1746,8 @@
   },
   "embed": {
     "customerPortalSubtitle": "Kundeportal",
-    "poweredBy": "Drevet av {{platform}}"
+    "poweredBy": "Drevet av {{platform}}",
+    "signingIn": "Logger deg på …"
   },
   "stripeConnect": {
     "title": "Kundebetalinger og utbetalinger",
@@ -2086,7 +2192,46 @@
     "terminalDiagnose": "Diagnostiser Stripe terminal",
     "terminalDiagnoseOk": "Stripe Terminal ser OK ut (plassering + tilkoblingstoken).",
     "terminalDiagnoseIssues": "Stripe Terminal har problemer — se detaljer nedenfor.",
-    "terminalDiagnoseFailed": "Kunne ikke kjøre terminaldiagnostikk."
+    "terminalDiagnoseFailed": "Kunne ikke kjøre terminaldiagnostikk.",
+    "allCategories": "Alle",
+    "setupHourlyRate": "Timepris",
+    "hourlyRatePresetHint": "Oppretter en rask vare \"Timepris\" - trykk på den i kassen og skriv inn timer (f.eks. 4,5 × 110).",
+    "hourlyRateSaved": "Timepris lagret til kassen.",
+    "hourlyRateLabel": "Pris per time",
+    "perHourShort": "/t",
+    "hoursLabel": "Timer",
+    "hoursShort": "h",
+    "hourlyItemHint": "Trykk for å angi åpningstider",
+    "hourlyQtyHint": "Angi timer, f.eks. 4.5",
+    "chargePerHour": "Lading per time",
+    "defaultHoursLabel": "Standard timer",
+    "lineTotalPreview": "Totalt: {{total}}",
+    "noProductsInCategory": "Ingen produkter i denne kategorien.",
+    "manageProductsShort": "Administrer",
+    "doneManaging": "Ferdig",
+    "manageProductsHint": "Trykk på det røde søppelikonet på et produkt for å fjerne det fra hurtigtilleggslisten.",
+    "quantityLabel": "Mengde",
+    "each": "hver",
+    "sessionPayout": "Kunstner eller butikk",
+    "sessionPayoutHint": "Trykk på en artist for en normal sesjonsdeling, eller Handle når 100 % forblir i studioet.",
+    "shopOnlySession": "Butikk",
+    "shopOnlySessionHint": "100 % av dette salget forblir i butikken – ingen artistutbetaling.",
+    "artistConnectMissing": "Artistutbetalingskonto ikke konfigurert — artisten skal fullføre Innstillinger → POS-utbetalingskonto, eller en administrator kan legge til acct_... i Admin → POS.",
+    "artistConnectMissingBeforePay": "Denne artisten har en utbetalingsandel, men ingen Stripe Connect-konto. Be dem åpne Innstillinger → POS-utbetalingskonto og fullføre oppsettet, og prøv på nytt.",
+    "artistConnectConfigured": "Utbetalingskonto: {{accountId}}",
+    "shopOnlySplit": "Butikken beholder 100 % (ingen artistdeling)",
+    "shopOnlySplitHint": "Trykk på 100 % shop ovenfor kun for denne bestillingen – artisten er fortsatt tatt opp for økten.",
+    "shopOnlySplitPreset": "100% butikk",
+    "shopOnlyDefaultSplit": "Standarddelingen er 100 % butikk – ingen artistutbetaling på POS-salg.",
+    "splitDefaultShort": "Standard ({{shop}}% / {{artist}}%)",
+    "paymentSplitDetails": "Delt sammenbrudd",
+    "manageProducts": "Administrer lagrede produkter (slett)",
+    "deleteProduct": "Slett produkt",
+    "productDeleted": "Produktet er fjernet fra listen over hurtiglegg",
+    "productCategory": "Kategori",
+    "defaultQty": "Standard antall {{qty}}",
+    "fractionalQtyHint": "Bruk desimaler for timer, f.eks. 1.5",
+    "removeFromCart": "Fjern fra handlekurven"
   },
   "consentPage": {
     "under18Question": "Er du under 18?",
@@ -2172,7 +2317,8 @@
       "cookies": "Informasjonskapsler",
       "home": "Hjem",
       "documentation": "Dokumentasjon",
-      "studioLogin": "Studioinnlogging"
+      "studioLogin": "Studioinnlogging",
+      "accountDeletion": "Sletting av konto"
     },
     "privacy": {
       "title": "Personvernerklæring (UK/EU GDPR)",
@@ -2260,7 +2406,9 @@
           "title": "Dine rettigheter",
           "p1": "Du kan be om innsyn, retting, sletting (der det gjelder), begrensning, innsigelse, dataportabilitet og tilbaketrekking av samtykke. Send e-post til",
           "orWriteTo": "eller skriv til:",
-          "p2": "Hvis vi avslår en forespørsel, vil vi forklare hvorfor. Du kan klage til UK ICO eller din lokale tilsynsmyndighet i EU."
+          "p2": "Hvis vi avslår en forespørsel, vil vi forklare hvorfor. Du kan klage til UK ICO eller din lokale tilsynsmyndighet i EU.",
+          "accountDeletionLink": "siden for sletting av konto",
+          "p1AfterLink": "eller e-post"
         },
         "updates": {
           "title": "Oppdateringer av erklæringen",
@@ -2382,6 +2530,28 @@
           "p1": "Vi kan oppdatere denne policyen for å gjenspeile juridiske, tekniske eller produktmessige endringer. Den nyeste versjonen og oppdateringsdatoen publiseres alltid her."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Sletting av konto",
+      "lastUpdated": "22. juni 2026",
+      "overviewTitle": "Be om sletting av Velbok-kontoen din",
+      "overviewP1": "{{shopLegalName}} (handler som Velbok) lar deg be om sletting av plattformkontoen din og tilhørende personlige data vi kontrollerer.",
+      "overviewP2": "Hvis du har bestilt med et tatoveringsstudio gjennom Velbok, kan studioet også ha klientrekord separat. Kontakt studioet direkte for studioplater de kontrollerer.",
+      "inAppTitle": "Slett fra appen eller nettstedet",
+      "inAppP1": "Påloggede brukere kan starte en sletteforespørsel fra Innstillinger:",
+      "inAppStaff": "Studioansatte: Innstillinger → Kontosletting",
+      "inAppCustomer": "Kundeportal: Konto → Sikkerhet → Kontosletting",
+      "signInToRequest": "Logg på for å forhåndsutfylle kontodetaljene dine i e-posten med forespørsel om sletting.",
+      "emailTitle": "Forespørsel på e-post",
+      "emailP1": "Du kan også sende oss en e-post fra adressen som er knyttet til kontoen din. Ta med fullt navn og e-postadressen du bruker for å logge på.",
+      "emailP2": "Vi kan be om ytterligere bekreftelse før vi behandler forespørselen.",
+      "whatDeletedTitle": "Det vi sletter",
+      "whatDeleted1": "Din Velbok påloggingskonto og profildetaljer har vi som plattformkontroller.",
+      "whatDeleted2": "Preferanser på plattformsiden, varsler og medarbeiderskap knyttet til brukerkontoen din.",
+      "whatDeleted3": "Noen poster kan oppbevares der loven krever det (for eksempel skatt, forebygging av svindel eller uløste tvister).",
+      "timingTitle": "Hvor lang tid det tar",
+      "timingP1": "Vi tar sikte på å bekrefte mottak innen noen få virkedager og fullføre kvalifisert sletting innen 30 dager, med mindre en lengre periode er påkrevd ved lov eller for å løse et aktivt abonnement eller tvist.",
+      "privacyLinkLead": "For fullstendig informasjon om hvordan vi behandler personopplysninger og dine rettigheter, se vår"
     }
   },
   "depositCheckout": {
@@ -2500,7 +2670,16 @@
     "installHint3": "For Tap for å betale: bruk en støttet telefon (se dokumenter), slå AV utvikleralternativer, tillat plassering.",
     "tapToPayDocs": "Støttede telefoner og oppsett av trykk for å betale:",
     "tapToPayDocsLink": "POS-kasse og trykk for å betale",
-    "iphoneNote": "iPhone: Velbok for iOS distribueres via TestFlight eller App Store når det er tilgjengelig for studioet ditt – ikke fra denne siden."
+    "iphoneNote": "iPhone: Velbok for iOS distribueres via TestFlight eller App Store når det er tilgjengelig for studioet ditt – ikke fra denne siden.",
+    "playBetaTitle": "Google Play (intern testing)",
+    "playBetaDesc": "Installer versjon 1.0.12 (bygg 13) fra Google Play. Google-kontoen din må være på listen over interne testere.",
+    "playBetaButton": "Få Velbok på Google Play",
+    "playBetaHint": "Bruk den samme Google-kontoen som er lagt til under Intern testing → Testere. Åpne koblingen i Chrome på telefonen, trykk på Bli en tester og deretter Installer. Hvis Play sier Prøv igjen: tøm Play Store-bufferen, aktiver intern appdeling i Play Store-innstillingene, vent 15 minutter etter at du har blitt med, og prøv deretter på nytt.",
+    "apkTitle": "Last ned APK direkte",
+    "appStoreBadgeAlt": "Last ned på App Store",
+    "appStoreBadgeAria": "Velbok på App Store — kommer snart",
+    "appStoreComingSoonTitle": "iPhone-appen kommer snart",
+    "appStoreComingSoonDesc": "Velbok for iPhone kommer snart på App Store. Bruk Android-appen eller nettdashbordet i mellomtiden."
   },
   "artistStripeConnect": {
     "title": "POS utbetalingskonto",
@@ -2521,5 +2700,104 @@
     "loadFailed": "Kunne ikke laste inn utbetalingsstatus",
     "onboardFailed": "Kunne ikke starte utbetalingsoppsett",
     "dashboardFailed": "Kunne ikke åpne utbetalingsoversikten"
+  },
+  "expenses": {
+    "date": "Dato",
+    "title": "Utgifter",
+    "subtitle": "Spor studiokostnader – husleie, rekvisita, markedsføring og mer.",
+    "addExpense": "Legg til utgift",
+    "editExpense": "Rediger utgift",
+    "amount": "Beløp",
+    "amountRequired": "Angi et gyldig beløp større enn null",
+    "category": "Kategori",
+    "selectCategory": "Velg kategori",
+    "allCategories": "Alle kategorier",
+    "vendor": "Selger",
+    "vendorPlaceholder": "Leverandør eller betalingsmottaker",
+    "notes": "Notater",
+    "receipt": "Kvittering (valgfritt)",
+    "periodTotal": "Periode totalt",
+    "empty": "Ingen utgifter i denne perioden. Legg til din første utgift for å spore kostnader.",
+    "items": "gjenstander",
+    "created": "Utgiftsført",
+    "updated": "Utgift oppdatert",
+    "deleted": "Utgift slettet",
+    "saveFailed": "Kunne ikke spare utgifter",
+    "deleteFailed": "Kunne ikke slette utgiften",
+    "confirmDelete": "Vil du slette denne utgiften?",
+    "delete": "Slett"
+  },
+  "accounting": {
+    "source": {
+      "deposits": "Innskudd",
+      "invoices": "Fakturaer",
+      "desk": "Skrivebord"
+    },
+    "type": {
+      "deposit": "Innskudd",
+      "pos": "Skrivebord",
+      "invoice": "Faktura",
+      "expense": "Kostnader"
+    },
+    "title": "Regnskap",
+    "subtitle": "Fortjeneste og tap, kontantstrøm og en enhetlig transaksjonsbok.",
+    "disclaimerTitle": "Ikke skatt eller juridisk rådgivning",
+    "disclaimer": "Rapporter og eksporter er kun driftssammendrag for studioet ditt. De er ikke skatte-, mva- eller lovpålagte regnskapsråd, og må ikke brukes til offisielle skatte-, bedrifts- eller andre regulatoriske registreringer uten gjennomgang av din kvalifiserte regnskapsfører. Betalingsfordelinger og artistdiagrammer gjenspeiler pengestrømmer i Velbok – de bestemmer ikke ansettelsesstatus, mva-forsyningsstruktur eller juridiske kontrakter mellom studioet ditt og artistene.",
+    "disclaimerShort": "Kun operasjonelle sammendrag - ikke skattemessig eller juridisk rådgivning. Bekreft tallene med regnskapsføreren din før enhver offisiell innlevering.",
+    "disclaimerCsv": "ANSVARSFRASKRIVELSE: Kun operasjonelt sammendrag - ikke for offisielle skatte- eller forskriftsregistreringer uten profesjonell gjennomgang.",
+    "totalRevenue": "Totale inntekter",
+    "totalExpenses": "Totale utgifter",
+    "netProfit": "Netto overskudd",
+    "netProfitHint": "Inntekter minus utgifter",
+    "margin": "Fortjenestemargin",
+    "revenueBreakdown": "Inntektsfordeling",
+    "expenseBreakdown": "Utgiftsfordeling",
+    "expenseBreakdownHint": "Utgifter etter kategori denne måneden",
+    "dailyRevenueChart": "Daglige inntekter og utgifter",
+    "dailyRevenueChartHint": "Siste 30 lagrede dager",
+    "monthlyChart": "Månedlig P&L",
+    "monthlyChartHint": "Inntekter, utgifter og netto overskudd per måned",
+    "revenueSources": "Inntektskilder",
+    "revenueSourcesHint": "Fordeling siste måned",
+    "artistBreakdown": "Skrivebordsinntekter etter artist",
+    "artistBreakdownHint": "Totalbeløp per artist denne måneden",
+    "cashFlow": "Ukentlig kontantstrøm",
+    "cashFlowHint": "Penger inn mot ut per uke",
+    "ledger": "Transaksjonsreskontro",
+    "ledgerHint": "Alle inntekter og utgifter i den valgte perioden",
+    "typeColumn": "Type",
+    "ledgerEmpty": "Ingen transaksjoner i denne perioden.",
+    "ledgerTruncated": "Viser 100 av {{count}} transaksjoner. Eksporter CSV for hele listen.",
+    "from": "Fra",
+    "to": "Til",
+    "apply": "Søke",
+    "exportLedger": "Eksporter finans-CSV",
+    "exportPnl": "Eksporter P&L CSV",
+    "printPnl": "Skriv ut P&L"
+  },
+  "inbox": {
+    "smsNotConnected": "Ikke tilkoblet",
+    "smsSetupTitle": "SMS (Twilio)",
+    "smsSetupDesc": "Valgfritt: koble til studioets Twilio-nummer for å sende SMS-avtale og påminnelser om innskudd. Kundekontakt bruker billetter og WhatsApp/e-postlenker fra bestillinger.",
+    "smsSetupBullet1": "Opprett en Twilio-konto og kjøp et SMS-kompatibelt telefonnummer",
+    "smsSetupBullet2": "Still inn Twilio inbound webhook (se oppsettsguide) hvis du ønsker toveis SMS",
+    "smsSetupBullet3": "Hver organisasjon bruker sin egen Twilio-konto — Velbok oppgir ikke et delt SMS-nummer",
+    "smsConnected": "Twilio koblet til",
+    "smsConnectTwilio": "Koble til Twilio",
+    "smsManageConnection": "Administrer Twilio-tilkobling",
+    "smsSetupGuide": "Oppsettveiledning",
+    "smsReminderSettings": "Påminnelsesinnstillinger"
+  },
+  "accountDeletion": {
+    "title": "Slett konto",
+    "desc": "Be om permanent sletting av din Velbok-pålogging og personlige data som Velbok (Inkaholics Limited) har som plattformkontroller.",
+    "bulletProfile": "Din profil, tillatelser og påloggingstilgang vil bli fjernet fra Velbok.",
+    "bulletStudio": "Opptak som ditt studio har opprettet (bestillinger, samtykkeskjemaer, meldinger) kan oppbevares av studioet under deres juridiske og forsikringsforpliktelser.",
+    "bulletLegal": "Velbok kan beholde minimale fakturerings-, skatte- eller sikkerhetsoppføringer der loven krever det.",
+    "responseTime": "Vi tar sikte på å svare innen 30 dager. Se vår",
+    "requestButton": "Be om sletting av konto"
+  },
+  "channel": {
+    "smsSecurityNote": "Twilio-legitimasjon lagres én gang per studio (organisasjon). Enhver administrator eller eier som kobler til Twilio oppdaterer det delte studionummeret – påminnelser og innkommende SMS bruker den samme tilkoblingen for alle i studioet."
   }
 }

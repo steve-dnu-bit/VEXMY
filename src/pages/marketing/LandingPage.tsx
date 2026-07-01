@@ -12,7 +12,7 @@ import { useLandingI18n } from "@/hooks/useLandingI18n";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { usePlatformAdminAccess } from "@/hooks/usePlatformAdmin";
-import { GooglePlayInstallButton } from "@/components/marketing/GooglePlayInstallButton";
+import { StoreInstallButtons } from "@/components/marketing/StoreInstallButtons";
 
 const LandingPage = () => {
   const { features, steps, audiences, faqs, heroSubtitle, t } = useLandingI18n();
@@ -65,8 +65,8 @@ const LandingPage = () => {
           </div>
           {!showStaffHome ? (
             <div className="mt-8 flex flex-col items-center gap-2">
-              <GooglePlayInstallButton />
-              <p className="text-xs text-muted-foreground">{t("landing.getOnGooglePlay")}</p>
+              <StoreInstallButtons />
+              <p className="text-xs text-muted-foreground">{t("landing.mobileAppsCaption")}</p>
             </div>
           ) : null}
           {!showStaffHome ? (

@@ -68,7 +68,7 @@
   "marketing": {
     "footerTagline": "Platforma all-in-one pentru studiouri de tatuaje — programări, avansuri, consimțământ, facturare și comunicare cu clienții într-un singur loc.",
     "pricingTitle": "Planuri care cresc odată cu studioul tău",
-    "pricingSubtitle": "Prețuri lunare transparente. Fiecare plan include platforma completă — doar limita de locuri artist diferă.",
+    "pricingSubtitle": "De la artiști solo la magazine cu mai mulți artiști — prețuri lunare transparente cu o perioadă de încercare gratuită de 14 zile. Întreprindere exclusă din perioada de probă de 14 zile.",
     "comparePlans": "Compară planurile",
     "pricingFaq": "Întrebări frecvente despre prețuri",
     "notSurePlan": "Nu ești sigur ce plan ți se potrivește?",
@@ -93,7 +93,7 @@
       "pending": "În așteptare",
       "sendLink": "Trimite link",
       "stencilTitle": "velbok.com/stencil",
-      "stencilLabel": "AI Stencil",
+      "stencilLabel": "Șablon AI",
       "stencilSubtitle": "Pregătirea proiectării spațiului de lucru",
       "generate": "Genera",
       "reference": "Referinţă",
@@ -114,7 +114,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Echipă mică",
-      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+      "description": "Platforma completă Velbok pentru magazine cu până la 3 artiști. Bilete de asistență și linkuri WhatsApp incluse.",
       "seats": "Până la 3 locuri pentru artiști",
       "cta": "Începe cu Starter",
       "features": {
@@ -129,7 +129,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Studio în creștere",
-      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+      "description": "Platformă completă pentru magazine cu până la 6 artiști. Bilete de asistență și linkuri WhatsApp incluse.",
       "seats": "Până la 6 locuri pentru artiști",
       "cta": "Începe perioada de probă",
       "features": {
@@ -145,7 +145,7 @@
     "enterprise": {
       "name": "Întreprindere",
       "tagline": "Studio mare",
-      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
+      "description": "Platformă completă pentru magazine cu până la 10 artiști. Bilete de asistență și linkuri WhatsApp incluse.",
       "seats": "Până la 10 locuri pentru artiști",
       "cta": "Începe cu Enterprise",
       "features": {
@@ -172,20 +172,22 @@
       "included": "✓",
       "notIncluded": "—",
       "fullPlatform": "Caracteristici complete ale platformei",
-      "unifiedInbox": "Unified inbox",
+      "unifiedInbox": "Bilete de suport",
       "inboxStudio": "E-mail + 1 canal",
       "inboxEnterprise": "Toate canalele",
-      "contactCentre": "Client contact centre"
+      "contactCentre": "WhatsApp și linkuri de contact",
+      "ticketImages": "Imagini bilet de persoană",
+      "stencilsPerDay": "Șabloane AI pe 24 de ore"
     },
     "faq": {
       "trialQ": "Există o perioadă de probă gratuită?",
-      "trialA": "Toate planurile includ o perioadă de probă gratuită de 14 zile. Alege un plan pe pagina de abonare — vei introduce datele cardului pe Stripe, dar nu vei fi taxat până la sfârșitul perioadei de probă.",
+      "trialA": "Solo, Starter și Studio includ o perioadă de încercare gratuită de 14 zile — introduceți detaliile cardului pe Stripe, dar nu veți fi taxat până la încheierea perioadei de încercare. Enterprise este facturată imediat când vă abonați.",
       "includedQ": "Ce este inclus în fiecare plan?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+      "includedA": "Fiecare plan include programare, CRM, depuneri, consimțământ, stoc, facturare, bilete de suport pentru portal și linkuri de contact WhatsApp/SMS/e-mail din rezervări.",
       "stripeFeesQ": "Comisioanele Stripe sunt incluse?",
       "stripeFeesA": "Nu. Comisioanele de procesare card sunt percepute de Stripe pe lângă abonamentul tău. Velbok se integrează cu contul tău Stripe pentru avansuri și facturi.",
       "switchQ": "Pot schimba planul mai târziu?",
-      "switchA": "Da. Fă upgrade sau downgrade pe măsură ce echipa ta crește — Starter (3 artiști), Studio (6) sau Enterprise (10).",
+      "switchA": "Da. Upgrade sau downgrade oricând de la Admin — Solo (1 artist), Starter (3), Studio (6) sau Enterprise (10).",
       "migrateQ": "Mă ajutați să migrez de la sistemul actual?",
       "migrateA": "Planurile Studio și Enterprise includ import CSV clienți în aplicație. Enterprise include asistență practică la migrarea rezervărilor și evidențelor."
     },
@@ -210,20 +212,34 @@
     },
     "inboxFeatures": {
       "starter": {
-        "0": "Client contact centre from every booking",
-        "1": "WhatsApp, SMS & email with message templates",
+        "0": "Bilete de asistență în portalul clienților",
+        "1": "Linkuri WhatsApp, SMS și e-mail de la fiecare rezervare",
         "2": "Mementouri automate de rezervare și e-mailuri de îngrijire ulterioară"
       },
       "studio": {
-        "0": "Unified inbox (email + 1 channel)",
+        "0": "Bilete de asistență în portalul clienților",
         "1": "Linkuri WhatsApp, SMS și e-mail de la fiecare rezervare",
         "2": "Mementouri automate de rezervare și e-mailuri de îngrijire ulterioară"
       },
       "enterprise": {
-        "0": "Unified inbox (all channels)",
+        "0": "Bilete de asistență în portalul clienților",
+        "1": "Linkuri WhatsApp, SMS și e-mail de la fiecare rezervare",
+        "2": "Mementouri automate de rezervare și e-mailuri de îngrijire ulterioară"
+      },
+      "solo": {
+        "0": "Bilete de asistență în portalul clienților",
         "1": "Linkuri WhatsApp, SMS și e-mail de la fiecare rezervare",
         "2": "Mementouri automate de rezervare și e-mailuri de îngrijire ulterioară"
       }
+    },
+    "trialBadge": "Probă gratuită de 14 zile",
+    "paidImmediatelyBadge": "Plătit imediat · Fără încercare gratuită",
+    "solo": {
+      "name": "Solo",
+      "tagline": "Artist solo",
+      "description": "Elemente esențiale pentru un artist - program, CRM, consimțământ, depuneri și bilete de asistență.",
+      "seats": "1 scaun pentru artist",
+      "cta": "Începeți cu Solo"
     }
   },
   "auth": {
@@ -275,7 +291,29 @@
     "cookiePolicy": "Politica privind cookie-urile",
     "continueWithGoogle": "Continuați cu Google",
     "continuingWithGoogle": "Se redirecționează către Google...",
-    "googleSignInFailed": "Nu s-a putut porni conectarea la Google. Vă rugăm să încercați din nou."
+    "googleSignInFailed": "Nu s-a putut porni conectarea la Google. Vă rugăm să încercați din nou.",
+    "phoneTab": "Telefon",
+    "appBridgeDesc": "Conectați-vă cu Google pe velbok.com pentru a reveni la aplicație.",
+    "continueWithApple": "Continuați cu Apple",
+    "continuingWithApple": "Se redirecționează către Apple…",
+    "appleSignInFailed": "Nu s-a putut porni conectarea la Apple. Vă rugăm să încercați din nou.",
+    "signInWithoutPassword": "Conectați-vă cu e-mail sau telefon",
+    "passwordlessTitle": "Conectați-vă fără parolă",
+    "passwordlessDesc": "Vă vom trimite prin e-mail un link securizat sau vă vom trimite un cod unic dacă conectarea prin telefon este activată pentru contul dvs.",
+    "sendMagicLink": "Trimiteți-mi prin e-mail un link de conectare",
+    "magicLinkSent": "Verifică-ți e-mailul",
+    "magicLinkSentDesc": "Am trimis un link de conectare securizat. Expiră în aproximativ o oră.",
+    "phoneLabel": "Număr de telefon mobil",
+    "invalidPhone": "Introduceți un număr valid cu codul de țară (de exemplu, +44...).",
+    "phoneSignInDisabled": "Conectarea la telefon nu este activată pentru acest cont. Utilizați e-mailul sau contactați asistența.",
+    "sendPhoneCode": "Scrieți-mi un cod de conectare",
+    "phoneCodeSent": "Cod trimis",
+    "phoneCodeSentDesc": "Introdu codul din 6 cifre din mesajul text.",
+    "verifyPhoneCode": "Verificați codul",
+    "resendPhoneCode": "Retrimiteți codul",
+    "backToSignIn": "Înapoi la autentificarea prin parolă",
+    "backToAuthenticator": "Înapoi la codul de autentificare",
+    "needHelp": "Ai nevoie de ajutor?"
   },
   "subscribe": {
     "label": "Abonare",
@@ -304,7 +342,8 @@
     "termsCheckboxLead": "Am citit și sunt de acord cu",
     "termsCheckboxBody": "Confirm că sunt autorizat să mă abonez în numele studio-ului meu și că Inkaholics Limited (Velbok) poate debita planul selectat (inclusiv după o perioadă de probă gratuită) prin Stripe.",
     "termsVersionLabel": "versiunea {{version}}",
-    "termsRequired": "Vă rugăm să acceptați Termenii și Notificarea de confidențialitate pentru a continua."
+    "termsRequired": "Vă rugăm să acceptați Termenii și Notificarea de confidențialitate pentru a continua.",
+    "trialNoteImmediate": "Facturat imediat · Anulați oricând"
   },
   "subscription": {
     "title": "Abonament",
@@ -415,7 +454,10 @@
     "checkingPosPayment": "Se verifică plata la birou...",
     "posPaidAtDesk": "Plătit la birou · {{amount}}",
     "legalTitle": "Legal",
-    "legalDesc": "Confidențialitate, termeni și informații despre cookie-uri pentru Velbok."
+    "legalDesc": "Confidențialitate, termeni și informații despre cookie-uri pentru Velbok.",
+    "smsTwilioRequiredDesc": "Mementourile prin SMS folosesc contul Twilio și numărul de telefon al studioului dvs. (nu al lui Velbok). Conectați Twilio înainte de a alege SMS.",
+    "smsTwilioConnectLink": "Conectați-vă în Inbox",
+    "smsTwilioGuideLink": "Ghid de instalare"
   },
   "admin": {
     "title": "Admin",
@@ -454,7 +496,7 @@
     "artistDefaults": "Valori implicite pentru artist",
     "customerNav": "meniu client",
     "staffFeatureAccess": "Personalul oferă acces",
-    "staffFeatureAccessDesc": "Artiști și administratori - nu conturi doar pentru clienți",
+    "staffFeatureAccessDesc": "Artiști și administratori — eliminați artiștii din magazin pentru a elibera un loc. Rezervările anterioare rămân conform programului.",
     "user": "Utilizator",
     "all": "Toate",
     "revoke": "Revoca",
@@ -605,7 +647,41 @@
     "reviewLinkRemove": "Eliminați linkul",
     "reviewEmailMessage": "Notă personală opțională",
     "reviewEmailMessagePlaceholder": "Vă mulțumim din nou pentru că ați stat atât de bine astăzi - am aprecia cu adevărat o recenzie rapidă dacă aveți un moment.",
-    "reviewEmailMessageHint": "Afișat în partea de sus a e-mailului de solicitare de revizuire, deasupra textului standard de mulțumire."
+    "reviewEmailMessageHint": "Afișat în partea de sus a e-mailului de solicitare de revizuire, deasupra textului standard de mulțumire.",
+    "tabArtistPrivacy": "Confidențialitatea artistului",
+    "artistPrivacyTitle": "Confidențialitatea artistului",
+    "artistPrivacyDesc": "Limitați ceea ce artiștii pot vedea în program și lista de clienți.",
+    "artistPrivacyToggle": "Artiștii își văd doar propriile rezervări și clienți",
+    "artistPrivacyToggleHint": "Când este activat, fiecare artist vede doar coloana programului și clienții cu care a lucrat. Administratorii magazinului și proprietarul încă văd totul.",
+    "artistPrivacyEnabledDesc": "Artiștii sunt acum restricționați la propriile rezervări și clienți.",
+    "artistPrivacyDisabledDesc": "Artiștii pot vedea din nou toate rezervările de studio și clienții.",
+    "artistPrivacyBullet1": "Program: artiștii văd doar propria lor coloană.",
+    "artistPrivacyBullet2": "Clienți: numai persoane din rezervările artistului respectiv (plus importurile pe care le-au creat sau care se potrivesc cu clienții lor).",
+    "artistPrivacyBullet3": "Administratorii magazinului, proprietarii și personalul de la recepție fără rolul de artist încă văd totul.",
+    "artistPrivacyOwnerBypassNote": "Contul tău este proprietarul unui magazin sau administrator, așa că vei vedea în continuare rezervările fiecărui artist. Conectați-vă ca cont de artist pentru a verifica confidențialitatea.",
+    "tabClients": "Lista de clienți",
+    "websiteEmbedHeaderTab": "Bara de sus / antet",
+    "websiteEmbedHeaderDesc": "Stiluri compacte pentru antetul site-ului sau bara de navigare.",
+    "websiteEmbedPreviewHeader": "Previzualizează într-o bară de sus eșantion",
+    "websiteEmbedTheme": "Culoarea butonului",
+    "websiteEmbedTheme_gold": "Aur (Velbok)",
+    "websiteEmbedTheme_light": "Aprinde",
+    "websiteEmbedTheme_dark": "Întuneric",
+    "websiteEmbedTheme_outline": "Contur auriu",
+    "websiteEmbedOrgHint": "Linkurile includ ID-ul dvs. de studio, astfel încât clienții să obțină portalul corect după conectarea la Google sau la e-mail.",
+    "websiteEmbedNoOrg": "Finalizați configurarea magazinului mai întâi, astfel încât să putem genera link-uri de conectare pentru clienți pentru studioul dvs.",
+    "websiteEmbedVariantCard": "Card mare",
+    "websiteEmbedVariantCardDesc": "Nume magazin + buton + Powered by — cel mai bun pentru subsol.",
+    "websiteEmbedVariantCompact": "Card compact",
+    "websiteEmbedVariantCompactDesc": "Card mai mic, mai puțină umplutură.",
+    "websiteEmbedVariantNavbar": "Bar cu numele magazinului",
+    "websiteEmbedVariantNavbarDesc": "Numele magazinului și butonul pentru pastile în linie — se potrivește unui rând de antet.",
+    "websiteEmbedVariantPillSm": "Pastilă mică",
+    "websiteEmbedVariantPillSmDesc": "Buton rotunjit minim — anteturi strânse.",
+    "websiteEmbedVariantPillMd": "Pastilă medie",
+    "websiteEmbedVariantPillMdDesc": "Pastilă puțin mai mare pentru navigația principală.",
+    "websiteEmbedVariantLink": "Legătură text",
+    "websiteEmbedVariantLinkDesc": "Subliniați numai linkul - cea mai mică opțiune."
   },
   "notFound": {
     "title": "Pagină negăsită",
@@ -833,7 +909,12 @@
     "regionsSubtitle": "Studiouri în 13 țări — monedă locală și suport lingvistic integrate.",
     "regionsCarouselLabel": "Țări acceptate",
     "studioWelcomeBack": "Bine ați revenit — deschideți-vă programul sau examinați statisticile studioului.",
-    "returnToSchedule": "Reveniți la program"
+    "returnToSchedule": "Reveniți la program",
+    "getOnGooglePlay": "Aplicație Android pe Google Play (test intern)",
+    "pricingTitle": "Preț lunar simplu",
+    "pricingSubtitle": "De la artiști solo la magazine cu mai mulți artiști — prețuri lunare transparente cu o perioadă de încercare gratuită de 14 zile. Întreprindere exclusă din perioada de probă de 14 zile.",
+    "pricingCompare": "Comparați toate planurile și funcțiile",
+    "mobileAppsCaption": "Android pe Google Play · iPhone App Store va fi în curând"
   },
   "contact": {
     "title": "Ia legătura cu noi",
@@ -859,7 +940,8 @@
     "messageSent": "Mesaj trimis",
     "messageSentDesc": "Te vom contacta cât de curând posibil.",
     "couldNotSend": "Nu s-a putut trimite",
-    "couldNotSendDesc": "Te rugăm să ne scrii direct la {{email}}."
+    "couldNotSendDesc": "Te rugăm să ne scrii direct la {{email}}.",
+    "customerService": "Serviciu clienți"
   },
   "cookies": {
     "bannerText": "Folosim cookie-uri și tehnologii similare pentru funcționalitatea de bază și, cu acordul tău, pentru a îmbunătăți performanța și marketingul. Poți modifica alegerea oricând în Setările cookie-urilor.",
@@ -1080,7 +1162,8 @@
     "saveBillingSettings": "Salvează setările de facturare",
     "connectRequired": "Configurați plățile către clienți mai jos înainte de a crea linkuri de plată pentru facturi.",
     "invoicePrefixHint": "Setați automat din slug-ul dvs. de studio ({{slug}}).",
-    "invoicePrefixExample": "Exemplu: {{example}}"
+    "invoicePrefixExample": "Exemplu: {{example}}",
+    "tabOverview": "Prezentare generală și rapoarte"
   },
   "deposits": {
     "title": "Depozite",
@@ -1308,7 +1391,7 @@
   },
   "stencil": {
     "title": "Generator de șabloane",
-    "subtitle": "Încărcați o referință și generați un șablon negru cu desen în browser - fără API extern.",
+    "subtitle": "Încărcați o referință și generați un șablon negru cu grafică neagră - alegeți un stil AI sau motorul de bază în browser.",
     "originalImage": "Imagine originală",
     "changeImage": "Schimbați imaginea",
     "dropOrUpload": "Aruncă o imagine aici sau dă clic pentru a încărca",
@@ -1331,15 +1414,15 @@
     "dragCompare": "Trageți glisorul pentru a compara originalul cu șablonul",
     "downloading": "Se descarcă...",
     "downloadStencil": "Descărcați Stencil",
-    "downloadRemovesFiles": "Descărcarea elimină originalul și șablonul din stocarea în cloud.",
+    "downloadRemovesFiles": "Salvat timp de 24 de ore, apoi șters automat din stocare.",
     "extractingLines": "Extragerea liniilor curate...",
     "uploadPromptOutput": "Încărcați o imagine și generați - comparați originalul cu șablonul aici",
     "generatedTitle": "Stencil generat",
-    "generatedDesc": "Trageți glisorul pentru a compara.Fișierele sunt eliminate de pe server după ce descărcați.",
+    "generatedDesc": "Trageți glisorul pentru a compara. Salvat timp de 24 de ore, apoi șters automat.",
     "generationFailedTitle": "Generarea a eșuat",
     "genericFailure": "Ceva a mers prost",
     "downloadStartedTitle": "Descărcarea a început",
-    "downloadStartedDesc": "Originalul și șablonul au fost scoase din depozit.",
+    "downloadStartedDesc": "Șablonul dvs. se descarcă. Rămâne în depozit timp de 24 de ore, apoi este șters automat.",
     "downloadFailedTitle": "Descărcarea a eșuat",
     "downloadFailedDesc": "Nu s-a putut finaliza descărcarea",
     "originalLabel": "Original ",
@@ -1384,7 +1467,9 @@
     "recentDownload": "Descarcă",
     "justNow": "Chiar acum",
     "minutesAgo": "acum {{count}} min",
-    "hoursAgo": "acum {{count}} h"
+    "hoursAgo": "acum {{count}} h",
+    "saveFailedDesc": "Stencil a fost randat, dar salvarea în contul dvs. nu a reușit:",
+    "failedToReadImage": "Nu s-a putut citi fotografia selectată. Încercați o altă imagine sau faceți o fotografie nouă."
   },
   "mfa": {
     "title": "Autentificare cu doi factori",
@@ -1407,7 +1492,23 @@
     "verifyPrompt": "Introdu codul din 6 cifre din aplicația de autentificare",
     "signInDifferent": "Conectați-vă cu un alt cont",
     "hidePassword": "Ascunde parola",
-    "showPassword": "Afișați parola"
+    "showPassword": "Afișați parola",
+    "verifyPromptNewDevice": "Dispozitiv sau browser nou — introduceți codul de autentificare pentru a continua.",
+    "trustDevice": "Rețineți acest dispozitiv timp de 60 de zile (săriți verificarea în acest browser)",
+    "revokeTrustedDevices": "Uitați de dispozitivele de încredere",
+    "trustedDevicesRevoked": "Dispozitivele de încredere au fost eliminate. Veți verifica la următoarea conectare.",
+    "cantAccessAuthenticator": "Nu vă puteți accesa autentificatorul?",
+    "recoveryTitle": "Recuperarea contului",
+    "recoveryDesc": "Folosiți un cod de recuperare de când configurați MFA sau conectați-vă cu un link de e-mail.",
+    "recoveryCodeTab": "Cod de recuperare",
+    "recoveryCodeLabel": "Cod de recuperare",
+    "recoveryCodeInvalid": "Codul de recuperare nu a funcționat. Încercați altul sau contactați asistența.",
+    "recoveryCodesTitle": "Salvați codurile de recuperare",
+    "recoveryCodesDesc": "Păstrați-le într-un loc sigur. Fiecare cod funcționează o dată dacă vă pierdeți autentificatorul.",
+    "recoveryCodesCopied": "Codurile de recuperare au fost copiate",
+    "copyRecoveryCodes": "Copiați coduri",
+    "recoveryCodesSaved": "Mi-am salvat codurile",
+    "recoveryCodesHint": "Ți-ai pierdut codurile de recuperare? Utilizați conectarea fără parolă sau contactați asistența."
   },
   "schedule": {
     "title": "Program",
@@ -1572,7 +1673,11 @@
     "noClientEmailReview": "Adăugați un e-mail client la această rezervare pentru a trimite o solicitare de recenzie.",
     "reviewLinksNotConfigured": "Adăugați mai întâi linkuri de recenzie în Administrare → E-mailuri.",
     "reviewRequestFailed": "Nu s-a putut trimite cererea de revizuire",
-    "conductOrgMissing": "Nu s-a putut determina organizația studioului dvs. pentru această înregistrare de conduită."
+    "conductOrgMissing": "Nu s-a putut determina organizația studioului dvs. pentru această înregistrare de conduită.",
+    "vipNoDepositHint": "Clienții VIP nu sunt obligați să plătească un depozit. Dezactivați pentru a elimina VIP-ul.",
+    "markedVip": "Marcat ca VIP la {{count}} întâlnire(e)",
+    "vipRemoved": "VIP eliminat de la {{count}} întâlnire(e)",
+    "vipUpdateFailed": "Nu s-a putut actualiza starea VIP"
   },
   "staff": {
     "loading": "Încărcare…"
@@ -1641,7 +1746,8 @@
   },
   "embed": {
     "customerPortalSubtitle": "Portal clienți",
-    "poweredBy": "Oferit de {{platform}}"
+    "poweredBy": "Oferit de {{platform}}",
+    "signingIn": "Te conectez..."
   },
   "stripeConnect": {
     "title": "Plăți clienți și viramente",
@@ -2086,7 +2192,46 @@
     "terminalDiagnose": "Diagnosticați terminalul Stripe",
     "terminalDiagnoseOk": "Stripe Terminalul arată OK (locație + token de conexiune).",
     "terminalDiagnoseIssues": "Stripe Terminalul are probleme - vedeți detaliile de mai jos.",
-    "terminalDiagnoseFailed": "Nu s-a putut rula diagnosticarea terminalului."
+    "terminalDiagnoseFailed": "Nu s-a putut rula diagnosticarea terminalului.",
+    "allCategories": "Toate",
+    "setupHourlyRate": "Tarif orar",
+    "hourlyRatePresetHint": "Creează un element rapid „Tarif orar” — la finalizarea comenzii, atingeți-l și introduceți orele (de exemplu, 4,5 × 110).",
+    "hourlyRateSaved": "Tarif orar salvat pentru finalizare.",
+    "hourlyRateLabel": "Tarif pe oră",
+    "perHourShort": "/hr",
+    "hoursLabel": "Ore",
+    "hoursShort": "h",
+    "hourlyItemHint": "Atingeți pentru a introduce orele",
+    "hourlyQtyHint": "Introduceți orele, de ex. 4.5",
+    "chargePerHour": "Încărcare pe oră",
+    "defaultHoursLabel": "Orele implicite",
+    "lineTotalPreview": "Total: {{total}}",
+    "noProductsInCategory": "Nu există produse în această categorie.",
+    "manageProductsShort": "Gestionează",
+    "doneManaging": "Făcut",
+    "manageProductsHint": "Atingeți pictograma coș de gunoi roșie de pe un produs pentru a-l elimina din lista de adăugare rapidă.",
+    "quantityLabel": "Cantitate",
+    "each": "fiecare",
+    "sessionPayout": "Artist sau magazin",
+    "sessionPayoutHint": "Atingeți un artist pentru o sesiune obișnuită sau Cumpărați când 100% rămâne în studio.",
+    "shopOnlySession": "Magazin",
+    "shopOnlySessionHint": "100% din această reducere rămâne în magazin — nicio plată pentru artist.",
+    "artistConnectMissing": "Contul de plată pentru artist nu a fost configurat — artistul ar trebui să termine Setări → Contul de plată POS, sau un administrator poate adăuga cont_... în Administrator → POS.",
+    "artistConnectMissingBeforePay": "Acest artist are o cotă de plată, dar nu are cont Stripe Connect. Cereți-le să deschidă Setări → Contul de plată POS și să finalizeze configurarea, apoi încercați din nou.",
+    "artistConnectConfigured": "Cont de plată: {{accountId}}",
+    "shopOnlySplit": "Magazinul păstrează 100% (fără divizarea artistului)",
+    "shopOnlySplitHint": "Atingeți 100% Cumpărați mai sus numai pentru această comandă — artistul este încă înregistrat pentru sesiune.",
+    "shopOnlySplitPreset": "100% magazin",
+    "shopOnlyDefaultSplit": "Împărțirea implicită este 100% magazin - nicio plată pentru artist pentru vânzările POS.",
+    "splitDefaultShort": "Implicit ({{shop}}% / {{artist}}%)",
+    "paymentSplitDetails": "Defalcare împărțită",
+    "manageProducts": "Gestionați produsele salvate (ștergeți)",
+    "deleteProduct": "Ștergeți produsul",
+    "productDeleted": "Produs eliminat din lista de adăugare rapidă",
+    "productCategory": "Categorie",
+    "defaultQty": "Cantitate implicită {{qty}}",
+    "fractionalQtyHint": "Folosiți zecimale pentru ore, de ex. 1.5",
+    "removeFromCart": "Scoateți din coș"
   },
   "consentPage": {
     "under18Question": "Ai sub 18 ani?",
@@ -2172,7 +2317,8 @@
       "cookies": "Cookie-uri",
       "home": "Acasă",
       "documentation": "Documentație",
-      "studioLogin": "Autentificare studio"
+      "studioLogin": "Autentificare studio",
+      "accountDeletion": "Ștergerea contului"
     },
     "privacy": {
       "title": "Notificare de confidențialitate (UK/EU GDPR)",
@@ -2222,7 +2368,7 @@
           "p1": "Ne bazăm pe consimțământ, necesitate contractuală, obligație legală și interese legitime, în funcție de context.",
           "consent": "Consimțământ:",
           "consentDesc": "cookie-uri opționale pe site, opt-in-uri de marketing și consimțământ explicit pentru date de sănătate în formularele de consimțământ ale studio-ului.",
-          "contract": "Contract:",
+          "contract": "Contracta:",
           "contractDesc": "furnizarea serviciului Velbok, abonamente studio, rezervări, avansuri și facturi.",
           "legal": "Obligație legală:",
           "legalDesc": "fiscalitate, contabilitate și solicitări legale de la autorități.",
@@ -2260,7 +2406,9 @@
           "title": "Drepturile dvs.",
           "p1": "Puteți solicita acces, rectificare, ștergere (acolo unde se aplică), restricționare, opoziție, portabilitate și retragerea consimțământului. Trimiteți un e-mail la",
           "orWriteTo": "sau scrieți la:",
-          "p2": "Dacă refuzăm o solicitare, vom explica motivele. Puteți depune o plângere la UK ICO sau la autoritatea de supraveghere locală din UE."
+          "p2": "Dacă refuzăm o solicitare, vom explica motivele. Puteți depune o plângere la UK ICO sau la autoritatea de supraveghere locală din UE.",
+          "accountDeletionLink": "pagina de ștergere a contului",
+          "p1AfterLink": "sau e-mail"
         },
         "updates": {
           "title": "Actualizări ale politicii",
@@ -2382,6 +2530,28 @@
           "p1": "Putem actualiza această politică pentru a reflecta schimbări juridice, tehnice sau de produs. Ultima versiune și data actualizării sunt publicate întotdeauna aici."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Ștergerea contului",
+      "lastUpdated": "22 iunie 2026",
+      "overviewTitle": "Solicitați ștergerea contului dvs. Velbok",
+      "overviewP1": "{{shopLegalName}} (trading ca Velbok) vă permite să solicitați ștergerea contului dvs. de platformă și a datelor personale asociate pe care le controlăm.",
+      "overviewP2": "Dacă ați rezervat cu un studio de tatuaje prin Velbok, studioul poate deține, de asemenea, înregistrările clienților separat. Contactați direct studioul pentru înregistrările în studio pe care le controlează.",
+      "inAppTitle": "Ștergeți din aplicație sau site",
+      "inAppP1": "Utilizatorii conectați pot începe o solicitare de ștergere din Setări:",
+      "inAppStaff": "Personalul studioului: Setări → Ștergerea contului",
+      "inAppCustomer": "Portalul clientului: Cont → Securitate → Ștergere cont",
+      "signInToRequest": "Conectați-vă pentru a completa detaliile contului dvs. în e-mailul de solicitare de ștergere.",
+      "emailTitle": "Solicitare prin email",
+      "emailP1": "De asemenea, ne puteți trimite un e-mail de la adresa asociată contului dvs. Includeți numele dvs. complet și adresa de e-mail pe care o utilizați pentru a vă conecta.",
+      "emailP2": "Este posibil să solicităm o verificare suplimentară înainte de a procesa cererea.",
+      "whatDeletedTitle": "Ceea ce ștergem",
+      "whatDeleted1": "Contul dvs. de conectare Velbok și detaliile profilului pe care le deținem în calitate de controlor al platformei.",
+      "whatDeleted2": "Preferințele de pe platformă, notificările și calitatea de membru al personalului sunt legate de contul dvs. de utilizator.",
+      "whatDeleted3": "Unele înregistrări pot fi păstrate acolo unde este cerut de lege (de exemplu, taxe, prevenirea fraudei sau dispute nerezolvate).",
+      "timingTitle": "Cât timp durează",
+      "timingP1": "Ne propunem să confirmăm primirea în câteva zile lucrătoare și să finalizăm ștergerea eligibilă în 30 de zile, cu excepția cazului în care legea impune o perioadă mai lungă sau pentru a rezolva un abonament activ sau o dispută.",
+      "privacyLinkLead": "Pentru detalii complete despre modul în care prelucrăm datele cu caracter personal și drepturile dumneavoastră, consultați"
     }
   },
   "depositCheckout": {
@@ -2500,7 +2670,16 @@
     "installHint3": "Pentru Atingeți pentru a plăti: utilizați un telefon acceptat (consultați documentele), dezactivați opțiunile pentru dezvoltatori, permiteți locația.",
     "tapToPayDocs": "Telefoane acceptate și configurarea Tap to Pay:",
     "tapToPayDocsLink": "Finalizare POS și Atingeți pentru a plăti",
-    "iphoneNote": "iPhone: Velbok pentru iOS este distribuit prin TestFlight sau App Store atunci când este disponibil pentru studioul dvs. - nu de pe această pagină."
+    "iphoneNote": "iPhone: Velbok pentru iOS este distribuit prin TestFlight sau App Store atunci când este disponibil pentru studioul dvs. - nu de pe această pagină.",
+    "playBetaTitle": "Google Play (testare internă)",
+    "playBetaDesc": "Instalați versiunea 1.0.12 (build 13) de pe Google Play. Contul dvs. Google trebuie să fie pe lista de teste interni.",
+    "playBetaButton": "Obțineți Velbok pe Google Play",
+    "playBetaHint": "Utilizați același cont Google adăugat în Testare internă → Testeri. Deschideți linkul în Chrome pe telefon, atingeți Deveniți un tester, apoi Instalați. Dacă Play spune Încercați din nou: ștergeți memoria cache din Play Store, activați Partajarea internă a aplicațiilor în setările Play Store, așteptați 15 minute după înscriere, apoi reîncercați.",
+    "apkTitle": "Descărcare directă APK",
+    "appStoreBadgeAlt": "Descărcați pe App Store",
+    "appStoreBadgeAria": "Velbok pe App Store — în curând",
+    "appStoreComingSoonTitle": "Aplicația pentru iPhone va veni în curând",
+    "appStoreComingSoonDesc": "Velbok pentru iPhone va fi în App Store în curând. Folosiți între timp aplicația Android sau tabloul de bord web."
   },
   "artistStripeConnect": {
     "title": "Cont de plată POS",
@@ -2521,5 +2700,104 @@
     "loadFailed": "Nu s-a putut încărca starea plății",
     "onboardFailed": "Nu s-a putut începe configurarea plății",
     "dashboardFailed": "Nu s-a putut deschide tabloul de bord pentru plăți"
+  },
+  "expenses": {
+    "date": "Data",
+    "title": "Cheltuieli",
+    "subtitle": "Urmăriți costurile studioului - chirie, consumabile, marketing și multe altele.",
+    "addExpense": "Adăugați cheltuieli",
+    "editExpense": "Editați cheltuielile",
+    "amount": "Cantitate",
+    "amountRequired": "Introduceți o sumă validă mai mare decât zero",
+    "category": "Categorie",
+    "selectCategory": "Selectați categoria",
+    "allCategories": "Toate categoriile",
+    "vendor": "Furnizor",
+    "vendorPlaceholder": "Furnizor sau beneficiar",
+    "notes": "Note",
+    "receipt": "Chitanță (opțional)",
+    "periodTotal": "Total perioada",
+    "empty": "Fara cheltuieli in aceasta perioada. Adăugați prima dvs. cheltuială pentru a urmări costurile.",
+    "items": "articole",
+    "created": "Cheltuieli înregistrate",
+    "updated": "Cheltuieli actualizate",
+    "deleted": "Cheltuieli șterse",
+    "saveFailed": "Nu s-au putut economisi cheltuieli",
+    "deleteFailed": "Cheltuiala nu s-a putut șterge",
+    "confirmDelete": "Ștergeți această cheltuială?",
+    "delete": "Şterge"
+  },
+  "accounting": {
+    "typeColumn": "Tip",
+    "source": {
+      "deposits": "Depozite",
+      "invoices": "Facturi",
+      "desk": "Birou"
+    },
+    "type": {
+      "deposit": "Depozit",
+      "pos": "Birou",
+      "invoice": "Factura",
+      "expense": "Cheltuiala"
+    },
+    "title": "Contabilitate",
+    "subtitle": "Profit și pierdere, fluxul de numerar și un registru unificat al tranzacțiilor.",
+    "disclaimerTitle": "Nu consiliere fiscală sau juridică",
+    "disclaimer": "Rapoartele și exporturile sunt rezumate operaționale numai pentru studioul dvs. Acestea nu sunt consiliere fiscală, TVA sau conturi statutare și nu trebuie utilizate pentru declarații fiscale oficiale, corporative sau alte depuneri de reglementare fără examinare de către contabilul dvs. calificat. Plățile împărțite și graficele artiștilor reflectă fluxurile de bani în Velbok — nu determină statutul de angajare, structura TVA-ului sau contractele legale dintre studioul dvs. și artiști.",
+    "disclaimerShort": "Numai rezumate operaționale - nu consiliere fiscală sau juridică. Confirmați cifrele cu contabilul dumneavoastră înainte de orice depunere oficială.",
+    "disclaimerCsv": "RENUNȚAREA RESPONSABILITĂȚII: Numai rezumatul operațional - nu pentru taxe oficiale sau depuneri de reglementare fără examinare profesională.",
+    "totalRevenue": "Venitul total",
+    "totalExpenses": "Cheltuieli totale",
+    "netProfit": "Profit net",
+    "netProfitHint": "Venituri minus cheltuieli",
+    "margin": "Marja de profit",
+    "revenueBreakdown": "Defalcarea veniturilor",
+    "expenseBreakdown": "Defalcarea cheltuielilor",
+    "expenseBreakdownHint": "Cheltuieli pe categorii luna aceasta",
+    "dailyRevenueChart": "Venituri și cheltuieli zilnice",
+    "dailyRevenueChartHint": "Ultimele 30 de zile salvate",
+    "monthlyChart": "P&L lunar",
+    "monthlyChartHint": "Venituri, cheltuieli și profit net pe lună",
+    "revenueSources": "Surse de venituri",
+    "revenueSourcesHint": "Defalcare din ultima lună",
+    "artistBreakdown": "Venituri de birou de către artist",
+    "artistBreakdownHint": "Totaluri de birou POS per artist luna aceasta",
+    "cashFlow": "Fluxul de numerar săptămânal",
+    "cashFlowHint": "Bani intră vs ieși pe săptămână",
+    "ledger": "Registrul tranzacțiilor",
+    "ledgerHint": "Toate veniturile și cheltuielile din perioada selectată",
+    "ledgerEmpty": "Nu există tranzacții în această perioadă.",
+    "ledgerTruncated": "Se afișează 100 din {{count}} tranzacții. Exportați CSV pentru lista completă.",
+    "from": "Din",
+    "to": "La",
+    "apply": "Aplicați",
+    "exportLedger": "Exportați registrul CSV",
+    "exportPnl": "Exportă CSV P&L",
+    "printPnl": "Imprimați P&L"
+  },
+  "inbox": {
+    "smsNotConnected": "Nu este conectat",
+    "smsSetupTitle": "SMS (Twilio)",
+    "smsSetupDesc": "Opțional: conectați numărul Twilio al studioului dvs. pentru a trimite SMS-uri pentru programare și mementouri de depunere. Contactul clientului folosește bilete și linkuri WhatsApp/e-mail din rezervări.",
+    "smsSetupBullet1": "Creați un cont Twilio și cumpărați un număr de telefon compatibil cu SMS-uri",
+    "smsSetupBullet2": "Setați webhook-ul Twilio de intrare (consultați ghidul de configurare) dacă doriți SMS-uri bidirecționale",
+    "smsSetupBullet3": "Fiecare organizație își folosește propriul cont Twilio — Velbok nu furnizează un număr SMS partajat",
+    "smsConnected": "Twilio s-a conectat",
+    "smsConnectTwilio": "Conectați Twilio",
+    "smsManageConnection": "Gestionați conexiunea Twilio",
+    "smsSetupGuide": "Ghid de instalare",
+    "smsReminderSettings": "Setări de memento"
+  },
+  "accountDeletion": {
+    "title": "Ștergeți contul",
+    "desc": "Solicitați ștergerea permanentă a datelor dvs. de conectare Velbok și a datelor personale pe care Velbok (Inkaholics Limited) le deține în calitate de controlor al platformei.",
+    "bulletProfile": "Profilul, permisiunile și accesul de conectare vor fi eliminate din Velbok.",
+    "bulletStudio": "Înregistrările create de studioul dvs. (rezervări, formulare de consimțământ, mesaje) pot fi păstrate de studio în conformitate cu obligațiile legale și de asigurare.",
+    "bulletLegal": "Velbok poate păstra înregistrări minime de facturare, taxe sau securitate acolo unde legea o cere.",
+    "responseTime": "Ne propunem să răspundem în termen de 30 de zile. Vezi noastre",
+    "requestButton": "Solicitați ștergerea contului"
+  },
+  "channel": {
+    "smsSecurityNote": "Acreditările Twilio sunt stocate o dată pe studio (organizație). Orice administrator sau proprietar care conectează Twilio actualizează numărul studioului partajat - mementourile și SMS-urile de intrare folosesc aceeași conexiune pentru toți cei din studio."
   }
 }

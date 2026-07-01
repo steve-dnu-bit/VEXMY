@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Download, Smartphone, AlertCircle } from "lucide-react";
-import { GooglePlayInstallButton } from "@/components/marketing/GooglePlayInstallButton";
+import { StoreInstallButtons } from "@/components/marketing/StoreInstallButtons";
 
 type AndroidVersionInfo = {
   versionName?: string;
@@ -44,7 +44,7 @@ const DownloadPage = () => {
         <div className="mt-10 rounded-xl border border-gold/25 bg-[#101216]/50 p-6 space-y-4">
           <h2 className="font-semibold text-lg">{t("download.playBetaTitle")}</h2>
           <p className="text-sm text-muted-foreground">{t("download.playBetaDesc")}</p>
-          <GooglePlayInstallButton />
+          <StoreInstallButtons />
           <p className="text-sm text-muted-foreground">{t("download.playBetaHint")}</p>
         </div>
 

@@ -12,7 +12,8 @@
     "paid": "Betalt",
     "paidWithAmount": "Betald ({{amount}})",
     "outstanding": "Utestående",
-    "outstandingWithAmount": "Enastående ({{amount}})"
+    "outstandingWithAmount": "Enastående ({{amount}})",
+    "notRequired": "Krävs inte"
   },
   "bookingNotification": {
     "badge": "Bokning",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Nytt inkorgsmeddelande — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Ditt kvitto {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Mottagande",
+    "title": "Betalning mottagen",
+    "intro": "Tack för ditt besök på {{shopName}}. Här är ditt kvitto för din session med {{artistName}} — en PDF-kopia bifogas.",
+    "paymentMethod": {
+      "card": "Kort (tryck för att betala / WisePad)"
+    },
+    "details": {
+      "artist": "Konstnär",
+      "studio": "Studio",
+      "date": "Datum",
+      "receiptNumber": "Kvittot #",
+      "sessionTotal": "Session totalt",
+      "depositCredit": "Insättningskredit",
+      "amountPaid": "Betalt belopp"
+    },
+    "note": {
+      "title": "PDF bifogad",
+      "body": "Ditt specificerade kvitto bifogas som PDF. Spara det för dina register."
+    },
+    "footer": "Detta kvitto skickades automatiskt efter din betalning i studion."
+  },
+  "reviewRequest": {
+    "badge": "Tack",
+    "title": "Vi vill gärna ha din feedback",
+    "intro": "Tack för att du besöker {{shopName}}. Om du hade en bra upplevelse med {{artistName}}, hjälper en kort recension andra kunder att hitta oss och betyder mycket för teamet.",
+    "pickPlatform": "Lämna en recension",
+    "details": {
+      "artist": "Konstnär",
+      "visit": "Ditt besök"
+    },
+    "note": {
+      "title": "Frivillig",
+      "body": "Recensioner är offentliga på den plattform du väljer. Om något inte stämde, svara på det här e-postmeddelandet – vi löser det hellre privat först."
+    },
+    "footer": "Det här e-postmeddelandet skickades eftersom din studio bad dig att dela feedback efter din tid."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Påminnelse om möte med {{artist}} på {{when}}. Svara om du behöver boka om.",
+      "deposit": "{{shopName}}: Insättningspåminnelse för ditt möte den {{when}}. Förfallna belopp: {{amount}}. Kontakta oss för att betala."
     }
   }
 }
