@@ -39,6 +39,16 @@ serve(async (req) => {
       return jsonResponse({ error: "Forbidden", reason: "admin_required" }, 403);
     }
 
+    const { data: callerOrgId, error: callerOrgErr } = await adminClient.rpc("get_user_organization_id", {
+      _user_id: authResult.user.id,
+    });
+    if (callerOrgErr) {
+      return jsonResponse({ error: callerOrgErr.message }, 500);
+    }
+    if (!callerOrgId) {
+      return jsonResponse({ error: "Your studio organization was not found" }, 400);
+    }
+
     const body = await req.json().catch(() => ({}));
     const targetUserId = typeof body.userId === "string" ? body.userId.trim() : "";
     if (!targetUserId) {
@@ -47,6 +57,19 @@ serve(async (req) => {
 
     if (targetUserId === authResult.user.id) {
       return jsonResponse({ error: "You cannot remove yourself from the shop" }, 400);
+    }
+
+    const { data: membership, error: membershipErr } = await adminClient
+      .from("organization_members")
+      .select("id")
+      .eq("user_id", targetUserId)
+      .eq("organization_id", callerOrgId)
+      .maybeSingle();
+    if (membershipErr) {
+      return jsonResponse({ error: membershipErr.message }, 500);
+    }
+    if (!membership) {
+      return jsonResponse({ error: "This user is not a member of your shop" }, 400);
     }
 
     const { data: roleRows, error: rolesErr } = await adminClient
@@ -75,7 +98,14 @@ serve(async (req) => {
       await adminClient.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "assistant");
     }
 
-    await adminClient.from("organization_members").delete().eq("user_id", targetUserId);
+    const { error: deleteMembershipErr } = await adminClient
+      .from("organization_members")
+      .delete()
+      .eq("user_id", targetUserId)
+      .eq("organization_id", callerOrgId);
+    if (deleteMembershipErr) {
+      return jsonResponse({ error: deleteMembershipErr.message }, 500);
+    }
 
     for (const feature of STAFF_FEATURES) {
       await adminClient.from("user_permissions").delete().eq("user_id", targetUserId).eq("feature", feature);

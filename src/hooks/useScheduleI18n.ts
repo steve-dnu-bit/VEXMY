@@ -36,7 +36,12 @@ export function useScheduleI18n() {
     [t],
   );
 
-  return { t, bookingTypeLabel, bookingTypeOptions, statusLabel, tattooSizeLabel, depositLabel, depositStatusLabel };
+  const blockerKindLabel = useCallback(
+    (kind: string) => t(`schedule.blockerKinds.${kind}`, { defaultValue: kind }),
+    [t],
+  );
+
+  return { t, bookingTypeLabel, bookingTypeOptions, statusLabel, tattooSizeLabel, depositLabel, depositStatusLabel, blockerKindLabel };
 }
 
 export function useBookingTypeLabelI18n() {

@@ -1,6 +1,7 @@
 import { format, endOfMonth, parseISO, startOfMonth, subMonths } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { aggregateExpensesForPeriod, type ExpenseCategoryBreakdown } from "@/lib/expenses";
+import { loadOrganizationArtists } from "@/lib/organizationMembers";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 
 export type SalesReportType = "day" | "month";
@@ -73,7 +74,7 @@ export async function buildSalesReportSnapshot(
   const startIso = start.toISOString();
   const endIso = end.toISOString();
 
-  const [posRes, depositsRes, invoicesRes, profilesRes, rolesRes, expenseAgg] = await Promise.all([
+  const [posRes, depositsRes, invoicesRes, artistProfiles, expenseAgg] = await Promise.all([
     supabase
       .from("pos_sales" as any)
       .select(
@@ -97,8 +98,7 @@ export async function buildSalesReportSnapshot(
       .eq("status", "paid")
       .gte("paid_at", startIso)
       .lte("paid_at", endIso),
-    supabase.from("profiles").select("user_id, display_name"),
-    supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+    loadOrganizationArtists(orgId),
     aggregateExpensesForPeriod(orgId, startIso, endIso),
   ]);
 
@@ -113,10 +113,9 @@ export async function buildSalesReportSnapshot(
     gratuity_amount: number;
   }>;
 
-  const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
   const nameMap = new Map<string, string>();
-  (profilesRes.data || []).forEach((p) => {
-    if (artistIds.has(p.user_id)) nameMap.set(p.user_id, p.display_name);
+  artistProfiles.forEach((artist) => {
+    nameMap.set(artist.user_id, artist.display_name);
   });
 
   const byArtistMap = new Map<string, SalesReportArtistRow>();

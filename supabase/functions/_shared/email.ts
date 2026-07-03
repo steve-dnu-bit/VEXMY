@@ -18,7 +18,9 @@ export type EmailAttachment = {
   encoding?: "base64" | "utf-8";
 };
 
-const TZ = "Europe/London";
+/** UK display timezone for booking times in emails, SMS, and push notifications. */
+export const BOOKING_DISPLAY_TIMEZONE = "Europe/London";
+const TZ = BOOKING_DISPLAY_TIMEZONE;
 
 export function getSmtpConfig(): SmtpConfig | null {
   const host = Deno.env.get("SMTP_HOST") ?? null;

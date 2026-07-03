@@ -3,6 +3,7 @@ import { format, parseISO, isSameDay } from "date-fns";
 import { Plus } from "lucide-react";
 import type { Service } from "@/components/schedule/ServicePresets";
 import { getBookingServiceName } from "@/lib/bookingService";
+import { isBlockerBooking } from "@/lib/bookingTypes";
 import { layoutStackedBookingBlocks } from "@/lib/scheduleBookingLayout";
 import { getArtistBookingBlockStyle } from "@/lib/themePresets";
 import { type ArtistColorMap, resolveScheduleArtistColor } from "@/lib/artistThemeCache";
@@ -67,6 +68,15 @@ function bookingBlockAppearance(
   artistColor: string,
   profilesReady: boolean,
 ): { className: string; style: CSSProperties } {
+  if (isBlockerBooking(booking)) {
+    const isHoliday = (booking.service_category || "").toLowerCase() === "holiday";
+    return {
+      className: isHoliday
+        ? "border border-dashed border-amber-500/45 bg-amber-500/15 text-amber-100"
+        : "border border-dashed border-slate-500/45 bg-slate-500/20 text-slate-200",
+      style: {},
+    };
+  }
   const artistTheme = getArtistBookingBlockStyle(artistColor, {
     cancelled: booking.status === "cancelled",
   });

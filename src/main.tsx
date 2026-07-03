@@ -10,6 +10,8 @@ async function start() {
   const { preloadStoredLanguage } = await import("@/i18n/loadLocale");
 
   if (Capacitor.isNativePlatform()) {
+    document.documentElement.classList.add("native-app");
+    document.documentElement.classList.add(`native-${Capacitor.getPlatform()}`);
     const { bootstrapNativeTerminalListener } = await import("@/lib/terminal/bootstrapNativeTerminal");
     void bootstrapNativeTerminalListener();
   }

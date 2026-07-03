@@ -189,6 +189,20 @@
     @apply bg-secondary/45 backdrop-blur-sm;
   }
 
+  /*
+   * Capacitor WebView: backdrop-filter on inputs draws the caret as a black square.
+   * Use an opaque field fill and an explicit caret color on native only.
+   */
+  html.native-app .field-surface {
+    @apply bg-secondary backdrop-blur-none;
+  }
+
+  html.native-app input,
+  html.native-app textarea,
+  html.native-app [contenteditable="true"] {
+    caret-color: hsl(var(--foreground));
+  }
+
   .bg-noise {
     position: relative;
   }

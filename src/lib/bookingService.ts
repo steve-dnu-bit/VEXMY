@@ -1,5 +1,5 @@
 import type { Service } from "@/components/schedule/ServicePresets";
-import { bookingTypesMatchForService } from "@/lib/bookingTypes";
+import { blockerKindLabel, bookingTypesMatchForService, isBlockerBooking } from "@/lib/bookingTypes";
 
 export type BookingServiceLookup = {
   booking_type: string;
@@ -53,6 +53,9 @@ export function pickServiceIdForBooking(services: Service[], booking: BookingSer
 }
 
 export function getBookingServiceName(services: Service[], booking: BookingServiceLookup): string {
+  if (isBlockerBooking(booking)) {
+    return blockerKindLabel(booking.service_category);
+  }
   const id = pickServiceIdForBooking(services, booking);
   const match = services.find((s) => s.id === id);
   if (match?.name) return match.name;

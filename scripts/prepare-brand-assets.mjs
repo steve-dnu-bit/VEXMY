@@ -27,6 +27,28 @@ function pngOptions() {
   return { compressionLevel: 9, effort: 10, palette: false };
 }
 
+/** Punch out near-black pixels so the gold mark sits on a true transparent background. */
+async function removeBlackBackground(input, { threshold = 32, soft = 12 } = {}) {
+  const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a === 0) continue;
+    const maxc = Math.max(data[i], data[i + 1], data[i + 2]);
+    if (maxc <= threshold) {
+      data[i + 3] = 0;
+    } else if (maxc < threshold + soft) {
+      data[i + 3] = Math.round((a * (maxc - threshold)) / soft);
+    }
+  }
+
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .png(pngOptions())
+    .toBuffer();
+}
+
 async function toTransparentSquare(input, { scale, height }) {
   const cropped = await sharp(input)
     .extract({
@@ -38,13 +60,15 @@ async function toTransparentSquare(input, { scale, height }) {
     .png()
     .toBuffer();
 
-  const meta = await sharp(cropped).metadata();
+  const punched = await removeBlackBackground(cropped);
+
+  const meta = await sharp(punched).metadata();
   const target = Math.max(1, Math.round(CANVAS * scale));
   const ratio = Math.min(target / meta.width, target / meta.height);
   const w = Math.max(1, Math.round(meta.width * ratio));
   const h = Math.max(1, Math.round(meta.height * ratio));
 
-  const resized = await sharp(cropped)
+  const resized = await sharp(punched)
     .resize(w, h, {
       fit: "inside",
       kernel: sharp.kernel.lanczos3,

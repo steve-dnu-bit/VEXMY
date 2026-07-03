@@ -9,6 +9,7 @@ Operator: **Inkaholics Limited** (UK) · Website: **https://velbok.com** · Pack
 3. Ensure `android/keystore.properties` and release keystore exist (never commit).
 4. Build AAB: `npm run android:bundle`
 5. Output: `android/app/build/outputs/bundle/release/app-release.aab`
+6. Release builds include native debug symbols (`ndk.debugSymbolLevel`) in the AAB for Play crash reports — no separate upload needed.
 
 ## Play Console setup
 

@@ -97,7 +97,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void showTerminalPermissionDisclosure() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.Velbok_TerminalPermissionDialog)
             .setTitle(R.string.terminal_permissions_title)
             .setMessage(R.string.terminal_permissions_message)
             .setPositiveButton(R.string.terminal_permissions_continue, (dialog, which) -> {

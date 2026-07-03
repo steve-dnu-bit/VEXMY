@@ -1,4 +1,4 @@
-import { Search, CalendarDays } from "lucide-react";
+import { Search, CalendarDays, Palmtree, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { type Service } from "./ServicePresets";
@@ -27,8 +27,10 @@ interface ScheduleSidebarProps {
   setCurrentDate: (d: Date) => void;
   bookingPrefillArtistId?: string;
   bookingPrefillServiceId?: string;
+  bookingPrefillBlockerKind?: "holiday" | "private";
   onServicePick?: (service: Service) => void;
   onArtistPick?: (profile: Profile) => void;
+  onBlockerPick?: (kind: "holiday" | "private") => void;
 }
 
 function ArtistColorDot({ color }: { color: string }) {
@@ -49,8 +51,10 @@ const ScheduleSidebar = ({
   setCurrentDate,
   bookingPrefillArtistId,
   bookingPrefillServiceId,
+  bookingPrefillBlockerKind,
   onServicePick,
   onArtistPick,
+  onBlockerPick,
 }: ScheduleSidebarProps) => {
   const { t } = useScheduleI18n();
   const filteredProfiles = profiles.filter((p) => p.display_name.toLowerCase().includes(teamSearch.toLowerCase()));
@@ -94,6 +98,39 @@ const ScheduleSidebar = ({
               day_today: "bg-accent/30 text-accent-foreground rounded-md",
             }}
           />
+        </div>
+      </div>
+
+      <div className="min-w-0 p-3 border-b border-border">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.blockers")}</p>
+        <p className="text-[10px] text-muted-foreground mb-2 leading-snug">{t("schedule.blockerHint")}</p>
+        <div className="space-y-1 min-w-0">
+          <button
+            type="button"
+            onClick={() => onBlockerPick?.("holiday")}
+            className={cn(
+              "flex min-w-0 w-full items-center gap-2 py-2 px-2 rounded-lg text-xs border transition-colors text-left",
+              bookingPrefillBlockerKind === "holiday"
+                ? "bg-amber-500/15 border-amber-500/50 ring-1 ring-amber-500/30"
+                : "bg-secondary/40 border-border/60 hover:bg-secondary/70",
+            )}
+          >
+            <Palmtree className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+            <span className="min-w-0 truncate text-foreground font-medium">{t("schedule.addHoliday")}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onBlockerPick?.("private")}
+            className={cn(
+              "flex min-w-0 w-full items-center gap-2 py-2 px-2 rounded-lg text-xs border transition-colors text-left",
+              bookingPrefillBlockerKind === "private"
+                ? "bg-slate-500/15 border-slate-500/50 ring-1 ring-slate-500/30"
+                : "bg-secondary/40 border-border/60 hover:bg-secondary/70",
+            )}
+          >
+            <Lock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <span className="min-w-0 truncate text-foreground font-medium">{t("schedule.addPrivateBlock")}</span>
+          </button>
         </div>
       </div>
 

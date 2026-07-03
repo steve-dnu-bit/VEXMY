@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { BOOKING_DISPLAY_TIMEZONE } from "./email.ts";
 import { sendPushToUser, type PushDeliveryResult } from "./push-notify.ts";
 
-type BookingPushAction = "created" | "updated" | "deleted";
+type BookingPushAction = "created" | "updated" | "deleted" | "deposit_confirmed";
 
 type BookingPushBooking = {
   id: string;
@@ -19,6 +20,7 @@ function formatWhen(startsAt: string): string {
       month: "short",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: BOOKING_DISPLAY_TIMEZONE,
     });
   } catch {
     return startsAt;
@@ -39,6 +41,13 @@ function bookingPushCopy(
       return {
         title: `New booking — ${shopName}`,
         body: `${client} · ${when}`,
+        path: "/schedule",
+      };
+    }
+    if (action === "deposit_confirmed") {
+      return {
+        title: `Appointment confirmed — ${shopName}`,
+        body: `${client} confirmed · ${when}`,
         path: "/schedule",
       };
     }
@@ -75,6 +84,36 @@ function bookingPushCopy(
     body: when,
     path: "/account",
   };
+}
+
+async function sendArtistBookingPush(
+  admin: SupabaseClient,
+  action: BookingPushAction,
+  booking: BookingPushBooking,
+  shopName: string,
+): Promise<PushDeliveryResult> {
+  const artistCopy = bookingPushCopy(action, "artist", booking, shopName);
+  return sendPushToUser(admin, booking.artist_id, {
+    title: artistCopy.title,
+    body: artistCopy.body,
+    data: {
+      type: "booking",
+      action,
+      booking_id: booking.id,
+      path: artistCopy.path,
+    },
+  });
+}
+
+/** Artist push when a customer confirms by paying their deposit. */
+export async function sendDepositConfirmedArtistPush(
+  admin: SupabaseClient,
+  params: {
+    booking: BookingPushBooking;
+    shopName: string;
+  },
+): Promise<PushDeliveryResult> {
+  return sendArtistBookingPush(admin, "deposit_confirmed", params.booking, params.shopName);
 }
 
 export async function sendBookingPushNotifications(

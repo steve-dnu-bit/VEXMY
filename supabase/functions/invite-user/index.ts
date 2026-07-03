@@ -220,6 +220,48 @@ async function resolveInviterOrgId(
   return soleOrg?.id ?? null;
 }
 
+const ARTIST_ALREADY_IN_STUDIO_MSG =
+  "This person is still linked to another studio. They must be released from that shop before they can join yours as an artist.";
+
+async function findUserIdByEmail(
+  adminClient: ReturnType<typeof createClient>,
+  email: string,
+): Promise<string | null> {
+  const { data: listed, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+  if (error) throw error;
+  const match = listed.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+  return match?.id ?? null;
+}
+
+async function assertArtistCanJoinOrg(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string,
+  orgId: string,
+): Promise<string | null> {
+  const { data: blockingOrgId, error: blockErr } = await adminClient.rpc("studio_staff_blocking_org", {
+    _user_id: userId,
+    _target_org_id: orgId,
+  });
+  if (blockErr) throw blockErr;
+  if (blockingOrgId) {
+    return ARTIST_ALREADY_IN_STUDIO_MSG;
+  }
+
+  const { data: otherMembership, error: memberErr } = await adminClient
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .neq("organization_id", orgId)
+    .limit(1)
+    .maybeSingle();
+  if (memberErr) throw memberErr;
+  if (otherMembership?.organization_id) {
+    return ARTIST_ALREADY_IN_STUDIO_MSG;
+  }
+
+  return null;
+}
+
 async function grantRoleDefaults(
   adminClient: ReturnType<typeof createClient>,
   userId: string,
@@ -472,6 +514,16 @@ serve(async (req) => {
 
     const orgId = await resolveInviterOrgId(adminClient, authResult.user.id);
 
+    if (inviteType === "artist" && orgId) {
+      const existingUserId = await findUserIdByEmail(adminClient, email);
+      if (existingUserId) {
+        const blockMessage = await assertArtistCanJoinOrg(adminClient, existingUserId, orgId);
+        if (blockMessage) {
+          return jsonResponse({ error: blockMessage, code: "artist_already_in_studio" }, 409);
+        }
+      }
+    }
+
     const inviteResult = await sendInviteLink({
       adminClient,
       email,
@@ -506,6 +558,9 @@ serve(async (req) => {
           { error: "Artist seat limit reached for your plan. Upgrade to add more artists.", code: "seat_limit_reached" },
           403,
         );
+      }
+      if (msg.includes("studio_staff_single_org_only")) {
+        return jsonResponse({ error: ARTIST_ALREADY_IN_STUDIO_MSG, code: "artist_already_in_studio" }, 409);
       }
       return jsonResponse({ error: withCustomerMigrationHint(msg, inviteType) }, 400);
     }

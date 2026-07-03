@@ -101,6 +101,7 @@ const SchedulePage = () => {
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"booking" | "blocker">("booking");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingPrefill, setBookingPrefill] = useState<BookingPrefill>({});
   const [sidebarDraft, setSidebarDraft] = useState<SidebarBookingDraft>({});
@@ -267,6 +268,7 @@ const SchedulePage = () => {
   const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || t("schedule.unknown");
 
   const openFreshBooking = useCallback(() => {
+    setDialogMode("booking");
     setBookingPrefill({});
     setSidebarDraft({});
     setEditingBooking(null);
@@ -275,6 +277,8 @@ const SchedulePage = () => {
 
   const handleSlotClick = (date: Date, hour: number, minute: number, artistId?: string) => {
     if (dialogOpen && editingBooking) return;
+    const isBlocker = !!sidebarDraft.blockerKind;
+    setDialogMode(isBlocker ? "blocker" : "booking");
     setBookingPrefill(buildBookingPrefillFromSlot({ date, hour, minute, artistId }, sidebarDraft));
     setEditingBooking(null);
     setDialogOpen(true);
@@ -284,6 +288,15 @@ const SchedulePage = () => {
     setSidebarDraft((prev) => ({
       ...prev,
       serviceId: prev.serviceId === serviceId ? undefined : serviceId,
+      blockerKind: undefined,
+    }));
+  };
+
+  const toggleDraftBlocker = (kind: "holiday" | "private") => {
+    setSidebarDraft((prev) => ({
+      ...prev,
+      blockerKind: prev.blockerKind === kind ? undefined : kind,
+      serviceId: undefined,
     }));
   };
 
@@ -361,8 +374,10 @@ const SchedulePage = () => {
               setCurrentDate={setCurrentDate}
               bookingPrefillArtistId={sidebarDraft.artistId}
               bookingPrefillServiceId={sidebarDraft.serviceId}
+              bookingPrefillBlockerKind={sidebarDraft.blockerKind}
               onServicePick={(service) => toggleDraftService(service.id)}
               onArtistPick={(profile) => toggleDraftArtist(profile.user_id)}
+              onBlockerPick={toggleDraftBlocker}
             />
           </div>
           {sidebarOpen && (
@@ -398,6 +413,7 @@ const SchedulePage = () => {
               onEdit={() => {
                 setBookingPrefill({});
                 setSidebarDraft({});
+                setDialogMode(selectedBooking.booking_type === "blocker" ? "blocker" : "booking");
                 setEditingBooking(selectedBooking);
                 setDialogOpen(true);
               }}
@@ -432,10 +448,13 @@ const SchedulePage = () => {
             if (!v) {
               setEditingBooking(null);
               setBookingPrefill({});
+              setDialogMode("booking");
             }
           }}
           userId={user.id}
           artists={profiles}
+          dialogMode={dialogMode}
+          prefillBlockerKind={bookingPrefill.blockerKind}
           prefillDate={bookingPrefill.date}
           prefillHour={bookingPrefill.hour}
           prefillMinute={bookingPrefill.minute}

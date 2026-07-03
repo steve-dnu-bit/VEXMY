@@ -19,7 +19,7 @@ import {
   normalizeClientPhone,
 } from "@/lib/clientConduct";
 import { consentPdfBasename, downloadConsentPdf, printConsentPdf } from "@/lib/consentPdfActions";
-import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
+import { BOOKING_TYPE_BADGE_STYLES, isBlockerBooking } from "@/lib/bookingTypes";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
@@ -45,6 +45,7 @@ interface Booking {
   tattoo_placement: string | null;
   notes: string | null;
   booking_type: string;
+  service_category?: string | null;
   status: string;
   starts_at: string;
   ends_at: string;
@@ -79,7 +80,8 @@ type ClientConductRow = {
 };
 
 const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtistName, onSelectClientBooking, onBookingUpdated }: BookingDetailPanelProps) => {
-  const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
+  const { t, bookingTypeLabel, tattooSizeLabel, blockerKindLabel } = useScheduleI18n();
+  const isBlocker = isBlockerBooking(booking);
   const { user } = useAuth();
   const { hasFeature } = useSubscription();
   const [shopDefaultDeposit, setShopDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
@@ -417,7 +419,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
       <div className="fixed inset-0 bg-background/60 z-30 md:hidden" onClick={onClose} />
       <div className="fixed inset-y-0 right-0 z-40 w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right">
         <div className="flex items-center justify-between p-3 border-b border-border">
-          <h3 className="font-display text-sm font-semibold">{t("schedule.bookingDetails")}</h3>
+          <h3 className="font-display text-sm font-semibold">{isBlocker ? t("schedule.blockerDetails") : t("schedule.bookingDetails")}</h3>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -425,7 +427,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
         <div className="px-3 pt-2">
           <Button variant="outline" size="sm" className="w-full gap-2" onClick={onEdit}>
             <Pencil className="h-3.5 w-3.5" />
-            {t("schedule.editBookingBtn")}
+            {isBlocker ? t("schedule.editBlockerBtn") : t("schedule.editBookingBtn")}
           </Button>
         </div>
 
@@ -433,9 +435,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
           <div>
             <p className="text-base font-display font-bold">{booking.client_name}</p>
             <Badge variant="outline" className={`mt-1 text-[10px] ${typeColors[booking.booking_type] || ""}`}>
-              {bookingTypeLabel(booking.booking_type)}
+              {isBlocker ? blockerKindLabel((booking.service_category || "private").toLowerCase()) : bookingTypeLabel(booking.booking_type)}
             </Badge>
-            {(isBanned || highRisk || isVip) && (
+            {!isBlocker && (isBanned || highRisk || isVip) && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {isBanned || highRisk ? (
                   <>
@@ -453,6 +455,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
                 ) : null}
               </div>
             )}
+            {!isBlocker ? (
             <Button
               type="button"
               variant="outline"
@@ -463,6 +466,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               <CalendarDays className="h-3.5 w-3.5 text-gold" />
               {t("schedule.clientAppointments")}
             </Button>
+            ) : null}
           </div>
 
           <div className="flex items-start gap-2">
@@ -480,7 +484,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
             <p className="text-xs">{artistName}</p>
           </div>
 
-          {(booking.client_phone || booking.client_email) && (
+          {!isBlocker && (booking.client_phone || booking.client_email) && (
             <div className="space-y-1.5 pt-2 border-t border-border">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.contact")}</p>
               {booking.client_phone && (
@@ -563,6 +567,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
             </div>
           )}
 
+          {!isBlocker ? (
           <div className="pt-2 border-t border-border">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.deposit")}</p>
             <Badge
@@ -613,7 +618,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               </Badge>
             ) : null}
           </div>
+          ) : null}
 
+          {!isBlocker ? (
           <div className="pt-2 border-t border-border">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.consent")}</p>
             {consentLoading ? (
@@ -665,7 +672,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               </>
             )}
           </div>
+          ) : null}
 
+          {!isBlocker ? (
           <div className="pt-2 border-t border-border space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.clientConduct")}</p>
             {conductLoading ? (
@@ -728,9 +737,11 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               </>
             )}
           </div>
+          ) : null}
         </div>
       </div>
 
+      {!isBlocker ? (
       <ClientAppointmentsDialog
         open={clientAppointmentsOpen}
         onOpenChange={setClientAppointmentsOpen}
@@ -742,6 +753,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
         resolveArtistName={resolveArtistName ?? (() => artistName)}
         onSelectBooking={onSelectClientBooking}
       />
+      ) : null}
     </>
   );
 };

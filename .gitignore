@@ -1,7 +1,12 @@
 # Android release binaries (too large for GitHub; deploy via Netlify CLI from local builds)
 releases/*.apk
 releases/*.aab
+releases/app-versions/apk/
+releases/app-versions/aab/
+releases/app-versions/ios/*.ipa
 public/downloads/*.apk
+releases/phone-screenshots/
+releases/promo/
 
 logs
 *.log

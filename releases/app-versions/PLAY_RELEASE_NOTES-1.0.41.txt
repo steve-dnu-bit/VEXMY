@@ -1,0 +1,16 @@
+Velbok 1.0.41 (42) — Google Play release notes
+================================================
+
+Paste into Play Console → Release → Release notes:
+
+• Billing: quantity fields can be cleared and retyped without typing first
+• Checkout: Charge is disabled until a client name is entered
+• Fixed black square text cursor when editing fields in the Android app
+• Transparent logo assets across the app UI
+• Bug fixes and stability improvements
+
+Upload file:
+  releases/app-versions/aab/velbok-1.0.41-build42.aab
+
+Version code: 42
+Version name: 1.0.41

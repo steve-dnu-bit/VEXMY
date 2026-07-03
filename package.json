@@ -25,6 +25,7 @@
     "cap:ios": "npx cap open ios",
     "cap:run:android": "npm run cap:sync && npx cap run android",
     "cap:run:ios": "npm run cap:sync && npx cap run ios",
+    "ios:prepare": "npm run cap:sync",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"
   },
