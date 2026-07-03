@@ -1,0 +1,15 @@
+Velbok 1.0.42 (43) — Google Play release notes
+================================================
+
+Paste into Play Console → Release → Release notes:
+
+• Fixed light/opaque square behind the text cursor when typing in the app
+• Checkout Charge stays tappable and shows a clear toast if items, artist, or client are missing
+• Billing quantity fields can be cleared and retyped
+• Transparent logo assets across the app UI
+
+Upload file:
+  releases/app-versions/aab/velbok-1.0.42-build43.aab
+
+Version code: 43
+Version name: 1.0.42

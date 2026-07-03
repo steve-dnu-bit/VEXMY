@@ -190,9 +190,13 @@
   }
 
   /*
-   * Capacitor WebView: backdrop-filter on inputs draws the caret as a black square.
-   * Use an opaque field fill and an explicit caret color on native only.
+   * Capacitor WebView: backdrop-filter + light color-scheme paint the caret/selection
+   * handle as an opaque white or black square. Force dark chrome and a solid field fill.
    */
+  html.native-app {
+    color-scheme: dark;
+  }
+
   html.native-app .field-surface {
     @apply bg-secondary backdrop-blur-none;
   }
@@ -201,6 +205,17 @@
   html.native-app textarea,
   html.native-app [contenteditable="true"] {
     caret-color: hsl(var(--foreground));
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.native-app ::selection {
+    background-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--foreground));
+  }
+
+  html.native-app ::-moz-selection {
+    background-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--foreground));
   }
 
   .bg-noise {

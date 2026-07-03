@@ -1,89 +1,49 @@
 {
   "packageId": "com.velbok.app",
   "exportedAt": "2026-07-03",
-  "note": "1.0.41: billing qty edit, checkout client required, Android caret fix, transparent logos.",
+  "note": "1.0.42: dark selection chrome (no light cursor square), charge toasts for missing fields.",
   "releases": [
+    {
+      "versionName": "1.0.42",
+      "versionCode": 43,
+      "format": "apk",
+      "file": "apk/velbok-1.0.42-build43.apk",
+      "status": "latest",
+      "installable": true,
+      "sizeBytes": 52057299,
+      "changes": [
+        "Fixed light/opaque square behind the text cursor when typing in the app",
+        "Checkout Charge stays tappable and shows a toast if items, artist, or client are missing"
+      ]
+    },
+    {
+      "versionName": "1.0.42",
+      "versionCode": 43,
+      "format": "aab",
+      "file": "aab/velbok-1.0.42-build43.aab",
+      "status": "play-store-bundle",
+      "installable": false,
+      "sizeBytes": 53089137,
+      "changes": [
+        "Fixed light/opaque square behind the text cursor when typing in the app",
+        "Checkout Charge stays tappable and shows a toast if items, artist, or client are missing"
+      ]
+    },
     {
       "versionName": "1.0.41",
       "versionCode": 42,
       "format": "apk",
       "file": "apk/velbok-1.0.41-build42.apk",
-      "status": "latest",
-      "installable": true,
-      "sizeBytes": 52057299,
-      "changes": [
-        "Billing quantity fields can be cleared and retyped without typing first",
-        "Checkout Charge requires a client name",
-        "Fixed black square text cursor when editing fields in the Android app",
-        "Transparent logo assets across the app UI"
-      ]
+      "status": "superseded",
+      "installable": true
     },
     {
       "versionName": "1.0.41",
       "versionCode": 42,
       "format": "aab",
       "file": "aab/velbok-1.0.41-build42.aab",
-      "status": "play-store-bundle",
-      "installable": false,
-      "sizeBytes": 53089137,
-      "changes": [
-        "Billing quantity fields can be cleared and retyped without typing first",
-        "Checkout Charge requires a client name",
-        "Fixed black square text cursor when editing fields in the Android app",
-        "Transparent logo assets across the app UI"
-      ]
-    },
-    {
-      "versionName": "1.0.40",
-      "versionCode": 41,
-      "format": "apk",
-      "file": "apk/velbok-1.0.40-build41.apk",
-      "status": "superseded",
-      "installable": true,
-      "sizeBytes": 52279115
-    },
-    {
-      "versionName": "1.0.40",
-      "versionCode": 41,
-      "format": "aab",
-      "file": "aab/velbok-1.0.40-build41.aab",
-      "status": "superseded",
-      "installable": false,
-      "sizeBytes": 53300000
-    },
-    {
-      "versionName": "1.0.39",
-      "versionCode": 40,
-      "format": "apk",
-      "file": "apk/velbok-1.0.39-build40.apk",
-      "status": "superseded",
-      "installable": true
-    },
-    {
-      "versionName": "1.0.39",
-      "versionCode": 40,
-      "format": "aab",
-      "file": "aab/velbok-1.0.39-build40.aab",
       "status": "superseded",
       "installable": false
-    },
-    {
-      "versionName": "1.0.38",
-      "versionCode": 39,
-      "format": "apk",
-      "file": "apk/velbok-1.0.38-build39.apk",
-      "status": "superseded",
-      "installable": true,
-      "sizeBytes": 52170911
-    },
-    {
-      "versionName": "1.0.38",
-      "versionCode": 39,
-      "format": "aab",
-      "file": "aab/velbok-1.0.38-build39.aab",
-      "status": "superseded",
-      "installable": false,
-      "sizeBytes": 53204648
     }
   ]
 }

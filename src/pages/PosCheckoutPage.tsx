@@ -681,8 +681,12 @@ const PosCheckoutPage = () => {
   };
 
   const handlePay = async () => {
-    if ((!isShopSession && !artistId) || cart.length === 0) {
-      toast.error(t("pos.addItemsFirst"));
+    if (cart.length === 0) {
+      toast.error(t("pos.addItemsToCharge"));
+      return;
+    }
+    if (!isShopSession && !artistId) {
+      toast.error(t("pos.selectArtistToCharge"));
       return;
     }
     if (!clientName.trim()) {
@@ -1348,14 +1352,7 @@ const PosCheckoutPage = () => {
                       type="button"
                       variant="gold"
                       className="w-full h-12 text-base"
-                      disabled={
-                        paying ||
-                        readerFirmwareUpdating ||
-                        cart.length === 0 ||
-                        !clientName.trim() ||
-                        (!isShopSession && !artistId) ||
-                        (amountDue > 0 && terminal.status === "processing")
-                      }
+                      disabled={paying || readerFirmwareUpdating || (amountDue > 0 && terminal.status === "processing")}
                       onClick={() => void handlePay()}
                     >
                       {paying || (amountDue > 0 && terminal.status === "processing") ? (

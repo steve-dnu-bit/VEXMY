@@ -28,7 +28,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onStart() {
         super.onStart();
-        configureWebViewForGoogleSignIn();
+        configureWebView();
     }
 
     /** Required so OAuth deep links reach Capacitor when activity uses singleTask. */
@@ -38,13 +38,15 @@ public class MainActivity extends BridgeActivity {
         setIntent(intent);
     }
 
-    /** Allow Google Identity Services popups inside the Capacitor WebView. */
-    private void configureWebViewForGoogleSignIn() {
+    /** WebView chrome: GIS popups and dark canvas for selection handles. */
+    private void configureWebView() {
         if (getBridge() == null || getBridge().getWebView() == null) {
             return;
         }
         WebView webView = getBridge().getWebView();
         webView.post(() -> {
+            // Match app canvas so selection handles are not composited on a light default layer.
+            webView.setBackgroundColor(ContextCompat.getColor(this, R.color.appBackground));
             WebSettings settings = webView.getSettings();
             settings.setJavaScriptCanOpenWindowsAutomatically(true);
             settings.setSupportMultipleWindows(true);

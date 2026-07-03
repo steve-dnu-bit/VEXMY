@@ -2190,6 +2190,8 @@
     "clientName": "Client name",
     "clientNamePlaceholder": "Client name",
     "clientNameRequired": "Enter a client name before charging",
+    "addItemsToCharge": "Add at least one item before charging",
+    "selectArtistToCharge": "Select an artist or shop session before charging",
     "clientEmail": "Client email",
     "clientEmailPlaceholder": "name@example.com",
     "clientEmailHint": "A PDF receipt will be emailed after payment if an address is provided.",
