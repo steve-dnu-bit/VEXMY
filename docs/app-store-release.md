@@ -4,6 +4,35 @@ Operator: **Inkaholics Limited** (UK) · Website: **https://velbok.com** · Bund
 
 The iOS app is a **Capacitor shell** around the same React web app used on Android and velbok.com. Native code is limited to Stripe Terminal (Tap to Pay + WisePad) and Apple’s required Tap to Pay education overlay.
 
+## Use the correct branch
+
+All iOS / Xcode work happens on **`apple-app-store`**, not `play-store-launch` or `main`.
+
+```bash
+git fetch origin
+git checkout apple-app-store
+git pull
+```
+
+In Xcode you do **not** switch branches inside the IDE for day-to-day work — switch in Terminal first, then reopen the project.
+
+## First time on a Mac (fix black screen)
+
+A **black screen** almost always means the web app was not copied into the iOS project.
+
+1. Clone and checkout `apple-app-store` (see above).
+2. Copy env: `cp .env.example .env` and set `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` (only needed when **rebuilding** the web bundle).
+3. Install and import the web app into iOS:
+   ```bash
+   npm install
+   npm run ios:prepare
+   ```
+4. Open Xcode: `npm run cap:ios`
+5. Select your **Apple Developer Team** under Signing & Capabilities.
+6. Run on a **physical iPhone** (Tap to Pay does not work in Simulator).
+
+This branch **commits** `ios/App/App/public/` so a fresh clone can open in Xcode immediately. After you change the React app, run `npm run ios:prepare` again and commit the updated `public/` folder.
+
 ## Before each release
 
 1. Set production `.env` / Netlify `VITE_*` vars (Supabase, branding).

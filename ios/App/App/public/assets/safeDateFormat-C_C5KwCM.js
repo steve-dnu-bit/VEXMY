@@ -1,0 +1,1 @@
+import{G as e,J as n,f as o}from"./vendor-datefns-GASWOfnr.js";function i(r,s){if(!r)return null;const t=e(r),a=n(t)?t:new Date(r);if(!n(a))return null;try{return o(a,s)}catch{return null}}export{i as s};
