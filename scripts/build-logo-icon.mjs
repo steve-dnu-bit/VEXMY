@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -214,7 +214,7 @@ const iosIcon = join(root, "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIc
 copyFileSync(join(root, "public/icons/icon-1024.png"), iosIcon);
 console.log("Wrote ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png");
 
-const IOS_SPLASH_SIZE = 2732;
+const IOS_SPLASH_SIZE = 1024;
 const IOS_SPLASH_MARK_SCALE = 0.28;
 const splashMarkSize = Math.max(1, Math.round(IOS_SPLASH_SIZE * IOS_SPLASH_MARK_SCALE));
 const splashMark = await buildMarkBuffer(splashMarkSize);
@@ -229,10 +229,25 @@ const splashBuffer = await sharp(splashBg)
   .toBuffer();
 
 const iosSplashDir = join(root, "ios/App/App/Assets.xcassets/Splash.imageset");
-for (const file of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"]) {
-  await sharp(splashBuffer).toFile(join(iosSplashDir, file));
+for (const legacy of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"]) {
+  const legacyPath = join(iosSplashDir, legacy);
+  if (existsSync(legacyPath)) {
+    unlinkSync(legacyPath);
+  }
 }
-console.log("Wrote ios/App/App/Assets.xcassets/Splash.imageset/*.png");
+await sharp(splashBuffer).toFile(join(iosSplashDir, "splash.png"));
+writeFileSync(
+  join(iosSplashDir, "Contents.json"),
+  `${JSON.stringify(
+    {
+      images: [{ idiom: "universal", filename: "splash.png", scale: "1x" }],
+      info: { version: 1, author: "xcode" },
+    },
+    null,
+    2,
+  )}\n`,
+);
+console.log("Wrote ios/App/App/Assets.xcassets/Splash.imageset/splash.png");
 
 const favicon32 = await buildFaviconIcon(32);
 writeFileSync(
