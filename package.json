@@ -29,7 +29,7 @@
     "ios:prepare": "node scripts/sync-mobile-version.mjs && npm run build:icons && npm run cap:sync && node scripts/verify-ios-bundle.mjs",
     "ios:reset-signing": "bash scripts/ios-reset-xcode-signing.sh",
     "ios:build-simulator": "bash scripts/ios-build-simulator.sh",
-    "ios:build-status": "bash scripts/ios-build-status.sh",
+    "ios:build-status": "node scripts/ios-build-status.mjs",
     "ios:archive": "bash scripts/ios-archive.sh",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"
