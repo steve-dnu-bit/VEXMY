@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import { copyFileSync, existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -213,41 +213,6 @@ for (const [density, launcherSize, foregroundSize] of ANDROID_MIPMAPS) {
 const iosIcon = join(root, "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png");
 copyFileSync(join(root, "public/icons/icon-1024.png"), iosIcon);
 console.log("Wrote ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png");
-
-const IOS_SPLASH_SIZE = 1024;
-const IOS_SPLASH_MARK_SCALE = 0.28;
-const splashMarkSize = Math.max(1, Math.round(IOS_SPLASH_SIZE * IOS_SPLASH_MARK_SCALE));
-const splashMark = await buildMarkBuffer(splashMarkSize);
-const splashMarkOffset = Math.round((IOS_SPLASH_SIZE - splashMarkSize) / 2);
-const splashBg = Buffer.from(
-  `<svg width="${IOS_SPLASH_SIZE}" height="${IOS_SPLASH_SIZE}" xmlns="http://www.w3.org/2000/svg"><rect width="${IOS_SPLASH_SIZE}" height="${IOS_SPLASH_SIZE}" fill="${HOME_BG_HEX}"/></svg>`,
-);
-const splashBuffer = await sharp(splashBg)
-  .composite([{ input: splashMark, top: splashMarkOffset, left: splashMarkOffset }])
-  .flatten({ background: HOME_BG })
-  .png(pngOptions())
-  .toBuffer();
-
-const iosSplashDir = join(root, "ios/App/App/Assets.xcassets/Splash.imageset");
-for (const legacy of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"]) {
-  const legacyPath = join(iosSplashDir, legacy);
-  if (existsSync(legacyPath)) {
-    unlinkSync(legacyPath);
-  }
-}
-await sharp(splashBuffer).toFile(join(iosSplashDir, "splash.png"));
-writeFileSync(
-  join(iosSplashDir, "Contents.json"),
-  `${JSON.stringify(
-    {
-      images: [{ idiom: "universal", filename: "splash.png", scale: "1x" }],
-      info: { version: 1, author: "xcode" },
-    },
-    null,
-    2,
-  )}\n`,
-);
-console.log("Wrote ios/App/App/Assets.xcassets/Splash.imageset/splash.png");
 
 const favicon32 = await buildFaviconIcon(32);
 writeFileSync(
