@@ -40,7 +40,7 @@ This branch **commits** `ios/App/App/public/` so a fresh clone can open in Xcode
 3. Sync versions to native projects: `npm run sync:version`
 4. Prepare the iOS bundle: `npm run ios:prepare` (icons, mobile web build, `cap sync`)
 5. On a **Mac with Xcode 15+**, open the project: `npm run cap:ios`
-6. In Xcode → **Signing & Capabilities**: select your Apple Developer team, confirm bundle ID `com.velbok.app`, and that **Tap to Pay on iPhone** (`com.apple.developer.proximity-reader.payment.acceptance`) is enabled on the App ID in [Apple Developer](https://developer.apple.com/account/resources/identifiers/list).
+6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Add **Tap to Pay on iPhone** capability only after Apple approves it for your App ID.
 7. Archive: Product → **Archive** → **Distribute App** → App Store Connect  
    Or from the repo root on macOS: `npm run ios:archive`
 
