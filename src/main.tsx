@@ -10,6 +10,7 @@ async function start() {
   const { preloadStoredLanguage } = await import("@/i18n/loadLocale");
 
   if (Capacitor.isNativePlatform()) {
+    document.documentElement.classList.add("velbok-native");
     const { bootstrapNativeTerminalListener } = await import("@/lib/terminal/bootstrapNativeTerminal");
     void bootstrapNativeTerminalListener();
   }

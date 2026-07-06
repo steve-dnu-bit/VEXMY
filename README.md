@@ -76,6 +76,7 @@ Each deployment can customize branding via environment variables (frontend `VITE
 - **User guide index:** [docs/user-guide/README.md](docs/user-guide/README.md)
 - **Go-live checklist:** [docs/velbok-go-live-checklist.md](docs/velbok-go-live-checklist.md)
 - **Google Play release:** [docs/google-play-release.md](docs/google-play-release.md)
+- **App Store release:** [docs/app-store-release.md](docs/app-store-release.md)
 
 ## Marketing site
 

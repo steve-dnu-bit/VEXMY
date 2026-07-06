@@ -214,6 +214,26 @@ const iosIcon = join(root, "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIc
 copyFileSync(join(root, "public/icons/icon-1024.png"), iosIcon);
 console.log("Wrote ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png");
 
+const IOS_SPLASH_SIZE = 2732;
+const IOS_SPLASH_MARK_SCALE = 0.28;
+const splashMarkSize = Math.max(1, Math.round(IOS_SPLASH_SIZE * IOS_SPLASH_MARK_SCALE));
+const splashMark = await buildMarkBuffer(splashMarkSize);
+const splashMarkOffset = Math.round((IOS_SPLASH_SIZE - splashMarkSize) / 2);
+const splashBg = Buffer.from(
+  `<svg width="${IOS_SPLASH_SIZE}" height="${IOS_SPLASH_SIZE}" xmlns="http://www.w3.org/2000/svg"><rect width="${IOS_SPLASH_SIZE}" height="${IOS_SPLASH_SIZE}" fill="${HOME_BG_HEX}"/></svg>`,
+);
+const splashBuffer = await sharp(splashBg)
+  .composite([{ input: splashMark, top: splashMarkOffset, left: splashMarkOffset }])
+  .flatten({ background: HOME_BG })
+  .png(pngOptions())
+  .toBuffer();
+
+const iosSplashDir = join(root, "ios/App/App/Assets.xcassets/Splash.imageset");
+for (const file of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"]) {
+  await sharp(splashBuffer).toFile(join(iosSplashDir, file));
+}
+console.log("Wrote ios/App/App/Assets.xcassets/Splash.imageset/*.png");
+
 const favicon32 = await buildFaviconIcon(32);
 writeFileSync(
   join(root, "public/icon.svg"),

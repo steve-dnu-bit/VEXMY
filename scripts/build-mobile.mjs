@@ -21,6 +21,17 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
+// Vite copies public/downloads/*.apk into dist — never ship those inside the Capacitor bundle.
+for (const dir of [path.join(root, "dist"), distDownloads]) {
+  if (!fs.existsSync(dir)) continue;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".apk")) continue;
+    const file = path.join(dir, entry.name);
+    fs.unlinkSync(file);
+    console.log(`[build-mobile] Removed ${path.relative(root, file)} from mobile bundle`);
+  }
+}
+
 for (const name of ["velbok-android.apk", "android-version.json"]) {
   const file = path.join(distDownloads, name);
   if (fs.existsSync(file)) {

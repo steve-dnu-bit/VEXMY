@@ -167,6 +167,19 @@
     @apply bg-secondary/45 backdrop-blur-sm;
   }
 
+  /* Android WebView: backdrop-filter breaks text selection and native pickers */
+  .velbok-native .field-surface {
+    @apply bg-secondary;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .velbok-native .glass-surface,
+  .velbok-native .glass-surface-subtle {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
   .bg-noise {
     position: relative;
   }

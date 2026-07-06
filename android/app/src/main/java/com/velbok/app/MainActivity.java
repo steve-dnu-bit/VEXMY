@@ -1,5 +1,6 @@
 package com.velbok.app;
 
+import android.content.Intent;
 import android.Manifest;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -8,6 +9,8 @@ import android.os.Bundle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -20,6 +23,36 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(TapToPayReadinessPlugin.class);
         super.onCreate(savedInstanceState);
         maybeRequestTerminalPermissions();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        configureWebView();
+    }
+
+    /** Required so OAuth deep links reach Capacitor when activity uses singleTask. */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    /**
+     * Keep a single WebView window so HTML time inputs use the in-page picker
+     * instead of opening a blank secondary window (white Capacitor splash).
+     * Google sign-in on native uses email/password, not popup windows.
+     */
+    private void configureWebView() {
+        if (getBridge() == null || getBridge().getWebView() == null) {
+            return;
+        }
+        WebView webView = getBridge().getWebView();
+        webView.post(() -> {
+            WebSettings settings = webView.getSettings();
+            settings.setJavaScriptCanOpenWindowsAutomatically(false);
+            settings.setSupportMultipleWindows(false);
+        });
     }
 
     private SharedPreferences prefs() {
