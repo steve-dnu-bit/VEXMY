@@ -27,9 +27,20 @@ A **black screen** almost always means the web app was not copied into the iOS p
    npm install
    npm run ios:prepare
    ```
-4. Open Xcode: `npm run cap:ios`
-5. Select your **Apple Developer Team** under Signing & Capabilities.
-6. Run on a **physical iPhone** (Tap to Pay does not work in Simulator).
+4. Install and import the web app into iOS:
+   ```bash
+   npm install
+   npm run ios:prepare
+   ```
+   `npm install` is required — CapApp-SPM links to Capacitor plugins in `node_modules`, which are not committed to git.
+5. Open Xcode: `npm run cap:ios`
+6. If Xcode shows **Missing package product 'CapApp-SPM'**:
+   - Quit Xcode
+   - Run `npm install` and `npm run ios:prepare` again
+   - Reopen Xcode → **File → Packages → Reset Package Caches**
+   - **File → Packages → Resolve Package Versions**
+7. Select your **Apple Developer Team** under Signing & Capabilities.
+8. Run on a **physical iPhone** (Tap to Pay does not work in Simulator).
 
 This branch **commits** `ios/App/App/public/` so a fresh clone can open in Xcode immediately. After you change the React app, run `npm run ios:prepare` again and commit the updated `public/` folder.
 

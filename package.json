@@ -20,7 +20,7 @@
     "test:watch": "vitest",
     "postinstall": "node scripts/patch-stripe-terminal-android.mjs",
     "build:mobile": "node scripts/build-mobile.mjs",
-    "cap:sync": "node scripts/patch-stripe-terminal-android.mjs && npm run build:mobile && npx cap sync",
+    "cap:sync": "node scripts/patch-stripe-terminal-android.mjs && npm run build:mobile && npx cap sync && node scripts/fix-ios-spm-paths.mjs",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
     "cap:run:android": "npm run cap:sync && npx cap run android",
