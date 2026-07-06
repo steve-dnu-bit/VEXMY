@@ -136,7 +136,7 @@ Requirements (see also `docs/pos-tap-to-pay.md`):
 - Apple must approve **Tap to Pay on iPhone** on your App ID
 - Physical iPhone (XS or later), iOS 16.4+
 - Stripe Terminal live mode in production builds
-- “How to Tap” education via `TapToPayEducationPlugin` (iOS 18+)
+- “How to Tap” education via `TapToPayEducationPlugin` (enable ProximityReader build after Apple Tap to Pay approval)
 
 Test on **TestFlight** with a real device before submitting for Tap to Pay review.
 
