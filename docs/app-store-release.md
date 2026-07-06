@@ -66,6 +66,28 @@ that is a **signing cache problem on your Mac**, not missing app code.
 
 Only use **Any iOS Device** or a real iPhone after signing shows no errors.
 
+## Xcode stuck on “Pre-planning 1/163”
+
+Xcode is often hung resolving Swift packages (CapApp-SPM). Do this:
+
+1. **Force quit Xcode** (Cmd+Q; if needed: Activity Monitor → quit Xcode).
+2. In Terminal:
+   ```bash
+   cd VEXMY
+   git pull
+   npm install
+   bash scripts/ios-reset-xcode-signing.sh
+   rm -rf ios/App/CapApp-SPM/.build
+   ```
+3. Build from Terminal (shows real output instead of a frozen bar):
+   ```bash
+   npm run ios:build-simulator
+   ```
+   First run can take **10–20 minutes** while it downloads Capacitor packages from GitHub. You should see log lines moving — that means it is working.
+4. When that succeeds, open Xcode: `npm run cap:ios` → select **iPhone 17 Simulator** → Run.
+
+If `ios:build-simulator` hangs for more than 20 minutes with **no new lines**, check your internet connection (Xcode must reach `github.com` for Capacitor SPM).
+
 ## Before each release
 
 1. Set production `.env` / Netlify `VITE_*` vars (Supabase, branding).
