@@ -48,7 +48,7 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
                     topViewController = presented
                 }
 
-                discovery.presentContent(content, from: topViewController)
+                try await discovery.presentContent(content, from: topViewController)
                 call.resolve()
             } catch {
                 call.reject("Could not present How to Tap education", nil, error)
