@@ -27,6 +27,7 @@
     "cap:run:ios": "npm run cap:sync && npx cap run ios",
     "sync:version": "node scripts/sync-mobile-version.mjs",
     "ios:prepare": "node scripts/sync-mobile-version.mjs && npm run build:icons && npm run cap:sync && node scripts/verify-ios-bundle.mjs",
+    "ios:reset-signing": "bash scripts/ios-reset-xcode-signing.sh",
     "ios:archive": "bash scripts/ios-archive.sh",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"

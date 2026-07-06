@@ -27,22 +27,44 @@ A **black screen** almost always means the web app was not copied into the iOS p
    npm install
    npm run ios:prepare
    ```
-4. Install and import the web app into iOS:
-   ```bash
-   npm install
-   npm run ios:prepare
-   ```
    `npm install` is required — CapApp-SPM links to Capacitor plugins in `node_modules`, which are not committed to git.
-5. Open Xcode: `npm run cap:ios`
-6. If Xcode shows **Missing package product 'CapApp-SPM'**:
+4. Open Xcode: `npm run cap:ios`
+5. If Xcode shows **Missing package product 'CapApp-SPM'**:
    - Quit Xcode
    - Run `npm install` and `npm run ios:prepare` again
    - Reopen Xcode → **File → Packages → Reset Package Caches**
    - **File → Packages → Resolve Package Versions**
-7. Select your **Apple Developer Team** under Signing & Capabilities.
-8. Run on a **physical iPhone** (Tap to Pay does not work in Simulator).
+6. Select your **Apple Developer Team** under Signing & Capabilities.
+7. For the first build test, use an **iPhone Simulator** (no provisioning profile needed).
+8. After signing works, run on a **physical iPhone** for Tap to Pay testing.
 
 This branch **commits** `ios/App/App/public/` so a fresh clone can open in Xcode immediately. After you change the React app, run `npm run ios:prepare` again and commit the updated `public/` folder.
+
+## Fix: missing `.mobileprovision` error
+
+If Xcode shows:
+
+> Build input file cannot be found: `...Provisioning Profiles/xxxxxxxx.mobileprovision`
+
+that is a **signing cache problem on your Mac**, not missing app code.
+
+1. Quit Xcode.
+2. From the repo root:
+   ```bash
+   bash scripts/ios-reset-xcode-signing.sh
+   git pull
+   npm install
+   npm run ios:prepare
+   ```
+3. Open Xcode → target **App** → **Signing & Capabilities**:
+   - Check **Automatically manage signing**
+   - Select your **Team**
+   - Bundle ID: `com.velbok.app`
+4. **Xcode → Settings → Accounts** → your Apple ID → **Download Manual Profiles**
+5. Select **iPhone 15 Simulator** (or any Simulator) and build first.
+6. **Product → Clean Build Folder**, then build again.
+
+Only use **Any iOS Device** or a real iPhone after signing shows no errors.
 
 ## Before each release
 
