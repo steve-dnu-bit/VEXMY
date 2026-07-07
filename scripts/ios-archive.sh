@@ -15,13 +15,17 @@ mkdir -p "$ARCHIVE_DIR"
 cd ios/App
 
 TEAM_ID="${DEVELOPMENT_TEAM:-QFZ2RHAPT8}"
+REAL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles.real"
 VOL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles"
-mkdir -p "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-if [[ -d "$(dirname "$VOL_PROFILES")" ]]; then
-  mkdir -p "$VOL_PROFILES"
-  chmod -R u+rwx "$HOME/Library/Developer/Xcode/UserData" 2>/dev/null || true
-  chmod -R u+rwx "/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData" 2>/dev/null || true
+USER_PROFILES="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+
+if [[ -L "$VOL_PROFILES" ]] && [[ "$(readlink "$VOL_PROFILES")" == "$(readlink "$USER_PROFILES" 2>/dev/null || echo "")" ]]; then
+  : # already fixed
+elif [[ ! -d "$REAL_PROFILES" ]]; then
+  bash "$ROOT/scripts/ios-fix-provisioning-folder.sh"
 fi
+mkdir -p "$REAL_PROFILES"
+chmod -R u+rwx "$(dirname "$REAL_PROFILES")" 2>/dev/null || true
 
 echo "Archiving Velbok (Release) with team $TEAM_ID..."
 xcodebuild \

@@ -15,29 +15,8 @@ rm -rf ios/App/App.xcodeproj/xcuserdata
 echo "Removing DerivedData for App..."
 rm -rf ~/Library/Developer/Xcode/DerivedData/App-*
 
-USER_PROFILES="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-VOL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles"
-
-echo "Fixing provisioning profile folder permissions..."
-mkdir -p "$USER_PROFILES"
-chmod -R u+rwx "$HOME/Library/Developer/Xcode/UserData" 2>/dev/null || true
-
-if [[ -d "$(dirname "$VOL_PROFILES")" ]]; then
-  mkdir -p "$(dirname "$VOL_PROFILES")"
-  # Prefer a real writable folder on the MacinCloud volume (Xcode often writes here).
-  if [[ -L "$VOL_PROFILES" ]]; then
-    rm -f "$VOL_PROFILES"
-  fi
-  mkdir -p "$VOL_PROFILES"
-  chmod -R u+rwx "/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData" 2>/dev/null || true
-  # Keep ~/Library path in sync when both exist.
-  if [[ "$USER_PROFILES" != "$VOL_PROFILES" && -d "$USER_PROFILES" ]]; then
-    rm -rf "$USER_PROFILES"/*
-  fi
-  if [[ "$USER_PROFILES" != "$VOL_PROFILES" && ! -e "$USER_PROFILES" ]]; then
-    ln -sf "$VOL_PROFILES" "$USER_PROFILES"
-  fi
-fi
+echo "Fixing provisioning profile folder (MacinCloud symlink loops)..."
+bash "$ROOT/scripts/ios-fix-provisioning-folder.sh"
 
 echo ""
 echo "Done."
