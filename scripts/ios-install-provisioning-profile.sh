@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
-# Manually install a downloaded .mobileprovision into the MacinCloud-safe folder.
+# Manually install a downloaded .mobileprovision into all folders Xcode/xcodebuild reads.
 set -euo pipefail
 
 PROFILE="${1:-}"
 REAL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles.real"
+XCODE_PROFILES="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+MOBILE_PROFILES="$HOME/Library/MobileDevice/Provisioning Profiles"
+VOL_MOBILE_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/MobileDevice/Provisioning Profiles"
 
 if [[ -z "$PROFILE" ]]; then
   PROFILE="$(ls -t ~/Downloads/*.mobileprovision 2>/dev/null | head -1 || true)"
 fi
 
 if [[ -z "$PROFILE" || ! -f "$PROFILE" ]]; then
+  PROFILE="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles.real/"*.mobileprovision
+  PROFILE="$(ls -t $PROFILE 2>/dev/null | head -1 || true)"
+fi
+
+if [[ -z "$PROFILE" || ! -f "$PROFILE" ]]; then
   echo "Usage: bash scripts/ios-install-provisioning-profile.sh [/path/to/profile.mobileprovision]"
-  echo "No .mobileprovision found in ~/Downloads"
   exit 1
 fi
 
@@ -26,18 +33,27 @@ if [[ -z "$PROFILE_UUID" ]]; then
   exit 1
 fi
 
-DEST="$REAL_PROFILES/${PROFILE_UUID}.mobileprovision"
-cp "$PROFILE" "$DEST"
-echo "Installed provisioning profile:"
-echo "  File: $DEST"
+install_copy() {
+  local dir="$1"
+  mkdir -p "$dir"
+  cp "$PROFILE" "$dir/${PROFILE_UUID}.mobileprovision"
+  echo "  $dir/${PROFILE_UUID}.mobileprovision"
+}
+
+echo "Installing provisioning profile:"
 echo "  Name: ${PROFILE_NAME:-unknown}"
 echo "  UUID: $PROFILE_UUID"
 echo "  App ID: ${APP_ID:-unknown}"
 echo ""
-echo "Use this exact profile name in Xcode if asked:"
-echo "  ${PROFILE_NAME:-Velbok App Store}"
+install_copy "$REAL_PROFILES"
+install_copy "$MOBILE_PROFILES"
+if [[ -d "$(dirname "$VOL_MOBILE_PROFILES")" ]]; then
+  install_copy "$VOL_MOBILE_PROFILES"
+fi
+if [[ -e "$XCODE_PROFILES" || -L "$XCODE_PROFILES" ]]; then
+  install_copy "$(readlink -f "$XCODE_PROFILES" 2>/dev/null || echo "$REAL_PROFILES")"
+fi
+
 echo ""
-echo "Next:"
-echo "  1. Quit and reopen Xcode"
-echo "  2. Xcode → Settings → Accounts → Download Manual Profiles"
-echo "  3. Organizer → Distribute App → App Store Connect → Upload"
+echo "Done. Next:"
+echo "  npm run ios:export"

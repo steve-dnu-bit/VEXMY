@@ -23,6 +23,7 @@ rm -rf "$EXPORT_PATH"
 mkdir -p "$EXPORT_PATH"
 
 bash "$ROOT/scripts/ios-fix-provisioning-folder.sh" 2>/dev/null || true
+bash "$ROOT/scripts/ios-install-provisioning-profile.sh" 2>/dev/null || true
 
 echo "Exporting archive:"
 echo "  $ARCHIVE_PATH"
