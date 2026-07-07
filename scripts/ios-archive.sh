@@ -36,7 +36,7 @@ xcodebuild \
   -archivePath "$ARCHIVE_PATH" \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   CODE_SIGN_STYLE=Manual \
-  PROVISIONING_PROFILE_SPECIFIER="Velbok App Store" \
+  PROVISIONING_PROFILE_SPECIFIER=f4346d1d-7aa3-4729-907f-2df189f33e29 \
   CODE_SIGN_IDENTITY="Apple Distribution" \
   archive
 
