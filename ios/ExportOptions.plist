@@ -8,12 +8,14 @@
 	<string>export</string>
 	<key>signingStyle</key>
 	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
 	<key>teamID</key>
 	<string>NS8FATRNW3</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.velbok.app</key>
-		<string>f4346d1d-7aa3-4729-907f-2df189f33e29</string>
+		<string>Velbok App Store</string>
 	</dict>
 	<key>stripSwiftSymbols</key>
 	<true/>
