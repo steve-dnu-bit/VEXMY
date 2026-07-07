@@ -95,7 +95,7 @@ If `ios:build-simulator` hangs for more than 20 minutes with **no new lines**, c
 3. Sync versions to native projects: `npm run sync:version`
 4. Prepare the iOS bundle: `npm run ios:prepare` (icons, mobile web build, `cap sync`)
 5. On a **Mac with Xcode 15+**, open the project: `npm run cap:ios`
-6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Add **Tap to Pay on iPhone** capability only after Apple approves it for your App ID.
+6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Build on an **iOS Simulator** first to verify the project compiles. Add **Tap to Pay on iPhone** only after Apple approves that entitlement on your App ID; WisePad Bluetooth checkout works without it.
 7. Archive: Product → **Archive** → **Distribute App** → App Store Connect  
    Or from the repo root on macOS: `npm run ios:archive`
 

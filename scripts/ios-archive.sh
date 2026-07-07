@@ -21,6 +21,7 @@ xcodebuild \
   -configuration Release \
   -destination "generic/platform=iOS" \
   -archivePath "$ARCHIVE_PATH" \
+  -allowProvisioningUpdates \
   archive
 
 echo "Exporting for App Store Connect..."
@@ -29,6 +30,7 @@ xcodebuild \
   -exportArchive \
   -archivePath "$ARCHIVE_PATH" \
   -exportPath "$EXPORT_PATH" \
-  -exportOptionsPlist "$ROOT/ios/ExportOptions.plist"
+  -exportOptionsPlist "$ROOT/ios/ExportOptions.plist" \
+  -allowProvisioningUpdates
 
 echo "Done. IPA: $EXPORT_PATH/App.ipa"

@@ -33,6 +33,7 @@
     "ios:build-lite": "node scripts/ios-build-lite.mjs",
     "ios:build-status": "node scripts/ios-build-status.mjs",
     "ios:archive": "bash scripts/ios-archive.sh",
+    "macincloud:setup": "bash scripts/macincloud-ios-setup.sh",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"
   },
