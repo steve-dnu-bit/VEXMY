@@ -14,13 +14,24 @@ mkdir -p "$ARCHIVE_DIR"
 
 cd ios/App
 
-echo "Archiving Velbok (Release)..."
+TEAM_ID="${DEVELOPMENT_TEAM:-QFZ2RHAPT8}"
+VOL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles"
+mkdir -p "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+if [[ -d "$(dirname "$VOL_PROFILES")" ]]; then
+  mkdir -p "$VOL_PROFILES"
+  chmod -R u+rwx "$HOME/Library/Developer/Xcode/UserData" 2>/dev/null || true
+  chmod -R u+rwx "/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData" 2>/dev/null || true
+fi
+
+echo "Archiving Velbok (Release) with team $TEAM_ID..."
 xcodebuild \
   -project App.xcodeproj \
   -scheme App \
   -configuration Release \
   -destination "generic/platform=iOS" \
   -archivePath "$ARCHIVE_PATH" \
+  DEVELOPMENT_TEAM="$TEAM_ID" \
+  CODE_SIGN_STYLE=Automatic \
   -allowProvisioningUpdates \
   archive
 
