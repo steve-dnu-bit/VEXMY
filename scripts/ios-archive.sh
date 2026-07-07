@@ -14,7 +14,7 @@ mkdir -p "$ARCHIVE_DIR"
 
 cd ios/App
 
-TEAM_ID="${DEVELOPMENT_TEAM:-QFZ2RHAPT8}"
+TEAM_ID="${DEVELOPMENT_TEAM:-NS8FATRNW3}"
 REAL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles.real"
 VOL_PROFILES="/Volumes/Macintosh_HD/Users/$(whoami)/Library/Developer/Xcode/UserData/Provisioning Profiles"
 USER_PROFILES="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
