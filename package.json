@@ -31,6 +31,7 @@
     "ios:archive-prep": "bash scripts/ios-archive-prep.sh",
     "ios:fix-profiles-folder": "bash scripts/ios-fix-provisioning-folder.sh",
     "ios:install-profile": "bash scripts/ios-install-provisioning-profile.sh",
+    "ios:verify-profiles": "bash scripts/ios-verify-profiles.sh",
     "ios:build-simulator": "bash scripts/ios-build-simulator.sh",
     "ios:doctor": "node scripts/ios-doctor.mjs",
     "ios:build-lite": "node scripts/ios-build-lite.mjs",
