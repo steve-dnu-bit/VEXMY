@@ -7,7 +7,14 @@
 	<key>destination</key>
 	<string>upload</string>
 	<key>signingStyle</key>
-	<string>automatic</string>
+	<string>manual</string>
+	<key>teamID</key>
+	<string>NS8FATRNW3</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.velbok.app</key>
+		<string>Velbok App Store</string>
+	</dict>
 	<key>stripSwiftSymbols</key>
 	<true/>
 	<key>uploadSymbols</key>

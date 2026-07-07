@@ -17,10 +17,11 @@ fi
 
 bash "$(dirname "$0")/ios-fix-provisioning-folder.sh"
 
-DEST="$REAL_PROFILES/$(basename "$PROFILE")"
+DEST="$REAL_PROFILES/Velbok_App_Store.mobileprovision"
 cp "$PROFILE" "$DEST"
 echo "Installed provisioning profile:"
 echo "  $DEST"
+echo "  Profile name in Xcode: Velbok App Store"
 echo ""
 echo "Next:"
 echo "  1. Xcode → Settings → Accounts → Download Manual Profiles"

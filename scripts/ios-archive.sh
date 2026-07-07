@@ -27,7 +27,7 @@ fi
 mkdir -p "$REAL_PROFILES"
 chmod -R u+rwx "$(dirname "$REAL_PROFILES")" 2>/dev/null || true
 
-echo "Archiving Velbok (Release) with team $TEAM_ID..."
+echo "Archiving Velbok (Release) with team $TEAM_ID and profile 'Velbok App Store'..."
 xcodebuild \
   -project App.xcodeproj \
   -scheme App \
@@ -35,8 +35,9 @@ xcodebuild \
   -destination "generic/platform=iOS" \
   -archivePath "$ARCHIVE_PATH" \
   DEVELOPMENT_TEAM="$TEAM_ID" \
-  CODE_SIGN_STYLE=Automatic \
-  -allowProvisioningUpdates \
+  CODE_SIGN_STYLE=Manual \
+  PROVISIONING_PROFILE_SPECIFIER="Velbok App Store" \
+  CODE_SIGN_IDENTITY="Apple Distribution" \
   archive
 
 echo "Exporting for App Store Connect..."
