@@ -18,9 +18,9 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
   });
 }
 
-/** Android Tap to Pay requires location; a denied permission leaves initialize() hanging forever in the plugin. */
-export async function ensureAndroidTerminalLocationPermission(): Promise<void> {
-  if (nativePlatform() !== "android") return;
+/** Stripe Terminal requires location on native (Android and iOS) for reader discovery. */
+export async function ensureNativeTerminalLocationPermission(): Promise<void> {
+  if (nativePlatform() !== "android" && nativePlatform() !== "ios") return;
 
   const plugin = StripeTerminal as unknown as {
     checkPermissions?: () => Promise<{ location?: string }>;
@@ -37,14 +37,19 @@ export async function ensureAndroidTerminalLocationPermission(): Promise<void> {
   }
 
   if (state.location !== "granted") {
-    throw new Error(
-      "Location permission is required for phone payments. Open Android Settings → Apps → Velbok → Permissions → Location → Allow, then try again.",
-    );
+    const settingsHint =
+      nativePlatform() === "ios"
+        ? "Open iPhone Settings → Velbok → Location → While Using the App, then try again."
+        : "Open Android Settings → Apps → Velbok → Permissions → Location → Allow, then try again.";
+    throw new Error(`Location permission is required for card reader payments. ${settingsHint}`);
   }
 }
 
+/** @deprecated Use ensureNativeTerminalLocationPermission */
+export const ensureAndroidTerminalLocationPermission = ensureNativeTerminalLocationPermission;
+
 export async function initializeStripeTerminalWithTimeout(isTest: boolean): Promise<void> {
-  await ensureAndroidTerminalLocationPermission();
+  await ensureNativeTerminalLocationPermission();
   await withTimeout(
     StripeTerminal.initialize({ isTest }),
     INIT_TIMEOUT_MS,

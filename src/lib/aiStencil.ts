@@ -1,4 +1,5 @@
 import { getFreshAccessToken } from "@/lib/edgeFunctions";
+import { getNetlifyApiUrl } from "@/lib/apiBase";
 import { loadImage, readFileAsDataUrl } from "@/lib/stencilImage";
 
 // Longest edge (px) sent to the AI. Keeps the request payload comfortably under
@@ -74,7 +75,7 @@ export async function generateAiStencil(
 
   const image = await toUploadDataUrl(file);
 
-  const res = await fetch("/api/generate-stencil", {
+  const res = await fetch(getNetlifyApiUrl("/api/generate-stencil"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
