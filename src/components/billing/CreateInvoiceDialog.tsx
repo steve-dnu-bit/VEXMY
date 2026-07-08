@@ -85,6 +85,25 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
     setItems(items.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)));
   };
 
+  /** Allow clearing the field while typing (do not force `|| 1` on every keystroke). */
+  const updateQuantity = (i: number, raw: string) => {
+    if (raw === "") {
+      updateItem(i, "quantity", 0);
+      return;
+    }
+    const n = parseInt(raw, 10);
+    updateItem(i, "quantity", Number.isFinite(n) ? n : 0);
+  };
+
+  const updateUnitPrice = (i: number, raw: string) => {
+    if (raw === "") {
+      updateItem(i, "unit_price", 0);
+      return;
+    }
+    const n = parseFloat(raw);
+    updateItem(i, "unit_price", Number.isFinite(n) ? n : 0);
+  };
+
   const fetchClientSuggestions = async (query: string) => {
     const q = query.trim();
     if (q.length < 2) {
@@ -253,6 +272,10 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
     }
     if (items.some((i) => !i.description.trim())) {
       toast.error(t("billing.lineDescriptionRequired"));
+      return;
+    }
+    if (items.some((i) => !Number.isFinite(i.quantity) || i.quantity < 1)) {
+      toast.error(t("billing.lineQuantityRequired"));
       return;
     }
 
@@ -457,18 +480,20 @@ const CreateInvoiceDialog = ({ companies, userId, onCreated }: Props) => {
                       className="w-16"
                       type="number"
                       min={1}
+                      inputMode="numeric"
                       placeholder={t("billing.qty")}
                       value={item.quantity || ""}
-                      onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value, 10) || 1)}
+                      onChange={(e) => updateQuantity(i, e.target.value)}
                     />
                     <Input
                       className="w-24"
                       type="number"
                       min={0}
                       step={0.01}
+                      inputMode="decimal"
                       placeholder={t("billing.price")}
                       value={item.unit_price || ""}
-                      onChange={(e) => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateUnitPrice(i, e.target.value)}
                     />
                     {items.length > 1 && (
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => removeItem(i)}>

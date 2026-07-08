@@ -12,7 +12,8 @@
     "paid": "Paid",
     "paidWithAmount": "Paid ({{amount}})",
     "outstanding": "Outstanding",
-    "outstandingWithAmount": "Outstanding ({{amount}})"
+    "outstandingWithAmount": "Outstanding ({{amount}})",
+    "notRequired": "Not required"
   },
   "bookingNotification": {
     "badge": "Booking",
@@ -220,6 +221,12 @@
       "body": "Reviews are public on the platform you choose. If anything wasn't right, reply to this email — we'd rather put it right privately first."
     },
     "footer": "This email was sent because your studio asked you to share feedback after your appointment."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Appointment reminder with {{artist}} on {{when}}. Reply if you need to reschedule.",
+      "deposit": "{{shopName}}: Deposit reminder for your appointment on {{when}}. Amount due: {{amount}}. Contact us to pay."
+    }
   }
 }
 

@@ -22,6 +22,9 @@ import {
   type RecentStencil,
   type StencilSession,
 } from "@/lib/stencilStorage";
+import { isNativeApp } from "@/lib/platform";
+import { pickStencilPhotoFromDevice } from "@/lib/pickStencilPhoto";
+import { fileForStencilUpload, fileToDataUrl } from "@/lib/stencilImage";
 import { fetchStencilQuota, type StencilQuota } from "@/lib/stencilQuota";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -99,19 +102,46 @@ const StencilPage = () => {
     setSettings((s) => ({ ...s, [key]: value }));
   };
 
+  const applyPickedPhoto = async (picked: { file: File; dataUrl: string }) => {
+    await removeStoredSession(sessionRef.current);
+    setFile(picked.file);
+    setPreview(picked.dataUrl);
+    setStencilUrl(null);
+  };
+
+  const handlePickPhoto = async () => {
+    try {
+      const picked = await pickStencilPhotoFromDevice();
+      await applyPickedPhoto(picked);
+    } catch (error: unknown) {
+      toast({
+        title: t("stencil.generationFailedTitle"),
+        description: error instanceof Error ? error.message : t("stencil.failedToReadImage"),
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
-    await removeStoredSession(sessionRef.current);
-    setFile(selected);
-    setStencilUrl(null);
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(selected);
+    e.target.value = "";
+    setPreview(null);
+    try {
+      const dataUrl = await fileToDataUrl(selected);
+      await applyPickedPhoto({ file: selected, dataUrl });
+    } catch {
+      setFile(null);
+      toast({
+        title: t("stencil.generationFailedTitle"),
+        description: t("stencil.failedToReadImage"),
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGenerate = async () => {
-    if (!file || !user) return;
+    if (!file || !preview || !user) return;
     if (mode === "ai" && quota && quota.remaining <= 0) {
       toast({
         title: t("stencil.quotaReachedTitle"),
@@ -127,7 +157,7 @@ const StencilPage = () => {
 
       let generated: string;
       if (mode === "ai") {
-        const result = await generateAiStencil(file, style);
+        const result = await generateAiStencil(file, style, preview);
         generated = result.stencilUrl;
         if (result.quota) {
           setQuota((prev) => ({
@@ -138,13 +168,33 @@ const StencilPage = () => {
           }));
         }
       } else {
-        generated = await generateLocalStencil(file, settings);
+        generated = await generateLocalStencil(file, settings, preview);
       }
-      const stored = await persistStencilSession(user.id, file, generated);
-      setSession(stored);
-      sessionRef.current = stored;
+
+      // Show the result immediately; cloud save is separate so a storage error
+      // does not hide a successful local/AI render.
       setStencilUrl(generated);
-      refreshRecent();
+
+      try {
+        const uploadFile = await fileForStencilUpload(file, preview);
+        const stored = await persistStencilSession(user.id, uploadFile, generated);
+        setSession(stored);
+        sessionRef.current = stored;
+        refreshRecent();
+      } catch (persistError: unknown) {
+        setSession(null);
+        sessionRef.current = null;
+        toast({
+          title: t("stencil.generatedTitle"),
+          description:
+            persistError instanceof Error
+              ? `${t("stencil.saveFailedDesc")} ${persistError.message}`
+              : t("stencil.saveFailedDesc"),
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: t("stencil.generatedTitle"),
         description: t("stencil.generatedDesc"),
@@ -201,7 +251,7 @@ const StencilPage = () => {
   };
 
   const handleDownload = async () => {
-    if (!stencilUrl || !session) return;
+    if (!stencilUrl) return;
     setDownloading(true);
     try {
       await downloadStencilOnly(stencilUrl);
@@ -240,13 +290,29 @@ const StencilPage = () => {
             {preview ? (
               <div className="space-y-4">
                 <img src={preview} alt={t("stencil.originalLabel")} loading="lazy" className="w-full rounded-lg object-cover aspect-square" />
-                <label className="block">
-                  <Button variant="ghost" size="sm" className="w-full" asChild>
-                    <span>{t("stencil.changeImage")}</span>
+                {isNativeApp() ? (
+                  <Button variant="ghost" size="sm" className="w-full" type="button" onClick={() => void handlePickPhoto()}>
+                    {t("stencil.changeImage")}
                   </Button>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                </label>
+                ) : (
+                  <label className="block">
+                    <Button variant="ghost" size="sm" className="w-full" asChild>
+                      <span>{t("stencil.changeImage")}</span>
+                    </Button>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+                  </label>
+                )}
               </div>
+            ) : isNativeApp() ? (
+              <button
+                type="button"
+                onClick={() => void handlePickPhoto()}
+                className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-secondary p-12 transition-colors hover:border-primary/50 aspect-square"
+              >
+                <Upload className="mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground text-center">{t("stencil.dropOrUpload")}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("stencil.fileHint")}</p>
+              </button>
             ) : (
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-secondary p-12 transition-colors hover:border-primary/50 aspect-square">
                 <Upload className="mb-3 h-10 w-10 text-muted-foreground" />
@@ -558,7 +624,7 @@ const StencilPage = () => {
                   size="sm"
                   className="w-full gap-2"
                   onClick={handleDownload}
-                  disabled={downloading || !session}
+                  disabled={downloading}
                 >
                   {downloading ? (
                     <>

@@ -16,6 +16,16 @@ import {
 } from "../_shared/reminder-due-windows.ts";
 import { loadShopReminderSettings, type ShopReminderSettingsRow } from "../_shared/shop-reminder-settings.ts";
 import { isImportedContactPlaceholderBooking } from "../_shared/imported-contacts.ts";
+import { loadChannelCredentials, sendTwilioMessage } from "../_shared/inbox-webhook.ts";
+import { normalizeSmsE164 } from "../_shared/phone-normalize.ts";
+import {
+  buildAppointmentReminderSms,
+  buildDepositReminderSms,
+  isEmailReminderChannel,
+  isSmsReminderChannel,
+} from "../_shared/reminder-sms.ts";
+import { formatBookingDateRange } from "../_shared/email.ts";
+import { sendReminderPushNotification } from "../_shared/booking-push.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -31,12 +41,26 @@ function isPiercingBooking(booking: { booking_type: string; service_category?: s
   return bt === "piercing-session" || bt.includes("piercing");
 }
 
-function settingsCacheKey(booking: { organization_id?: string | null; artist_id: string }): string {
-  return `${booking.organization_id ?? ""}|${booking.artist_id}`;
+function normalizeSmsRecipient(phone: string | null | undefined): string | null {
+  return normalizeSmsE164(phone);
 }
 
-function isEmailReminderChannel(settings: ShopReminderSettingsRow): boolean {
-  return settings.reminder_channel === "email" || settings.reminder_channel === "both";
+async function orgCanSendSmsReminders(
+  admin: ReturnType<typeof createClient>,
+  organizationId: string | null | undefined,
+): Promise<boolean> {
+  if (!organizationId) return false;
+  const { data: hasReminders } = await admin.rpc("org_plan_has_feature", {
+    _org_id: organizationId,
+    _feature: "reminders",
+  });
+  if (!hasReminders) return false;
+  const creds = await loadChannelCredentials(admin, organizationId, "sms");
+  return !!creds?.account_sid && !!creds?.auth_token && !!creds?.phone_number;
+}
+
+function settingsCacheKey(booking: { organization_id?: string | null; artist_id: string }): string {
+  return `${booking.organization_id ?? ""}|${booking.artist_id}`;
 }
 
 serve(async (req) => {
@@ -54,8 +78,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    requireEmailDeliveryConfig();
 
     const admin = createClient(supabaseUrl, serviceKey);
     const now = Date.now();
@@ -84,7 +106,7 @@ serve(async (req) => {
     let checked = 0;
     let failedCount = 0;
     let capped = false;
-    const failures: Array<{ bookingId: string; reminderType: ReminderType; reminderTiming: string; recipientEmail: string; error: string }> = [];
+    const failures: Array<{ bookingId: string; reminderType: ReminderType; reminderTiming: string; recipient: string; error: string }> = [];
 
     const settingsCache = new Map<string, ShopReminderSettingsRow | null>();
     const getShopSettings = async (booking: {
@@ -133,6 +155,9 @@ serve(async (req) => {
       return resolved;
     };
 
+    const smsEnterpriseCache = new Map<string, boolean>();
+    const smsCredsCache = new Map<string, Record<string, string> | null>();
+
     for (const booking of bookings || []) {
       if (sent >= MAX_SENDS_PER_RUN) {
         capped = true;
@@ -144,13 +169,15 @@ serve(async (req) => {
         skipped += 1;
         continue;
       }
-      if (!booking.client_email) {
+
+      const shopSettings = await getShopSettings(booking);
+      if (!shopSettings) {
         skipped += 1;
         continue;
       }
-
-      const shopSettings = await getShopSettings(booking);
-      if (!shopSettings || !isEmailReminderChannel(shopSettings)) {
+      const wantsEmail = isEmailReminderChannel(shopSettings.reminder_channel);
+      const wantsSms = isSmsReminderChannel(shopSettings.reminder_channel);
+      if (!wantsEmail && !wantsSms) {
         skipped += 1;
         continue;
       }
@@ -159,12 +186,50 @@ serve(async (req) => {
         continue;
       }
 
-      const startsAtMs = new Date(booking.starts_at).getTime();
+      const orgId = (booking.organization_id as string | null | undefined) ?? null;
+      let smsAllowed = false;
+      if (wantsSms && orgId) {
+        if (!smsEnterpriseCache.has(orgId)) {
+          smsEnterpriseCache.set(orgId, await orgCanSendSmsReminders(admin, orgId));
+        }
+        smsAllowed = smsEnterpriseCache.get(orgId) === true;
+      }
+
+      const clientEmail = typeof booking.client_email === "string" ? booking.client_email.trim() : "";
+      const clientPhone = normalizeSmsRecipient(booking.client_phone as string | null | undefined);
+      const canEmail = wantsEmail && !!clientEmail;
+      const canSms = wantsSms && smsAllowed && !!clientPhone;
+      if (!canEmail && !canSms) {
+        skipped += 1;
+        continue;
+      }
+
+      let smsCreds: Record<string, string> | null = null;
+      if (canSms && orgId) {
+        if (!smsCredsCache.has(orgId)) {
+          smsCredsCache.set(orgId, await loadChannelCredentials(admin, orgId, "sms"));
+        }
+        smsCreds = smsCredsCache.get(orgId) ?? null;
+        if (!smsCreds) {
+          if (!canEmail) {
+            skipped += 1;
+            continue;
+          }
+        }
+      }
+
+      const startsAtMs = new Date(booking.starts_at as string).getTime();
       const candidates: Array<{ type: ReminderType; timing: string }> = [];
       if (shopSettings.appointment_reminder) {
         candidates.push({ type: "appointment", timing: shopSettings.appointment_reminder_timing });
       }
-      if (shopSettings.deposit_reminder && !booking.deposit_paid && !isPiercingBooking(booking)) {
+      if (
+        shopSettings.deposit_reminder &&
+        !booking.deposit_paid &&
+        !booking.vip_client &&
+        !isPiercingBooking(booking as { booking_type: string; service_category?: string | null }) &&
+        booking.deposit_amount !== 0
+      ) {
         candidates.push({ type: "deposit", timing: shopSettings.deposit_reminder_timing });
       }
 
@@ -185,82 +250,138 @@ serve(async (req) => {
           continue;
         }
 
-        const { data: existing } = await admin
-          .from("booking_reminder_events")
-          .select("id")
-          .eq("booking_id", booking.id)
-          .eq("reminder_type", candidate.type)
-          .eq("reminder_timing", candidate.timing)
-          .eq("recipient_email", booking.client_email)
-          .maybeSingle();
-        if (existing?.id) {
-          skipped += 1;
-          continue;
-        }
-
-        const locale = await getBookingLocale(booking);
-        const brand = await getOrgBrand(booking);
-        const subject =
-          candidate.type === "deposit"
-            ? t(locale, "subjects.reminders.deposit", { shopName: brand.shopName })
-            : t(locale, "subjects.reminders.appointment", { shopName: brand.shopName });
-
+        const locale = await getBookingLocale(booking as { organization_id?: string | null; client_user_id?: string | null });
+        const brand = await getOrgBrand(booking as { organization_id?: string | null; artist_id: string });
         const bookingDetails: BookingEmailDetails = {
-          id: booking.id,
-          client_name: booking.client_name,
-          client_email: booking.client_email,
-          client_phone: null,
-          artistName: artistNameById.get(booking.artist_id) || "Artist",
-          booking_type: booking.booking_type,
-          service_category: booking.service_category,
+          id: booking.id as string,
+          client_name: booking.client_name as string,
+          client_email: clientEmail || null,
+          client_phone: clientPhone,
+          artistName: artistNameById.get(booking.artist_id as string) || "Artist",
+          booking_type: booking.booking_type as string,
+          service_category: booking.service_category as string | null | undefined,
           status: "confirmed",
-          starts_at: booking.starts_at,
-          ends_at: booking.ends_at,
-          deposit_amount: booking.deposit_amount,
-          deposit_paid: booking.deposit_paid,
+          starts_at: booking.starts_at as string,
+          ends_at: booking.ends_at as string,
+          deposit_amount: booking.deposit_amount as number | null | undefined,
+          deposit_paid: booking.deposit_paid as boolean | null | undefined,
         };
 
-        const built =
-          candidate.type === "deposit"
-            ? buildDepositReminderEmail(bookingDetails, undefined, locale, brand)
-            : buildAppointmentReminderEmail(bookingDetails, locale, brand);
+        const deliveryTargets: Array<{ channel: "email" | "sms"; recipient: string }> = [];
+        if (canEmail) deliveryTargets.push({ channel: "email", recipient: clientEmail });
+        if (canSms && smsCreds && clientPhone) deliveryTargets.push({ channel: "sms", recipient: clientPhone });
 
-        try {
-          await sendTransactionalEmail({
-            to: booking.client_email,
-            subject,
-            html: built.html,
-            attachments: built.attachments,
-            fromKind: "booking",
-            fromDisplayName: brand.shopName,
-            replyTo: brand.supportEmail ?? undefined,
-          });
-          sent += 1;
-          await admin.from("booking_reminder_events").insert({
-            booking_id: booking.id,
-            reminder_type: candidate.type,
-            reminder_timing: candidate.timing,
-            recipient_email: booking.client_email,
-            status: "sent",
-          } as any);
-        } catch (e) {
-          const message = e instanceof Error ? e.message : "Unknown reminder send error";
-          failedCount += 1;
-          failures.push({
-            bookingId: booking.id,
-            reminderType: candidate.type,
-            reminderTiming: candidate.timing,
-            recipientEmail: booking.client_email,
-            error: message,
-          });
-          await admin.from("booking_reminder_events").insert({
-            booking_id: booking.id,
-            reminder_type: candidate.type,
-            reminder_timing: candidate.timing,
-            recipient_email: booking.client_email,
-            status: "failed",
-            error_message: message,
-          } as any);
+        for (const target of deliveryTargets) {
+          if (sent >= MAX_SENDS_PER_RUN) {
+            capped = true;
+            break;
+          }
+
+          const { data: existing } = await admin
+            .from("booking_reminder_events")
+            .select("id")
+            .eq("booking_id", booking.id)
+            .eq("reminder_type", candidate.type)
+            .eq("reminder_timing", candidate.timing)
+            .eq("recipient_email", target.recipient)
+            .maybeSingle();
+          if (existing?.id) {
+            skipped += 1;
+            continue;
+          }
+
+          try {
+            if (target.channel === "email") {
+              requireEmailDeliveryConfig();
+              const subject =
+                candidate.type === "deposit"
+                  ? t(locale, "subjects.reminders.deposit", { shopName: brand.shopName })
+                  : t(locale, "subjects.reminders.appointment", { shopName: brand.shopName });
+              const built =
+                candidate.type === "deposit"
+                  ? buildDepositReminderEmail(bookingDetails, undefined, locale, brand)
+                  : buildAppointmentReminderEmail(bookingDetails, locale, brand);
+              await sendTransactionalEmail({
+                to: target.recipient,
+                subject,
+                html: built.html,
+                attachments: built.attachments,
+                fromKind: "booking",
+                fromDisplayName: brand.shopName,
+                replyTo: brand.supportEmail ?? undefined,
+              });
+            } else {
+              const smsBody =
+                candidate.type === "deposit"
+                  ? buildDepositReminderSms(bookingDetails, locale, brand)
+                  : buildAppointmentReminderSms(bookingDetails, locale, brand);
+              await sendTwilioMessage(smsCreds!, target.recipient, smsBody, false);
+            }
+
+            sent += 1;
+            await admin.from("booking_reminder_events").insert({
+              booking_id: booking.id,
+              reminder_type: candidate.type,
+              reminder_timing: candidate.timing,
+              recipient_email: target.recipient,
+              status: "sent",
+            } as any);
+
+            const clientUserId = (booking.client_user_id as string | null | undefined) ?? null;
+            if (clientUserId) {
+              const pushRecipient = `push:${clientUserId}`;
+              const { data: existingPush } = await admin
+                .from("booking_reminder_events")
+                .select("id")
+                .eq("booking_id", booking.id)
+                .eq("reminder_type", candidate.type)
+                .eq("reminder_timing", candidate.timing)
+                .eq("recipient_email", pushRecipient)
+                .maybeSingle();
+
+              if (!existingPush?.id) {
+                const whenLabel = formatBookingDateRange(
+                  booking.starts_at as string,
+                  booking.ends_at as string,
+                  locale,
+                );
+                const pushResult = await sendReminderPushNotification(admin, {
+                  userId: clientUserId,
+                  reminderType: candidate.type,
+                  shopName: brand.shopName,
+                  whenLabel,
+                  bookingId: booking.id as string,
+                });
+                if (pushResult.sent > 0) {
+                  await admin.from("booking_reminder_events").insert({
+                    booking_id: booking.id,
+                    reminder_type: candidate.type,
+                    reminder_timing: candidate.timing,
+                    recipient_email: pushRecipient,
+                    status: "sent",
+                  } as any);
+                }
+              }
+            }
+          } catch (e) {
+            const message = e instanceof Error ? e.message : "Unknown reminder send error";
+            failedCount += 1;
+            failures.push({
+              bookingId: booking.id as string,
+              reminderType: candidate.type,
+              reminderTiming: candidate.timing,
+              recipient: target.recipient,
+              error: message,
+            });
+            await admin.from("booking_reminder_events").insert({
+              booking_id: booking.id,
+              reminder_type: candidate.type,
+              reminder_timing: candidate.timing,
+              recipient_email: target.recipient,
+              status: "failed",
+              error_message: message,
+            } as any);
+          }
         }
       }
     }

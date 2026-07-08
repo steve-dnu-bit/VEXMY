@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { BRANDING } from "@/lib/branding";
 import { invokePublicEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
-import { CheckCircle2, Mail, MessageSquare, Clock } from "lucide-react";
+import { CheckCircle2, Mail, MessageSquare, Clock, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ContactPage = () => {
@@ -83,6 +83,17 @@ const ContactPage = () => {
                   </a>
                 </div>
               </li>
+              {BRANDING.supportPhone ? (
+                <li className="flex gap-3 text-sm">
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+                  <div>
+                    <p className="font-medium">{t("contact.customerService")}</p>
+                    <a href={`tel:${BRANDING.supportPhone.replace(/\s/g, "")}`} className="text-gold hover:underline">
+                      {BRANDING.supportPhone}
+                    </a>
+                  </div>
+                </li>
+              ) : null}
               <li className="flex gap-3 text-sm">
                 <Clock className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
                 <div>

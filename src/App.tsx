@@ -12,6 +12,8 @@ import { Loader2 } from "lucide-react";
 import StaffRoute from "./components/StaffRoute";
 import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
+import OAuthNativeHandler from "./components/auth/OAuthNativeHandler";
+import PushNotificationHandler from "./components/PushNotificationHandler";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -57,6 +59,7 @@ const CustomerDepositsPage = lazy(() => import("./pages/CustomerDepositsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
+const AccountDeletionPage = lazy(() => import("./pages/AccountDeletionPage"));
 const CustomerEmbedLoginPage = lazy(() => import("./pages/CustomerEmbedLoginPage"));
 const PosCheckoutPage = lazy(() => import("./pages/PosCheckoutPage"));
 
@@ -86,20 +89,21 @@ const AppErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   if (loading) return <PageFallback />;
   if (!user) return <Navigate to="/auth" replace />;
+  if (mfaVerificationRequired) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   const location = useLocation();
   const isRecoveryFlow =
     new URLSearchParams(location.search).get("mode") === "recovery" ||
     (typeof window !== "undefined" && window.location.hash.includes("type=recovery"));
   if (loading) return <PageFallback />;
-  if (user && !isRecoveryFlow) return <AuthHomeRedirect />;
+  if (user && !isRecoveryFlow && !mfaVerificationRequired) return <AuthHomeRedirect />;
   return <>{children}</>;
 };
 
@@ -117,6 +121,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <OAuthNativeHandler />
+            <PushNotificationHandler />
             <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 {isNativeApp() ? (
@@ -133,6 +139,7 @@ const App = () => (
                 <Route path="/docs/:slug" element={<DocsPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/account-deletion" element={<AccountDeletionPage />} />
                 <Route path="/cookies" element={<CookiePolicyPage />} />
                 <Route element={<CustomerPortalShell />}>
                   <Route path="/consent" element={<ConsentPage />} />
@@ -145,6 +152,9 @@ const App = () => (
                   <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
                 </Route>
                 <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
+                <Route path="/auth/app-google" element={<Navigate to="/auth" replace />} />
+                <Route path="/auth/mobile-oauth-start" element={<Navigate to="/auth" replace />} />
+                <Route path="/auth/mobile-oauth-done" element={<Navigate to="/auth" replace />} />
                 <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
                 <Route path="/deposit-checkout" element={<ProtectedRoute><LegacyDepositCheckoutRedirect /></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><StaffRoute><SchedulePage /></StaffRoute></ProtectedRoute>} />

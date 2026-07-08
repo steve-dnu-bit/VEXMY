@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "596429608378",
+    "project_id": "comvelbookapp",
+    "storage_bucket": "comvelbookapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596429608378:android:8082652e44f157a5fa7983",
+        "android_client_info": {
+          "package_name": "com.velbok.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwVVJKrhFQSGJhZs0TWzA0yQXG5wx6DMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

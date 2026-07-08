@@ -1,0 +1,15 @@
+Velbok 1.0.40 (41) — Google Play release notes
+================================================
+
+Paste into Play Console → Release → Release notes:
+
+• Schedule: block holidays and private time on the calendar (no client or deposit)
+• POS checkout: artist picker defaults to you; org-scoped artist list
+• Fixed Stripe permission dialog contrast on some foldable devices
+• Bug fixes and stability improvements
+
+Upload file:
+  releases/app-versions/aab/velbok-1.0.40-build41.aab
+
+Version code: 41
+Version name: 1.0.40

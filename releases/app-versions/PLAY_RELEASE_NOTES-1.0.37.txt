@@ -1,0 +1,15 @@
+Velbok 1.0.37 (38) — Google Play release notes
+================================================
+
+Paste into Play Console → Release → Release notes:
+
+• Google Play compliance: app no longer requests broad gallery access; photo picking uses the system picker
+• Improved layout on Android 15+ (status bar and navigation bar)
+• Fixed login screen display when the keyboard is open
+• Bug fixes and stability improvements
+
+Upload file:
+  releases/app-versions/aab/velbok-1.0.37-build38.aab
+
+Version code: 38
+Version name: 1.0.37

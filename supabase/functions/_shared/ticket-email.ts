@@ -2,6 +2,7 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1
 import { getShopBranding } from "./branding.ts";
 import { requireEmailDeliveryConfig, sendTransactionalEmail, siteUrl } from "./email.ts";
 import { buildChatUpdateEmail } from "./email-templates.ts";
+import { sendTicketPushNotification } from "./booking-push.ts";
 
 export type TicketEmailSendResult = {
   ok: boolean;
@@ -9,6 +10,46 @@ export type TicketEmailSendResult = {
   reason?: string;
   recipientEmail?: string;
 };
+
+export async function sendTicketPushOnly(
+  admin: SupabaseClient,
+  params: {
+    ticketId: string;
+    recipientId: string;
+    senderId: string;
+    previewText: string;
+  },
+) {
+  const { ticketId, recipientId, senderId, previewText } = params;
+
+  const { data: ticket, error: ticketError } = await admin
+    .from("support_tickets")
+    .select("id, customer_id, organization_id")
+    .eq("id", ticketId)
+    .single();
+  if (ticketError || !ticket) {
+    return { attempted: 0, sent: 0, failed: 0, deactivated: 0, skipped: "ticket_not_found" };
+  }
+
+  const { data: senderProfile } = await admin
+    .from("profiles")
+    .select("display_name")
+    .eq("user_id", senderId)
+    .maybeSingle();
+
+  const isStaffRecipient = recipientId !== ticket.customer_id;
+  const brand = getShopBranding();
+  const senderName = senderProfile?.display_name || "Someone";
+
+  return sendTicketPushNotification(admin, {
+    recipientId,
+    senderName,
+    previewText,
+    ticketId,
+    isStaffRecipient,
+    shopName: brand.shopName,
+  });
+}
 
 export async function sendTicketUpdateEmail(
   admin: SupabaseClient,

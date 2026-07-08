@@ -10,6 +10,7 @@ import {
   hasTapToPayHardBlockers,
   type TapToPayEnvironment,
 } from "@/lib/terminal/tapToPayReadiness";
+import { TapToPayEducation } from "@/lib/terminal/tapToPayEducation";
 
 export function TapToPayReadinessAlert() {
   const { t } = useTranslation();
@@ -24,12 +25,31 @@ export function TapToPayReadinessAlert() {
   };
 
   useEffect(() => {
+    if (nativePlatform() === "ios") {
+      setLoading(false);
+      return;
+    }
     if (nativePlatform() !== "android") {
       setLoading(false);
       return;
     }
     refresh();
   }, []);
+
+  if (nativePlatform() === "ios") {
+    return (
+      <Alert className="border-amber-500/40 bg-amber-500/5">
+        <AlertCircle className="h-4 w-4 text-amber-600" />
+        <AlertTitle>{t("pos.tapToPayPhoneBlocked")}</AlertTitle>
+        <AlertDescription className="text-sm space-y-2">
+          <p>
+            Tap to Pay on iPhone is not enabled in this build yet. Use WisePad (Bluetooth reader) mode
+            above, or wait until Apple approves Tap to Pay for com.velbok.app.
+          </p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   if (nativePlatform() !== "android") return null;
 
@@ -99,9 +119,18 @@ export function TapToPayReadinessAlert() {
 
 export function useTapToPayReady(): { ready: boolean; loading: boolean; refresh: () => void } {
   const [env, setEnv] = useState<TapToPayEnvironment | null>(null);
-  const [loading, setLoading] = useState(nativePlatform() === "android");
+  const [iosAvailable, setIosAvailable] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(nativePlatform() === "android" || nativePlatform() === "ios");
 
   const refresh = () => {
+    if (nativePlatform() === "ios") {
+      setLoading(true);
+      void TapToPayEducation.isAvailable()
+        .then(({ available }) => setIosAvailable(available))
+        .catch(() => setIosAvailable(false))
+        .finally(() => setLoading(false));
+      return;
+    }
     if (nativePlatform() !== "android") {
       setEnv(null);
       setLoading(false);
@@ -118,6 +147,8 @@ export function useTapToPayReady(): { ready: boolean; loading: boolean; refresh:
   }, []);
 
   const ready =
-    nativePlatform() !== "android" || (!loading && env !== null && !hasTapToPayHardBlockers(env));
+    nativePlatform() === "ios"
+      ? !loading && iosAvailable === true
+      : nativePlatform() !== "android" || (!loading && env !== null && !hasTapToPayHardBlockers(env));
   return { ready, loading, refresh };
 }

@@ -27,8 +27,7 @@ import {
   sendTwilioMessage,
 
 } from "../_shared/inbox-webhook.ts";
-
-
+import { normalizeSmsE164 } from "../_shared/phone-normalize.ts";
 
 const corsHeaders = {
 
@@ -171,7 +170,10 @@ serve(async (req) => {
 
       if (!creds) return jsonResponse({ error: "WhatsApp not connected" }, 400);
 
-      await sendTwilioMessage(creds, recipient, text, true);
+      const to = normalizeSmsE164(recipient);
+      if (!to) return jsonResponse({ error: "Invalid phone number" }, 400);
+
+      await sendTwilioMessage(creds, to, text, true);
 
     } else if (channel === "sms") {
 
@@ -179,7 +181,10 @@ serve(async (req) => {
 
       if (!creds) return jsonResponse({ error: "SMS not connected" }, 400);
 
-      await sendTwilioMessage(creds, recipient, text, false);
+      const to = normalizeSmsE164(recipient);
+      if (!to) return jsonResponse({ error: "Invalid phone number" }, 400);
+
+      await sendTwilioMessage(creds, to, text, false);
 
     } else if (channel === "instagram" || channel === "facebook") {
 

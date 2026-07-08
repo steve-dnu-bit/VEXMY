@@ -1,4 +1,5 @@
-import React from "react";
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LegalPageLayout from "@/components/LegalPageLayout";
 import { BRANDING } from "@/lib/branding";
@@ -7,7 +8,7 @@ const PrivacyPage = () => {
   const { t } = useTranslation();
   const vars = { shopLegalName: BRANDING.shopLegalName, platformName: BRANDING.platformName };
 
-  const section = (key: string, extra?: React.ReactNode) => (
+  const section = (key: string, extra?: ReactNode) => (
     <section key={key}>
       <h2 className="font-semibold text-foreground">{t(`legal.privacy.sections.${key}.title`)}</h2>
       <p>{t(`legal.privacy.sections.${key}.p1`, vars)}</p>
@@ -76,6 +77,10 @@ const PrivacyPage = () => {
         <h2 className="font-semibold text-foreground">{t("legal.privacy.sections.rights.title")}</h2>
         <p>
           {t("legal.privacy.sections.rights.p1")}{" "}
+          <Link to="/account-deletion" className="text-primary hover:underline">
+            {t("legal.privacy.sections.rights.accountDeletionLink")}
+          </Link>
+          , {t("legal.privacy.sections.rights.p1AfterLink")}{" "}
           <a href={`mailto:${BRANDING.privacyEmail}`} className="text-primary hover:underline">
             {BRANDING.privacyEmail}
           </a>

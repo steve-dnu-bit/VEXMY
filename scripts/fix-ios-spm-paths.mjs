@@ -11,7 +11,7 @@ if (!fs.existsSync(packageSwift)) {
 }
 
 const original = fs.readFileSync(packageSwift, "utf8");
-const normalized = original.replaceAll("\\\\", "/");
+const normalized = original.replace(/\\/g, "/");
 
 if (normalized !== original) {
   fs.writeFileSync(packageSwift, normalized);

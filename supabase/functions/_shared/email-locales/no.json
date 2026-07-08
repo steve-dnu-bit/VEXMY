@@ -12,7 +12,8 @@
     "paid": "Betalt",
     "paidWithAmount": "Betalt ({{amount}})",
     "outstanding": "Utestående",
-    "outstandingWithAmount": "Enestående ({{amount}})"
+    "outstandingWithAmount": "Enestående ({{amount}})",
+    "notRequired": "Ikke nødvendig"
   },
   "bookingNotification": {
     "badge": "Bestilling",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Ny innboksmelding — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Din kvittering {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Kvittering",
+    "title": "Betaling mottatt",
+    "intro": "Takk for besøket ditt til {{shopName}}. Her er kvitteringen for økten din med {{artistName}} — en PDF-kopi er vedlagt.",
+    "paymentMethod": {
+      "card": "Kort (trykk for å betale / WisePad)"
+    },
+    "details": {
+      "artist": "Artist",
+      "studio": "Studio",
+      "date": "Dato",
+      "receiptNumber": "Kvittering #",
+      "sessionTotal": "Sesjon totalt",
+      "depositCredit": "Innskuddskreditt",
+      "amountPaid": "Innbetalt beløp"
+    },
+    "note": {
+      "title": "PDF vedlagt",
+      "body": "Din spesifiserte kvittering er vedlagt som PDF. Ta vare på det for journalen din."
+    },
+    "footer": "Denne kvitteringen ble sendt automatisk etter betalingen i studio."
+  },
+  "reviewRequest": {
+    "badge": "Takk",
+    "title": "Vi vil gjerne ha tilbakemelding",
+    "intro": "Takk for at du besøker {{shopName}}. Hvis du hadde en god opplevelse med {{artistName}}, hjelper en kort anmeldelse andre kunder med å finne oss og betyr mye for teamet.",
+    "pickPlatform": "Legg igjen en anmeldelse",
+    "details": {
+      "artist": "Artist",
+      "visit": "Ditt besøk"
+    },
+    "note": {
+      "title": "Valgfri",
+      "body": "Anmeldelser er offentlige på plattformen du velger. Hvis noe ikke stemte, svar på denne e-posten – vi vil heller rette det privat først."
+    },
+    "footer": "Denne e-posten ble sendt fordi studioet ditt ba deg om å dele tilbakemelding etter avtalen."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Påminnelse om avtale med {{artist}} på {{when}}. Svar hvis du trenger å ombestille.",
+      "deposit": "{{shopName}}: Innskuddspåminnelse for din avtale på {{when}}. Forfalt beløp: {{amount}}. Kontakt oss for å betale."
     }
   }
 }

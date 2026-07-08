@@ -8,7 +8,7 @@ const { versionName, versionCode } = version;
 
 const gradlePath = join(root, "android/app/build.gradle");
 let gradle = readFileSync(gradlePath, "utf8");
-gradle = gradle.replace(/versionCode \d+/, `versionCode ${versionCode}`);
+gradle = gradle.replace(/versionCode \S+/, `versionCode ${versionCode}`);
 gradle = gradle.replace(/versionName "[^"]+"/, `versionName "${versionName}"`);
 writeFileSync(gradlePath, gradle);
 console.log(`Android: ${versionName} (${versionCode})`);

@@ -1,0 +1,41 @@
+.velbok-2fa-profile .velbok-2fa-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.velbok-2fa-profile .velbok-2fa-badge--on {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.velbok-2fa-profile .velbok-2fa-badge--off {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.velbok-2fa-profile .velbok-2fa-qr {
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.velbok-2fa-backup-codes .velbok-2fa-code-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.velbok-2fa-backup-codes .velbok-2fa-code-list code {
+  display: block;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  font-size: 14px;
+}

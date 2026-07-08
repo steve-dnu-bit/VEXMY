@@ -186,7 +186,7 @@ export const PRICING_PLANS: PricingPlan[] = [
 export const PRICING_FAQ = [
   {
     q: "Is there a free trial?",
-    a: "All plans include a 14-day free trial. Choose a plan on the subscribe page — you'll enter card details on Stripe but won't be charged until the trial ends.",
+    a: "Solo, Starter, and Studio include a 14-day free trial — you enter card details on Stripe but won't be charged until the trial ends. Enterprise is billed immediately when you subscribe.",
   },
   {
     q: "What's included in every plan?",

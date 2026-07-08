@@ -114,6 +114,15 @@ Output IPA (when using the script): `releases/app-versions/ios/export/App.ipa`
 | Age rating | **Not designed for children under 13** (business software) |
 | Financial features | Yes (Stripe in-person payments, studio invoicing) |
 
+## Firebase (push notifications)
+
+1. Firebase Console → iOS app `com.velbok.app`
+2. Download `GoogleService-Info.plist` → place at `ios/App/App/GoogleService-Info.plist`
+3. Upload APNs `.p8` key to Firebase (see `docs/mobile-push-setup.md`)
+4. Set `FIREBASE_SERVICE_ACCOUNT_JSON` in Supabase secrets
+
+`App.entitlements` includes `aps-environment: production`. Push capability must be enabled on the App ID in Apple Developer.
+
 ## App Privacy (nutrition labels)
 
 Declare honestly — mirror the Android data safety form in Play Console:
@@ -206,3 +215,16 @@ VITE_SHOP_WEBSITE_URL=https://velbok.com
 ```
 
 Redeploy after changing env vars — the mobile app loads the bundled web assets from the last `cap:sync`, not live Netlify, unless you change the build pipeline.
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Black screen on launch | Run `npm run ios:prepare` from repo root |
+| Missing package product 'CapApp-SPM' | `npm install`, `npm run ios:prepare`, reset Xcode package caches |
+| No signing certificate | Xcode → Settings → Accounts → Manage Certificates → Apple Distribution |
+| Provisioning profile errors | `bash scripts/ios-reset-xcode-signing.sh`; use Simulator first |
+| Tap to Pay entitlement missing | Apple must approve Proximity Reader capability; use WisePad until then |
+| Push not working | `GoogleService-Info.plist`, APNs key in Firebase, Push capability in Xcode |
+| Camera / photo crash | Info.plist usage strings (already in repo) |
+| WisePad not found on iPhone | Allow Location + Bluetooth for Velbok; connect only through POS, not Settings → Bluetooth |

@@ -19,17 +19,24 @@ type StencilRow = {
 };
 
 /**
- * Derive the storage object path from a Supabase public URL.
- * e.g. https://<ref>.supabase.co/storage/v1/object/public/uploads/stencils/<uid>/<id>/original.jpg
- *      -> stencils/<uid>/<id>/original.jpg
+ * Derive the storage object path from a Supabase public URL or uploads: ref.
  */
-function storagePathFromPublicUrl(url: string | null): string | null {
+function storagePathFromStored(url: string | null): string | null {
   if (!url) return null;
+  if (url.startsWith("uploads:")) return url.slice("uploads:".length);
   const marker = `/object/public/${UPLOADS_BUCKET}/`;
   const idx = url.indexOf(marker);
-  if (idx === -1) return null;
-  const path = url.slice(idx + marker.length).split("?")[0];
-  return path ? decodeURIComponent(path) : null;
+  if (idx !== -1) {
+    const path = url.slice(idx + marker.length).split("?")[0];
+    return path ? decodeURIComponent(path) : null;
+  }
+  const signedMarker = `/object/sign/${UPLOADS_BUCKET}/`;
+  const sidx = url.indexOf(signedMarker);
+  if (sidx !== -1) {
+    const path = url.slice(sidx + signedMarker.length).split("?")[0];
+    return path ? decodeURIComponent(path) : null;
+  }
+  return null;
 }
 
 serve(async (req) => {
@@ -64,8 +71,8 @@ serve(async (req) => {
 
   const paths = new Set<string>();
   for (const row of rows) {
-    const a = storagePathFromPublicUrl(row.original_image_url);
-    const b = storagePathFromPublicUrl(row.stencil_image_url);
+    const a = storagePathFromStored(row.original_image_url);
+    const b = storagePathFromStored(row.stencil_image_url);
     if (a) paths.add(a);
     if (b) paths.add(b);
   }

@@ -19,15 +19,19 @@ import {
   normalizeClientPhone,
 } from "@/lib/clientConduct";
 import { consentPdfBasename, downloadConsentPdf, printConsentPdf } from "@/lib/consentPdfActions";
-import { BOOKING_TYPE_BADGE_STYLES } from "@/lib/bookingTypes";
+import { BOOKING_TYPE_BADGE_STYLES, isBlockerBooking } from "@/lib/bookingTypes";
 import { useScheduleI18n } from "@/hooks/useScheduleI18n";
 import { useSubscription } from "@/hooks/useSubscription";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
+import ClientAppointmentsDialog from "@/components/schedule/ClientAppointmentsDialog";
 import { loadPosSaleForBooking, type PosSaleRow } from "@/lib/posCheckout";
-import { formatShopMoney } from "@/lib/shopCurrency";
+import { formatShopMoney, currencyForShopCountry } from "@/lib/shopCurrency";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
-import ClientAppointmentsDialog from "@/components/schedule/ClientAppointmentsDialog";
+import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
+import { getBookingDepositStatus, resolveBookingDepositAmount } from "@/lib/serviceDeposit";
+import { loadShopSettings } from "@/lib/shopSettings";
+import { clientHasVipBookings, setClientVipForOrganization } from "@/lib/clientVip";
 
 interface Booking {
   id: string;
@@ -41,10 +45,13 @@ interface Booking {
   tattoo_placement: string | null;
   notes: string | null;
   booking_type: string;
+  service_category?: string | null;
   status: string;
   starts_at: string;
   ends_at: string;
   deposit_paid: boolean | null;
+  deposit_amount?: number | null;
+  vip_client?: boolean | null;
   organization_id?: string | null;
 }
 
@@ -55,6 +62,7 @@ interface BookingDetailPanelProps {
   onEdit: () => void;
   resolveArtistName?: (artistId: string) => string;
   onSelectClientBooking?: (bookingId: string) => void;
+  onBookingUpdated?: (patch: Partial<Booking>) => void;
 }
 
 type ClientConductRow = {
@@ -71,10 +79,13 @@ type ClientConductRow = {
   ban_reason: string | null;
 };
 
-const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtistName, onSelectClientBooking }: BookingDetailPanelProps) => {
-  const { t, bookingTypeLabel, tattooSizeLabel } = useScheduleI18n();
+const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtistName, onSelectClientBooking, onBookingUpdated }: BookingDetailPanelProps) => {
+  const { t, bookingTypeLabel, tattooSizeLabel, blockerKindLabel } = useScheduleI18n();
+  const isBlocker = isBlockerBooking(booking);
   const { user } = useAuth();
   const { hasFeature } = useSubscription();
+  const [shopDefaultDeposit, setShopDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
+  const [shopCurrency, setShopCurrency] = useState("gbp");
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
   const [conductLoading, setConductLoading] = useState(true);
   const [savingConduct, setSavingConduct] = useState(false);
@@ -91,6 +102,8 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
   const [posSale, setPosSale] = useState<PosSaleRow | null>(null);
   const [posSaleLoading, setPosSaleLoading] = useState(true);
   const [clientAppointmentsOpen, setClientAppointmentsOpen] = useState(false);
+  const [isVip, setIsVip] = useState(!!booking.vip_client);
+  const [savingVip, setSavingVip] = useState(false);
 
   const typeColors = BOOKING_TYPE_BADGE_STYLES;
 
@@ -110,6 +123,46 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
     late_cancellations_count: lateCancellationsCount,
     reschedules_count: reschedulesCount,
   });
+
+  const depositStatus = useMemo(
+    () => getBookingDepositStatus({ ...booking, vip_client: isVip }, shopDefaultDeposit),
+    [booking, shopDefaultDeposit, isVip],
+  );
+
+  const depositBadgeLabel = useMemo(() => {
+    if (isVip) return t("deposits.badgeVip");
+    const amount = resolveBookingDepositAmount(booking, shopDefaultDeposit);
+    if (depositStatus === "not_required") return t("services.noDeposit");
+    const money = formatShopMoney(amount, shopCurrency);
+    if (depositStatus === "paid") return `${money} ${t("deposits.badgePaid")}`;
+    return `${money} ${t("deposits.badgePending")}`;
+  }, [isVip, booking, shopDefaultDeposit, shopCurrency, depositStatus, t]);
+
+  const depositStatusForActions = useMemo(
+    () => (isVip ? "not_required" : depositStatus),
+    [isVip, depositStatus],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsVip(!!booking.vip_client);
+    void (async () => {
+      try {
+        const vip = await clientHasVipBookings(booking);
+        if (!cancelled) setIsVip(vip);
+      } catch {
+        if (!cancelled) setIsVip(!!booking.vip_client);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [booking.id, booking.client_user_id, booking.client_email, booking.client_phone, booking.client_name, booking.organization_id, booking.vip_client]);
+
+  useEffect(() => {
+    void loadShopDefaultDepositAmount(booking.organization_id).then(setShopDefaultDeposit);
+    void loadShopSettings().then((shop) => setShopCurrency(currencyForShopCountry(shop?.country)));
+  }, [booking.organization_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,9 +293,35 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
     toast.success(t("schedule.conductUpdated"));
   };
 
+  const toggleVip = async (nextVip: boolean) => {
+    setSavingVip(true);
+    try {
+      const { error, updatedCount } = await setClientVipForOrganization(booking, nextVip);
+      if (error) {
+        toast.error(
+          error === "no_bookings_updated"
+            ? t("schedule.vipNoBookingsUpdated", { defaultValue: "Could not update VIP — no matching appointments found or you may not have permission." })
+            : error || t("schedule.vipUpdateFailed"),
+        );
+        return;
+      }
+      setIsVip(nextVip);
+      onBookingUpdated?.({ vip_client: nextVip });
+      toast.success(
+        nextVip
+          ? t("schedule.markedVip", { count: updatedCount })
+          : t("schedule.vipRemoved", { count: updatedCount }),
+      );
+    } finally {
+      setSavingVip(false);
+    }
+  };
+
   const sendDepositReminder = async () => {
-    if (booking.deposit_paid) {
-      toast.info(t("schedule.depositAlreadyPaid"));
+    if (depositStatusForActions !== "pending") {
+      toast.info(
+        depositStatusForActions === "paid" ? t("schedule.depositAlreadyPaid") : t("schedule.noDepositForService"),
+      );
       return;
     }
     if (!booking.client_email) {
@@ -340,7 +419,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
       <div className="fixed inset-0 bg-background/60 z-30 md:hidden" onClick={onClose} />
       <div className="fixed inset-y-0 right-0 z-40 w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right">
         <div className="flex items-center justify-between p-3 border-b border-border">
-          <h3 className="font-display text-sm font-semibold">{t("schedule.bookingDetails")}</h3>
+          <h3 className="font-display text-sm font-semibold">{isBlocker ? t("schedule.blockerDetails") : t("schedule.bookingDetails")}</h3>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -348,7 +427,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
         <div className="px-3 pt-2">
           <Button variant="outline" size="sm" className="w-full gap-2" onClick={onEdit}>
             <Pencil className="h-3.5 w-3.5" />
-            {t("schedule.editBookingBtn")}
+            {isBlocker ? t("schedule.editBlockerBtn") : t("schedule.editBookingBtn")}
           </Button>
         </div>
 
@@ -356,16 +435,27 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
           <div>
             <p className="text-base font-display font-bold">{booking.client_name}</p>
             <Badge variant="outline" className={`mt-1 text-[10px] ${typeColors[booking.booking_type] || ""}`}>
-              {bookingTypeLabel(booking.booking_type)}
+              {isBlocker ? blockerKindLabel((booking.service_category || "private").toLowerCase()) : bookingTypeLabel(booking.booking_type)}
             </Badge>
-            {(isBanned || highRisk) && (
-              <div className="mt-2 flex items-center gap-1.5">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
-                <Badge className={isBanned ? "bg-destructive/20 text-destructive border-destructive/30 text-[10px]" : "bg-amber-500/15 text-amber-200 border-amber-500/25 text-[10px]"}>
-                  {isBanned ? t("schedule.banned") : t("schedule.highRisk")}
-                </Badge>
+            {!isBlocker && (isBanned || highRisk || isVip) && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {isBanned || highRisk ? (
+                  <>
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
+                    <Badge className={isBanned ? "bg-destructive/20 text-destructive border-destructive/30 text-[10px]" : "bg-amber-500/15 text-amber-200 border-amber-500/25 text-[10px]"}>
+                      {isBanned ? t("schedule.banned") : t("schedule.highRisk")}
+                    </Badge>
+                  </>
+                ) : null}
+                {isVip ? (
+                  <Badge className="gap-1 bg-yellow-500/15 text-yellow-300 border-yellow-500/30 text-[10px]">
+                    <Star className="h-3 w-3 fill-yellow-400/80 text-yellow-300" />
+                    {t("deposits.badgeVip")}
+                  </Badge>
+                ) : null}
               </div>
             )}
+            {!isBlocker ? (
             <Button
               type="button"
               variant="outline"
@@ -376,6 +466,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               <CalendarDays className="h-3.5 w-3.5 text-gold" />
               {t("schedule.clientAppointments")}
             </Button>
+            ) : null}
           </div>
 
           <div className="flex items-start gap-2">
@@ -393,7 +484,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
             <p className="text-xs">{artistName}</p>
           </div>
 
-          {(booking.client_phone || booking.client_email) && (
+          {!isBlocker && (booking.client_phone || booking.client_email) && (
             <div className="space-y-1.5 pt-2 border-t border-border">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.contact")}</p>
               {booking.client_phone && (
@@ -476,29 +567,49 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
             </div>
           )}
 
+          {!isBlocker ? (
           <div className="pt-2 border-t border-border">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.deposit")}</p>
-            <Badge variant={booking.deposit_paid ? "default" : "outline"} className="text-[10px]">
-              {booking.deposit_paid ? t("schedule.depositPaidBadge") : t("schedule.depositPendingBadge")}
-            </Badge>
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full h-8 mt-2 text-xs gap-1"
-              onClick={sendDepositReminder}
-              disabled={sendingDepositReminder || !!booking.deposit_paid}
+            <Badge
+              variant={
+                isVip
+                  ? "secondary"
+                  : depositStatus === "paid"
+                    ? "default"
+                    : "outline"
+              }
+              className={
+                isVip
+                  ? "text-[10px] bg-yellow-500/15 text-yellow-300 border-yellow-500/30"
+                  : depositStatus === "pending"
+                    ? "text-[10px] bg-amber-500/15 text-amber-200 border-amber-500/25"
+                    : "text-[10px]"
+              }
             >
-              <Send className="h-3 w-3" />
-              {sendingDepositReminder ? t("schedule.sending") : t("schedule.sendReminder")}
-            </Button>
-            <Button size="sm" variant="secondary" className="w-full h-8 mt-2 text-xs gap-1" asChild>
-              <Link
-                to={`/checkout?bookingId=${encodeURIComponent(booking.id)}&artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
-              >
-                <CreditCard className="h-3 w-3" />
-                {t("schedule.payAtDesk")}
-              </Link>
-            </Button>
+              {depositBadgeLabel}
+            </Badge>
+            {depositStatusForActions === "pending" ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full h-8 mt-2 text-xs gap-1"
+                  onClick={sendDepositReminder}
+                  disabled={sendingDepositReminder}
+                >
+                  <Send className="h-3 w-3" />
+                  {sendingDepositReminder ? t("schedule.sending") : t("schedule.sendReminder")}
+                </Button>
+                <Button size="sm" variant="secondary" className="w-full h-8 mt-2 text-xs gap-1" asChild>
+                  <Link
+                    to={`/checkout?bookingId=${encodeURIComponent(booking.id)}&artistId=${encodeURIComponent(booking.artist_id)}&clientName=${encodeURIComponent(booking.client_name)}`}
+                  >
+                    <CreditCard className="h-3 w-3" />
+                    {t("schedule.payAtDesk")}
+                  </Link>
+                </Button>
+              </>
+            ) : null}
             {posSaleLoading ? (
               <p className="text-xs text-muted-foreground mt-2">{t("schedule.checkingPosPayment")}</p>
             ) : posSale ? (
@@ -507,7 +618,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               </Badge>
             ) : null}
           </div>
+          ) : null}
 
+          {!isBlocker ? (
           <div className="pt-2 border-t border-border">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{t("schedule.consent")}</p>
             {consentLoading ? (
@@ -559,7 +672,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               </>
             )}
           </div>
+          ) : null}
 
+          {!isBlocker ? (
           <div className="pt-2 border-t border-border space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("schedule.clientConduct")}</p>
             {conductLoading ? (
@@ -591,6 +706,22 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
                   <Label htmlFor={`ban-${booking.id}`} className="text-xs">{t("schedule.banned")}</Label>
                   <Switch id={`ban-${booking.id}`} checked={isBanned} onCheckedChange={setIsBanned} />
                 </div>
+                <div className="flex items-center justify-between gap-2 rounded-md border border-yellow-500/25 bg-yellow-500/5 p-2">
+                  <div className="min-w-0 flex-1">
+                    <Label htmlFor={`vip-${booking.id}`} className="text-xs flex items-center gap-1">
+                      <Star className="h-3 w-3 text-yellow-400" />
+                      {t("deposits.badgeVip")}
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{t("schedule.vipNoDepositHint")}</p>
+                  </div>
+                  <Switch
+                    id={`vip-${booking.id}`}
+                    className="shrink-0"
+                    checked={isVip}
+                    disabled={savingVip}
+                    onCheckedChange={(checked) => void toggleVip(checked)}
+                  />
+                </div>
                 {isBanned ? (
                   <div>
                     <Label className="text-[10px] text-muted-foreground">{t("schedule.banReason")}</Label>
@@ -606,9 +737,11 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
               </>
             )}
           </div>
+          ) : null}
         </div>
       </div>
 
+      {!isBlocker ? (
       <ClientAppointmentsDialog
         open={clientAppointmentsOpen}
         onOpenChange={setClientAppointmentsOpen}
@@ -620,6 +753,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
         resolveArtistName={resolveArtistName ?? (() => artistName)}
         onSelectBooking={onSelectClientBooking}
       />
+      ) : null}
     </>
   );
 };

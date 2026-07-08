@@ -13,7 +13,7 @@ Use this after deploying to Netlify and pointing the custom domain. The live sit
 | Setting | Value |
 |--------|--------|
 | Site URL | `https://velbok.com` |
-| Redirect URLs | `https://velbok.com/**`, `http://localhost:8080/**` (for local dev) |
+| Redirect URLs | `https://velbok.com/**`, `https://velbok.com/auth/mobile-oauth-done`, `com.velbok.app://auth/callback`, `http://localhost:8080/**` (local dev) |
 
 Without these, login, signup, and password reset links can fail or redirect to the wrong host.
 

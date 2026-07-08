@@ -1,7 +1,12 @@
 # Android release binaries (too large for GitHub; deploy via Netlify CLI from local builds)
 releases/*.apk
 releases/*.aab
-public/downloads/velbok-android.apk
+releases/app-versions/apk/
+releases/app-versions/aab/
+releases/app-versions/ios/*.ipa
+public/downloads/*.apk
+releases/phone-screenshots/
+releases/promo/
 
 logs
 *.log
@@ -16,6 +21,11 @@ dist
 dist-ssr
 *.local
 .netlify
+
+# Firebase service account (server push — never commit)
+**/*firebase-adminsdk*.json
+android/app/*firebase-adminsdk*.json
+.firebase-secret.env
 
 # Environment variables (secrets — do not commit)
 .env

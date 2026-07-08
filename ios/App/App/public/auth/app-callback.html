@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="google" content="notranslate" />
+    <meta http-equiv="Content-Language" content="en" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Velbok</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #090a0f;
+        color: #a1a1aa;
+        font-family: system-ui, sans-serif;
+        font-size: 14px;
+        text-align: center;
+        padding: 24px;
+      }
+      a {
+        color: #d4af37;
+      }
+    </style>
+  </head>
+  <body translate="no">
+    <div>
+      <p id="msg">Returning to Velbok…</p>
+      <p id="fallback" hidden>
+        <a id="openApp" href="#">Tap here to open the Velbok app</a>
+      </p>
+    </div>
+    <script>
+      (function () {
+        var PACKAGE = "com.velbok.app";
+        var SCHEME = "com.velbok.app";
+        var search = window.location.search || "";
+        var hash = window.location.hash || "";
+        var msg = document.getElementById("msg");
+        var fallback = document.getElementById("fallback");
+        var openApp = document.getElementById("openApp");
+
+        if (!search && !hash) {
+          msg.textContent =
+            "Sign-in callback is missing parameters. Close this tab and try again in the app.";
+          return;
+        }
+
+        var customScheme = SCHEME + "://auth/callback" + search + hash;
+        var isAndroid = /Android/i.test(navigator.userAgent);
+        var intentUrl =
+          "intent://auth/callback" +
+          search +
+          hash +
+          "#Intent;scheme=" +
+          SCHEME +
+          ";package=" +
+          PACKAGE +
+          ";end";
+
+        function showFallback(href) {
+          openApp.href = href;
+          fallback.hidden = false;
+          msg.textContent = "Return to the Velbok app to finish sign-in.";
+        }
+
+        if (isAndroid) {
+          window.location.replace(intentUrl);
+          window.setTimeout(function () {
+            showFallback(customScheme);
+          }, 1200);
+        } else {
+          window.location.replace(customScheme);
+          window.setTimeout(function () {
+            showFallback(customScheme);
+          }, 2500);
+        }
+      })();
+    </script>
+  </body>
+</html>

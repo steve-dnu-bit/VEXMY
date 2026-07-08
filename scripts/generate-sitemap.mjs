@@ -18,6 +18,7 @@ const staticPaths = [
   "/docs",
   "/terms",
   "/privacy",
+  "/account-deletion",
   "/cookies",
   ...docSlugs.map((slug) => `/docs/${slug}`),
 ];

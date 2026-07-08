@@ -258,8 +258,11 @@ async function refreshConnectedReaderFromSdk(): Promise<TerminalReaderInfo | nul
   }
 }
 
-const WISEPAD_NOT_FOUND_MESSAGE =
-  "No WisePad found after scanning for 30 seconds. Turn the reader off and on, keep it within 2 metres, enable phone Bluetooth and Location (GPS), and do not pair it in Android Bluetooth settings — only connect through this app. If the reader is new, register its serial number in Stripe Dashboard → Terminal → Readers first. Test readers only work when your Stripe account uses test keys (sk_test_).";
+function wisePadNotFoundMessage(): string {
+  return nativePlatform() === "ios"
+    ? "No WisePad found after scanning for 30 seconds. Turn the reader off and on, keep it within 2 metres, enable iPhone Bluetooth and Location for Velbok, and do not pair the reader in Settings → Bluetooth — only connect through this app. If the reader is new, register its serial number in Stripe Dashboard → Terminal → Readers first. Test readers only work when your Stripe account uses test keys (sk_test_)."
+    : "No WisePad found after scanning for 30 seconds. Turn the reader off and on, keep it within 2 metres, enable phone Bluetooth and Location (GPS), and do not pair it in Android Bluetooth settings — only connect through this app. If the reader is new, register its serial number in Stripe Dashboard → Terminal → Readers first. Test readers only work when your Stripe account uses test keys (sk_test_).";
+}
 
 const TAP_TO_PAY_WAITING_MESSAGE = "Ask the customer to hold their card or phone near this device…";
 const WISEPAD_WAITING_MESSAGE = "Waiting for card on reader…";
@@ -350,7 +353,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           if (options.readerMode === "tap_to_pay") {
             throw new Error(formatTapToPayDiscoveryError("Tap to Pay reader was not found on this device."));
           }
-          throw new Error(WISEPAD_NOT_FOUND_MESSAGE);
+          throw new Error(wisePadNotFoundMessage());
         }
 
         const connectOnce = async (activeLocationId: string) => {

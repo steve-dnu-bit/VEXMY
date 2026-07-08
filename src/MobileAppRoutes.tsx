@@ -31,6 +31,7 @@ const ConsentPage = lazy(() => import("@/pages/ConsentPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const CookiePolicyPage = lazy(() => import("@/pages/CookiePolicyPage"));
+const AccountDeletionPage = lazy(() => import("@/pages/AccountDeletionPage"));
 const CustomerEmbedLoginPage = lazy(() => import("@/pages/CustomerEmbedLoginPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const PosCheckoutPage = lazy(() => import("@/pages/PosCheckoutPage"));
@@ -47,18 +48,19 @@ const PageFallback = () => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   if (loading) return <PageFallback />;
   if (!user) return <Navigate to="/auth" replace />;
+  if (mfaVerificationRequired) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   const isRecoveryFlow =
     typeof window !== "undefined" && window.location.hash.includes("type=recovery");
   if (loading) return <PageFallback />;
-  if (user && !isRecoveryFlow) return <AuthHomeRedirect />;
+  if (user && !isRecoveryFlow && !mfaVerificationRequired) return <AuthHomeRedirect />;
   return <>{children}</>;
 };
 
@@ -69,8 +71,9 @@ const CustomerPortalShell = () => (
 );
 
 const MobileRootRedirect = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, mfaVerificationRequired } = useAuth();
   if (loading) return <PageFallback />;
+  if (user && mfaVerificationRequired) return <Navigate to="/auth" replace />;
   if (user) return <AuthHomeRedirect />;
   return <Navigate to="/auth" replace />;
 };
@@ -83,6 +86,7 @@ const MobileAppRoutes = () => (
     <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
     <Route path="/terms" element={<TermsPage />} />
     <Route path="/privacy" element={<PrivacyPage />} />
+    <Route path="/account-deletion" element={<AccountDeletionPage />} />
     <Route path="/cookies" element={<CookiePolicyPage />} />
     <Route element={<CustomerPortalShell />}>
       <Route path="/consent" element={<ConsentPage />} />

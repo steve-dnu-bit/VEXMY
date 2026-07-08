@@ -38,20 +38,18 @@ public class MainActivity extends BridgeActivity {
         setIntent(intent);
     }
 
-    /**
-     * Keep a single WebView window so HTML time inputs use the in-page picker
-     * instead of opening a blank secondary window (white Capacitor splash).
-     * Google sign-in on native uses email/password, not popup windows.
-     */
+    /** WebView chrome: GIS popups and dark canvas for selection handles. */
     private void configureWebView() {
         if (getBridge() == null || getBridge().getWebView() == null) {
             return;
         }
         WebView webView = getBridge().getWebView();
         webView.post(() -> {
+            // Match app canvas so selection handles are not composited on a light default layer.
+            webView.setBackgroundColor(ContextCompat.getColor(this, R.color.appBackground));
             WebSettings settings = webView.getSettings();
-            settings.setJavaScriptCanOpenWindowsAutomatically(false);
-            settings.setSupportMultipleWindows(false);
+            settings.setJavaScriptCanOpenWindowsAutomatically(true);
+            settings.setSupportMultipleWindows(true);
         });
     }
 
@@ -101,7 +99,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void showTerminalPermissionDisclosure() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.Velbok_TerminalPermissionDialog)
             .setTitle(R.string.terminal_permissions_title)
             .setMessage(R.string.terminal_permissions_message)
             .setPositiveButton(R.string.terminal_permissions_continue, (dialog, which) -> {

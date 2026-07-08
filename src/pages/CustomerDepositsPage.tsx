@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { loadShopSettingsForOrganization } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
+import { bookingRequiresDeposit } from "@/lib/serviceDeposit";
 
 type BookingDepositRow = {
   id: string;
@@ -163,8 +164,11 @@ const CustomerDepositsPage = () => {
 
   const today = startOfDay(new Date());
   const upcomingUnpaid = useMemo(
-    () => rows.filter((b) => parseISO(b.starts_at) >= today && !b.deposit_paid),
-    [rows, today]
+    () =>
+      rows.filter(
+        (b) => parseISO(b.starts_at) >= today && bookingRequiresDeposit(b, defaultDeposit),
+      ),
+    [rows, today, defaultDeposit],
   );
 
   return (

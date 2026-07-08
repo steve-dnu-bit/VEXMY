@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePricingPlansI18n } from "@/hooks/usePricingPlansI18n";
+import { PlanTrialBadge } from "@/components/marketing/PlanTrialBadge";
 
 const LANDING_FEATURE_COUNT = 4;
 
@@ -40,6 +41,7 @@ const LandingPricingSection = () => {
                 {plan.price}
                 <span className="text-sm font-normal text-muted-foreground">{plan.period}</span>
               </p>
+              <PlanTrialBadge planId={plan.id} />
               <p className="mt-2 text-xs text-muted-foreground">{plan.seats}</p>
               <ul className="mt-5 flex-1 space-y-2">
                 {plan.features.slice(0, LANDING_FEATURE_COUNT).map((feature) => (

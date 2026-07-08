@@ -3,11 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, ShieldCheck, ShieldOff, Loader2 } from "lucide-react";
+import { Shield, ShieldCheck, ShieldOff, Loader2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { revokeAllTrustedDevices } from "@/lib/trustedDevice";
 
 const MFAEnrollment = () => {
   const { user } = useAuth();
@@ -17,17 +17,19 @@ const MFAEnrollment = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
   const [factorId, setFactorId] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [revokingDevices, setRevokingDevices] = useState(false);
 
   useEffect(() => {
-    if (user) loadFactors();
+    if (user) void loadFactors();
   }, [user]);
 
   const loadFactors = async () => {
     setLoading(true);
-    const { data, error } = await supabase.auth.mfa.listFactors();
+    const { data } = await supabase.auth.mfa.listFactors();
     if (data) {
       setFactors(data.totp || []);
     }
@@ -49,6 +51,8 @@ const MFAEnrollment = () => {
       setQrCode(data.totp.qr_code);
       setSecret(data.totp.secret);
       setFactorId(data.id);
+      const codes = (data.totp as { recovery_codes?: string[] }).recovery_codes;
+      if (codes?.length) setRecoveryCodes(codes);
     }
     setEnrolling(false);
   };
@@ -78,12 +82,30 @@ const MFAEnrollment = () => {
     }
 
     toast.success(t("mfa.enabledSuccess"));
+    if (!recoveryCodes) {
+      resetTotpEnroll();
+    }
+    setVerifyCode("");
+    setVerifying(false);
+    void loadFactors();
+  };
+
+  const resetTotpEnroll = () => {
     setQrCode(null);
     setSecret(null);
     setFactorId(null);
     setVerifyCode("");
-    setVerifying(false);
-    loadFactors();
+    setRecoveryCodes(null);
+  };
+
+  const copyRecoveryCodes = async () => {
+    if (!recoveryCodes?.length) return;
+    try {
+      await navigator.clipboard.writeText(recoveryCodes.join("\n"));
+      toast.success(t("mfa.recoveryCodesCopied"));
+    } catch {
+      toast.error(t("common.error"));
+    }
   };
 
   const unenroll = async (id: string) => {
@@ -92,8 +114,20 @@ const MFAEnrollment = () => {
       toast.error(error.message);
       return;
     }
+    await revokeAllTrustedDevices();
     toast.success(t("mfa.disable"));
-    loadFactors();
+    void loadFactors();
+  };
+
+  const handleRevokeTrustedDevices = async () => {
+    setRevokingDevices(true);
+    const { error } = await revokeAllTrustedDevices();
+    setRevokingDevices(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("mfa.trustedDevicesRevoked"));
   };
 
   const verifiedFactors = factors.filter((f) => f.status === "verified");
@@ -109,6 +143,30 @@ const MFAEnrollment = () => {
     );
   }
 
+  if (recoveryCodes && recoveryCodes.length > 0) {
+    return (
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t("mfa.recoveryCodesTitle")}</CardTitle>
+          <CardDescription>{t("mfa.recoveryCodesDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-border bg-secondary p-3 font-mono text-xs space-y-1">
+            {recoveryCodes.map((c) => (
+              <div key={c}>{c}</div>
+            ))}
+          </div>
+          <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => void copyRecoveryCodes()}>
+            <Copy className="h-3.5 w-3.5 mr-1" /> {t("mfa.copyRecoveryCodes")}
+          </Button>
+          <Button type="button" variant="gold" className="w-full" onClick={resetTotpEnroll}>
+            {t("mfa.recoveryCodesSaved")}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
@@ -116,9 +174,7 @@ const MFAEnrollment = () => {
           <Shield className="h-5 w-5 text-primary" />
           <CardTitle className="text-base">{t("mfa.title")}</CardTitle>
         </div>
-        <CardDescription>
-          {t("mfa.description")}
-        </CardDescription>
+        <CardDescription>{t("mfa.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {hasActiveMFA && !qrCode && (
@@ -131,18 +187,31 @@ const MFAEnrollment = () => {
               <div key={f.id} className="flex items-center justify-between rounded-lg border border-border bg-secondary p-3">
                 <div>
                   <p className="text-sm font-medium">{f.friendly_name || t("mfa.authenticatorApp")}</p>
-                  <p className="text-[11px] text-muted-foreground">{t("mfa.addedOn", { date: new Date(f.created_at).toLocaleDateString() })}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t("mfa.addedOn", { date: new Date(f.created_at).toLocaleDateString() })}
+                  </p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                  onClick={() => unenroll(f.id)}
+                  onClick={() => void unenroll(f.id)}
                 >
                   <ShieldOff className="h-3.5 w-3.5 mr-1" /> {t("mfa.remove")}
                 </Button>
               </div>
             ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={revokingDevices}
+              onClick={() => void handleRevokeTrustedDevices()}
+            >
+              {revokingDevices ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+              {t("mfa.revokeTrustedDevices")}
+            </Button>
+            <p className="text-[11px] text-muted-foreground">{t("mfa.recoveryCodesHint")}</p>
           </div>
         )}
 
@@ -152,7 +221,7 @@ const MFAEnrollment = () => {
               <ShieldOff className="h-4 w-4" />
               <span className="text-sm">{t("mfa.disabled")}</span>
             </div>
-            <Button onClick={startEnroll} disabled={enrolling} variant="gold" className="w-full">
+            <Button onClick={() => void startEnroll()} disabled={enrolling} variant="gold" className="w-full">
               {enrolling ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Shield className="h-4 w-4 mr-2" />}
               {t("mfa.enable")}
             </Button>
@@ -187,7 +256,7 @@ const MFAEnrollment = () => {
                   maxLength={6}
                 />
                 <Button
-                  onClick={verifyEnrollment}
+                  onClick={() => void verifyEnrollment()}
                   disabled={verifyCode.length !== 6 || verifying}
                   variant="gold"
                 >
@@ -195,17 +264,7 @@ const MFAEnrollment = () => {
                 </Button>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-muted-foreground"
-              onClick={() => {
-                setQrCode(null);
-                setSecret(null);
-                setFactorId(null);
-                setVerifyCode("");
-              }}
-            >
+            <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={resetTotpEnroll}>
               {t("mfa.cancel")}
             </Button>
           </div>

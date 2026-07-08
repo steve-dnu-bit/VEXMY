@@ -1,0 +1,77 @@
+Velbok is the all-in-one tattoo studio management platform for scheduling, client CRM, deposits, digital consent, invoicing, stock, and in-person card payments — so you spend less time on admin and more time tattooing.
+
+Whether you run a solo guest spot, a small team, or a multi-artist shop, Velbok gives studio owners, artists, assistants, and front-desk staff one secure workspace instead of scattered spreadsheets, DMs, and one-off payment links.
+
+SCHEDULING BUILT FOR TATTOOING
+• Multi-artist day and week views with per-artist columns
+• Colour-coded booking types: consultations, sessions, touch-ups, and more
+• Live confirmed status on every appointment
+• Quick booking from the schedule with client details and deposit status on each slot
+• Service categories and durations tailored to tattoo and piercing workflows
+• Team invite and role-based access for artists and assistants
+
+CLIENT CRM & STUDIO OPERATIONS
+• Import clients from CSV and keep a searchable client list
+• Booking history, conduct notes, VIP flags, and linked customer accounts
+• Artist profiles with public bios, contact details, and portal branding
+• Stock and supply tracking with supplier links and artist stock requests
+• Studio dashboard with an at-a-glance view of your day
+
+CLIENT COMMUNICATION
+• Enquiry tickets — clients message your studio from their portal
+• Share reference photos and get email updates when your team replies
+• Unified in-app chat between staff and customers
+• Optional channels for email, SMS, and social inbox (where configured)
+• Automated booking confirmations, reminders, deposit prompts, and aftercare emails
+
+PAYMENTS — POWERED BY STRIPE
+• Collect deposits at booking with Stripe Checkout links
+• Send payment links by email and track paid vs pending on the schedule
+• Create invoices with line items, tax, and Stripe pay links
+• In-person card payments on Android with Stripe Tap to Pay on supported devices
+• Connect Bluetooth card readers for countertop POS
+• Stripe Connect onboarding for studio payouts and artist splits
+• Automatic paid-status sync — less manual reconciliation
+
+DIGITAL CONSENT & COMPLIANCE
+• Branded tattoo and piercing consent forms with e-signatures
+• Health screening questions for studio safety and insurance requirements
+• Generated PDFs stored with a full audit trail, linked to bookings
+• Customisable consent templates per service category
+
+AI STENCIL TOOLS
+• Upload reference art and generate transfer-ready line stencils
+• AI and basic stencil engines with before-and-after comparison
+• Style presets for line work, dotwork, and blackwork workflows
+• Download print-ready files to speed up design prep
+
+CUSTOMER PORTAL
+Your clients can self-serve online:
+• View upcoming bookings and appointment details
+• Pay deposits securely through Stripe
+• Complete digital consent before their session
+• Raise enquiry tickets and chat with the studio
+• Manage their account and security settings
+
+BUILT FOR EVERYONE IN THE SHOP
+Studio owners — admin control, billing, permissions, and multi-artist overview
+Artists — personal schedule, client notes, stencils, and deposit tracking
+Front desk — shared calendar, client lookup, and inbox in one place
+Clients — a simple portal without needing to install the staff app
+
+SECURITY & PRIVACY
+• Secure sign-in and encrypted connections (HTTPS/TLS)
+• Role-based permissions so staff only see what they need
+• Privacy notice and account deletion options at velbok.com/privacy
+• Location and Bluetooth are used only for in-person Stripe payments — not for advertising
+
+REQUIREMENTS
+Velbok is professional B2B software for tattoo and piercing studios. A Velbok subscription and studio account are required. Tap to Pay requires a supported Android device and Stripe Terminal setup.
+
+GET STARTED
+Visit velbok.com for plans and documentation, or sign in with your existing studio account.
+
+Support: support@velbok.com
+Website: https://velbok.com
+Privacy: https://velbok.com/privacy
+Terms: https://velbok.com/terms

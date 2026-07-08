@@ -67,6 +67,26 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
   const updateItem = (i: number, field: keyof InvoiceItem, value: string | number) => {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, [field]: value } : it)));
   };
+
+  /** Allow clearing the field while typing (do not force `|| 1` on every keystroke). */
+  const updateQuantity = (i: number, raw: string) => {
+    if (raw === "") {
+      updateItem(i, "quantity", 0);
+      return;
+    }
+    const n = parseInt(raw, 10);
+    updateItem(i, "quantity", Number.isFinite(n) ? n : 0);
+  };
+
+  const updateUnitPrice = (i: number, raw: string) => {
+    if (raw === "") {
+      updateItem(i, "unit_price", 0);
+      return;
+    }
+    const n = parseFloat(raw);
+    updateItem(i, "unit_price", Number.isFinite(n) ? n : 0);
+  };
+
   const addItem = () => setItems((prev) => [...prev, { description: "", quantity: 1, unit_price: 0 }]);
   const removeItem = (i: number) => setItems((prev) => prev.filter((_, idx) => idx !== i));
 
@@ -77,6 +97,9 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
     if (!clientName.trim()) return toast.error(t("billing.clientNameRequired"));
     if (!clientEmail.trim()) return toast.error(t("billing.clientEmailRequired"));
     if (items.some((i) => !i.description?.trim())) return toast.error(t("billing.lineNeedsDescription"));
+    if (items.some((i) => !Number.isFinite(Number(i.quantity)) || Number(i.quantity) < 1)) {
+      return toast.error(t("billing.lineQuantityRequired"));
+    }
     setSaving(true);
     const { error } = await supabase
       .from("invoices" as any)
@@ -152,8 +175,21 @@ const EditInvoiceDialog = ({ invoice, onSaved, trigger }: Props) => {
               {items.map((item, i) => (
                 <div key={i} className="flex gap-2 items-center">
                   <Input className="flex-1" value={item.description} onChange={(e) => updateItem(i, "description", e.target.value)} />
-                  <Input className="w-16" type="number" value={item.quantity || ""} onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value, 10) || 1)} />
-                  <Input className="w-24" type="number" step={0.01} value={item.unit_price || ""} onChange={(e) => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)} />
+                  <Input
+                    className="w-16"
+                    type="number"
+                    inputMode="numeric"
+                    value={item.quantity || ""}
+                    onChange={(e) => updateQuantity(i, e.target.value)}
+                  />
+                  <Input
+                    className="w-24"
+                    type="number"
+                    step={0.01}
+                    inputMode="decimal"
+                    value={item.unit_price || ""}
+                    onChange={(e) => updateUnitPrice(i, e.target.value)}
+                  />
                   {items.length > 1 && <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(i)}>×</Button>}
                 </div>
               ))}

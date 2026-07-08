@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { format, addMinutes } from "date-fns";
+import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { type Service } from "./ServicePresets";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
@@ -27,6 +27,7 @@ import {
 } from "@/lib/shopDepositSettings";
 import { searchOrganizationClients } from "@/lib/clientSearch";
 import { resolveDepositForService } from "@/lib/serviceDeposit";
+import { BLOCKER_DURATION_OPTIONS, type BlockerKindValue, isBlockerBooking } from "@/lib/bookingTypes";
 
 /** Escape user text for PostgREST ilike patterns */
 function escapeIlike(s: string) {
@@ -134,6 +135,8 @@ interface BookingDialogProps {
   prefillMinute?: number;
   prefillArtistId?: string;
   prefillServiceId?: string;
+  dialogMode?: "booking" | "blocker";
+  prefillBlockerKind?: BlockerKindValue;
   services: Service[];
   bookingToEdit?: {
     id: string;
@@ -167,11 +170,14 @@ const BookingDialog = ({
   prefillMinute,
   prefillArtistId,
   prefillServiceId,
+  dialogMode = "booking",
+  prefillBlockerKind,
   services,
   bookingToEdit,
   onSaved,
 }: BookingDialogProps) => {
-  const { t } = useScheduleI18n();
+  const { t, blockerKindLabel } = useScheduleI18n();
+  const isBlocker = dialogMode === "blocker" || isBlockerBooking(bookingToEdit || { booking_type: "" });
   const defaultDate = format(prefillDate || new Date(), "yyyy-MM-dd");
   const defaultStartTime = prefillHour !== undefined
     ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
@@ -209,6 +215,8 @@ const BookingDialog = ({
   const [consentDownloadBusy, setConsentDownloadBusy] = useState(false);
   const [shopCurrency, setShopCurrency] = useState("gbp");
   const [shopDefaultDeposit, setShopDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
+  const [blockerKind, setBlockerKind] = useState<BlockerKindValue>("private");
+  const [blockerDurationMinutes, setBlockerDurationMinutes] = useState(480);
 
   const maxDeposit = maxDepositAmountForCurrency(shopCurrency);
 
@@ -240,7 +248,9 @@ const BookingDialog = ({
 
     const initKey = bookingToEdit?.id
       ? `edit:${bookingToEdit.id}`
-      : `new:${format(prefillDate || new Date(), "yyyy-MM-dd")}:${prefillHour ?? ""}:${prefillMinute ?? ""}:${prefillArtistId ?? ""}:${prefillServiceId ?? ""}`;
+      : isBlocker
+        ? `blocker:${format(prefillDate || new Date(), "yyyy-MM-dd")}:${prefillHour ?? ""}:${prefillMinute ?? ""}:${prefillArtistId ?? ""}:${prefillBlockerKind ?? ""}`
+        : `new:${format(prefillDate || new Date(), "yyyy-MM-dd")}:${prefillHour ?? ""}:${prefillMinute ?? ""}:${prefillArtistId ?? ""}:${prefillServiceId ?? ""}`;
 
     if (formInitKeyRef.current === initKey) return;
     formInitKeyRef.current = initKey;
@@ -256,19 +266,37 @@ const BookingDialog = ({
 
       if (bookingToEdit) {
         setArtistId(bookingToEdit.artist_id || userId);
-        setClientUserId((bookingToEdit.client_user_id || "").trim());
-        const cuEdit = (bookingToEdit.client_user_id || "").trim();
-        if (cuEdit) {
+        if (isBlockerBooking(bookingToEdit)) {
+          const cat = (bookingToEdit.service_category || "private").toLowerCase();
+          const kind: BlockerKindValue = cat === "holiday" ? "holiday" : "private";
+          setBlockerKind(kind);
+          const dur = differenceInMinutes(new Date(bookingToEdit.ends_at), new Date(bookingToEdit.starts_at));
+          const snapped =
+            dur > 0
+              ? BLOCKER_DURATION_OPTIONS.reduce((best, opt) =>
+                  Math.abs(opt - dur) < Math.abs(best - dur) ? opt : best,
+                )
+              : kind === "holiday"
+                ? 480
+                : 60;
+          setBlockerDurationMinutes(snapped);
+          setClientUserId("");
           setLinkAccountInput("");
-          void (async () => {
-            const { data: prof } = await supabase.from("profiles").select("display_name").eq("user_id", cuEdit).maybeSingle();
-            if (prof?.display_name) {
-              suppressLinkSearchRef.current = true;
-              setLinkAccountInput(prof.display_name);
-            }
-          })();
         } else {
-          setLinkAccountInput("");
+          setClientUserId((bookingToEdit.client_user_id || "").trim());
+          const cuEdit = (bookingToEdit.client_user_id || "").trim();
+          if (cuEdit) {
+            setLinkAccountInput("");
+            void (async () => {
+              const { data: prof } = await supabase.from("profiles").select("display_name").eq("user_id", cuEdit).maybeSingle();
+              if (prof?.display_name) {
+                suppressLinkSearchRef.current = true;
+                setLinkAccountInput(prof.display_name);
+              }
+            })();
+          } else {
+            setLinkAccountInput("");
+          }
         }
         const start = new Date(bookingToEdit.starts_at);
         setForm({
@@ -288,13 +316,44 @@ const BookingDialog = ({
             currency,
           ),
         });
-        const sid = pickServiceIdForBooking(services, {
-          booking_type: bookingToEdit.booking_type,
-          starts_at: bookingToEdit.starts_at,
-          ends_at: bookingToEdit.ends_at,
-          service_category: bookingToEdit.service_category,
-        });
-        setServiceId(sid || (services[0]?.id ?? ""));
+        if (!isBlockerBooking(bookingToEdit)) {
+          const sid = pickServiceIdForBooking(services, {
+            booking_type: bookingToEdit.booking_type,
+            starts_at: bookingToEdit.starts_at,
+            ends_at: bookingToEdit.ends_at,
+            service_category: bookingToEdit.service_category,
+          });
+          setServiceId(sid || (services[0]?.id ?? ""));
+        }
+      } else if (isBlocker) {
+        setClientUserId("");
+        setLinkAccountInput("");
+        skipAutoLinkFromEmailRef.current = false;
+        const kind = prefillBlockerKind || "private";
+        setBlockerKind(kind);
+        setBlockerDurationMinutes(kind === "holiday" ? 480 : 60);
+        const prefillArtist =
+          prefillArtistId && artists.some((a) => a.user_id === prefillArtistId) ? prefillArtistId : userId;
+        setArtistId(prefillArtist);
+        const startTime =
+          prefillHour !== undefined
+            ? `${String(prefillHour).padStart(2, "0")}:${String(prefillMinute ?? 0).padStart(2, "0")}`
+            : "10:00";
+        setForm((f) => ({
+          ...f,
+          client_name: blockerKindLabel(kind),
+          client_phone: "",
+          client_email: "",
+          tattoo_style: "",
+          tattoo_size: "",
+          tattoo_placement: "",
+          notes: "",
+          date: format(prefillDate || new Date(), "yyyy-MM-dd"),
+          start_time: startTime,
+          status: "confirmed",
+          deposit_paid: false,
+          deposit_amount: 0,
+        }));
       } else {
         setClientUserId("");
         setLinkAccountInput("");
@@ -324,7 +383,7 @@ const BookingDialog = ({
     return () => {
       cancelled = true;
     };
-  }, [open, bookingToEdit, prefillDate, prefillHour, prefillMinute, prefillArtistId, prefillServiceId, artists, services, userId]);
+  }, [open, bookingToEdit, prefillDate, prefillHour, prefillMinute, prefillArtistId, prefillServiceId, prefillBlockerKind, isBlocker, artists, services, userId, blockerKindLabel]);
 
   useEffect(() => {
     if (!open || !bookingToEdit) {
@@ -550,12 +609,21 @@ const BookingDialog = ({
   };
 
   const selectedService = services.find((s) => s.id === serviceId) || services[0];
-  const duration = selectedService?.duration || 60;
+  const duration = isBlocker ? blockerDurationMinutes : selectedService?.duration || 60;
   const endTime = (() => {
     try {
       return format(addMinutes(new Date(`2000-01-01T${form.start_time}`), duration), "HH:mm");
     } catch { return "12:00"; }
   })();
+
+  const blockerDurationLabel = (minutes: number) => {
+    if (minutes === 1440) return t("schedule.blockerDurations.fullDay");
+    if (minutes % 60 === 0 && minutes >= 60) {
+      const hours = minutes / 60;
+      return t("schedule.blockerDurations.hours", { count: hours, defaultValue: `${hours} hours` });
+    }
+    return t("schedule.blockerDurations.minutes", { count: minutes, defaultValue: `${minutes} min` });
+  };
 
   const update = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -570,8 +638,88 @@ const BookingDialog = ({
         return;
       }
       const starts_at = startsAtLocal.toISOString();
-      const ends_at = endsAtLocal.toISOString();
+      const ends_at = isBlocker
+        ? addMinutes(startsAtLocal, blockerDurationMinutes).toISOString()
+        : endsAtLocal.toISOString();
       const editingId = bookingToEdit?.id ?? editingBookingIdRef.current;
+
+      if (isBlocker) {
+        if (!form.client_name.trim()) {
+          toast.error(t("schedule.blockerTitleRequired"));
+          return;
+        }
+        const nextPayload: BookingSavePayload = {
+          artist_id: artistId || userId,
+          client_name: form.client_name.trim(),
+          client_phone: null,
+          client_email: null,
+          client_user_id: null,
+          tattoo_style: null,
+          tattoo_size: null,
+          tattoo_placement: null,
+          notes: emptyToNull(form.notes),
+          booking_type: "blocker",
+          service_category: blockerKind,
+          status: form.status || "confirmed",
+          deposit_paid: false,
+          deposit_amount: 0,
+          starts_at,
+          ends_at,
+        };
+
+        if (editingId) {
+          const baseline = editBaselineRef.current;
+          const patch = baseline ? diffBookingPayload(nextPayload, baseline) : nextPayload;
+          if (Object.keys(patch).length === 0) {
+            toast.info(t("schedule.noChanges"));
+            return;
+          }
+          const { data: updatedBooking, error } = await supabase
+            .rpc("staff_update_booking", {
+              p_id: editingId,
+              p_patch: patch as unknown as Json,
+            })
+            .single();
+          if (error || !updatedBooking) {
+            toast.error(error?.message || t("schedule.couldNotSave"));
+            return;
+          }
+          toast.success(t("schedule.blockerUpdated"));
+          onOpenChange(false);
+          onSaved?.(startsAtLocal);
+          return;
+        }
+
+        const { data: createdBooking, error } = await supabase
+          .rpc("staff_insert_booking", {
+            p_artist_id: nextPayload.artist_id,
+            p_client_name: nextPayload.client_name,
+            p_client_phone: nextPayload.client_phone,
+            p_client_email: nextPayload.client_email,
+            p_client_user_id: nextPayload.client_user_id,
+            p_tattoo_style: nextPayload.tattoo_style,
+            p_tattoo_size: nextPayload.tattoo_size,
+            p_tattoo_placement: nextPayload.tattoo_placement,
+            p_notes: nextPayload.notes,
+            p_booking_type: nextPayload.booking_type,
+            p_status: nextPayload.status,
+            p_deposit_paid: nextPayload.deposit_paid,
+            p_starts_at: nextPayload.starts_at,
+            p_ends_at: nextPayload.ends_at,
+            p_service_category: nextPayload.service_category,
+            p_deposit_amount: nextPayload.deposit_amount,
+          })
+          .single();
+        if (error || !createdBooking) {
+          toast.error(error?.message || t("schedule.couldNotSave"));
+          return;
+        }
+        toast.success(t("schedule.blockerCreated"));
+        onOpenChange(false);
+        onSaved?.(startsAtLocal);
+        return;
+      }
+
       const depositAmount = editingId
         ? (() => {
             const parsed = parseDepositInput(String(form.deposit_amount), shopCurrency);
@@ -671,7 +819,7 @@ const BookingDialog = ({
     if (isSaving || isDeleting) return;
     const editingId = bookingToEdit?.id ?? editingBookingIdRef.current;
     if (!editingId) return;
-    const yes = window.confirm(t("schedule.deleteConfirm"));
+    const yes = window.confirm(isBlocker ? t("schedule.deleteBlockerConfirm") : t("schedule.deleteConfirm"));
     if (!yes) return;
     setIsDeleting(true);
     try {
@@ -694,7 +842,13 @@ const BookingDialog = ({
       <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">
-            {bookingToEdit || editingBookingIdRef.current ? t("schedule.editBooking") : t("schedule.newBooking")}
+            {bookingToEdit || editingBookingIdRef.current
+              ? isBlocker
+                ? t("schedule.editBlocker")
+                : t("schedule.editBooking")
+              : isBlocker
+                ? t("schedule.newBlocker")
+                : t("schedule.newBooking")}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3 mt-2">
@@ -713,6 +867,44 @@ const BookingDialog = ({
               </SelectContent>
             </Select>
           </div>
+          {isBlocker ? (
+            <>
+              <div>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.blockerKind")}</Label>
+                <Select
+                  value={blockerKind}
+                  onValueChange={(v) => {
+                    const kind = v as BlockerKindValue;
+                    setBlockerKind(kind);
+                    if (!bookingToEdit && (form.client_name.trim() === "" || form.client_name === blockerKindLabel(blockerKind))) {
+                      setForm((f) => ({ ...f, client_name: blockerKindLabel(kind) }));
+                    }
+                    if (!bookingToEdit && kind === "holiday" && blockerDurationMinutes < 240) {
+                      setBlockerDurationMinutes(480);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 field-surface border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="holiday">{t("schedule.blockerKinds.holiday")}</SelectItem>
+                    <SelectItem value="private">{t("schedule.blockerKinds.private")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.blockerTitleRequired")}</Label>
+                <Input
+                  value={form.client_name}
+                  onChange={(e) => update("client_name", e.target.value)}
+                  className="mt-1 field-surface border-border"
+                  placeholder={t("schedule.blockerTitlePlaceholder")}
+                />
+              </div>
+            </>
+          ) : (
+            <>
           <div>
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.serviceRequired")}</Label>
             <Select value={serviceId} onValueChange={setServiceId}>
@@ -791,6 +983,8 @@ const BookingDialog = ({
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.placement")}</Label>
             <Input value={form.tattoo_placement} onChange={(e) => update("tattoo_placement", e.target.value)} className="mt-1 field-surface border-border" placeholder={t("schedule.placementPlaceholder")} />
           </div>
+            </>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.date")}</Label>
@@ -801,7 +995,24 @@ const BookingDialog = ({
               <Input type="time" step={900} value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 field-surface border-border" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          {isBlocker ? (
+            <div>
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.blockerDuration")}</Label>
+              <Select value={String(blockerDurationMinutes)} onValueChange={(v) => setBlockerDurationMinutes(Number(v))}>
+                <SelectTrigger className="mt-1 field-surface border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BLOCKER_DURATION_OPTIONS.map((minutes) => (
+                    <SelectItem key={minutes} value={String(minutes)}>
+                      {blockerDurationLabel(minutes)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+          {isBlocker ? (
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.status")}</Label>
               <Select value={form.status} onValueChange={(v) => update("status", v)}>
@@ -810,24 +1021,38 @@ const BookingDialog = ({
                   <SelectItem value="confirmed">{t("schedule.statusOptions.confirmed")}</SelectItem>
                   <SelectItem value="completed">{t("schedule.statusOptions.completed")}</SelectItem>
                   <SelectItem value="cancelled">{t("schedule.statusOptions.cancelled")}</SelectItem>
-                  <SelectItem value="no-show">{t("schedule.statusOptions.no-show")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {bookingToEdit ? (
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
-                <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
-                  <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.status")}</Label>
+                <Select value={form.status} onValueChange={(v) => update("status", v)}>
+                  <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.status")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
-                    <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
+                    <SelectItem value="confirmed">{t("schedule.statusOptions.confirmed")}</SelectItem>
+                    <SelectItem value="completed">{t("schedule.statusOptions.completed")}</SelectItem>
+                    <SelectItem value="cancelled">{t("schedule.statusOptions.cancelled")}</SelectItem>
+                    <SelectItem value="no-show">{t("schedule.statusOptions.no-show")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            ) : null}
-          </div>
-          {!bookingToEdit && selectedService ? (
+              {bookingToEdit && (bookingToEdit.deposit_amount ?? shopDefaultDeposit) > 0 ? (
+                <div>
+                  <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositStatus")}</Label>
+                  <Select value={form.deposit_paid ? "paid" : "pending"} onValueChange={(v) => setForm((f) => ({ ...f, deposit_paid: v === "paid" }))}>
+                    <SelectTrigger className="mt-1 field-surface border-border"><SelectValue placeholder={t("schedule.depositStatus")} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">{t("schedule.depositOptions.pending")}</SelectItem>
+                      <SelectItem value="paid">{t("schedule.depositOptions.paid")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
+            </div>
+          )}
+          {!isBlocker && !bookingToEdit && selectedService ? (
             <p className="text-xs text-muted-foreground rounded-md border border-border/60 bg-secondary/20 px-3 py-2">
               {selectedService.deposit_required
                 ? t("schedule.depositFromService", {
@@ -839,7 +1064,12 @@ const BookingDialog = ({
                 : t("schedule.noDepositForService")}
             </p>
           ) : null}
-          {bookingToEdit ? (
+          {!isBlocker && bookingToEdit && (bookingToEdit.deposit_amount ?? shopDefaultDeposit) <= 0 ? (
+            <p className="text-xs text-muted-foreground rounded-md border border-border/60 bg-secondary/20 px-3 py-2">
+              {t("schedule.noDepositForService")}
+            </p>
+          ) : null}
+          {!isBlocker && bookingToEdit && (bookingToEdit.deposit_amount ?? shopDefaultDeposit) > 0 ? (
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.depositAmount")}</Label>
               <Input
@@ -869,7 +1099,7 @@ const BookingDialog = ({
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.notes")}</Label>
             <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="mt-1 field-surface border-border" rows={2} />
           </div>
-          {bookingToEdit ? (
+          {bookingToEdit && !isBlocker ? (
             <BookingConsentSection
               bookingConsentLoading={bookingConsentLoading}
               bookingConsentRows={bookingConsentRows}
@@ -883,13 +1113,13 @@ const BookingDialog = ({
               <Button variant="outline" className="w-full" onClick={handleDelete} disabled={isSaving || isDeleting}>
                 {isDeleting ? t("schedule.deleting") : t("schedule.delete")}
               </Button>
-              <Button variant="gold" className="w-full" onClick={handleSave} disabled={isSaving || isDeleting || !artistId || !form.client_name || !serviceId}>
+              <Button variant="gold" className="w-full" onClick={handleSave} disabled={isSaving || isDeleting || !artistId || !form.client_name || (!isBlocker && !serviceId)}>
                 {isSaving ? t("schedule.saving") : t("schedule.saveChanges")}
               </Button>
             </div>
           ) : (
-            <Button variant="gold" className="w-full" onClick={handleSave} disabled={isSaving || isDeleting || !artistId || !form.client_name || !serviceId}>
-              {isSaving ? t("schedule.creating") : t("schedule.createBooking")}
+            <Button variant="gold" className="w-full" onClick={handleSave} disabled={isSaving || isDeleting || !artistId || !form.client_name || (!isBlocker && !serviceId)}>
+              {isSaving ? t("schedule.creating") : isBlocker ? t("schedule.createBlocker") : t("schedule.createBooking")}
             </Button>
           )}
         </div>

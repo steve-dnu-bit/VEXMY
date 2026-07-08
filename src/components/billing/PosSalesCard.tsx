@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { formatShopMoney } from "@/lib/shopCurrency";
+import { loadOrganizationArtists } from "@/lib/organizationMembers";
 import { loadRecentPosSales, type PosLineItem, type PosSaleRow } from "@/lib/posCheckout";
+import { formatShopMoney } from "@/lib/shopCurrency";
 
 const PosSalesCard = () => {
   const { t } = useTranslation();
@@ -19,15 +19,10 @@ const PosSalesCard = () => {
   useEffect(() => {
     void (async () => {
       setLoading(true);
-      const [rows, profilesRes, rolesRes] = await Promise.all([
-        loadRecentPosSales(8),
-        supabase.from("profiles").select("user_id, display_name"),
-        supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
-      ]);
-      const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
+      const [rows, artistProfiles] = await Promise.all([loadRecentPosSales(8), loadOrganizationArtists()]);
       const map: Record<string, string> = {};
-      (profilesRes.data || []).forEach((p) => {
-        if (artistIds.has(p.user_id)) map[p.user_id] = p.display_name;
+      artistProfiles.forEach((artist) => {
+        map[artist.user_id] = artist.display_name;
       });
       setArtists(map);
       setSales(rows);

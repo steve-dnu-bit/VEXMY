@@ -1,25 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <!-- Always-dark theme (not DayNight) so WebView text selection handles stay dark, not light squares. -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/appBackground</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:textColorHighlight">@color/textHighlight</item>
+        <item name="android:colorControlActivated">@color/colorPrimary</item>
+        <item name="android:isLightTheme">false</item>
     </style>
 
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:background">@color/appBackground</item>
+        <!-- Do not set android:background here — it paints the caret/selection as an opaque block. -->
         <item name="android:windowBackground">@color/appBackground</item>
+        <item name="android:textColorHighlight">@color/textHighlight</item>
+        <item name="android:colorControlActivated">@color/colorPrimary</item>
+        <item name="android:isLightTheme">false</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+
+    <!-- Stripe / Tap to Pay permission disclosure — explicit colors for all devices. -->
+    <style name="Velbok.TerminalPermissionDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@color/terminal_dialog_background</item>
+        <item name="android:background">@color/terminal_dialog_background</item>
+        <item name="android:textColorPrimary">@color/terminal_dialog_text_primary</item>
+        <item name="android:textColorSecondary">@color/terminal_dialog_text_secondary</item>
+        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="android:colorAccent">@color/colorPrimary</item>
     </style>
 </resources>

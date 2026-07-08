@@ -34,6 +34,7 @@ export function minDepositAmountForCurrency(currency: string): number {
 }
 
 export function clampDepositAmount(value: number, currency: string): number {
+  if (value === 0) return 0;
   const min = minDepositAmountForCurrency(currency);
   const max = maxDepositAmountForCurrency(currency);
   const rounded = ZERO_DECIMAL_CURRENCIES.has((currency || "gbp").toLowerCase())
@@ -43,6 +44,7 @@ export function clampDepositAmount(value: number, currency: string): number {
 }
 
 export function isValidDepositAmount(value: number, currency: string): boolean {
+  if (value === 0) return true;
   const min = minDepositAmountForCurrency(currency);
   const max = maxDepositAmountForCurrency(currency);
   return Number.isFinite(value) && value >= min && value <= max;

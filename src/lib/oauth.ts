@@ -1,0 +1,255 @@
+import { Browser } from "@capacitor/browser";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  APPLE_SIGN_IN_ENABLED,
+  AUTH_SITE_ORIGIN,
+  GOOGLE_SIGN_IN_ENABLED,
+  NATIVE_OAUTH_HTTPS_CALLBACK_PATH,
+} from "@/lib/authConfig";
+import { stashAuthIntent, type AuthIntent } from "@/lib/authIntent";
+import { completeStashedAuthProvisioning } from "@/lib/authProvisioning";
+import { isGoogleIdentitySignInAvailable, triggerGoogleSignIn } from "@/lib/googleIdentity";
+import { isNativeApp, isNativeAppShell } from "@/lib/platform";
+
+export type OAuthProvider = "google" | "apple";
+
+/** Production site origin — always velbok.com in the native app (never https://localhost). */
+export function getAuthSiteOrigin(): string {
+  if (isNativeApp()) return AUTH_SITE_ORIGIN;
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin.replace(/\/$/, "");
+    if (!/localhost|127\.0\.0\.1/i.test(origin)) return origin;
+  }
+  return AUTH_SITE_ORIGIN;
+}
+
+/**
+ * Where Supabase OAuth redirects after provider sign-in.
+ * Native: HTTPS passthrough on velbok.com → deep link (PKCE verifier stays in the app WebView).
+ */
+function oauthRedirectUrl(): string {
+  if (isNativeApp()) return `${getAuthSiteOrigin()}${NATIVE_OAUTH_HTTPS_CALLBACK_PATH}`;
+  return `${getAuthSiteOrigin()}/auth`;
+}
+
+export function buildWebOAuthRedirectUrl(path: string, intent: AuthIntent): string {
+  stashAuthIntent(intent);
+  const base = `${getAuthSiteOrigin()}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = new URL(base);
+  url.searchParams.set("auth_intent", intent.type);
+  if (intent.organizationId) url.searchParams.set("org", intent.organizationId);
+  if (intent.inviteToken) url.searchParams.set("invite", intent.inviteToken);
+  if (intent.next) url.searchParams.set("next", intent.next);
+  return url.toString();
+}
+
+export function isOAuthProviderEnabled(provider: OAuthProvider): boolean {
+  if (provider === "google") return GOOGLE_SIGN_IN_ENABLED;
+  return APPLE_SIGN_IN_ENABLED;
+}
+
+export function shouldOfferAppleSignIn(): boolean {
+  return APPLE_SIGN_IN_ENABLED;
+}
+
+export function prefersGoogleIdentitySignIn(): boolean {
+  return isGoogleIdentitySignInAvailable();
+}
+
+export async function signInWithGoogleIdToken(
+  intent: AuthIntent,
+  idToken: string,
+  rawNonce?: string,
+): Promise<void> {
+  stashAuthIntent(intent);
+
+  const withNonce = rawNonce
+    ? await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken,
+        nonce: rawNonce,
+      })
+    : null;
+
+  if (withNonce && !withNonce.error) {
+    await completeStashedAuthProvisioning();
+    return;
+  }
+
+  const { error } = await supabase.auth.signInWithIdToken({
+    provider: "google",
+    token: idToken,
+  });
+  if (error) {
+    const hint =
+      isNativeAppShell() && /nonce|invalid/i.test(error.message)
+        ? " Enable “Skip nonce check” for Google in Supabase Auth, or contact support."
+        : "";
+    throw new Error(`${error.message}${hint}`);
+  }
+  await completeStashedAuthProvisioning();
+}
+
+async function signInWithSupabaseOAuth(provider: OAuthProvider, intent: AuthIntent): Promise<void> {
+  stashAuthIntent(intent);
+
+  const native = isNativeApp();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: oauthRedirectUrl(),
+      skipBrowserRedirect: native,
+      queryParams:
+        provider === "google"
+          ? { prompt: "select_account", hl: "en", ui_locales: "en" }
+          : { scope: "name email" },
+    },
+  });
+
+  if (error) throw error;
+  if (!native) return;
+
+  if (!data?.url) throw new Error("OAuth URL was not returned.");
+  await Browser.open({ url: data.url });
+}
+
+/**
+ * Google sign-in:
+ * - Web: Google Identity Services (VITE_GOOGLE_CLIENT_ID) → signInWithIdToken
+ * - Native app: Supabase OAuth in Custom Tab → HTTPS passthrough → deep link → PKCE in WebView
+ *   (GIS popups do not work reliably in the Capacitor WebView.)
+ */
+export async function startGoogleSignIn(intent: AuthIntent): Promise<void> {
+  if (!GOOGLE_SIGN_IN_ENABLED) {
+    throw new Error("google sign-in is not enabled");
+  }
+
+  stashAuthIntent(intent);
+
+  if (!isNativeAppShell() && isGoogleIdentitySignInAvailable()) {
+    await triggerGoogleSignIn(async (credential, rawNonce) => {
+      await signInWithGoogleIdToken(intent, credential, rawNonce);
+    });
+    return;
+  }
+
+  await signInWithSupabaseOAuth("google", intent);
+}
+
+export async function startOAuthSignIn(provider: OAuthProvider, intent: AuthIntent): Promise<void> {
+  if (!isOAuthProviderEnabled(provider)) {
+    throw new Error(`${provider} sign-in is not enabled`);
+  }
+
+  if (provider === "google") {
+    await startGoogleSignIn(intent);
+    return;
+  }
+
+  await signInWithSupabaseOAuth(provider, intent);
+}
+
+function parseCallbackParams(url: string): URLSearchParams {
+  try {
+    const parsed = new URL(url.replace(/^com\.velbok\.app:\/\//, "https://com.velbok.app/"));
+    if (parsed.hash.length > 1) {
+      return new URLSearchParams(parsed.hash.slice(1));
+    }
+    if (parsed.search.length > 1) {
+      return new URLSearchParams(parsed.search.slice(1));
+    }
+  } catch {
+    /* fall through */
+  }
+  const hashIndex = url.indexOf("#");
+  if (hashIndex >= 0) {
+    return new URLSearchParams(url.slice(hashIndex + 1));
+  }
+  const queryIndex = url.indexOf("?");
+  if (queryIndex >= 0) {
+    return new URLSearchParams(url.slice(queryIndex + 1));
+  }
+  return new URLSearchParams();
+}
+
+export function isOAuthCallbackUrl(url: string): boolean {
+  return (
+    url.includes("auth/callback") ||
+    url.includes("access_token=") ||
+    url.includes("code=") ||
+    url.startsWith("com.velbok.app://")
+  );
+}
+
+async function exchangePkceCode(url: string): Promise<void> {
+  const params = parseCallbackParams(url);
+  const code = params.get("code");
+  if (!code) throw new Error("Sign-in callback did not include an authorization code.");
+
+  // Verifier lives in the app WebView storage — exchange by code first on native.
+  const { error: codeOnlyError } = await supabase.auth.exchangeCodeForSession(code);
+  if (!codeOnlyError) return;
+
+  const siteOrigin = getAuthSiteOrigin();
+  const candidates = [
+    url,
+    url.replace(/^com\.velbok\.app:\/\//, "https://com.velbok.app/"),
+    `${siteOrigin}${NATIVE_OAUTH_HTTPS_CALLBACK_PATH}?code=${encodeURIComponent(code)}`,
+    `${siteOrigin}/auth?code=${encodeURIComponent(code)}`,
+  ];
+
+  let lastError: Error | null = codeOnlyError;
+  for (const candidate of candidates) {
+    const { error } = await supabase.auth.exchangeCodeForSession(candidate);
+    if (!error) return;
+    lastError = error;
+  }
+
+  throw lastError ?? new Error("Could not complete sign-in.");
+}
+
+export async function establishSessionFromOAuthCallback(url: string): Promise<void> {
+  if (!isOAuthCallbackUrl(url)) return;
+
+  const params = parseCallbackParams(url);
+  const code = params.get("code");
+
+  if (code) {
+    await exchangePkceCode(url);
+  } else {
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    if (!accessToken || !refreshToken) {
+      throw new Error("Sign-in callback did not include session tokens.");
+    }
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) throw error;
+  }
+
+  await completeStashedAuthProvisioning();
+}
+
+export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
+  if (!isOAuthCallbackUrl(url)) return false;
+
+  try {
+    await Browser.close().catch(() => undefined);
+    await establishSessionFromOAuthCallback(url);
+
+    if (isNativeAppShell()) {
+      window.location.replace(`${window.location.origin}/`);
+    }
+
+    window.dispatchEvent(new CustomEvent("velbok:oauth-success"));
+    return true;
+  } catch (e) {
+    console.error("[oauth] callback failed:", url, e);
+    await Browser.close().catch(() => undefined);
+    const message = e instanceof Error ? e.message : String(e);
+    window.dispatchEvent(new CustomEvent("velbok:oauth-error", { detail: message }));
+    throw e;
+  }
+}

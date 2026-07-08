@@ -8,8 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { CreditCard, Percent, Wifi } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { getUserOrganizationId } from "@/lib/shopSettings";
+import { loadOrganizationArtists } from "@/lib/organizationMembers";
 import {
   defaultShopPosSettings,
   deleteArtistPosSplit,
@@ -52,16 +52,12 @@ const AdminPosCheckoutPanel = () => {
         return;
       }
 
-      const [posRow, splits, profilesRes, rolesRes, connectRes] = await Promise.all([
+      const [posRow, splits, artistProfiles, connectRes] = await Promise.all([
         loadShopPosSettings(id),
         loadArtistPosSplits(id),
-        supabase.from("profiles").select("user_id, display_name"),
-        supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+        loadOrganizationArtists(id),
         invokeEdgeFunctionJson<{ connectAccountId?: string | null }>("stripe-terminal-pos", { action: "connect_status" }),
       ]);
-
-      const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
-      const artistProfiles = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as ArtistProfile[];
 
       setArtists(artistProfiles);
       setArtistSplits(splits);

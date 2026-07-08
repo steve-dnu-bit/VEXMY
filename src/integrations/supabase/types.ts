@@ -466,10 +466,13 @@ export type Database = {
           color: string
           created_at: string
           created_by: string
+          deposit_amount: number | null
+          deposit_required: boolean
           duration: number
           id: string
           is_active: boolean
           name: string
+          organization_id: string
           price: number | null
           service_category: string
           sort_order: number
@@ -480,10 +483,13 @@ export type Database = {
           color?: string
           created_at?: string
           created_by: string
+          deposit_amount?: number | null
+          deposit_required?: boolean
           duration?: number
           id?: string
           is_active?: boolean
           name: string
+          organization_id: string
           price?: number | null
           service_category?: string
           sort_order?: number
@@ -494,10 +500,13 @@ export type Database = {
           color?: string
           created_at?: string
           created_by?: string
+          deposit_amount?: number | null
+          deposit_required?: boolean
           duration?: number
           id?: string
           is_active?: boolean
           name?: string
+          organization_id?: string
           price?: number | null
           service_category?: string
           sort_order?: number
@@ -957,6 +966,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_default_org_services: {
+        Args: { _org_id: string }
+        Returns: undefined
+      }
       has_permission: {
         Args: { _feature: string; _user_id: string }
         Returns: boolean

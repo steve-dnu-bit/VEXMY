@@ -17,12 +17,29 @@ export const CALENDAR_TYPE_OPTIONS: { value: BookingTypeValue; label: string }[]
   { value: "laser-session", label: "Laser Session" },
 ];
 
+export const BLOCKER_KIND_VALUES = ["holiday", "private"] as const;
+export type BlockerKindValue = (typeof BLOCKER_KIND_VALUES)[number];
+
+export const BLOCKER_DURATION_OPTIONS = [30, 60, 120, 240, 480, 1440] as const;
+
+export function isBlockerBooking(booking: { booking_type: string }): boolean {
+  return (booking.booking_type || "").toLowerCase() === "blocker";
+}
+
+export function blockerKindLabel(category: string | null | undefined): string {
+  const c = (category || "").toLowerCase();
+  if (c === "holiday") return "Holiday";
+  if (c === "private") return "Private";
+  return "Blocked";
+}
+
 export const BOOKING_TYPE_STYLES: Record<string, string> = {
   consultation: "bg-blue-500/15 border-blue-500/30 text-blue-300",
   session: "bg-primary/15 border-primary/30 text-primary",
   "touch-up": "bg-emerald-500/15 border-emerald-500/30 text-emerald-300",
   "piercing-session": "bg-pink-500/15 border-pink-500/30 text-pink-300",
   "laser-session": "bg-violet-500/15 border-violet-500/30 text-violet-300",
+  blocker: "bg-slate-500/15 border-slate-500/30 text-slate-300",
 };
 
 export const BOOKING_TYPE_BADGE_STYLES: Record<string, string> = {
@@ -31,6 +48,7 @@ export const BOOKING_TYPE_BADGE_STYLES: Record<string, string> = {
   "touch-up": "bg-emerald-500/15 text-emerald-300 border-emerald-500/25",
   "piercing-session": "bg-pink-500/15 text-pink-300 border-pink-500/25",
   "laser-session": "bg-violet-500/15 text-violet-300 border-violet-500/25",
+  blocker: "bg-slate-500/15 text-slate-300 border-slate-500/25",
 };
 
 export function bookingTypeLabel(value: string): string {
@@ -99,6 +117,7 @@ export function bookingEligibleForConsent(booking: {
   service_category?: string | null;
   booking_type: string;
 }): boolean {
+  if (isBlockerBooking(booking)) return false;
   const cat = (booking.service_category || "").toLowerCase();
   if (cat === "tattoo" || cat === "piercing") return true;
   if (cat === "laser" || cat === "consultation") return false;

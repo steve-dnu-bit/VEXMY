@@ -28,6 +28,7 @@ export const DOC_PAGE_ORDER: { slug: string; category: DocCategoryId }[] = [
   { slug: "consent", category: "clients" },
   { slug: "customer-portal", category: "clients" },
   { slug: "inbox", category: "staff" },
+  { slug: "sms-twilio-setup", category: "admin" },
   { slug: "stock", category: "ops" },
   { slug: "stencil", category: "staff" },
   { slug: "admin", category: "admin" },

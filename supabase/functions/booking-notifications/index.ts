@@ -14,6 +14,8 @@ import { resolveEmailLocale, t, type EmailLanguage } from "../_shared/email-i18n
 import { requireEmailDeliveryConfig, sendTransactionalEmail } from "../_shared/email.ts";
 import { buildBookingNotificationEmail, type BookingEmailDetails } from "../_shared/email-templates.ts";
 import { loadShopReminderSettings } from "../_shared/shop-reminder-settings.ts";
+import { sendBookingPushNotifications, sendDepositConfirmedArtistPush } from "../_shared/booking-push.ts";
+import type { PushDeliveryResult } from "../_shared/push-notify.ts";
 
 const corsHeaders = jsonCorsHeaders;
 
@@ -59,6 +61,32 @@ function isImportedPlaceholderBooking(booking: BookingPayload): boolean {
     notes.startsWith("imported from json") ||
     notes.includes("contacts export")
   );
+}
+
+const DEDUP_WINDOW_MS = 5 * 60_000;
+
+async function recipientRecentlyNotified(
+  adminClient: ReturnType<typeof createClient>,
+  bookingId: string,
+  recipientEmail: string,
+  action: BookingNotificationAction,
+): Promise<boolean> {
+  const since = new Date(Date.now() - DEDUP_WINDOW_MS).toISOString();
+  const { data: recentForRecipient } = await adminClient
+    .from("booking_notification_events")
+    .select("id, action")
+    .eq("booking_id", bookingId)
+    .eq("recipient_email", recipientEmail.toLowerCase())
+    .eq("status", "sent")
+    .gte("sent_at", since);
+
+  if (!recentForRecipient?.length) return false;
+
+  if (action === "updated") {
+    return recentForRecipient.some((row) => row.action === "created" || row.action === "updated");
+  }
+
+  return recentForRecipient.some((row) => row.action === action);
 }
 
 async function authorizeBookingNotification(
@@ -109,6 +137,7 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action =
       body.action === "deleted" ? "deleted" : body.action === "updated" ? "updated" : body.action === "created" ? "created" : null;
+    const updateKind = typeof body.update_kind === "string" ? body.update_kind : null;
     const bookingPayload = (body.booking ?? null) as BookingPayload | null;
     if (!action || !bookingPayload?.id) {
       return jsonResponse({ error: "Invalid payload. action and booking.id are required." }, 400);
@@ -160,6 +189,70 @@ serve(async (req) => {
       });
     }
 
+    if (action === "updated" && updateKind === "deposit_confirmed") {
+      const { data: recentDepositConfirmed } = await adminClient
+        .from("booking_notification_events")
+        .select("id")
+        .eq("booking_id", booking.id)
+        .eq("action", "deposit_confirmed")
+        .eq("status", "sent")
+        .gte("sent_at", new Date(Date.now() - DEDUP_WINDOW_MS).toISOString())
+        .limit(1);
+      if (recentDepositConfirmed?.length) {
+        return jsonResponse({
+          ok: true,
+          emailAttempted: false,
+          skipped: "duplicate_recent_send",
+          attempted: 0,
+          sent: 0,
+          failedCount: 0,
+        });
+      }
+
+      const brand = await getShopBrandingForBooking(adminClient, {
+        organizationId: (booking as { organization_id?: string | null }).organization_id ?? null,
+        artistId: booking.artist_id,
+      });
+
+      let pushResult: PushDeliveryResult | null = null;
+      try {
+        pushResult = await sendDepositConfirmedArtistPush(adminClient, {
+          booking: {
+            id: booking.id,
+            artist_id: booking.artist_id,
+            client_user_id: (booking as { client_user_id?: string | null }).client_user_id ?? null,
+            client_name: booking.client_name,
+            starts_at: booking.starts_at,
+          },
+          shopName: brand.shopName,
+        });
+      } catch (pushErr) {
+        console.error("Deposit confirmed push notification failed", pushErr);
+      }
+
+      if (pushResult && pushResult.sent > 0) {
+        await adminClient.from("booking_notification_events").insert({
+          booking_id: booking.id,
+          action: "deposit_confirmed",
+          recipient_role: "artist",
+          recipient_email: `push:${booking.artist_id}`,
+          subject: "Appointment confirmed (push)",
+          status: "sent",
+          sent_at: new Date().toISOString(),
+        } as any);
+      }
+
+      return jsonResponse({
+        ok: true,
+        emailAttempted: false,
+        attempted: 0,
+        sent: 0,
+        failedCount: 0,
+        push: pushResult,
+        mode: "deposit_confirmed_push_artist_only",
+      });
+    }
+
     try {
       requireEmailDeliveryConfig();
     } catch (smtpErr) {
@@ -178,7 +271,7 @@ serve(async (req) => {
       .eq("booking_id", booking.id)
       .eq("action", action)
       .eq("status", "sent")
-      .gte("sent_at", new Date(Date.now() - 90_000).toISOString())
+      .gte("sent_at", new Date(Date.now() - DEDUP_WINDOW_MS).toISOString())
       .limit(1);
     if (recentSent?.length) {
       return jsonResponse({
@@ -189,6 +282,27 @@ serve(async (req) => {
         sent: 0,
         failedCount: 0,
       });
+    }
+
+    if (action === "updated") {
+      const { data: bookingMeta } = await adminClient
+        .from("bookings")
+        .select("created_at")
+        .eq("id", booking.id)
+        .maybeSingle();
+      if (bookingMeta?.created_at) {
+        const ageMs = Date.now() - new Date(bookingMeta.created_at).getTime();
+        if (ageMs < DEDUP_WINDOW_MS) {
+          return jsonResponse({
+            ok: true,
+            emailAttempted: false,
+            skipped: "update_too_soon_after_create",
+            attempted: 0,
+            sent: 0,
+            failedCount: 0,
+          });
+        }
+      }
     }
 
     const [artistUserRes, artistProfileRes] = await Promise.all([
@@ -241,6 +355,16 @@ serve(async (req) => {
     };
 
     const sendJobs = [...recipients.entries()].map(async ([email, recipient]) => {
+      if (await recipientRecentlyNotified(adminClient, booking.id, email, action)) {
+        return {
+          ok: true,
+          email,
+          role: recipient.role,
+          subject: "(skipped duplicate)",
+          skipped: true,
+        };
+      }
+
       const locale: EmailLanguage = recipient.role === "artist" ? artistLocale : customerLocale;
       const subject =
         action === "created"
@@ -284,23 +408,43 @@ serve(async (req) => {
     });
 
     if (sendJobs.length === 0) {
+      let pushOnly: Awaited<ReturnType<typeof sendBookingPushNotifications>> | null = null;
+      try {
+        pushOnly = await sendBookingPushNotifications(adminClient, {
+          action,
+          booking: {
+            id: booking.id,
+            artist_id: booking.artist_id,
+            client_user_id: (booking as { client_user_id?: string | null }).client_user_id ?? null,
+            client_name: booking.client_name,
+            starts_at: booking.starts_at,
+          },
+          shopName: brand.shopName,
+        });
+      } catch (pushErr) {
+        console.error("Booking push notification failed", pushErr);
+      }
+
       return jsonResponse({
         ok: true,
         emailAttempted: false,
         attempted: 0,
         sent: 0,
         failedCount: 0,
+        push: pushOnly,
         skipped: !isValidEmail(customerEmailRaw) && !isValidEmail(artistEmailRaw) ? "no_valid_recipient_email" : "no_recipients",
       });
     }
 
     const results = await Promise.all(sendJobs);
-    const attempted = results.length;
-    const sent = results.filter((r) => r.ok).length;
+    const attempted = results.filter((r) => !("skipped" in r && r.skipped)).length;
+    const sent = results.filter((r) => r.ok && !("skipped" in r && r.skipped)).length;
     const failed = results.filter((r) => !r.ok);
     const failedCount = failed.length;
 
-    const auditRows = results.map((r) => ({
+    const auditRows = results
+      .filter((r) => !("skipped" in r && r.skipped))
+      .map((r) => ({
       booking_id: booking.id,
       action,
       recipient_role: r.role,
@@ -318,6 +462,23 @@ serve(async (req) => {
       }
     }
 
+    let pushResult: Awaited<ReturnType<typeof sendBookingPushNotifications>> | null = null;
+    try {
+      pushResult = await sendBookingPushNotifications(adminClient, {
+        action,
+        booking: {
+          id: booking.id,
+          artist_id: booking.artist_id,
+          client_user_id: (booking as { client_user_id?: string | null }).client_user_id ?? null,
+          client_name: booking.client_name,
+          starts_at: booking.starts_at,
+        },
+        shopName: brand.shopName,
+      });
+    } catch (pushErr) {
+      console.error("Booking push notification failed", pushErr);
+    }
+
     return jsonResponse({
       ok: failedCount === 0,
       emailAttempted: true,
@@ -325,6 +486,7 @@ serve(async (req) => {
       sent,
       failedCount,
       failed,
+      push: pushResult,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";

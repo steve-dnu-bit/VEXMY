@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" translate="no">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>Velbok | Tattoo Studio Management Platform</title>
     <meta name="description" content="Velbok — the all-in-one booking and studio management platform for tattoo shops. Scheduling, deposits, consent forms, billing, and client communication." />
     <link rel="icon" href="/icons/favicon-32.png" type="image/png" sizes="32x32" />
@@ -26,6 +27,17 @@
   </head>
 
   <body>
+    <!-- Mobile OAuth: never exchange PKCE in Chrome — forward to app deep link first. -->
+    <script>
+      (function () {
+        var q = location.search;
+        var h = location.hash;
+        var hasCode = (q && q.indexOf("code=") >= 0) || (h && h.indexOf("code=") >= 0);
+        if (!hasCode) return;
+        if (location.pathname.indexOf("/auth/app-callback") === 0) return;
+        location.replace("/auth/app-callback" + q + h);
+      })();
+    </script>
     <div id="root">
       <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">
         Velbok — Tattoo Studio Management Platform

@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { BOOKING_TYPE_VALUES, type BookingTypeValue } from "@/lib/bookingTypes";
+import { getBookingDepositStatus, type BookingDepositLookup } from "@/lib/serviceDeposit";
 
 export function useScheduleI18n() {
   const { t } = useTranslation();
@@ -25,7 +26,22 @@ export function useScheduleI18n() {
 
   const depositLabel = useCallback((paid: boolean) => (paid ? t("schedule.depositPaid") : t("schedule.depositPending")), [t]);
 
-  return { t, bookingTypeLabel, bookingTypeOptions, statusLabel, tattooSizeLabel, depositLabel };
+  const depositStatusLabel = useCallback(
+    (booking: BookingDepositLookup, shopDefaultAmount: number) => {
+      const status = getBookingDepositStatus(booking, shopDefaultAmount);
+      if (status === "not_required") return t("services.noDeposit");
+      if (status === "paid") return t("schedule.depositPaid");
+      return t("schedule.depositPending");
+    },
+    [t],
+  );
+
+  const blockerKindLabel = useCallback(
+    (kind: string) => t(`schedule.blockerKinds.${kind}`, { defaultValue: kind }),
+    [t],
+  );
+
+  return { t, bookingTypeLabel, bookingTypeOptions, statusLabel, tattooSizeLabel, depositLabel, depositStatusLabel, blockerKindLabel };
 }
 
 export function useBookingTypeLabelI18n() {

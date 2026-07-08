@@ -20,6 +20,8 @@ import { bookingEligibleForConsent } from "@/lib/bookingTypes";
 import { buildCustomerBookingsOrFilter } from "@/lib/customerBookings";
 import { bookingMatchesCustomerShop } from "@/lib/customerShops";
 import { useCustomerShop } from "@/hooks/useCustomerShop";
+import { bookingRequiresDeposit } from "@/lib/serviceDeposit";
+import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
 import { hasActiveOrganizationSubscription } from "@/lib/shopSettings";
 import { fetchHasStaffAccess } from "@/hooks/useUserRoles";
 import { useTranslation } from "react-i18next";
@@ -37,6 +39,7 @@ type BookingRow = {
   tattoo_style: string | null;
   notes: string | null;
   deposit_paid: boolean | null;
+  deposit_amount: number | null;
   vip_client: boolean | null;
 };
 
@@ -76,12 +79,13 @@ const CustomerAccountPage = () => {
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [conduct, setConduct] = useState<ClientConductRow | null>(null);
+  const [defaultDeposit, setDefaultDeposit] = useState(DEFAULT_DEPOSIT_AMOUNT);
 
   const loadAccountData = useCallback(async (targetUserId: string) => {
     const loginEmail = (user?.email || "").trim().toLowerCase();
     const { data: rows } = await supabase
       .from("bookings")
-      .select("id, artist_id, organization_id, client_name, starts_at, ends_at, status, booking_type, service_category, tattoo_style, notes, deposit_paid, vip_client")
+      .select("id, artist_id, organization_id, client_name, starts_at, ends_at, status, booking_type, service_category, tattoo_style, notes, deposit_paid, deposit_amount, vip_client")
       .or(buildCustomerBookingsOrFilter(targetUserId, loginEmail))
       .order("starts_at", { ascending: true });
     const bookingRows = (rows as BookingRow[]) || [];
@@ -126,6 +130,10 @@ const CustomerAccountPage = () => {
       setPortalBrand(null);
     }
   }, [user?.email, selectedOrgId, shops.length]);
+
+  useEffect(() => {
+    void loadShopDefaultDepositAmount(selectedOrgId).then(setDefaultDeposit);
+  }, [selectedOrgId]);
 
   useEffect(() => {
     if (!user) return;
@@ -264,7 +272,7 @@ const CustomerAccountPage = () => {
     .filter((b) => parseISO(b.starts_at) < todayStart)
     .sort((a, b) => parseISO(b.starts_at).getTime() - parseISO(a.starts_at).getTime());
 
-  const unpaidDepositUpcoming = upcoming.filter((b) => !b.deposit_paid);
+  const unpaidDepositUpcoming = upcoming.filter((b) => bookingRequiresDeposit(b, defaultDeposit));
   const isVipClient = shopBookings.some((b) => b.vip_client);
   const unpaidInvoices = shopInvoices.filter((inv) => inv.status !== "paid");
 

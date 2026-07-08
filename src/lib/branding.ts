@@ -7,6 +7,7 @@ export const BRANDING = {
   shopTradingName: import.meta.env.VITE_SHOP_TRADING_NAME || import.meta.env.VITE_SHOP_NAME || "Velbok",
   supportEmail:
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL || "support@velbok.com",
+  supportPhone: import.meta.env.VITE_SHOP_SUPPORT_PHONE || "+447888863292",
   privacyEmail:
     import.meta.env.VITE_SHOP_PRIVACY_EMAIL ||
     import.meta.env.VITE_SHOP_SUPPORT_EMAIL ||
@@ -21,8 +22,8 @@ export const BRANDING = {
   accentColor: import.meta.env.VITE_SHOP_ACCENT_COLOR || "hsl(43, 34%, 54%)",
   /** V mark only — transparent PNG for in-app UI beside the wordmark text. */
   markSrc: "/icons/logo-mark.png",
-  /** Full lockup with velbok.com text (black background). */
-  logoFullSrc: "/brand/logo-with-text-black.png",
+  /** Full lockup with velbok.com text (transparent background). */
+  logoFullSrc: "/brand/logo-with-text-transparent.png",
   logoSrc: "/icons/logo-mark.png",
   iconSrc: "/icons/icon-512-plain.png",
 } as const;

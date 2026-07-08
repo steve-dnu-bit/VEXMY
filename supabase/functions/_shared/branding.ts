@@ -36,6 +36,33 @@ function formatShopAddress(row: ShopSettingsBrandingRow | null | undefined): str
   return [row.address_line1, row.address_line2, row.city, row.postcode].filter(Boolean).join(", ");
 }
 
+/** Skip placeholder / platform-default names so booking emails use the real studio name. */
+function isGenericStudioName(name: string, platformName: string): boolean {
+  const n = name.trim().toLowerCase();
+  if (!n) return true;
+  const platform = platformName.trim().toLowerCase();
+  return n === platform || n === "velbok" || n === "my tattoo studio";
+}
+
+/** Display name for booking emails, calendar invites, and sender — prefers configured studio over platform branding. */
+function resolveStudioDisplayName(
+  shop: ShopSettingsBrandingRow | null,
+  orgName: string | null,
+  platformName: string,
+): string {
+  const trading = shop?.trading_name?.trim() || "";
+  const shopName = shop?.shop_name?.trim() || "";
+  const org = orgName?.trim() || "";
+
+  if (trading && !isGenericStudioName(trading, platformName)) return trading;
+  if (shopName && !isGenericStudioName(shopName, platformName)) return shopName;
+  if (org && !isGenericStudioName(org, platformName)) return org;
+  if (trading) return trading;
+  if (shopName) return shopName;
+  if (org) return org;
+  return platformName;
+}
+
 export function getShopBranding(): ShopBranding {
   const platformName = Deno.env.get("PLATFORM_NAME") || "Velbok";
   const shopName = Deno.env.get("SHOP_NAME") || platformName;
@@ -90,11 +117,7 @@ export async function getShopBrandingForOrganization(
 
   const shop = shopRow as ShopSettingsBrandingRow | null;
   const orgName = (orgRow as { name?: string | null } | null)?.name?.trim() || null;
-  const displayName =
-    orgName ||
-    shop?.trading_name?.trim() ||
-    shop?.shop_name?.trim() ||
-    base.shopName;
+  const displayName = resolveStudioDisplayName(shop, orgName, base.platformName);
 
   return {
     ...base,

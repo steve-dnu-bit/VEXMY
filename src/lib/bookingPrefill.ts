@@ -2,6 +2,7 @@
 export type SidebarBookingDraft = {
   serviceId?: string;
   artistId?: string;
+  blockerKind?: "holiday" | "private";
 };
 
 /** Values passed into the booking dialog when a time slot is clicked. */
@@ -11,6 +12,7 @@ export type BookingPrefill = {
   minute?: number;
   artistId?: string;
   serviceId?: string;
+  blockerKind?: "holiday" | "private";
 };
 
 export function buildBookingPrefillFromSlot(
@@ -22,6 +24,7 @@ export function buildBookingPrefillFromSlot(
     hour: slot.hour,
     minute: slot.minute,
     artistId: slot.artistId ?? draft.artistId,
-    serviceId: draft.serviceId,
+    serviceId: draft.blockerKind ? undefined : draft.serviceId,
+    blockerKind: draft.blockerKind,
   };
 }

@@ -12,7 +12,8 @@
     "paid": "Betaald",
     "paidWithAmount": "Betaald ({{amount}})",
     "outstanding": "Uitstekend",
-    "outstandingWithAmount": "Uitstaand ({{amount}})"
+    "outstandingWithAmount": "Uitstaand ({{amount}})",
+    "notRequired": "Niet vereist"
   },
   "bookingNotification": {
     "badge": "Boeking",
@@ -179,6 +180,52 @@
     },
     "inbox": {
       "update": "Nieuw inboxbericht — {{shopName}}"
+    },
+    "posReceipt": {
+      "default": "Uw kassabon {{receiptNumber}} — {{shopName}}"
+    }
+  },
+  "posReceipt": {
+    "badge": "Ontvangst",
+    "title": "Betaling ontvangen",
+    "intro": "Bedankt voor uw bezoek aan {{shopName}}. Hier is uw ontvangstbewijs voor uw sessie met {{artistName}}; een pdf-kopie is bijgevoegd.",
+    "paymentMethod": {
+      "card": "Kaart (Tik om te betalen / WisePad)"
+    },
+    "details": {
+      "artist": "Artiest",
+      "studio": "Studio",
+      "date": "Datum",
+      "receiptNumber": "Ontvangst #",
+      "sessionTotal": "Sessie totaal",
+      "depositCredit": "Stort tegoed",
+      "amountPaid": "Bedrag betaald"
+    },
+    "note": {
+      "title": "PDF bijgevoegd",
+      "body": "Uw gespecificeerde betalingsbewijs is als PDF bijgevoegd. Bewaar het voor uw administratie."
+    },
+    "footer": "Dit ontvangstbewijs wordt automatisch verzonden na uw betaling in de studio."
+  },
+  "reviewRequest": {
+    "badge": "Bedankt",
+    "title": "Wij zijn benieuwd naar uw feedback",
+    "intro": "Bedankt voor uw bezoek aan {{shopName}}. Als je een geweldige ervaring hebt gehad met {{artistName}}, helpt een korte recensie andere klanten ons te vinden. Dit betekent veel voor het team.",
+    "pickPlatform": "Laat een recensie achter",
+    "details": {
+      "artist": "Artiest",
+      "visit": "Jouw bezoek"
+    },
+    "note": {
+      "title": "Optioneel",
+      "body": "Recensies zijn openbaar op het platform dat u kiest. Als er iets niet in orde is, kunt u deze e-mail beantwoorden. We geven er de voorkeur aan om dit eerst privé recht te zetten."
+    },
+    "footer": "Deze e-mail is verzonden omdat uw studio u heeft gevraagd om feedback te geven na uw afspraak."
+  },
+  "sms": {
+    "reminders": {
+      "appointment": "{{shopName}}: Afspraakherinnering met {{artist}} op {{when}}. Reageer als u een nieuwe afspraak wilt maken.",
+      "deposit": "{{shopName}}: Herinnering aanbetaling voor uw afspraak op {{when}}. Verschuldigd bedrag: {{amount}}. Neem contact met ons op om te betalen."
     }
   }
 }

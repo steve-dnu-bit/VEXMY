@@ -32,8 +32,8 @@ const AccountDeletionRequestCard = () => {
         </ul>
         <p className="text-xs text-muted-foreground">
           {t("accountDeletion.responseTime")}{" "}
-          <Link to="/privacy" className="text-primary hover:underline">
-            {t("common.privacy")}
+          <Link to="/account-deletion" className="text-primary hover:underline">
+            {t("legal.layout.accountDeletion")}
           </Link>
           .
         </p>

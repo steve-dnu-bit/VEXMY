@@ -68,7 +68,7 @@
   "marketing": {
     "footerTagline": "Het alles-in-één platform voor tattoostudio's — planning, aanbetalingen, toestemming, facturatie en klantcommunicatie op één plek.",
     "pricingTitle": "Plannen die meegroeien met je studio",
-    "pricingSubtitle": "Transparante maandprijzen. Elk abonnement bevat het volledige platform — alleen het aantal artiestplaatsen verschilt.",
+    "pricingSubtitle": "Van soloartiesten tot winkels met meerdere artiesten: transparante maandelijkse prijzen met een gratis proefperiode van 14 dagen. Enterprise uitgesloten van proefperiode van 14 dagen.",
     "comparePlans": "Plannen vergelijken",
     "pricingFaq": "Prijs-FAQ",
     "notSurePlan": "Weet je niet welk plan past?",
@@ -114,7 +114,7 @@
     "starter": {
       "name": "Starter",
       "tagline": "Klein team",
-      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+      "description": "Het volledige Velbok-platform voor winkels met maximaal 3 artiesten. Ondersteuningstickets en WhatsApp-links inbegrepen.",
       "seats": "Tot 3 artiestplaatsen",
       "cta": "Starten met Starter",
       "features": {
@@ -129,7 +129,7 @@
     "studio": {
       "name": "Studio",
       "tagline": "Groeiende studio",
-      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+      "description": "Volledig platform voor winkels met maximaal 6 artiesten. Ondersteuningstickets en WhatsApp-links inbegrepen.",
       "seats": "Tot 6 artiestplaatsen",
       "cta": "Gratis proefperiode starten",
       "features": {
@@ -145,7 +145,7 @@
     "enterprise": {
       "name": "Onderneming",
       "tagline": "Grote studio",
-      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
+      "description": "Volledig platform voor winkels met maximaal 10 artiesten. Ondersteuningstickets en WhatsApp-links inbegrepen.",
       "seats": "Tot 10 artiestplaatsen",
       "cta": "Starten met Enterprise",
       "features": {
@@ -172,20 +172,22 @@
       "included": "✓",
       "notIncluded": "—",
       "fullPlatform": "Volledige platformfuncties",
-      "unifiedInbox": "Unified inbox",
+      "unifiedInbox": "Ondersteuningstickets",
       "inboxStudio": "E-mail + 1 kanaal",
       "inboxEnterprise": "Alle kanalen",
-      "contactCentre": "Client contact centre"
+      "contactCentre": "WhatsApp- en contactlinks",
+      "ticketImages": "Ticketafbeeldingen per persoon",
+      "stencilsPerDay": "AI-stencils per 24 uur"
     },
     "faq": {
       "trialQ": "Is er een gratis proefperiode?",
-      "trialA": "Alle plannen bevatten een gratis proefperiode van 14 dagen. Kies een plan op de abonnementspagina — je voert kaartgegevens in bij Stripe maar wordt pas na afloop van de proefperiode belast.",
+      "trialA": "Solo, Starter en Studio bevatten een gratis proefperiode van 14 dagen. U voert kaartgegevens in op Stripe, maar er worden pas kosten in rekening gebracht nadat de proefperiode is afgelopen. Enterprise wordt onmiddellijk gefactureerd wanneer u zich abonneert.",
       "includedQ": "Wat zit er in elk plan?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+      "includedA": "Elk plan omvat planning, CRM, aanbetalingen, toestemming, voorraad, facturering, portalondersteuningstickets en WhatsApp/SMS/e-mailcontactlinks van boekingen.",
       "stripeFeesQ": "Zijn Stripe-kosten inbegrepen?",
       "stripeFeesA": "Nee. Kaartverwerkingskosten worden door Stripe in rekening gebracht bovenop je abonnement. Velbok integreert met je Stripe-account voor aanbetalingen en facturen.",
       "switchQ": "Kan ik later van plan wisselen?",
-      "switchA": "Ja. Upgrade of downgrade naarmate je team groeit — Starter (3 artiesten), Studio (6) of Enterprise (10).",
+      "switchA": "Ja. Upgrade of downgrade op elk gewenst moment vanuit Admin: Solo (1 artiest), Starter (3), Studio (6) of Enterprise (10).",
       "migrateQ": "Helpen jullie migreren van mijn huidige systeem?",
       "migrateA": "Studio- en Enterprise-plannen bevatten CSV-import van klanten in de app. Enterprise omvat praktische migratiehulp voor boekingen en records."
     },
@@ -210,20 +212,34 @@
     },
     "inboxFeatures": {
       "starter": {
-        "0": "Client contact centre from every booking",
-        "1": "WhatsApp, SMS & email with message templates",
+        "0": "Supporttickets in het klantenportaal",
+        "1": "WhatsApp-, sms- en e-maillinks van elke boeking",
         "2": "Geautomatiseerde boekingsherinneringen en nazorg-e-mails"
       },
       "studio": {
-        "0": "Unified inbox (email + 1 channel)",
+        "0": "Supporttickets in het klantenportaal",
         "1": "WhatsApp-, sms- en e-maillinks van elke boeking",
         "2": "Geautomatiseerde boekingsherinneringen en nazorg-e-mails"
       },
       "enterprise": {
-        "0": "Unified inbox (all channels)",
+        "0": "Supporttickets in het klantenportaal",
+        "1": "WhatsApp-, sms- en e-maillinks van elke boeking",
+        "2": "Geautomatiseerde boekingsherinneringen en nazorg-e-mails"
+      },
+      "solo": {
+        "0": "Supporttickets in het klantenportaal",
         "1": "WhatsApp-, sms- en e-maillinks van elke boeking",
         "2": "Geautomatiseerde boekingsherinneringen en nazorg-e-mails"
       }
+    },
+    "trialBadge": "Gratis proefperiode van 14 dagen",
+    "paidImmediatelyBadge": "Direct betaald · Geen gratis proefperiode",
+    "solo": {
+      "name": "Solo",
+      "tagline": "Solo-artiest",
+      "description": "Benodigdheden voor één artiest: planning, CRM, toestemming, aanbetalingen en supporttickets.",
+      "seats": "1 artiestenstoel",
+      "cta": "Begin met Solo"
     }
   },
   "auth": {
@@ -275,7 +291,29 @@
     "cookiePolicy": "Cookiebeleid",
     "continueWithGoogle": "Ga verder met Google",
     "continuingWithGoogle": "Omleiden naar Google…",
-    "googleSignInFailed": "Kan inloggen bij Google niet starten. Probeer het opnieuw."
+    "googleSignInFailed": "Kan inloggen bij Google niet starten. Probeer het opnieuw.",
+    "phoneTab": "Telefoon",
+    "appBridgeDesc": "Log in met Google op velbok.com om terug te keren naar de app.",
+    "continueWithApple": "Ga verder met Apple",
+    "continuingWithApple": "Omleiden naar Apple…",
+    "appleSignInFailed": "Kon het inloggen bij Apple niet starten. Probeer het opnieuw.",
+    "signInWithoutPassword": "Meld u in plaats daarvan aan met e-mail of telefoon",
+    "passwordlessTitle": "Log in zonder wachtwoord",
+    "passwordlessDesc": "We sturen u een beveiligde link per e-mail of sms'en u een eenmalige code als aanmelden per telefoon is ingeschakeld voor uw account.",
+    "sendMagicLink": "E-mail mij een inloglink",
+    "magicLinkSent": "Controleer uw e-mail",
+    "magicLinkSentDesc": "We hebben een beveiligde inloglink gestuurd. Het verloopt over ongeveer een uur.",
+    "phoneLabel": "Mobiel nummer",
+    "invalidPhone": "Voer een geldig nummer met landcode in (bijvoorbeeld +44…).",
+    "phoneSignInDisabled": "Aanmelden per telefoon is niet ingeschakeld voor dit account. Gebruik e-mail of neem contact op met de ondersteuning.",
+    "sendPhoneCode": "Stuur mij een inlogcode",
+    "phoneCodeSent": "Code verzonden",
+    "phoneCodeSentDesc": "Voer de 6-cijferige code uit uw sms-bericht in.",
+    "verifyPhoneCode": "Verifieer code",
+    "resendPhoneCode": "Code opnieuw verzenden",
+    "backToSignIn": "Terug naar inloggen met wachtwoord",
+    "backToAuthenticator": "Terug naar authenticatiecode",
+    "needHelp": "Hulp nodig?"
   },
   "subscribe": {
     "label": "Abonneren",
@@ -304,7 +342,8 @@
     "termsCheckboxLead": "Ik heb gelezen en ga akkoord met de",
     "termsCheckboxBody": "Ik bevestig dat ik bevoegd ben om namens mijn studio te abonneren en dat Inkaholics Limited (Velbok) het geselecteerde abonnement (inclusief na een eventuele gratis proefperiode) via Stripe mag belasten.",
     "termsVersionLabel": "versie {{version}}",
-    "termsRequired": "Accepteer de Voorwaarden en Privacyverklaring om door te gaan."
+    "termsRequired": "Accepteer de Voorwaarden en Privacyverklaring om door te gaan.",
+    "trialNoteImmediate": "Onmiddellijk gefactureerd · Annuleer op elk gewenst moment"
   },
   "subscription": {
     "title": "Abonnement",
@@ -415,7 +454,10 @@
     "checkingPosPayment": "Betalen via bureau controleren...",
     "posPaidAtDesk": "Betaald aan de balie · {{amount}}",
     "legalTitle": "Legaal",
-    "legalDesc": "Privacy, voorwaarden en cookie-informatie voor Velbok."
+    "legalDesc": "Privacy, voorwaarden en cookie-informatie voor Velbok.",
+    "smsTwilioRequiredDesc": "Voor sms-herinneringen wordt het eigen Twilio-account en telefoonnummer van uw studio gebruikt (niet dat van Velbok). Verbind Twilio voordat u voor SMS kiest.",
+    "smsTwilioConnectLink": "Maak verbinding in Postvak IN",
+    "smsTwilioGuideLink": "Installatiehandleiding"
   },
   "admin": {
     "title": "Beheer",
@@ -454,7 +496,7 @@
     "artistDefaults": "Artieststandaarden",
     "customerNav": "klantenmenu",
     "staffFeatureAccess": "Toegang personeelsfuncties",
-    "staffFeatureAccessDesc": "Artiesten en admins — geen klant-only accounts",
+    "staffFeatureAccessDesc": "Artiesten en beheerders — verwijder artiesten uit de winkel om een ​​plaats vrij te maken. Eerdere boekingen blijven op de planning staan.",
     "user": "Gebruiker",
     "all": "Alle",
     "revoke": "Intrekken",
@@ -605,7 +647,41 @@
     "reviewLinkRemove": "Koppeling verwijderen",
     "reviewEmailMessage": "Optioneel persoonlijke noot",
     "reviewEmailMessagePlaceholder": "Nogmaals bedankt dat je zo goed hebt gezeten vandaag. We zouden een snelle beoordeling zeer op prijs stellen als je even tijd hebt.",
-    "reviewEmailMessageHint": "Wordt bovenaan de e-mail met het beoordelingsverzoek weergegeven, boven de standaard bedanktekst."
+    "reviewEmailMessageHint": "Wordt bovenaan de e-mail met het beoordelingsverzoek weergegeven, boven de standaard bedanktekst.",
+    "tabArtistPrivacy": "Privacy van artiesten",
+    "artistPrivacyTitle": "Privacy van artiesten",
+    "artistPrivacyDesc": "Beperk wat artiesten kunnen zien in het schema en de klantenlijst.",
+    "artistPrivacyToggle": "Artiesten zien alleen hun eigen boekingen & klanten",
+    "artistPrivacyToggleHint": "Wanneer deze optie is ingeschakeld, ziet elke artiest alleen zijn planningskolom en de klanten waarmee hij heeft gewerkt. Winkelbeheerders en de eigenaar zien nog steeds alles.",
+    "artistPrivacyEnabledDesc": "Artiesten zijn nu beperkt tot hun eigen boekingen en klanten.",
+    "artistPrivacyDisabledDesc": "Artiesten kunnen alle studioboekingen en klanten weer zien.",
+    "artistPrivacyBullet1": "Schema: artiesten zien alleen hun eigen column.",
+    "artistPrivacyBullet2": "Klanten: alleen mensen uit de boekingen van die artiest (plus importen die ze hebben gemaakt of die overeenkomen met hun klanten).",
+    "artistPrivacyBullet3": "Winkelbeheerders, eigenaren en receptiepersoneel zonder de rol van kunstenaar zien nog steeds alles.",
+    "artistPrivacyOwnerBypassNote": "Je account is een winkeleigenaar of beheerder, dus je ziet nog steeds de boekingen van elke artiest. Log in als artiestenaccount om de privacy te verifiëren.",
+    "tabClients": "Klantenlijst",
+    "websiteEmbedHeaderTab": "Bovenste balk / koptekst",
+    "websiteEmbedHeaderDesc": "Compacte stijlen voor de koptekst of navigatiebalk van uw website.",
+    "websiteEmbedPreviewHeader": "Voorbeeld in een voorbeeldbalk bovenaan",
+    "websiteEmbedTheme": "Knop kleur",
+    "websiteEmbedTheme_gold": "Goud (Velbok)",
+    "websiteEmbedTheme_light": "Licht",
+    "websiteEmbedTheme_dark": "Donker",
+    "websiteEmbedTheme_outline": "Gouden overzicht",
+    "websiteEmbedOrgHint": "Links bevatten uw studio-ID, zodat klanten de juiste portal krijgen nadat ze zich bij Google of via e-mail hebben aangemeld.",
+    "websiteEmbedNoOrg": "Voltooi eerst de winkelconfiguratie, zodat we klantinloglinks voor uw studio kunnen genereren.",
+    "websiteEmbedVariantCard": "Grote kaart",
+    "websiteEmbedVariantCardDesc": "Winkelnaam + knop + Mogelijk gemaakt door — het beste voor voetteksten.",
+    "websiteEmbedVariantCompact": "Compacte kaart",
+    "websiteEmbedVariantCompactDesc": "Kleinere kaart, minder opvulling.",
+    "websiteEmbedVariantNavbar": "Bar met winkelnaam",
+    "websiteEmbedVariantNavbarDesc": "Winkelnaam en pillenknop inline — past in een koprij.",
+    "websiteEmbedVariantPillSm": "Kleine pil",
+    "websiteEmbedVariantPillSmDesc": "Minimale afgeronde knop — strakke headers.",
+    "websiteEmbedVariantPillMd": "Middelgrote pil",
+    "websiteEmbedVariantPillMdDesc": "Iets grotere pil voor hoofdnavigatie.",
+    "websiteEmbedVariantLink": "Tekstlink",
+    "websiteEmbedVariantLinkDesc": "Alleen link onderstrepen: kleinste optie."
   },
   "notFound": {
     "title": "Pagina niet gevonden",
@@ -833,7 +909,12 @@
     "regionsSubtitle": "Studio's in 13 landen — lokale valuta en taalondersteuning ingebouwd.",
     "regionsCarouselLabel": "Ondersteunde landen",
     "studioWelcomeBack": "Welkom terug: open je schema of bekijk studiostatistieken.",
-    "returnToSchedule": "Terug naar schema"
+    "returnToSchedule": "Terug naar schema",
+    "getOnGooglePlay": "Android-app op Google Play (interne test)",
+    "pricingTitle": "Eenvoudige maandelijkse prijzen",
+    "pricingSubtitle": "Van soloartiesten tot winkels met meerdere artiesten: transparante maandelijkse prijzen met een gratis proefperiode van 14 dagen. Enterprise uitgesloten van proefperiode van 14 dagen.",
+    "pricingCompare": "Vergelijk alle abonnementen en functies",
+    "mobileAppsCaption": "Android op Google Play · iPhone App Store binnenkort beschikbaar"
   },
   "contact": {
     "title": "Neem contact op",
@@ -859,7 +940,8 @@
     "messageSent": "Bericht verzonden",
     "messageSentDesc": "We nemen zo snel mogelijk contact met je op.",
     "couldNotSend": "Kon niet verzenden",
-    "couldNotSendDesc": "Mail ons rechtstreeks op {{email}}."
+    "couldNotSendDesc": "Mail ons rechtstreeks op {{email}}.",
+    "customerService": "Klantenservice"
   },
   "cookies": {
     "bannerText": "We gebruiken cookies en vergelijkbare technologieën voor kernfunctionaliteit en, met je toestemming, om prestaties en marketing te verbeteren. Je kunt je keuze op elk moment wijzigen in Cookie-instellingen.",
@@ -1080,7 +1162,8 @@
     "saveBillingSettings": "Facturatie-instellingen opslaan",
     "connectRequired": "Stel hieronder klantuitbetalingen in voordat u factuurbetalingslinks aanmaakt.",
     "invoicePrefixHint": "Automatisch ingesteld vanuit uw studioslug ({{slug}}).",
-    "invoicePrefixExample": "Voorbeeld: {{example}}"
+    "invoicePrefixExample": "Voorbeeld: {{example}}",
+    "tabOverview": "Overzicht & rapporten"
   },
   "deposits": {
     "title": "Stortingen",
@@ -1308,7 +1391,7 @@
   },
   "stencil": {
     "title": "Sjabloongenerator",
-    "subtitle": "Upload een referentie en genereer een zwarte lijntekening-sjabloon in je browser — geen externe API.",
+    "subtitle": "Upload een referentie en genereer een strak zwart lijntekeningen-stencil. Kies een AI-stijl of de standaard in-browser-engine.",
     "originalImage": "Originele afbeelding",
     "changeImage": "Afbeelding wijzigen",
     "dropOrUpload": "Sleep een afbeelding hierheen of klik om te uploaden",
@@ -1331,15 +1414,15 @@
     "dragCompare": "Sleep de schuifregelaar om origineel en sjabloon te vergelijken",
     "downloading": "Downloaden...",
     "downloadStencil": "Sjabloon downloaden",
-    "downloadRemovesFiles": "Downloaden verwijdert het origineel en de sjabloon uit cloudopslag.",
+    "downloadRemovesFiles": "24 uur bewaard en vervolgens automatisch uit de opslag verwijderd.",
     "extractingLines": "Schone lijnen extraheren...",
     "uploadPromptOutput": "Upload een afbeelding en genereer — vergelijk hier origineel en sjabloon",
     "generatedTitle": "Sjabloon gegenereerd",
-    "generatedDesc": "Sleep de schuifregelaar om te vergelijken. Bestanden worden na download van de server verwijderd.",
+    "generatedDesc": "Versleep de schuifregelaar om te vergelijken. 24 uur bewaard en daarna automatisch verwijderd.",
     "generationFailedTitle": "Genereren mislukt",
     "genericFailure": "Er is iets misgegaan",
     "downloadStartedTitle": "Download gestart",
-    "downloadStartedDesc": "Origineel en sjabloon zijn uit opslag verwijderd.",
+    "downloadStartedDesc": "Uw stencil wordt gedownload. Het blijft 24 uur in de opslag en wordt daarna automatisch verwijderd.",
     "downloadFailedTitle": "Download mislukt",
     "downloadFailedDesc": "Download kon niet worden voltooid",
     "originalLabel": "Origineel",
@@ -1384,7 +1467,9 @@
     "recentDownload": "Downloaden",
     "justNow": "Zojuist",
     "minutesAgo": "{{count}} min geleden",
-    "hoursAgo": "{{count}} u geleden"
+    "hoursAgo": "{{count}} u geleden",
+    "saveFailedDesc": "Sjabloon weergegeven, maar opslaan in uw account mislukt:",
+    "failedToReadImage": "Kan de geselecteerde foto niet lezen. Probeer een andere afbeelding of maak een nieuwe foto."
   },
   "mfa": {
     "title": "Tweefactorauthenticatie",
@@ -1407,7 +1492,23 @@
     "verifyPrompt": "Voer de 6-cijferige code uit je authenticator-app in",
     "signInDifferent": "Inloggen met een ander account",
     "hidePassword": "Wachtwoord verbergen",
-    "showPassword": "Wachtwoord tonen"
+    "showPassword": "Wachtwoord tonen",
+    "verifyPromptNewDevice": "Nieuw apparaat of browser: voer uw authenticatiecode in om door te gaan.",
+    "trustDevice": "Onthoud dit apparaat 60 dagen (sla de verificatie in deze browser over)",
+    "revokeTrustedDevices": "Vergeet vertrouwde apparaten",
+    "trustedDevicesRevoked": "Vertrouwde apparaten verwijderd. U verifieert de volgende keer dat u zich aanmeldt.",
+    "cantAccessAuthenticator": "Heeft u geen toegang tot uw authenticator?",
+    "recoveryTitle": "Accountherstel",
+    "recoveryDesc": "Gebruik een herstelcode van toen u MFA instelde, of meld u aan met een e-maillink.",
+    "recoveryCodeTab": "Herstelcode",
+    "recoveryCodeLabel": "Herstelcode",
+    "recoveryCodeInvalid": "Die herstelcode werkte niet. Probeer een andere of neem contact op met de ondersteuning.",
+    "recoveryCodesTitle": "Bewaar uw herstelcodes",
+    "recoveryCodesDesc": "Bewaar deze op een veilige plek. Elke code werkt één keer als u uw authenticator verliest.",
+    "recoveryCodesCopied": "Herstelcodes gekopieerd",
+    "copyRecoveryCodes": "Codes kopiëren",
+    "recoveryCodesSaved": "Ik heb mijn codes opgeslagen",
+    "recoveryCodesHint": "Bent u uw herstelcodes kwijt? Gebruik inloggen zonder wachtwoord of neem contact op met de ondersteuning."
   },
   "schedule": {
     "title": "Schema",
@@ -1572,7 +1673,11 @@
     "noClientEmailReview": "Voeg een klant-e-mailadres toe aan deze boeking om een ​​beoordelingsverzoek te verzenden.",
     "reviewLinksNotConfigured": "Voeg eerst beoordelingslinks toe in Beheer → E-mails.",
     "reviewRequestFailed": "Kan beoordelingsverzoek niet verzenden",
-    "conductOrgMissing": "Kan uw studioorganisatie voor dit gedragsrecord niet bepalen."
+    "conductOrgMissing": "Kan uw studioorganisatie voor dit gedragsrecord niet bepalen.",
+    "vipNoDepositHint": "VIP-klanten hoeven geen aanbetaling te doen. Schakel uit om VIP te verwijderen.",
+    "markedVip": "Gemarkeerd als VIP op {{count}} afspraak(en)",
+    "vipRemoved": "VIP verwijderd uit {{count}} afspraak(en)",
+    "vipUpdateFailed": "Kan de VIP-status niet bijwerken"
   },
   "staff": {
     "loading": "Laden..."
@@ -1641,7 +1746,8 @@
   },
   "embed": {
     "customerPortalSubtitle": "Klantenportaal",
-    "poweredBy": "Mogelijk gemaakt door {{platform}}"
+    "poweredBy": "Mogelijk gemaakt door {{platform}}",
+    "signingIn": "U wordt aangemeld…"
   },
   "stripeConnect": {
     "title": "Klantbetalingen & uitbetalingen",
@@ -2083,10 +2189,49 @@
     "recreateTerminalLocation": "Terminallocatie opnieuw creëren",
     "terminalConnectAccount": "Stripe Connect-account (registreer WisePad hier)",
     "terminalConnectAccountHint": "In Inkaholics Stripe: Verbinden → Accounts → dit account → Terminal → Lezers. Voeg uw WisePad-serienummer toe. Live-lezer alleen voor live-sleutels. Koppel niet in de Bluetooth-instellingen van de telefoon.",
-    "terminalDiagnose": "Diagnose Stripe Terminal",
+    "terminalDiagnose": "Diagnose van de Stripe-terminal",
     "terminalDiagnoseOk": "Stripe Terminal ziet er goed uit (locatie + verbindingstoken).",
     "terminalDiagnoseIssues": "Stripe Terminal heeft problemen — zie details hieronder.",
-    "terminalDiagnoseFailed": "Kan Terminal-diagnostiek niet uitvoeren."
+    "terminalDiagnoseFailed": "Kan Terminal-diagnostiek niet uitvoeren.",
+    "allCategories": "Alle",
+    "setupHourlyRate": "Uurtarief",
+    "hourlyRatePresetHint": "Creëert snel een item “Uurtarief” – tik er bij het afrekenen op en voer uren in (bijvoorbeeld 4,5 × 110).",
+    "hourlyRateSaved": "Uurtarief opgeslagen voor het afrekenen.",
+    "hourlyRateLabel": "Tarief per uur",
+    "perHourShort": "/uur",
+    "hoursLabel": "Uur",
+    "hoursShort": "H",
+    "hourlyItemHint": "Tik om uren in te voeren",
+    "hourlyQtyHint": "Uren invoeren, b.v. 4.5",
+    "chargePerHour": "Kosten per uur",
+    "defaultHoursLabel": "Standaarduren",
+    "lineTotalPreview": "Totaal: {{total}}",
+    "noProductsInCategory": "Geen producten in deze categorie.",
+    "manageProductsShort": "Beheren",
+    "doneManaging": "Klaar",
+    "manageProductsHint": "Tik op het rode prullenbakpictogram op een product om het uit uw lijst met snelle toevoegingen te verwijderen.",
+    "quantityLabel": "Hoeveelheid",
+    "each": "elk",
+    "sessionPayout": "Artiest of winkel",
+    "sessionPayoutHint": "Tik op een artiest voor een normale sessiesplitsing, of winkel wanneer 100% bij de studio blijft.",
+    "shopOnlySession": "Winkel",
+    "shopOnlySessionHint": "100% van deze uitverkoop blijft bij de winkel – geen uitbetaling voor artiesten.",
+    "artistConnectMissing": "Uitbetalingsaccount voor artiest niet ingesteld - de artiest moet Instellingen → POS-uitbetalingsaccount voltooien, of een beheerder kan acct_... toevoegen in Beheerder → POS.",
+    "artistConnectMissingBeforePay": "Deze artiest heeft een uitbetalingsaandeel, maar geen Stripe Connect-account. Vraag hen om Instellingen → POS-uitbetalingsaccount te openen, de configuratie te voltooien en het vervolgens opnieuw te proberen.",
+    "artistConnectConfigured": "Uitbetalingsrekening: {{accountId}}",
+    "shopOnlySplit": "Winkel behoudt 100% (geen artiestensplitsing)",
+    "shopOnlySplitHint": "Tik hierboven alleen op 100% winkelen voor deze bestelling: de artiest is nog steeds opgenomen voor de sessie.",
+    "shopOnlySplitPreset": "100% winkel",
+    "shopOnlyDefaultSplit": "De standaardverdeling is 100% winkel – geen uitbetaling van artiesten op POS-verkopen.",
+    "splitDefaultShort": "Standaard ({{shop}}% / {{artist}}%)",
+    "paymentSplitDetails": "Splitsing van de verdeling",
+    "manageProducts": "Beheer opgeslagen producten (verwijderen)",
+    "deleteProduct": "Product verwijderen",
+    "productDeleted": "Product verwijderd uit de sneltoevoeglijst",
+    "productCategory": "Categorie",
+    "defaultQty": "Standaardhoeveelheid {{qty}}",
+    "fractionalQtyHint": "Gebruik decimalen voor uren, b.v. 1.5",
+    "removeFromCart": "Uit winkelwagen verwijderen"
   },
   "consentPage": {
     "under18Question": "Ben je jonger dan 18?",
@@ -2169,10 +2314,11 @@
       "lastUpdated": "Laatst bijgewerkt:",
       "terms": "Voorwaarden",
       "privacy": "Privacy",
-      "cookies": "Cookies",
-      "home": "Home",
+      "cookies": "Koekjes",
+      "home": "Thuis",
       "documentation": "Documentatie",
-      "studioLogin": "Studio-inloggen"
+      "studioLogin": "Studio-inloggen",
+      "accountDeletion": "Accountverwijdering"
     },
     "privacy": {
       "title": "Privacyverklaring (UK/EU GDPR)",
@@ -2260,7 +2406,9 @@
           "title": "Uw rechten",
           "p1": "U kunt inzage, correctie, verwijdering (waar van toepassing), beperking, bezwaar, overdraagbaarheid en intrekking van toestemming verzoeken. Stuur een e-mail naar",
           "orWriteTo": "of schrijf naar:",
-          "p2": "Als wij een verzoek weigeren, zullen wij uitleggen waarom. U kunt een klacht indienen bij de UK ICO of uw lokale toezichthoudende autoriteit in de EU."
+          "p2": "Als wij een verzoek weigeren, zullen wij uitleggen waarom. U kunt een klacht indienen bij de UK ICO of uw lokale toezichthoudende autoriteit in de EU.",
+          "accountDeletionLink": "pagina voor het verwijderen van accounts",
+          "p1AfterLink": "of e-mail"
         },
         "updates": {
           "title": "Updates van de verklaring",
@@ -2382,6 +2530,28 @@
           "p1": "Wij kunnen dit beleid bijwerken om juridische, technische of productwijzigingen weer te geven. De nieuwste versie en updatedatum worden altijd hier gepubliceerd."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Accountverwijdering",
+      "lastUpdated": "22 juni 2026",
+      "overviewTitle": "Verzoek om verwijdering van uw Velbok-account",
+      "overviewP1": "Met {{shopLegalName}} (handelend onder de naam Velbok) kunt u verzoeken om verwijdering van uw platformaccount en de bijbehorende persoonlijke gegevens die wij beheren.",
+      "overviewP2": "Als je via Velbok bij een tattoostudio hebt geboekt, kan de studio ook klantgegevens afzonderlijk bijhouden. Neem rechtstreeks contact op met de studio voor in-studio-opnamen die zij beheren.",
+      "inAppTitle": "Verwijderen uit de app of website",
+      "inAppP1": "Ingelogde gebruikers kunnen een verwijderingsverzoek starten via Instellingen:",
+      "inAppStaff": "Studiopersoneel: Instellingen → Account verwijderen",
+      "inAppCustomer": "Klantenportaal: Account → Beveiliging → Account verwijderen",
+      "signInToRequest": "Meld u aan om uw accountgegevens vooraf in te vullen in de e-mail met het verwijderingsverzoek.",
+      "emailTitle": "Aanvraag per e-mail",
+      "emailP1": "U kunt ons ook een e-mail sturen vanaf het adres dat aan uw account is gekoppeld. Vermeld uw volledige naam en het e-mailadres waarmee u inlogt.",
+      "emailP2": "We kunnen om aanvullende verificatie vragen voordat we het verzoek verwerken.",
+      "whatDeletedTitle": "Wat we verwijderen",
+      "whatDeleted1": "Uw Velbok-inlogaccount en profielgegevens bewaren wij als platformbeheerder.",
+      "whatDeleted2": "Platformvoorkeuren, meldingen en personeelslidmaatschap gekoppeld aan uw gebruikersaccount.",
+      "whatDeleted3": "Sommige gegevens kunnen worden bewaard indien dit wettelijk vereist is (bijvoorbeeld op het gebied van belastingen, fraudepreventie of onopgeloste geschillen).",
+      "timingTitle": "Hoe lang het duurt",
+      "timingP1": "We streven ernaar de ontvangst binnen enkele werkdagen te bevestigen en de in aanmerking komende verwijdering binnen 30 dagen te voltooien, tenzij een langere periode wettelijk vereist is of om een ​​actief abonnement of geschil op te lossen.",
+      "privacyLinkLead": "Voor volledige details over hoe wij persoonlijke gegevens verwerken en uw rechten, zie onze"
     }
   },
   "depositCheckout": {
@@ -2488,7 +2658,7 @@
     "adminSectionFailed": "Deze sectie kan niet worden geladen. Probeer de pagina te vernieuwen."
   },
   "download": {
-    "title": "Download Velbok",
+    "title": "Velbok downloaden",
     "subtitle": "Installeer de mobiele app Velbok op uw studiotelefoon voor afrekenen, Tap to Pay en WisePad Bluetooth-betalingen.",
     "androidTitle": "Android",
     "androidDesc": "Release-build voor Tap to Pay en POS-afrekenen. Verwijder eerst een oudere Velbok-installatie als Android een handtekeningconflict meldt.",
@@ -2500,7 +2670,16 @@
     "installHint3": "Voor Tap to Pay: gebruik een ondersteunde telefoon (zie documenten), schakel de ontwikkelaarsopties UIT, sta Locatie toe.",
     "tapToPayDocs": "Ondersteunde telefoons en Tap to Pay-installatie:",
     "tapToPayDocsLink": "POS-afrekenen en tikken om te betalen",
-    "iphoneNote": "iPhone: Velbok voor iOS wordt gedistribueerd via TestFlight of App Store indien beschikbaar voor uw studio — niet vanaf deze pagina."
+    "iphoneNote": "iPhone: Velbok voor iOS wordt gedistribueerd via TestFlight of App Store indien beschikbaar voor uw studio — niet vanaf deze pagina.",
+    "playBetaTitle": "Google Play (interne tests)",
+    "playBetaDesc": "Installeer versie 1.0.12 (build 13) via Google Play. Uw Google-account moet op de interne testerlijst staan.",
+    "playBetaButton": "Verkrijg Velbok via Google Play",
+    "playBetaHint": "Gebruik hetzelfde Google-account dat is toegevoegd onder Interne tests → Testers. Open de link in Chrome op uw telefoon, tik op Word tester en vervolgens op Installeren. Als Play zegt Probeer het opnieuw: wis de Play Store-cache, schakel Intern app delen in in de Play Store-instellingen, wacht 15 minuten nadat u zich heeft aangemeld en probeer het opnieuw.",
+    "apkTitle": "Directe APK-download",
+    "appStoreBadgeAlt": "Downloaden in de App Store",
+    "appStoreBadgeAria": "Velbok in de App Store - binnenkort beschikbaar",
+    "appStoreComingSoonTitle": "iPhone-app binnenkort beschikbaar",
+    "appStoreComingSoonDesc": "Velbok voor iPhone zal binnenkort in de App Store verschijnen. Gebruik ondertussen de Android-app of het webdashboard."
   },
   "artistStripeConnect": {
     "title": "POS-uitbetalingsrekening",
@@ -2521,5 +2700,104 @@
     "loadFailed": "Kan uitbetalingsstatus niet laden",
     "onboardFailed": "Kan het instellen van de uitbetaling niet starten",
     "dashboardFailed": "Kan het uitbetalingsdashboard niet openen"
+  },
+  "expenses": {
+    "date": "Datum",
+    "title": "Uitgaven",
+    "subtitle": "Houd studiokosten bij: huur, benodigdheden, marketing en meer.",
+    "addExpense": "Voeg kosten toe",
+    "editExpense": "Onkosten bewerken",
+    "amount": "Hoeveelheid",
+    "amountRequired": "Voer een geldig bedrag in dat groter is dan nul",
+    "category": "Categorie",
+    "selectCategory": "Selecteer categorie",
+    "allCategories": "Alle categorieën",
+    "vendor": "Leverancier",
+    "vendorPlaceholder": "Leverancier of begunstigde",
+    "notes": "Opmerkingen",
+    "receipt": "Ontvangstbewijs (optioneel)",
+    "periodTotal": "Periode totaal",
+    "empty": "Geen kosten in deze periode. Voeg uw eerste uitgave toe om de kosten bij te houden.",
+    "items": "artikelen",
+    "created": "Kosten geregistreerd",
+    "updated": "Onkosten bijgewerkt",
+    "deleted": "Kosten verwijderd",
+    "saveFailed": "Kon geen kosten besparen",
+    "deleteFailed": "Kan onkosten niet verwijderen",
+    "confirmDelete": "Deze uitgave verwijderen?",
+    "delete": "Verwijderen"
+  },
+  "accounting": {
+    "source": {
+      "deposits": "Stortingen",
+      "invoices": "Facturen",
+      "desk": "Bureau"
+    },
+    "type": {
+      "deposit": "Borg",
+      "pos": "Bureau",
+      "invoice": "Factuur",
+      "expense": "Kosten"
+    },
+    "title": "Boekhouding",
+    "subtitle": "Winst en verlies, cashflow en een uniform transactiegrootboek.",
+    "disclaimerTitle": "Geen fiscaal of juridisch advies",
+    "disclaimer": "Rapporten en exporten zijn uitsluitend operationele samenvattingen voor uw studio. Ze vormen geen belasting-, BTW- of wettelijke boekhoudadvies en mogen niet worden gebruikt voor officiële belasting-, bedrijfs- of andere wettelijke aangiften zonder controle door uw gekwalificeerde accountant. Betalingsverdelingen en artiestengrafieken weerspiegelen de geldstromen in Velbok; ze bepalen niet de arbeidsstatus, de BTW-voorzieningsstructuur of juridische contracten tussen uw studio en artiesten.",
+    "disclaimerShort": "Alleen operationele samenvattingen – geen fiscaal of juridisch advies. Bevestig cijfers met uw accountant voordat u officieel aangifte doet.",
+    "disclaimerCsv": "DISCLAIMER: Alleen operationele samenvatting - niet voor officiële belasting- of regelgevende indieningen zonder professionele beoordeling.",
+    "totalRevenue": "Totale omzet",
+    "totalExpenses": "Totale uitgaven",
+    "netProfit": "Netto winst",
+    "netProfitHint": "Inkomsten minus uitgaven",
+    "margin": "Winstmarge",
+    "revenueBreakdown": "Uitsplitsing van de inkomsten",
+    "expenseBreakdown": "Uitsplitsing van de kosten",
+    "expenseBreakdownHint": "Uitgaven per categorie deze maand",
+    "dailyRevenueChart": "Dagelijkse inkomsten en uitgaven",
+    "dailyRevenueChartHint": "Laatste 30 opgeslagen dagen",
+    "monthlyChart": "Maandelijkse winst- en verliesrekening",
+    "monthlyChartHint": "Omzet, kosten en nettowinst per maand",
+    "revenueSources": "Inkomstenbronnen",
+    "revenueSourcesHint": "Uitsplitsing van de laatste maand",
+    "artistBreakdown": "Bureau-inkomsten per kunstenaar",
+    "artistBreakdownHint": "POS-balietotalen per artiest deze maand",
+    "cashFlow": "Wekelijkse cashflow",
+    "cashFlowHint": "Geld in versus uit per week",
+    "ledger": "Transactiegrootboek",
+    "ledgerHint": "Alle inkomsten en uitgaven in de geselecteerde periode",
+    "typeColumn": "Type",
+    "ledgerEmpty": "Geen transacties in deze periode.",
+    "ledgerTruncated": "Toont 100 van {{count}} transacties. Exporteer CSV voor de volledige lijst.",
+    "from": "Van",
+    "to": "Naar",
+    "apply": "Toepassen",
+    "exportLedger": "Grootboek CSV exporteren",
+    "exportPnl": "Winst- en verliesrekening CSV exporteren",
+    "printPnl": "W&L afdrukken"
+  },
+  "inbox": {
+    "smsNotConnected": "Niet verbonden",
+    "smsSetupTitle": "SMS (Twilio)",
+    "smsSetupDesc": "Optioneel: koppel het Twilio-nummer van uw studio om een ​​afspraak- en stortingsherinnering per sms te versturen. Klantcontact maakt gebruik van tickets en WhatsApp/e-maillinks uit boekingen.",
+    "smsSetupBullet1": "Maak een Twilio-account aan en koop een telefoonnummer dat geschikt is voor sms",
+    "smsSetupBullet2": "Stel de Twilio inkomende webhook in (zie installatiehandleiding) als u tweerichtings-sms wilt",
+    "smsSetupBullet3": "Elke organisatie gebruikt zijn eigen Twilio-account – Velbok biedt geen gedeeld sms-nummer",
+    "smsConnected": "Twilio is aangesloten",
+    "smsConnectTwilio": "Sluit Twilio aan",
+    "smsManageConnection": "Beheer Twilio-verbinding",
+    "smsSetupGuide": "Installatiehandleiding",
+    "smsReminderSettings": "Herinneringsinstellingen"
+  },
+  "accountDeletion": {
+    "title": "Account verwijderen",
+    "desc": "Verzoek om permanente verwijdering van uw Velbok-inloggegevens en persoonlijke gegevens die Velbok (Inkaholics Limited) bewaart als platformbeheerder.",
+    "bulletProfile": "Je profiel, machtigingen en aanmeldingstoegang worden verwijderd uit Velbok.",
+    "bulletStudio": "De door uw studio gemaakte opnames (boekingen, toestemmingsformulieren, berichten) kunnen door de studio worden bewaard op grond van hun wettelijke en verzekeringsverplichtingen.",
+    "bulletLegal": "Velbok kan minimale facturerings-, belasting- of beveiligingsgegevens bewaren indien de wet dit vereist.",
+    "responseTime": "Wij streven ernaar om binnen 30 dagen te reageren. Zie onze",
+    "requestButton": "Verzoek om accountverwijdering"
+  },
+  "channel": {
+    "smsSecurityNote": "Twilio-inloggegevens worden één keer per studio (organisatie) opgeslagen. Elke beheerder of eigenaar die verbinding maakt met Twilio werkt het gedeelde studionummer bij: herinneringen en inkomende sms-berichten gebruiken dezelfde verbinding voor iedereen in de studio."
   }
 }

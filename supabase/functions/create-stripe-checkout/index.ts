@@ -179,6 +179,13 @@ serve(async (req) => {
         shopCurrency,
       );
 
+      if (resolvedDeposit <= 0) {
+        return new Response(JSON.stringify({ error: "This booking does not require a deposit" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       if (action === "create" && !connectCtx) {
         return new Response(
           JSON.stringify({

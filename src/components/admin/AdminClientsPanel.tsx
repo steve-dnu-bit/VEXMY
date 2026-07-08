@@ -731,7 +731,7 @@ const AdminClientsPanel = () => {
         )}
 
         {/* Mobile sticky action bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-2 p-3 pb-[max(0.75rem,var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] bg-background/95 backdrop-blur border-t border-border md:hidden">
           <Button variant="outline" className="flex-1 gap-1" size="sm" onClick={() => csvInputRef.current?.click()}>
             <Upload className="h-4 w-4" /> {t("clients.mobileCsv")}
           </Button>

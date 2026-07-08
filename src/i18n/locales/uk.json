@@ -68,7 +68,7 @@
   "marketing": {
     "footerTagline": "Універсальна платформа для тату-студій — розклад, депозити, згода, оплата та спілкування з клієнтами в одному місці.",
     "pricingTitle": "Плани, що зростають разом із вашою студією",
-    "pricingSubtitle": "Transparent monthly pricing. Every plan includes the full platform — only artist seat limits differ.",
+    "pricingSubtitle": "Від сольних виконавців до магазинів із кількома артистами — прозорі щомісячні ціни з 14-денною безкоштовною пробною версією. Enterprise виключено з 14-денної пробної версії.",
     "comparePlans": "Порівняти плани",
     "pricingFaq": "FAQ про ціни",
     "notSurePlan": "Не впевнені, який план підходить?",
@@ -114,7 +114,7 @@
     "starter": {
       "name": "Стартер",
       "tagline": "Мала команда",
-      "description": "The full Velbok platform for shops with up to 3 artists. Client contact centre included.",
+      "description": "Повна платформа Velbok для магазинів до 3 художників. Заявки на підтримку та посилання на WhatsApp включені.",
       "seats": "До 3 місць для майстрів",
       "cta": "Почати з Starter",
       "features": {
@@ -129,7 +129,7 @@
     "studio": {
       "name": "Студія",
       "tagline": "Студія, що зростає",
-      "description": "Full platform for shops with up to 6 artists. Unified inbox with email + 1 channel.",
+      "description": "Повна платформа для магазинів до 6 художників. Заявки на підтримку та посилання на WhatsApp включені.",
       "seats": "До 6 місць для майстрів",
       "cta": "Почати безкоштовний пробний період",
       "features": {
@@ -145,7 +145,7 @@
     "enterprise": {
       "name": "підприємство",
       "tagline": "Велика студія",
-      "description": "Full platform for shops with up to 10 artists. All inbox channels included.",
+      "description": "Повна платформа для магазинів до 10 художників. Заявки на підтримку та посилання на WhatsApp включені.",
       "seats": "До 10 місць для майстрів",
       "cta": "Почати з Enterprise",
       "features": {
@@ -172,32 +172,34 @@
       "included": "✓",
       "notIncluded": "—",
       "fullPlatform": "Повні функції платформи",
-      "unifiedInbox": "Unified inbox",
+      "unifiedInbox": "Підтримка квитків",
       "inboxStudio": "Електронна пошта + 1 канал",
       "inboxEnterprise": "Всі канали",
-      "contactCentre": "Client contact centre"
+      "contactCentre": "WhatsApp і контактні посилання",
+      "ticketImages": "Зображення квитків на особу",
+      "stencilsPerDay": "AI трафарети за 24 год"
     },
     "faq": {
       "trialQ": "Чи є безкоштовний пробний період?",
-      "trialA": "Усі плани включають 14-денний безкоштовний пробний період. Оберіть план на сторінці підписки — ви введете дані картки в Stripe, але оплата почнеться лише після завершення пробного періоду.",
+      "trialA": "Solo, Starter і Studio включають 14-денну безкоштовну пробну версію — ви вводите дані картки на Stripe, але плата не стягуватиметься до закінчення пробної версії. Підприємство виставляє рахунок одразу після підписки.",
       "includedQ": "Що входить у кожен план?",
-      "includedA": "Every plan includes scheduling, CRM, deposits, consent, stock, billing, and a client contact centre. Unified inbox (all channels in one feed) starts on Studio.",
+      "includedA": "Кожен план включає планування, CRM, депозити, згоду, запаси, виставлення рахунків, запити на підтримку порталу та контактні посилання WhatsApp/SMS/електронну пошту з бронювань.",
       "stripeFeesQ": "Чи включені комісії Stripe?",
       "stripeFeesA": "Ні. Комісії за обробку карток стягує Stripe окремо від вашої підписки. Velbok інтегрується з вашим обліковим записом Stripe для депозитів і рахунків.",
       "switchQ": "Чи можна змінити план пізніше?",
-      "switchA": "Так. Оновлюйте або знижуйте план у міру зростання команди — Starter (3 майстри), Studio (6) або Enterprise (10).",
+      "switchA": "так Оновіть або понизьте будь-коли від Admin — Solo (1 виконавець), Starter (3), Studio (6) або Enterprise (10).",
       "migrateQ": "Чи допомагаєте мігрувати з моєї поточної системи?",
       "migrateA": "Плани Studio і Enterprise включають імпорт CSV клієнтів у додатку. Enterprise включає практичну допомогу з міграції бронювань і записів."
     },
     "sharedFeatures": {
-      "0": "Full schedule & multi-artist calendar",
-      "1": "Client CRM & CSV import",
-      "2": "Digital consent forms & customer portal",
-      "3": "Stripe deposits & invoice payments",
-      "4": "Enquiry tickets & role permissions",
-      "5": "Automated reminders & aftercare emails",
-      "6": "Stock management & billing records",
-      "7": "Documentation & email support"
+      "0": "Повний розклад і календар із кількома виконавцями",
+      "1": "Імпорт CRM та CSV клієнта",
+      "2": "Цифрові форми згоди та портал для клієнтів",
+      "3": "Смугові депозити та оплата рахунків",
+      "4": "Квитки запитів і дозволи для ролей",
+      "5": "Автоматичні нагадування та повідомлення електронної пошти",
+      "6": "Управління запасами та записи про рахунки",
+      "7": "Документація та підтримка електронною поштою"
     },
     "coreFeatures": {
       "0": "Повний розклад і календар із кількома виконавцями",
@@ -210,20 +212,34 @@
     },
     "inboxFeatures": {
       "starter": {
-        "0": "Client contact centre from every booking",
-        "1": "WhatsApp, SMS & email with message templates",
+        "0": "Підтримка квитків на порталі клієнтів",
+        "1": "Посилання на WhatsApp, SMS і електронну пошту з кожного бронювання",
         "2": "Автоматичні нагадування про бронювання та електронні листи з доглядом"
       },
       "studio": {
-        "0": "Unified inbox (email + 1 channel)",
+        "0": "Підтримка квитків на порталі клієнтів",
         "1": "Посилання на WhatsApp, SMS і електронну пошту з кожного бронювання",
         "2": "Автоматичні нагадування про бронювання та електронні листи з доглядом"
       },
       "enterprise": {
-        "0": "Unified inbox (all channels)",
+        "0": "Підтримка квитків на порталі клієнтів",
+        "1": "Посилання на WhatsApp, SMS і електронну пошту з кожного бронювання",
+        "2": "Автоматичні нагадування про бронювання та електронні листи з доглядом"
+      },
+      "solo": {
+        "0": "Підтримка квитків на порталі клієнтів",
         "1": "Посилання на WhatsApp, SMS і електронну пошту з кожного бронювання",
         "2": "Автоматичні нагадування про бронювання та електронні листи з доглядом"
       }
+    },
+    "trialBadge": "14-денна безкоштовна пробна версія",
+    "paidImmediatelyBadge": "Оплачується негайно · Без безкоштовної пробної версії",
+    "solo": {
+      "name": "Соло",
+      "tagline": "Сольний артист",
+      "description": "Основні речі для одного виконавця — розклад, CRM, згода, депозити та квитки в службу підтримки.",
+      "seats": "1 місце для художника",
+      "cta": "Почніть із Solo"
     }
   },
   "auth": {
@@ -275,7 +291,29 @@
     "cookiePolicy": "Політикою щодо cookies",
     "continueWithGoogle": "Продовжуйте з Google",
     "continuingWithGoogle": "Переспрямування на Google…",
-    "googleSignInFailed": "Не вдалося розпочати вхід Google. Спробуйте ще раз."
+    "googleSignInFailed": "Не вдалося розпочати вхід Google. Спробуйте ще раз.",
+    "phoneTab": "Телефон",
+    "appBridgeDesc": "Увійдіть за допомогою Google на velbok.com, щоб повернутися до програми.",
+    "continueWithApple": "Продовжуйте з Apple",
+    "continuingWithApple": "Переспрямування на Apple…",
+    "appleSignInFailed": "Не вдалося розпочати вхід в систему Apple. Спробуйте ще раз.",
+    "signInWithoutPassword": "Натомість увійдіть за допомогою електронної пошти або телефону",
+    "passwordlessTitle": "Увійдіть без пароля",
+    "passwordlessDesc": "Ми надішлемо вам електронною поштою безпечне посилання або текстове повідомлення з одноразовим кодом, якщо для вашого облікового запису ввімкнено вхід із телефону.",
+    "sendMagicLink": "Надішліть мені посилання для входу електронною поштою",
+    "magicLinkSent": "Перевір свою електронну пошту",
+    "magicLinkSentDesc": "Ми надіслали безпечне посилання для входу. Термін дії закінчується приблизно через годину.",
+    "phoneLabel": "Мобільний номер",
+    "invalidPhone": "Введіть дійсний номер із кодом країни (наприклад, +44…).",
+    "phoneSignInDisabled": "У цьому обліковому записі не ввімкнено вхід із телефону. Скористайтеся електронною поштою або зв’яжіться зі службою підтримки.",
+    "sendPhoneCode": "Надішліть мені код входу",
+    "phoneCodeSent": "Код надіслано",
+    "phoneCodeSentDesc": "Введіть 6-значний код із текстового повідомлення.",
+    "verifyPhoneCode": "Перевірте код",
+    "resendPhoneCode": "Повторно надіслати код",
+    "backToSignIn": "Повернутися до входу з паролем",
+    "backToAuthenticator": "Назад до коду автентифікатора",
+    "needHelp": "Потрібна допомога?"
   },
   "subscribe": {
     "label": "Підписатися",
@@ -304,7 +342,8 @@
     "termsCheckboxLead": "Я прочитав і погоджуюся з",
     "termsCheckboxBody": "Я підтверджую, що маю право підписатися від імені моєї студії, і що Inkaholics Limited (Velbok) може стягувати плату за вибраний план (зокрема після будь-якої безкоштовної пробної версії) через Stripe.",
     "termsVersionLabel": "версія {{version}}",
-    "termsRequired": "Щоб продовжити, прийміть Умови та Повідомлення про конфіденційність."
+    "termsRequired": "Щоб продовжити, прийміть Умови та Повідомлення про конфіденційність.",
+    "trialNoteImmediate": "Рахунок виставляється негайно · Скасувати будь-коли"
   },
   "subscription": {
     "title": "Підписка",
@@ -415,7 +454,10 @@
     "checkingPosPayment": "Перевірка платежу…",
     "posPaidAtDesk": "Оплачено на столі · {{amount}}",
     "legalTitle": "юридичний",
-    "legalDesc": "Інформація про конфіденційність, умови та файли cookie для Velbok."
+    "legalDesc": "Інформація про конфіденційність, умови та файли cookie для Velbok.",
+    "smsTwilioRequiredDesc": "SMS-нагадування використовують обліковий запис Twilio та номер телефону вашої студії (а не Velbok). Підключіть Twilio, перш ніж вибрати SMS.",
+    "smsTwilioConnectLink": "Підключитися в Inbox",
+    "smsTwilioGuideLink": "Інструкція з налаштування"
   },
   "admin": {
     "title": "Адмін",
@@ -454,7 +496,7 @@
     "artistDefaults": "Типові для майстра",
     "customerNav": "навігація",
     "staffFeatureAccess": "Доступ персоналу до функцій",
-    "staffFeatureAccessDesc": "Майстри та адміни — не лише клієнтські облікові записи",
+    "staffFeatureAccessDesc": "Художники та адміністратори — видаліть художників із магазину, щоб звільнити місце. Минулі бронювання залишаються за розкладом.",
     "user": "Користувач",
     "all": "Усі",
     "revoke": "Скасувати",
@@ -582,7 +624,7 @@
     "websiteEmbedCopied": "Код вбудовування скопійовано в буфер обміну",
     "websiteEmbedPreview": "Попередній перегляд",
     "websiteEmbedLoginUrl": "URL-адреса входу клієнта",
-    "websiteEmbedPoweredBy": "Powered by {{platform}}",
+    "websiteEmbedPoweredBy": "Працює на {{platform}}",
     "websiteEmbedOpenPage": "Відкрити сторінку для вставки",
     "consentHandSignNotice": "Клієнти повинні підписати попередньо заповнену згоду ручкою від руки у вашій студії. Зберігайте оригінальну підписану копію у надійному місці.",
     "consentIntroHint": "Використовуйте {{shopName}} та {{artistName}} у власному формулюванні. Обидва заповнюються автоматично у клієнтських формах і PDF-файлах.",
@@ -605,7 +647,41 @@
     "reviewLinkRemove": "Видалити посилання",
     "reviewEmailMessage": "Додаткова особиста примітка",
     "reviewEmailMessagePlaceholder": "Ще раз дякуємо, що сьогодні так добре сиділи — ми будемо дуже вдячні за короткий огляд, якщо у вас буде хвилина.",
-    "reviewEmailMessageHint": "Відображається у верхній частині електронного листа із запитом на перевірку, над стандартним текстом подяки."
+    "reviewEmailMessageHint": "Відображається у верхній частині електронного листа із запитом на перевірку, над стандартним текстом подяки.",
+    "tabArtistPrivacy": "Конфіденційність виконавця",
+    "artistPrivacyTitle": "Конфіденційність виконавця",
+    "artistPrivacyDesc": "Обмежте, що артисти можуть бачити в розкладі та списку клієнтів.",
+    "artistPrivacyToggle": "Художники бачать лише свої замовлення та клієнтів",
+    "artistPrivacyToggleHint": "Коли ввімкнено, кожен виконавець бачить лише свій стовпець розкладу та клієнтів, з якими він працював. Адміністратори магазину та власник все одно все бачать.",
+    "artistPrivacyEnabledDesc": "Художники тепер обмежені власними замовленнями та клієнтами.",
+    "artistPrivacyDisabledDesc": "Художники можуть знову бачити всі замовлення студії та клієнтів.",
+    "artistPrivacyBullet1": "Розклад: артисти бачать лише свою колонку.",
+    "artistPrivacyBullet2": "Клієнти: лише люди із замовлень цього виконавця (плюс створені ними імпортовані файли або ті, що відповідають їхнім клієнтам).",
+    "artistPrivacyBullet3": "Адміністратори магазинів, власники та працівники стійки реєстрації без ролі художника все ще бачать усе.",
+    "artistPrivacyOwnerBypassNote": "Ваш обліковий запис є власником або адміністратором магазину, тому ви все одно бачитимете замовлення кожного виконавця. Увійдіть як обліковий запис виконавця, щоб підтвердити конфіденційність.",
+    "tabClients": "Список клієнтів",
+    "websiteEmbedHeaderTab": "Верхня панель / заголовок",
+    "websiteEmbedHeaderDesc": "Компактні стилі для заголовка або навігаційної панелі вашого веб-сайту.",
+    "websiteEmbedPreviewHeader": "Попередній перегляд у верхній панелі зразка",
+    "websiteEmbedTheme": "Колір кнопки",
+    "websiteEmbedTheme_gold": "Золото (Velbok)",
+    "websiteEmbedTheme_light": "світло",
+    "websiteEmbedTheme_dark": "Темний",
+    "websiteEmbedTheme_outline": "Золотий контур",
+    "websiteEmbedOrgHint": "Посилання включають ідентифікатор вашої студії, щоб клієнти отримували правильний портал після входу в систему Google або електронною поштою.",
+    "websiteEmbedNoOrg": "Спочатку завершіть налаштування магазину, щоб ми могли створити посилання для входу клієнтів у вашу студію.",
+    "websiteEmbedVariantCard": "Велика карта",
+    "websiteEmbedVariantCardDesc": "Назва магазину + кнопка + Powered by — найкраще для колонтитулів.",
+    "websiteEmbedVariantCompact": "Компактна карта",
+    "websiteEmbedVariantCompactDesc": "Менша картка, менше оббивки.",
+    "websiteEmbedVariantNavbar": "Бар з назвою магазину",
+    "websiteEmbedVariantNavbarDesc": "Назва магазину та кнопка «таблетки» вбудовані — відповідає рядку заголовка.",
+    "websiteEmbedVariantPillSm": "Маленька таблетка",
+    "websiteEmbedVariantPillSmDesc": "Мінімальна закруглена кнопка — щільні заголовки.",
+    "websiteEmbedVariantPillMd": "Середня таблетка",
+    "websiteEmbedVariantPillMdDesc": "Трохи більша таблетка для головної навігації.",
+    "websiteEmbedVariantLink": "Текстове посилання",
+    "websiteEmbedVariantLinkDesc": "Підкреслити лише посилання — найменший варіант."
   },
   "notFound": {
     "title": "Сторінку не знайдено",
@@ -833,7 +909,12 @@
     "regionsSubtitle": "Студії в 13 країнах — вбудована підтримка місцевої валюти та мови.",
     "regionsCarouselLabel": "Підтримувані країни",
     "studioWelcomeBack": "Ласкаво просимо назад — відкрийте свій розклад або перегляньте статистику студії.",
-    "returnToSchedule": "Повернутися до розкладу"
+    "returnToSchedule": "Повернутися до розкладу",
+    "getOnGooglePlay": "Програма Android у Google Play (внутрішнє тестування)",
+    "pricingTitle": "Проста місячна ціна",
+    "pricingSubtitle": "Від сольних виконавців до магазинів із кількома артистами — прозорі щомісячні ціни з 14-денною безкоштовною пробною версією. Enterprise виключено з 14-денної пробної версії.",
+    "pricingCompare": "Порівняйте всі плани та функції",
+    "mobileAppsCaption": "Android у Google Play · iPhone App Store незабаром"
   },
   "contact": {
     "title": "Зв'язатися з нами",
@@ -859,7 +940,8 @@
     "messageSent": "Повідомлення надіслано",
     "messageSentDesc": "Ми відповімо вам якомога швидше.",
     "couldNotSend": "Не вдалося надіслати",
-    "couldNotSendDesc": "Будь ласка, напишіть нам напряму на {{email}}."
+    "couldNotSendDesc": "Будь ласка, напишіть нам напряму на {{email}}.",
+    "customerService": "Обслуговування клієнтів"
   },
   "cookies": {
     "bannerText": "Ми використовуємо cookies та подібні технології для основної функціональності та, за вашою згодою, для покращення продуктивності та маркетингу. Ви можете змінити свій вибір будь-коли в Налаштуваннях cookies.",
@@ -1080,7 +1162,8 @@
     "saveBillingSettings": "Зберегти налаштування рахунків",
     "connectRequired": "Налаштуйте виплати клієнтам нижче, перш ніж створювати посилання для оплати рахунків.",
     "invoicePrefixHint": "Встановлюється автоматично з вашої студії ({{slug}}).",
-    "invoicePrefixExample": "Приклад: {{example}}"
+    "invoicePrefixExample": "Приклад: {{example}}",
+    "tabOverview": "Огляд і звіти"
   },
   "deposits": {
     "title": "Депозити",
@@ -1308,7 +1391,7 @@
   },
   "stencil": {
     "title": "Генератор трафаретів",
-    "subtitle": "Завантажте референс і створіть чорно-білий лінійний трафарет у браузері — без зовнішнього API.",
+    "subtitle": "Завантажте довідник і створіть чистий чорний трафарет штрихового зображення — виберіть стиль штучного інтелекту або базовий механізм у веб-переглядачі.",
     "originalImage": "Оригінальне зображення",
     "changeImage": "Змінити зображення",
     "dropOrUpload": "Перетягніть зображення сюди або натисніть для завантаження",
@@ -1331,15 +1414,15 @@
     "dragCompare": "Перетягніть повзунок, щоб порівняти оригінал і трафарет",
     "downloading": "Завантаження…",
     "downloadStencil": "Завантажити трафарет",
-    "downloadRemovesFiles": "Завантаження видаляє оригінал і трафарет із хмарного сховища.",
+    "downloadRemovesFiles": "Зберігається протягом 24 годин, потім автоматично видаляється зі сховища.",
     "extractingLines": "Витягнення чистих ліній…",
     "uploadPromptOutput": "Завантажте зображення та згенеруйте — порівняйте оригінал і трафарет тут",
     "generatedTitle": "Трафарет згенеровано",
-    "generatedDesc": "Перетягніть повзунок для порівняння. Файли видаляються з сервера після завантаження.",
+    "generatedDesc": "Перетягніть повзунок, щоб порівняти. Зберігається протягом 24 годин, потім автоматично видаляється.",
     "generationFailedTitle": "Генерація не вдалася",
     "genericFailure": "Щось пішло не так",
     "downloadStartedTitle": "Завантаження розпочато",
-    "downloadStartedDesc": "Оригінал і трафарет видалено зі сховища.",
+    "downloadStartedDesc": "Ваш трафарет завантажується. Він залишається в сховищі протягом 24 годин, а потім автоматично видаляється.",
     "downloadFailedTitle": "Завантаження не вдалося",
     "downloadFailedDesc": "Не вдалося завершити завантаження",
     "originalLabel": "Оригінал",
@@ -1384,7 +1467,9 @@
     "recentDownload": "Завантажити",
     "justNow": "Щойно",
     "minutesAgo": "{{count}} хв тому",
-    "hoursAgo": "{{count}} год тому"
+    "hoursAgo": "{{count}} год тому",
+    "saveFailedDesc": "Трафарет відтворено, але не вдалося зберегти в обліковому записі:",
+    "failedToReadImage": "Не вдалося прочитати вибране фото. Спробуйте інше зображення або зробіть нову фотографію."
   },
   "mfa": {
     "title": "Двофакторна автентифікація",
@@ -1407,7 +1492,23 @@
     "verifyPrompt": "Введіть 6-значний код із додатку-аутентифікатора",
     "signInDifferent": "Увійти з іншим обліковим записом",
     "hidePassword": "Приховати пароль",
-    "showPassword": "Показати пароль"
+    "showPassword": "Показати пароль",
+    "verifyPromptNewDevice": "Новий пристрій або браузер — введіть код автентифікатора, щоб продовжити.",
+    "trustDevice": "Запам'ятати цей пристрій протягом 60 днів (пропустити перевірку в цьому браузері)",
+    "revokeTrustedDevices": "Забудьте про надійні пристрої",
+    "trustedDevicesRevoked": "Довірені пристрої видалено. Ви підтвердите під час наступного входу.",
+    "cantAccessAuthenticator": "Не можете отримати доступ до автентифікатора?",
+    "recoveryTitle": "Відновлення облікового запису",
+    "recoveryDesc": "Використовуйте код відновлення, отриманий під час налаштування MFA, або ввійдіть за допомогою електронного посилання.",
+    "recoveryCodeTab": "Код відновлення",
+    "recoveryCodeLabel": "Код відновлення",
+    "recoveryCodeInvalid": "Цей код відновлення не спрацював. Спробуйте інший або зверніться до служби підтримки.",
+    "recoveryCodesTitle": "Збережіть коди відновлення",
+    "recoveryCodesDesc": "Зберігайте їх у безпечному місці. Кожен код спрацьовує один раз, якщо ви втратите автентифікатор.",
+    "recoveryCodesCopied": "Коди відновлення скопійовано",
+    "copyRecoveryCodes": "Копіювати коди",
+    "recoveryCodesSaved": "Я зберіг свої коди",
+    "recoveryCodesHint": "Втратили коди відновлення? Використовуйте вхід без пароля або зверніться до служби підтримки."
   },
   "schedule": {
     "title": "Розклад",
@@ -1572,7 +1673,11 @@
     "noClientEmailReview": "Додайте електронну адресу клієнта до цього бронювання, щоб надіслати запит на перегляд.",
     "reviewLinksNotConfigured": "Спочатку додайте посилання на відгуки в меню «Адміністратор» → «Електронні листи».",
     "reviewRequestFailed": "Не вдалося надіслати запит на перегляд",
-    "conductOrgMissing": "Не вдалося визначити вашу студійну організацію для цього запису поведінки."
+    "conductOrgMissing": "Не вдалося визначити вашу студійну організацію для цього запису поведінки.",
+    "vipNoDepositHint": "VIP-клієнти не зобов'язані вносити депозит. Вимкніть, щоб видалити VIP.",
+    "markedVip": "Позначено як VIP на {{count}} зустрічах",
+    "vipRemoved": "VIP видалено з {{count}} зустрічей",
+    "vipUpdateFailed": "Не вдалося оновити статус VIP"
   },
   "staff": {
     "loading": "Завантаження…"
@@ -1619,14 +1724,14 @@
     "completeToast": "Ваша студія готова — ласкаво просимо до Velbok!",
     "reviewHint": "Ви можете змінити це пізніше в Адмін і Налаштуваннях.",
     "stepPayoutsTitle": "Виплати картками",
-    "stepPayoutsDesc": "Connect your bank account so deposit and invoice payments go to your studio.",
+    "stepPayoutsDesc": "Підключіть свій банківський рахунок, щоб депозит і платежі за рахунками надходили до вашої студії.",
     "stepPayoutsSkipHint": "Ви можете завершити налаштування зараз і підключити виплати пізніше в Адміністраторі.",
     "currencyHint": "Клієнтські депозити та рахунки-фактури будуть стягнені в {{currency}}.",
     "countryGeoHint": "Країна запропонована на основі вашого місцезнаходження — змініть, якщо ваша студія знаходиться в іншому місці.",
     "stepTeamTitle": "Ваша роль",
     "stepTeamDesc": "Скажіть нам, чи приймаєте ви також бронювання, щоб ми могли правильно встановити ваші місця для артистів.",
     "stepPosOptionalTitle": "Особиста перевірка (за бажанням)",
-    "stepPosOptionalDesc": "Take card payments at the desk with a Stripe Terminal reader. We recommend WisePad 3 for mobile checkout, or WisePOS E / Stripe Reader S700 for standalone setups. Each studio connects its own Stripe account.",
+    "stepPosOptionalDesc": "Приймайте платежі карткою в касі за допомогою зчитувача Stripe Terminal. Ми рекомендуємо WisePad 3 для мобільних кас або WisePOS E / Stripe Reader S700 для автономних установок. Кожна студія підключає свій обліковий запис Stripe.",
     "stepPosEnableHint": "Після налаштування Connect і Terminal увімкніть сторінку Checkout для персоналу.",
     "practitionerQuestion": "Ви також приймаєте замовлення як художник чи пірсинг?",
     "practitionerYes": "Так — я приймаю замовлення",
@@ -1641,7 +1746,8 @@
   },
   "embed": {
     "customerPortalSubtitle": "Портал клієнтів",
-    "poweredBy": "Powered by {{platform}}"
+    "poweredBy": "Працює на {{platform}}",
+    "signingIn": "Ви входите…"
   },
   "stripeConnect": {
     "title": "Клієнтські платежі та виплати",
@@ -1656,7 +1762,7 @@
     "statusReady": "Підключено",
     "statusIncomplete": "Потрібна дія",
     "statusNotStarted": "Не підключено",
-    "stripeHostedNote": "You'll complete a short Stripe form for bank and identity checks. No separate Stripe account signup is needed.",
+    "stripeHostedNote": "Ви заповните коротку форму Stripe для банківської перевірки та перевірки особи. Реєстрація окремого облікового запису Stripe не потрібна.",
     "returnToast": "Налаштування виплат оновлено — перевірка статусу…",
     "refreshToast": "Продовжте налаштування виплат там, де ви зупинилися.",
     "loadFailed": "Не вдалося завантажити статус виплати",
@@ -1906,11 +2012,11 @@
   },
   "pos": {
     "checkoutTitle": "Оплата",
-    "checkoutSubtitle": "Take payment at the desk with your Stripe WisePad reader.",
+    "checkoutSubtitle": "Здійснюйте оплату на столі за допомогою пристрою для читання Stripe WisePad.",
     "linkedBooking": "Пов’язано з цим бронюванням",
     "depositCredit": "Застава сплачена",
     "amountDue": "Термін виконання сьогодні",
-    "depositSplitHint": "Split applies to the balance charged on the WisePad (deposit was collected separately).",
+    "depositSplitHint": "Поділ застосовується до балансу, стягненого на WisePad (депозит збирався окремо).",
     "depositCoversBalance": "Сеанс покривається депозитом — оплата карткою не потрібна.",
     "completeNoCharge": "Завершено (депозит покриває баланс)",
     "notEnabledDesc": "Касу в торгових точках вимкнено. Адміністратор може ввімкнути його та встановити розділені відсотки в меню «Адміністратор» → «Оформлення каси».",
@@ -1949,7 +2055,7 @@
     "paymentSuccess": "Оплата успішна.",
     "lastPaymentRecorded": "Останній платіж зареєстровано.",
     "adminTitle": "POS каси",
-    "adminIntro": "Configure in-person card payments with Stripe Terminal (WisePad 3, WisePOS E, or Stripe Reader S700). Set default shop/artist split percentages and optional per-artist overrides.",
+    "adminIntro": "Налаштуйте особисті платежі карткою за допомогою терміналу Stripe (WisePad 3, WisePOS E або Stripe Reader S700). Встановіть відсотки розподілу магазину/виконавця за замовчуванням і додаткові налаштування для кожного виконавця.",
     "enableCheckout": "Увімкнути сторінку оформлення замовлення",
     "enableCheckoutHint": "Показує Checkout у меню персоналу для користувачів із доступом до Checkout або виставлення рахунків.",
     "shopSplitPercent": "Магазин частка",
@@ -1958,7 +2064,7 @@
     "gratuityEnabled": "Дозволити чайові",
     "gratuityEnabledHint": "Додає відсоток до загальної суми перед стягненням плати.",
     "terminalTitle": "Stripe Зчитувачі терміналів",
-    "terminalIntro": "Register your shop location so Stripe Terminal readers can pair. We recommend WisePad 3 for Bluetooth mobile use, with WisePOS E or Stripe Reader S700 as compatible alternatives. Use simulated reader for testing without hardware.",
+    "terminalIntro": "Зареєструйте місцезнаходження свого магазину, щоб зчитувачі Stripe Terminal могли підключатися. Ми рекомендуємо WisePad 3 для мобільного використання Bluetooth із WisePOS E або Stripe Reader S700 як сумісні альтернативи. Використовуйте змодельований зчитувач для тестування без апаратного забезпечення.",
     "readerLabel": "Ярлик читача",
     "terminalLocation": "Ідентифікатор розташування терміналу",
     "notConfigured": "Ще не налаштовано",
@@ -1968,7 +2074,7 @@
     "terminalSetupFailed": "Не вдалося створити розташування терміналу.",
     "settingsSaved": "Налаштування POS збережено.",
     "artistOverridesTitle": "Поділ на виконавця",
-    "artistOverridesIntro": "Leave shop share blank to use the default. Add a Stripe Connect account ID to auto-transfer the artist share after payment.",
+    "artistOverridesIntro": "Залиште поле спільного доступу до магазину порожнім, щоб використовувати значення за умовчанням. Додайте ідентифікатор облікового запису Stripe Connect, щоб автоматично передати частку виконавця після оплати.",
     "artistConnectAccount": "Обліковий запис Artist Connect",
     "noArtists": "У цьому магазині ще немає художників.",
     "invalidSplit": "Частка магазину має бути від 0 до 100.",
@@ -2018,10 +2124,10 @@
       "enabledDone": "Персонал може відкрити касу з меню.",
       "enabledPending": "Увімкніть оплату в розділі «Адміністратор» → «Оплата POS».",
       "reader": "Підключіть зчитувач терміналу Stripe",
-      "readerHint": "WisePad 3 pairs over Bluetooth in the Velbok mobile app. WisePOS E and Stripe Reader S700 can be used as Wi‑Fi/standalone alternatives.",
+      "readerHint": "WisePad 3 підключається через Bluetooth у мобільному додатку Velbok. WisePOS E і Stripe Reader S700 можна використовувати як Wi‑Fi/автономні альтернативи.",
       "ready": "Готовий приймати оплату особисто.",
       "notReady": "Виконайте наведені вище кроки, перш ніж стягувати плату з карток на столі.",
-      "stripeDashboardHint": "Stripe Terminal onboarding, account verification, hardware provisioning, and terminal support are provided by Stripe (not Velbok). Manage readers in Stripe Dashboard → Terminal."
+      "stripeDashboardHint": "Реєстрацію терміналу Stripe, перевірку облікового запису, підготовку апаратного забезпечення та підтримку терміналів забезпечує Stripe (а не Velbok). Керуйте читачами в Stripe Dashboard → Terminal."
     },
     "setupGuideButton": "Налаштування POS",
     "setupGuideTitle": "Інструкція з налаштування POS",
@@ -2086,7 +2192,46 @@
     "terminalDiagnose": "Діагностуйте клему Stripe",
     "terminalDiagnoseOk": "Stripe Термінал виглядає нормально (розташування + маркер підключення).",
     "terminalDiagnoseIssues": "Термінал Stripe має проблеми — подробиці див. нижче.",
-    "terminalDiagnoseFailed": "Не вдалося запустити діагностику терміналу."
+    "terminalDiagnoseFailed": "Не вдалося запустити діагностику терміналу.",
+    "allCategories": "все",
+    "setupHourlyRate": "Погодинна ставка",
+    "hourlyRatePresetHint": "Створює швидкий елемент «Погодинна ставка» — під час оформлення замовлення торкніться його та введіть години (наприклад, 4,5 × 110).",
+    "hourlyRateSaved": "Погодинна плата збережена для виписки.",
+    "hourlyRateLabel": "Оплата за годину",
+    "perHourShort": "/ год",
+    "hoursLabel": "години",
+    "hoursShort": "ч",
+    "hourlyItemHint": "Натисніть, щоб ввести години",
+    "hourlyQtyHint": "Введіть години, напр. 4.5",
+    "chargePerHour": "Оплата за годину",
+    "defaultHoursLabel": "Години за замовчуванням",
+    "lineTotalPreview": "Усього: {{total}}",
+    "noProductsInCategory": "У цій категорії немає товарів.",
+    "manageProductsShort": "Керувати",
+    "doneManaging": "Готово",
+    "manageProductsHint": "Торкніться червоного значка кошика на продукті, щоб видалити його зі списку швидкого додавання.",
+    "quantityLabel": "Кількість",
+    "each": "кожен",
+    "sessionPayout": "Художник або магазин",
+    "sessionPayoutHint": "Торкніться виконавця, щоб розділити звичайний сеанс, або купуйте, коли 100% залишається в студії.",
+    "shopOnlySession": "Магазин",
+    "shopOnlySessionHint": "100% цього продажу залишається в магазині — без виплат художнику.",
+    "artistConnectMissing": "Обліковий запис виплати виконавця не налаштовано — виконавець повинен завершити налаштування → Обліковий запис виплат POS, або адміністратор може додати acct_… в Адміністратор → POS.",
+    "artistConnectMissingBeforePay": "Цей виконавець має частку виплат, але не має облікового запису Stripe Connect. Попросіть їх відкрити «Налаштування» → «Рахунок виплат POS» і завершити налаштування, а потім повторити спробу.",
+    "artistConnectConfigured": "Виплатний рахунок: {{accountId}}",
+    "shopOnlySplit": "Магазин зберігає 100% (без поділу виконавців)",
+    "shopOnlySplitHint": "Торкніться 100% покупки вище лише для цього замовлення — виконавець усе ще записується на сеанс.",
+    "shopOnlySplitPreset": "100% магазин",
+    "shopOnlyDefaultSplit": "Розподіл за замовчуванням становить 100% магазину — без виплат художнику за продажі в POS.",
+    "splitDefaultShort": "За замовчуванням ({{shop}}% / {{artist}}%)",
+    "paymentSplitDetails": "Спліт-розбивка",
+    "manageProducts": "Керувати збереженими продуктами (видалити)",
+    "deleteProduct": "Видалити товар",
+    "productDeleted": "Продукт видалено зі списку швидкого додавання",
+    "productCategory": "Категорія",
+    "defaultQty": "Кількість за замовчуванням {{qty}}",
+    "fractionalQtyHint": "Використовуйте десяткові знаки для годин, напр. 1.5",
+    "removeFromCart": "Видалити з кошика"
   },
   "consentPage": {
     "under18Question": "Вам менше 18?",
@@ -2172,70 +2317,73 @@
       "cookies": "Печиво",
       "home": "додому",
       "documentation": "Документація",
-      "studioLogin": "Вхід в студію"
+      "studioLogin": "Вхід в студію",
+      "accountDeletion": "Видалення облікового запису"
     },
     "privacy": {
       "title": "Примітка про конфіденційність (GDPR Великобританії/ЄС)",
       "lastUpdated": "29 May 2026",
       "sections": {
         "general": {
-          "title": "General statement",
-          "p1": "{{shopLegalName}} is committed to protecting your privacy and takes its responsibilities regarding the security of customer information seriously. This notice explains how we use personal data and how we protect your privacy when you interact with our shop, website, and services.",
-          "contactLead": "If you have questions, contact us at",
-          "contactDpo": "For CCTV or data protection complaints, you may contact our DPO at"
+          "title": "Загальне твердження",
+          "p1": "{{shopLegalName}} прагне захищати вашу конфіденційність і серйозно ставиться до своєї відповідальності щодо безпеки інформації клієнтів. Це повідомлення пояснює, як ми використовуємо особисті дані та як ми захищаємо вашу конфіденційність, коли ви взаємодієте з нашим магазином, веб-сайтом і послугами.",
+          "contactLead": "Якщо у вас є запитання, зв'яжіться з нами за адресою",
+          "contactDpo": "З питань відеоспостереження або скарг щодо захисту даних ви можете звернутися до нашого DPO за адресою"
         },
         "dataCollect": {
           "title": "Дані, які ми збираємо",
-          "p1": "Depending on your interaction with us, we may collect: name, gender, date of birth, address, email, phone number, booking history, service notes, complaint/feedback records, payment details, cookie/device and technical usage data, social media handle (if you message us), and CCTV images captured at premises.",
-          "p2": "Where legally required to verify age for tattooing, we may request and retain a copy of photo identification with your consent documentation."
+          "p1": "Залежно від вашої взаємодії з нами ми можемо збирати: ім’я, стать, дату народження, адресу, електронну адресу, номер телефону, історію бронювань, примітки щодо обслуговування, записи про скарги/відгуки, деталі платежу, файли cookie/пристрій і дані про технічне використання, обробку соціальних мереж (якщо ви надсилаєте нам повідомлення) і зображення камер відеоспостереження, зняті в приміщеннях.",
+          "p2": "Якщо згідно з законом вимагається підтвердити вік для татуювання, ми можемо вимагати та зберігати копію посвідчення особи з фотографією разом із документами, що підтверджують вашу згоду."
         },
         "whenCollect": {
           "title": "Коли ми збираємо дані",
-          "p1": "We collect data when you use our website or account, make a booking or purchase, contact us, enter promotions, complete surveys, leave reviews, engage on social media, or otherwise interact with our business."
+          "p1": "Ми збираємо дані, коли ви використовуєте наш веб-сайт або обліковий запис, робите бронювання або купуєте, зв’язуєтеся з нами, берете участь в акціях, заповнюєте опитування, залишаєте відгуки, берете участь у соціальних мережах або іншим чином взаємодієте з нашим бізнесом."
         },
         "lawfulBases": {
           "title": "Законні підстави (GDPR Великобританії / GDPR ЄС)",
-          "p1": "We rely on consent, contractual necessity, legal obligation, legitimate interests, and vital interests depending on context.",
+          "p1": "Ми покладаємося на згоду, договірну необхідність, юридичне зобов’язання, законні інтереси та життєво важливі інтереси залежно від контексту.",
           "consent": "Згода:",
-          "consentDesc": "e.g. newsletter opt-in and optional cookie categories.",
+          "consentDesc": "напр. підключення до інформаційного бюлетеня та додаткові категорії файлів cookie.",
           "contract": "Договір:",
-          "contractDesc": "to provide booked services and process payments/deposits.",
+          "contractDesc": "для надання замовлених послуг і обробки платежів/депозитів.",
           "legal": "Юридичні зобов'язання:",
-          "legalDesc": "where required to share data for fraud/crime prevention or legal process.",
+          "legalDesc": "якщо це необхідно для обміну даними для запобігання шахрайства/злочинів або судового процесу.",
           "legitimate": "Законні інтереси:",
-          "legitimateDesc": "business operations, communications, service updates, and quality improvement.",
+          "legitimateDesc": "бізнес-операції, комунікації, оновлення послуг і покращення якості.",
           "vital": "Життєві інтереси:",
-          "vitalDesc": "where needed to protect life/health in emergencies."
+          "vitalDesc": "де це необхідно для захисту життя/здоров'я в надзвичайних ситуаціях."
         },
         "howUse": {
           "title": "Як і чому ми використовуємо дані",
-          "p1": "We use personal data to provide services, manage bookings and deposits, send required service communications, process complaints and feedback, improve products and systems, administer surveys and competitions, protect security, and meet legal obligations.",
-          "p2": "{{shopLegalName}} does not share marketing data with third-party organizations for their own marketing. We do share data with payment and service providers where necessary to run transactions and operations securely."
+          "p1": "Ми використовуємо персональні дані, щоб надавати послуги, керувати бронюваннями та депозитами, надсилати необхідні службові повідомлення, обробляти скарги та відгуки, покращувати продукти та системи, проводити опитування та конкурси, захищати безпеку та виконувати юридичні зобов’язання.",
+          "p2": "{{shopLegalName}} не передає маркетингові дані стороннім організаціям для власного маркетингу. Ми надаємо дані постачальникам платежів і послуг, якщо це необхідно для безпечного проведення транзакцій і операцій."
         },
         "cookies": {
-          "title": "Cookies, pixels, and website technologies",
-          "p1": "Cookies and similar technologies help us run website features and remember preferences. Our cookies are not intended to contain direct personal identifiers. You can manage browser cookies and in-app cookie preferences.",
-          "p2": "We may use email tracking pixels to understand whether emails were opened and whether your client can render text or HTML content."
+          "title": "Файли cookie, пікселі та технології веб-сайтів",
+          "p1": "Файли cookie та подібні технології допомагають нам запускати функції веб-сайту та запам’ятовувати налаштування. Наші файли cookie не містять прямих особистих ідентифікаторів. Ви можете керувати файлами cookie браузера та налаштуваннями файлів cookie в програмі.",
+          "p2": "Ми можемо використовувати пікселі відстеження електронної пошти, щоб зрозуміти, чи відкривалися електронні листи та чи може ваш клієнт відтворювати текстовий або HTML-вміст."
         },
         "security": {
           "title": "Безпека та збереження",
-          "p1": "We use encryption, secure processing standards, and access controls to protect data. No internet transmission is entirely risk free, but we apply reasonable technical and organizational safeguards.",
-          "p2": "Standard retention is at least 5 years from last visit/transaction, or longer where legal/insurance claims require this. For insurance and damages claims we may retain relevant data up to 21 years."
+          "p1": "Ми використовуємо шифрування, безпечні стандарти обробки та контроль доступу для захисту даних. Жодна передача через Інтернет не є повністю безпечною, але ми застосовуємо розумні технічні та організаційні запобіжні заходи.",
+          "p2": "Стандартне зберігання становить принаймні 5 років з моменту останнього відвідування/транзакції або довше, якщо цього вимагають юридичні/страхові вимоги. Для позовів про страхування та відшкодування збитків ми можемо зберігати відповідні дані до 21 року."
         },
         "cctv": {
-          "title": "CCTV policy summary",
-          "p1": "Our premises are monitored by CCTV 24/7 for prevention/detection of crime, safety, and asset protection. Cameras are placed in prominent areas and not in sensitive spaces. Access is restricted to authorized trained personnel.",
-          "p2": "CCTV data is processed lawfully, fairly, transparently, and securely. Footage is generally stored for a minimum of 14 days and no longer than 1 year unless required for investigations, disciplinary proceedings, or legal evidence."
+          "title": "Короткий опис політики відеоспостереження",
+          "p1": "Наші приміщення контролюються системами відеоспостереження 24/7 для запобігання/виявлення злочинів, безпеки та захисту активів. Камери розміщуються на видних місцях, а не в делікатних місцях. Доступ має лише уповноважений навчений персонал.",
+          "p2": "Дані CCTV обробляються законно, чесно, прозоро та безпечно. Відзнятий матеріал зазвичай зберігається щонайменше 14 днів і не довше 1 року, якщо це не потрібно для розслідувань, дисциплінарних проваджень або юридичних доказів."
         },
         "rights": {
           "title": "Ваші права",
-          "p1": "You may request access, correction, deletion (where applicable), restriction, objection, portability, and withdrawal of consent. You can also ask us to stop direct marketing. You can request a copy of your data by emailing",
+          "p1": "Ви можете подати запит на доступ, виправлення, видалення (де це можливо), обмеження, заперечення, перенесення та відкликання згоди. Ви також можете попросити нас припинити прямий маркетинг. Ви можете отримати копію своїх даних, надіславши електронний лист",
           "orWriteTo": "or writing to:",
-          "p2": "If we refuse a request, we will explain why. You also have the right to complain to the UK Information Commissioner's Office (ICO) or your local EU supervisory authority."
+          "p2": "Якщо ми відмовимо у запиті, ми пояснимо чому. Ви також маєте право поскаржитися в Офіс інформаційного комісара Великобританії (ICO) або місцевий наглядовий орган ЄС.",
+          "accountDeletionLink": "сторінка видалення облікового запису",
+          "p1AfterLink": "або електронною поштою"
         },
         "updates": {
           "title": "Оновлення політики",
-          "p1": "We may update this notice periodically. Material changes will be posted here so you remain aware of what data we collect, how we use it, and when it may be disclosed."
+          "p1": "Ми можемо періодично оновлювати це повідомлення. Суттєві зміни буде опубліковано тут, щоб ви знали, які дані ми збираємо, як ми їх використовуємо та коли вони можуть бути розголошені."
         },
         "roles": {
           "title": "Платформа чи студійні обов’язки",
@@ -2279,47 +2427,47 @@
       "sections": {
         "scope": {
           "title": "1. Scope",
-          "p1": "These Terms govern access to and use of the {{platformName}} web application (the \"Service\") by staff and customers in the UK and EU. By using the Service, you agree to these Terms.",
+          "p1": "Ці Умови регулюють доступ та використання веб-програми {{platformName}} («Сервіс») персоналом і клієнтами у Великобританії та ЄС. Використовуючи Сервіс, ви погоджуєтеся з цими Умовами.",
           "p2": "Якщо ви підписуєтеся від імені студії, ви підтверджуєте, що маєте повноваження зобов’язати цю студію дотримуватись цієї угоди."
         },
         "eligibility": {
           "title": "2. Придатність і безпека облікового запису",
-          "p1": "You must provide accurate information, keep credentials confidential, and notify us promptly of unauthorized account access. You are responsible for activity carried out under your account unless caused by our fault."
+          "p1": "Ви повинні надати точну інформацію, зберігати конфіденційність облікових даних і негайно повідомляти нас про несанкціонований доступ до облікового запису. Ви несете відповідальність за дії, які здійснюються під вашим обліковим записом, якщо це не сталося з нашої вини."
         },
         "acceptableUse": {
-          "title": "3. Acceptable use",
+          "title": "3. Прийнятне використання",
           "p1": "Ви не маєте права зловживати Сервісом, втручатися в засоби контролю безпеки, завантажувати незаконний вміст або використовувати Сервіс у спосіб, який порушує чинне законодавство, зокрема GDPR Великобританії, GDPR ЄС та правила захисту споживачів."
         },
         "bookings": {
-          "title": "4. Booking and deposit workflows",
-          "p1": "The Service supports booking management and deposit reminders. Payment handling is provided by integrated third-party providers. You are responsible for ensuring booking and payment information entered is correct before sending notifications.",
-          "p2": "Additional studio terms apply to booked tattoo services: once tattooing services are provided, the agreed price is payable in full and no credit is offered; deposits are collected via online payment provider integration; deposits are refundable only where formal cancellation is made by email at least 24 hours before the appointment; and dissatisfaction with style preference changes after service does not create a refund entitlement."
+          "title": "4. Робочі процеси бронювання та депозиту",
+          "p1": "Сервіс підтримує керування бронюванням і нагадування про депозит. Обробка платежів здійснюється інтегрованими сторонніми постачальниками. Ви несете відповідальність за те, щоб інформація про бронювання та платіж була правильною, перш ніж надсилати сповіщення.",
+          "p2": "Додаткові умови студії застосовуються до замовлених послуг татуювання: після надання послуг татуювання узгоджена ціна сплачується в повному обсязі, кредит не пропонується; депозити збираються через інтеграцію постачальника онлайн-платежів; депозити підлягають поверненню лише у разі офіційного скасування електронною поштою принаймні за 24 години до зустрічі; і невдоволення змінами стилю після надання послуг не створює права на відшкодування."
         },
         "ip": {
-          "title": "5. Intellectual property",
-          "p1": "The Service design, software, and content are protected by intellectual property rights. You may use the Service only for internal business or personal booking purposes and not for unauthorized copying, resale, or reverse engineering.",
+          "title": "5. Інтелектуальна власність",
+          "p1": "Дизайн, програмне забезпечення та контент Сервісу захищені правами інтелектуальної власності. Ви можете використовувати Сервіс лише для внутрішнього бізнесу або для особистих цілей бронювання, а не для несанкціонованого копіювання, перепродажу чи зворотного проектування.",
           "p2": "Ви зберігаєте право власності на вміст, який ви завантажуєте. Ви надаєте нам ліцензію на розміщення, обробку та відображення цього вмісту виключно для надання Сервісу."
         },
         "data": {
-          "title": "6. Data protection",
-          "p1": "Personal data is processed in line with our Privacy Notice and applicable UK/EU data protection law. Where required, we rely on consent, contract, legal obligation, or legitimate interests as a lawful basis."
+          "title": "6. Захист даних",
+          "p1": "Персональні дані обробляються згідно з нашим Повідомленням про конфіденційність і чинним законодавством Великобританії/ЄС про захист даних. За потреби ми покладаємося на згоду, контракт, юридичне зобов’язання чи законні інтереси як законну основу."
         },
         "availability": {
-          "title": "7. Service availability",
+          "title": "7. Доступність послуги",
           "p1": "Ми прагнемо до надійної роботи, але не гарантуємо безперебійної доступності. Планове технічне обслуговування, оновлення та збої сторонніх розробників можуть вплинути на доступ."
         },
         "liability": {
           "title": "8. Liability",
-          "p1": "Nothing in these Terms limits liability that cannot be limited under law (including fraud or death/personal injury caused by negligence). Subject to mandatory law, we exclude indirect losses and limit liability to foreseeable direct losses arising from breach.",
+          "p1": "Ніщо в цих Умовах не обмежує відповідальність, яка не може бути обмежена згідно із законом (зокрема, шахрайство чи смерть/тілесні ушкодження, спричинені недбалістю). Згідно з обов’язковим законодавством ми виключаємо непрямі збитки та обмежуємо відповідальність передбачуваними прямими збитками, спричиненими порушенням.",
           "p2": "Згідно з вищезазначеним, наша загальна сукупна відповідальність, що випливає з Послуги або пов’язана з нею протягом будь-якого дванадцятимісячного періоду, обмежується більшою з двох величин: (а) платою за підписку на платформу, яку ви сплатили нам за цей період, або (б) сотнею фунтів стерлінгів (£100)."
         },
         "changes": {
-          "title": "9. Changes and termination",
-          "p1": "We may update these Terms where required by law, security, or product changes. Material changes are published in-app with a revised date. We may suspend or terminate access where terms are breached or misuse is detected."
+          "title": "9. Зміни та розірвання",
+          "p1": "Ми можемо оновлювати ці Умови, якщо це вимагається законодавством, безпекою або змінами продукту. Суттєві зміни публікуються в додатку з переглянутою датою. Ми можемо призупинити або припинити доступ у разі порушення умов або виявлення неправильного використання."
         },
         "governingLaw": {
-          "title": "10. Governing law",
-          "p1": "These Terms are governed by the laws of England and Wales, unless mandatory consumer law in your country of residence provides otherwise."
+          "title": "10. Застосовне право",
+          "p1": "Ці Умови регулюються законодавством Англії та Уельсу, якщо інше не передбачено обов’язковим законодавством про захист прав споживачів у вашій країні проживання."
         },
         "children": {
           "title": "3. Діти та неповнолітні",
@@ -2360,11 +2508,11 @@
       "sections": {
         "what": {
           "title": "1. Що таке файли cookie",
-          "p1": "Cookies are small text files stored on your device. We also use similar technologies (such as local storage) where needed for application functionality and user preferences."
+          "p1": "Файли cookie — це невеликі текстові файли, що зберігаються на вашому пристрої. Ми також використовуємо подібні технології (наприклад, локальне зберігання), де це необхідно для функціональності програми та вподобань користувача."
         },
         "categories": {
           "title": "2. Категорії файлів cookie, які ми використовуємо",
-          "p1": "Strictly necessary: required for authentication, security, session handling, and core features. Preferences: store UI and usability choices. Analytics: help us understand performance and usage trends. Marketing: support campaign effectiveness and tailored promotion."
+          "p1": "Строго необхідний: необхідний для автентифікації, безпеки, обробки сеансів і основних функцій. Параметри: зберігайте параметри інтерфейсу користувача та зручності використання. Аналітика: допоможіть нам зрозуміти продуктивність і тенденції використання. Маркетинг: підтримка ефективності кампанії та адаптоване просування."
         },
         "consent": {
           "title": "3. Модель згоди",
@@ -2387,6 +2535,28 @@
           "p1": "Ми можемо оновити цю політику, щоб відобразити юридичні, технічні зміни або зміни продукту. Остання версія та дата оновлення завжди публікуються тут."
         }
       }
+    },
+    "accountDeletion": {
+      "title": "Видалення облікового запису",
+      "lastUpdated": "22 червня 2026 р",
+      "overviewTitle": "Подайте запит на видалення свого облікового запису Velbok",
+      "overviewP1": "{{shopLegalName}} (торгівля як Velbok) дозволяє подати запит на видалення вашого облікового запису платформи та пов’язаних особистих даних, які ми контролюємо.",
+      "overviewP2": "Якщо ви замовили послугу в тату-студії через Velbok, студія також може зберігати записи клієнтів окремо. Зверніться безпосередньо до студії, щоб отримати записи в студії, які вони контролюють.",
+      "inAppTitle": "Видалити з програми або веб-сайту",
+      "inAppP1": "Користувачі, які ввійшли в систему, можуть подати запит на видалення з налаштувань:",
+      "inAppStaff": "Співробітники студії: Налаштування → Видалення облікового запису",
+      "inAppCustomer": "Портал клієнтів: Обліковий запис → Безпека → Видалення облікового запису",
+      "signInToRequest": "Увійдіть, щоб попередньо заповнити дані свого облікового запису в електронному листі із запитом на видалення.",
+      "emailTitle": "Запит електронною поштою",
+      "emailP1": "Ви також можете надіслати нам електронний лист з адреси, пов’язаної з вашим обліковим записом. Укажіть своє повне ім’я та електронну адресу, яку ви використовуєте для входу.",
+      "emailP2": "Ми можемо попросити додаткову перевірку перед обробкою запиту.",
+      "whatDeletedTitle": "Що видаляємо",
+      "whatDeleted1": "Ваш обліковий запис Velbok та дані профілю, які ми зберігаємо як контролер платформи.",
+      "whatDeleted2": "Налаштування на стороні платформи, сповіщення та членство в персоналі, прив’язані до вашого облікового запису користувача.",
+      "whatDeleted3": "Деякі записи можуть зберігатися, якщо цього вимагає закон (наприклад, податкові, запобігання шахрайству або невирішені спори).",
+      "timingTitle": "Скільки часу це займає",
+      "timingP1": "Ми прагнемо підтвердити отримання протягом кількох робочих днів і завершити придатне видалення протягом 30 днів, якщо довший період не вимагається законом або для вирішення активної підписки чи суперечки.",
+      "privacyLinkLead": "Щоб отримати повну інформацію про те, як ми обробляємо персональні дані та ваші права, див"
     }
   },
   "depositCheckout": {
@@ -2505,7 +2675,16 @@
     "installHint3": "Для оплати одним дотиком: використовуйте підтримуваний телефон (див. документацію), вимкніть параметри розробника, дозвольте визначення місцезнаходження.",
     "tapToPayDocs": "Підтримувані телефони та налаштування «Торкніться, щоб оплатити»:",
     "tapToPayDocsLink": "Оплата через касу й оплату одним дотиком",
-    "iphoneNote": "iPhone: Velbok для iOS поширюється через TestFlight або App Store, якщо доступний для вашої студії — не з цієї сторінки."
+    "iphoneNote": "iPhone: Velbok для iOS поширюється через TestFlight або App Store, якщо доступний для вашої студії — не з цієї сторінки.",
+    "playBetaTitle": "Google Play (внутрішнє тестування)",
+    "playBetaDesc": "Установіть версію 1.0.12 (збірка 13) з Google Play. Ваш обліковий запис Google має бути у списку внутрішніх тестувальників.",
+    "playBetaButton": "Отримайте Velbok на Google Play",
+    "playBetaHint": "Використовуйте той самий обліковий запис Google, доданий у Внутрішнє тестування → Тестувальники. Відкрийте посилання в Chrome на телефоні, натисніть «Стати тестером», а потім «Установити». Якщо Play каже Спробуйте ще раз: очистіть кеш Play Store, увімкніть внутрішній доступ до програм у налаштуваннях Play Store, зачекайте 15 хвилин після приєднання та повторіть спробу.",
+    "apkTitle": "Пряме завантаження APK",
+    "appStoreBadgeAlt": "Завантажте в App Store",
+    "appStoreBadgeAria": "Velbok в App Store — незабаром",
+    "appStoreComingSoonTitle": "Програма для iPhone незабаром з’явиться",
+    "appStoreComingSoonDesc": "Velbok для iPhone незабаром з’явиться в App Store. Тим часом використовуйте програму Android або веб-панель."
   },
   "artistStripeConnect": {
     "title": "POS-рахунок виплат",
@@ -2526,5 +2705,104 @@
     "loadFailed": "Не вдалося завантажити статус виплати",
     "onboardFailed": "Не вдалося розпочати налаштування виплат",
     "dashboardFailed": "Не вдалося відкрити інформаційну панель виплат"
+  },
+  "expenses": {
+    "date": "Дата",
+    "title": "Витрати",
+    "subtitle": "Відстежуйте витрати на студію — оренду, матеріали, маркетинг тощо.",
+    "addExpense": "Додайте витрати",
+    "editExpense": "Редагувати витрати",
+    "amount": "Сума",
+    "amountRequired": "Введіть дійсну суму, більшу за нуль",
+    "category": "Категорія",
+    "selectCategory": "Виберіть категорію",
+    "allCategories": "Всі категорії",
+    "vendor": "Продавець",
+    "vendorPlaceholder": "Постачальник або одержувач",
+    "notes": "Примітки",
+    "receipt": "Квитанція (необов'язково)",
+    "periodTotal": "Усього за період",
+    "empty": "Жодних витрат у цей період. Додайте свої перші витрати, щоб відстежувати витрати.",
+    "items": "елементи",
+    "created": "Витрати записані",
+    "updated": "Витрати оновлені",
+    "deleted": "Витрати видалено",
+    "saveFailed": "Не вдалося заощадити",
+    "deleteFailed": "Не вдалося видалити витрати",
+    "confirmDelete": "Видалити ці витрати?",
+    "delete": "Видалити"
+  },
+  "accounting": {
+    "typeColumn": "Тип",
+    "source": {
+      "deposits": "Депозити",
+      "invoices": "Рахунки-фактури",
+      "desk": "Письмовий стіл"
+    },
+    "type": {
+      "deposit": "депозит",
+      "pos": "Письмовий стіл",
+      "invoice": "рахунок-фактура",
+      "expense": "Витрати"
+    },
+    "title": "Бухгалтерський облік",
+    "subtitle": "Прибутки та збитки, грошові потоки та уніфікована книга транзакцій.",
+    "disclaimerTitle": "Не податкові чи юридичні консультації",
+    "disclaimer": "Звіти та експорт — це оперативні підсумки лише для вашої студії. Вони не є консультаціями з питань оподаткування, ПДВ або статутного бухгалтерського обліку, і їх не можна використовувати для офіційної податкової, корпоративної чи іншої нормативної документації без перегляду вашим кваліфікованим бухгалтером. Розподіл платежів і графіки виконавців відображають грошові потоки в Velbok — вони не визначають статус зайнятості, структуру постачання ПДВ або юридичні контракти між вашою студією та художниками.",
+    "disclaimerShort": "Лише оперативні підсумки — не податкові чи юридичні консультації. Підтвердьте цифри у свого бухгалтера перед будь-якою офіційною декларацією.",
+    "disclaimerCsv": "ВІДМОВА ВІД ВІДПОВІДАЛЬНОСТІ: лише оперативне резюме — не для офіційних податкових або регуляторних документів без професійної перевірки.",
+    "totalRevenue": "Загальний дохід",
+    "totalExpenses": "Загальні витрати",
+    "netProfit": "Чистий прибуток",
+    "netProfitHint": "Дохід мінус витрати",
+    "margin": "Маржа прибутку",
+    "revenueBreakdown": "Розподіл доходів",
+    "expenseBreakdown": "Розбивка витрат",
+    "expenseBreakdownHint": "Витрати за категоріями цього місяця",
+    "dailyRevenueChart": "Щоденні доходи та витрати",
+    "dailyRevenueChartHint": "Останні 30 збережених днів",
+    "monthlyChart": "Щомісячні прибутки та збитки",
+    "monthlyChartHint": "Доходи, витрати і чистий прибуток по місяцях",
+    "revenueSources": "Джерела доходу",
+    "revenueSourcesHint": "Розбивка за останній місяць",
+    "artistBreakdown": "Дохід від столу за виконавцем",
+    "artistBreakdownHint": "Загальна кількість POS-стійок на виконавця цього місяця",
+    "cashFlow": "Щотижневий грошовий потік",
+    "cashFlowHint": "Гроші в порівнянні з тижнями",
+    "ledger": "Книга транзакцій",
+    "ledgerHint": "Всі доходи і витрати в обраному періоді",
+    "ledgerEmpty": "Жодних операцій за цей період.",
+    "ledgerTruncated": "Показано 100 із {{count}} транзакцій. Експортуйте CSV для повного списку.",
+    "from": "Від",
+    "to": "до",
+    "apply": "Застосувати",
+    "exportLedger": "Експорт книги CSV",
+    "exportPnl": "Експорт P&L CSV",
+    "printPnl": "Друк P&L"
+  },
+  "inbox": {
+    "smsNotConnected": "Не підключено",
+    "smsSetupTitle": "SMS (Twilio)",
+    "smsSetupDesc": "Додатково: підключіть номер Twilio вашої студії, щоб надсилати SMS-повідомлення про зустріч і депозит. Контактна особа клієнта використовує квитки та посилання на WhatsApp/електронну пошту з бронювань.",
+    "smsSetupBullet1": "Створіть обліковий запис Twilio та придбайте номер телефону з підтримкою SMS",
+    "smsSetupBullet2": "Налаштуйте вхідний вебхук Twilio (див. посібник із налаштування), якщо ви хочете двосторонні SMS",
+    "smsSetupBullet3": "Кожна організація використовує власний обліковий запис Twilio — Velbok не надає спільний номер SMS",
+    "smsConnected": "Twilio підключено",
+    "smsConnectTwilio": "Підключіть Twilio",
+    "smsManageConnection": "Керуйте підключенням Twilio",
+    "smsSetupGuide": "Інструкція з налаштування",
+    "smsReminderSettings": "Налаштування нагадувань"
+  },
+  "accountDeletion": {
+    "title": "Видалити акаунт",
+    "desc": "Подайте запит на остаточне видалення вашого логіна та персональних даних Velbok, якими Velbok (Inkaholics Limited) володіє як контролер платформи.",
+    "bulletProfile": "Ваш профіль, дозволи та доступ до входу буде видалено з Velbok.",
+    "bulletStudio": "Записи, створені вашою студією (бронювання, форми згоди, повідомлення), можуть зберігатися студією згідно з її юридичними та страховими зобов’язаннями.",
+    "bulletLegal": "Velbok може зберігати мінімальну інформацію про рахунки, податки чи безпеку, якщо цього вимагає закон.",
+    "responseTime": "Ми прагнемо відповісти протягом 30 днів. Дивіться наш",
+    "requestButton": "Запит на видалення облікового запису"
+  },
+  "channel": {
+    "smsSecurityNote": "Облікові дані Twilio зберігаються один раз для студії (організації). Будь-який адміністратор або власник, який підключає Twilio, оновлює спільний номер студії — нагадування та вхідні SMS використовують те саме з’єднання для всіх у студії."
   }
 }

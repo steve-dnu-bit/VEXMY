@@ -8,7 +8,8 @@ import { bootstrapLanguageFromIp } from "@/i18n/bootstrapLanguage";
 
 async function start() {
   if (Capacitor.isNativePlatform()) {
-    document.documentElement.classList.add("velbok-native");
+    document.documentElement.classList.add("native-app");
+    document.documentElement.classList.add(`native-${Capacitor.getPlatform()}`);
   }
 
   try {

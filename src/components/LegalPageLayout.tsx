@@ -30,6 +30,9 @@ const LegalPageLayout = ({
             <Link to="/cookies" className="text-primary hover:underline">
               {t("legal.layout.cookies")}
             </Link>
+            <Link to="/account-deletion" className="text-primary hover:underline">
+              {t("legal.layout.accountDeletion")}
+            </Link>
             <Link to="/" className="text-primary hover:underline">
               {t("legal.layout.home")}
             </Link>

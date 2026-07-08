@@ -17,7 +17,7 @@ import { defaultShopScheduleHours, loadShopScheduleHours, type ShopScheduleHours
 import { filterByOrganizationMembers, loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { isImportedContactPlaceholderBooking } from "@/lib/importedContacts";
 import { type SidebarBookingDraft, type BookingPrefill, buildBookingPrefillFromSlot } from "@/lib/bookingPrefill";
-import type { Service } from "@/components/schedule/ServicePresets";
+import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 
 const SCHEDULE_SIDEBAR_STORAGE_KEY = "schedule.sidebar.open";
 const SCHEDULE_VIEW_STORAGE_KEY = "schedule.view";
@@ -41,6 +41,7 @@ interface Booking {
   ends_at: string;
   deposit_paid: boolean | null;
   deposit_amount?: number | null;
+  vip_client?: boolean | null;
   organization_id?: string | null;
 }
 
@@ -100,6 +101,7 @@ const SchedulePage = () => {
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"booking" | "blocker">("booking");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingPrefill, setBookingPrefill] = useState<BookingPrefill>({});
   const [sidebarDraft, setSidebarDraft] = useState<SidebarBookingDraft>({});
@@ -174,7 +176,7 @@ const SchedulePage = () => {
     let query = supabase
       .from("bookings")
       .select(
-        "id, artist_id, client_name, client_phone, client_email, client_user_id, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, deposit_paid, deposit_amount, organization_id",
+        "id, artist_id, client_name, client_phone, client_email, client_user_id, tattoo_style, tattoo_size, tattoo_placement, notes, booking_type, service_category, status, starts_at, ends_at, deposit_paid, deposit_amount, vip_client, organization_id",
       )
       .gte("starts_at", from)
       .lt("starts_at", to)
@@ -266,6 +268,7 @@ const SchedulePage = () => {
   const getArtistName = (id: string) => profiles.find((p) => p.user_id === id)?.display_name || t("schedule.unknown");
 
   const openFreshBooking = useCallback(() => {
+    setDialogMode("booking");
     setBookingPrefill({});
     setSidebarDraft({});
     setEditingBooking(null);
@@ -274,6 +277,8 @@ const SchedulePage = () => {
 
   const handleSlotClick = (date: Date, hour: number, minute: number, artistId?: string) => {
     if (dialogOpen && editingBooking) return;
+    const isBlocker = !!sidebarDraft.blockerKind;
+    setDialogMode(isBlocker ? "blocker" : "booking");
     setBookingPrefill(buildBookingPrefillFromSlot({ date, hour, minute, artistId }, sidebarDraft));
     setEditingBooking(null);
     setDialogOpen(true);
@@ -283,6 +288,15 @@ const SchedulePage = () => {
     setSidebarDraft((prev) => ({
       ...prev,
       serviceId: prev.serviceId === serviceId ? undefined : serviceId,
+      blockerKind: undefined,
+    }));
+  };
+
+  const toggleDraftBlocker = (kind: "holiday" | "private") => {
+    setSidebarDraft((prev) => ({
+      ...prev,
+      blockerKind: prev.blockerKind === kind ? undefined : kind,
+      serviceId: undefined,
     }));
   };
 
@@ -300,25 +314,30 @@ const SchedulePage = () => {
       return;
     }
     setInviting(true);
-    const { data, error } = await supabase.functions.invoke("invite-user", {
-      body: {
+    const { data, error } = await invokeEdgeFunctionJson<{ ok?: boolean; error?: string; existingAccount?: boolean }>(
+      "invite-user",
+      {
         email,
         inviteType: "customer",
         redirectTo: `${window.location.origin.replace(/\/$/, "")}/auth?next=/customer-profile-setup`,
       },
-    });
+    );
     setInviting(false);
     if (error || data?.error) {
-      toast.error((data as any)?.error || error?.message || t("schedule.inviteFailed"));
+      toast.error(error?.message || data?.error || t("schedule.inviteFailed"));
       return;
     }
-    toast.success(t("schedule.inviteSent"));
+    toast.success(
+      data?.existingAccount
+        ? t("schedule.inviteLinkedExisting", { defaultValue: "Invite sent — they can sign in with Google or the email link." })
+        : t("schedule.inviteSent"),
+    );
     setInviteEmail("");
   };
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-screen bg-background/35 backdrop-blur-[1px]">
+      <div className="flex flex-col h-[calc(100dvh-var(--safe-area-inset-top,env(safe-area-inset-top,0px))-var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))-3.5rem)] md:h-screen bg-background/35 backdrop-blur-[1px]">
         <ScheduleHeader
           view={view}
           setView={setView}
@@ -355,8 +374,10 @@ const SchedulePage = () => {
               setCurrentDate={setCurrentDate}
               bookingPrefillArtistId={sidebarDraft.artistId}
               bookingPrefillServiceId={sidebarDraft.serviceId}
+              bookingPrefillBlockerKind={sidebarDraft.blockerKind}
               onServicePick={(service) => toggleDraftService(service.id)}
               onArtistPick={(profile) => toggleDraftArtist(profile.user_id)}
+              onBlockerPick={toggleDraftBlocker}
             />
           </div>
           {sidebarOpen && (
@@ -392,8 +413,27 @@ const SchedulePage = () => {
               onEdit={() => {
                 setBookingPrefill({});
                 setSidebarDraft({});
+                setDialogMode(selectedBooking.booking_type === "blocker" ? "blocker" : "booking");
                 setEditingBooking(selectedBooking);
                 setDialogOpen(true);
+              }}
+              onBookingUpdated={(patch) => {
+                setSelectedBooking((prev) => (prev ? { ...prev, ...patch } : prev));
+                setBookings((prev) =>
+                  prev.map((b) => {
+                    if (selectedBooking?.client_user_id && b.client_user_id === selectedBooking.client_user_id) {
+                      return { ...b, ...patch };
+                    }
+                    if (selectedBooking?.client_email && b.client_email?.toLowerCase() === selectedBooking.client_email.toLowerCase()) {
+                      return { ...b, ...patch };
+                    }
+                    if (selectedBooking?.client_phone && b.client_phone === selectedBooking.client_phone) {
+                      return { ...b, ...patch };
+                    }
+                    if (b.id === selectedBooking?.id) return { ...b, ...patch };
+                    return b;
+                  }),
+                );
               }}
             />
           )}
@@ -408,10 +448,13 @@ const SchedulePage = () => {
             if (!v) {
               setEditingBooking(null);
               setBookingPrefill({});
+              setDialogMode("booking");
             }
           }}
           userId={user.id}
           artists={profiles}
+          dialogMode={dialogMode}
+          prefillBlockerKind={bookingPrefill.blockerKind}
           prefillDate={bookingPrefill.date}
           prefillHour={bookingPrefill.hour}
           prefillMinute={bookingPrefill.minute}

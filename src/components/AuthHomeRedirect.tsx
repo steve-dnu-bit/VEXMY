@@ -3,6 +3,7 @@ import { Navigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { resolvePostLoginPath } from "@/hooks/useUserRoles";
+import { completeAuthProvisioningFromContext } from "@/lib/authProvisioning";
 
 /** After login: customers → /account, staff → /schedule */
 const AuthHomeRedirect = () => {
@@ -13,13 +14,27 @@ const AuthHomeRedirect = () => {
 
   useEffect(() => {
     if (!user) return;
+
+    let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      if (!cancelled) setPath((current) => current ?? "/schedule");
+    }, 12_000);
+
     (async () => {
       try {
-        setPath(await resolvePostLoginPath(user.id, searchParams.get("next")));
+        await completeAuthProvisioningFromContext(searchParams);
+        if (!cancelled) {
+          setPath(await resolvePostLoginPath(user.id, searchParams.get("next")));
+        }
       } catch {
-        setPath("/account");
+        if (!cancelled) setPath("/account");
       }
     })();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
   }, [searchParams, user]);
 
   if (!path) {

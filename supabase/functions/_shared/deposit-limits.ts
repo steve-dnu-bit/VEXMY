@@ -26,6 +26,7 @@ export function maxDepositAmountForCurrency(currency: string): number {
 }
 
 export function clampDepositAmount(value: number, currency: string): number {
+  if (value === 0) return 0;
   const min = stripeMinimumChargeMajor(currency);
   const max = maxDepositAmountForCurrency(currency);
   const rounded = ZERO_DECIMAL_CURRENCIES.has((currency || "gbp").toLowerCase())
@@ -39,6 +40,7 @@ export function resolveBookingDepositAmount(
   shopDefault: number | null | undefined,
   currency: string,
 ): number {
+  if (bookingAmount === 0) return 0;
   const raw = bookingAmount ?? shopDefault ?? DEFAULT_DEPOSIT_AMOUNT;
   return clampDepositAmount(Number(raw), currency);
 }

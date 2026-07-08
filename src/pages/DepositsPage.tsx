@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isAfter, parseISO, startOfDay, subDays } from "date-fns";
-import { Send, CheckCircle, Clock, Star, Settings2 } from "lucide-react";
+import { Send, CheckCircle, Clock, Settings2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { maxDepositAmountForCurrency } from "@/lib/depositLimits";
@@ -16,6 +16,7 @@ import {
   parseDepositInput,
   saveShopDefaultDepositAmount,
 } from "@/lib/shopDepositSettings";
+import { bookingRequiresDeposit } from "@/lib/serviceDeposit";
 import { toast } from "sonner";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
@@ -232,24 +233,18 @@ const DepositsPage = () => {
     fetchBookings();
   };
 
-  const handleToggleVip = async (booking: BookingWithDeposit) => {
-    const nextVip = !booking.vip_client;
-    const { error } = await supabase.from("bookings").update({ vip_client: nextVip } as any).eq("id", booking.id);
-    if (error) {
-      toast.error(error.message || t("deposits.failedVipUpdate"));
-      return;
-    }
-    toast.success(nextVip ? t("deposits.markedVip") : t("deposits.vipRemoved"));
-    fetchBookings();
-  };
-
   const isUpcomingBooking = useCallback((startsAt: string) => isAfter(parseISO(startsAt), new Date()), []);
+
+  const depositBookings = useMemo(
+    () => bookings.filter((b) => !b.vip_client && (b.deposit_amount ?? defaultDeposit) > 0),
+    [bookings, defaultDeposit],
+  );
 
   /** Filter + sort: upcoming = soonest first; past = most recent past first; all = closest to “now” in time. */
   const filteredBookings = useMemo(() => {
     const now = new Date().getTime();
-    const upcoming = bookings.filter((b) => isUpcomingBooking(b.starts_at));
-    const past = bookings.filter((b) => !isUpcomingBooking(b.starts_at));
+    const upcoming = depositBookings.filter((b) => isUpcomingBooking(b.starts_at));
+    const past = depositBookings.filter((b) => !isUpcomingBooking(b.starts_at));
 
     let list: BookingWithDeposit[];
     if (timeFilter === "upcoming") {
@@ -259,7 +254,7 @@ const DepositsPage = () => {
       list = past;
       list = [...list].sort((a, b) => parseISO(b.starts_at).getTime() - parseISO(a.starts_at).getTime());
     } else {
-      list = [...bookings].sort((a, b) => {
+      list = [...depositBookings].sort((a, b) => {
         const da = Math.abs(parseISO(a.starts_at).getTime() - now);
         const db = Math.abs(parseISO(b.starts_at).getTime() - now);
         if (da !== db) return da - db;
@@ -267,12 +262,12 @@ const DepositsPage = () => {
       });
     }
     return list;
-  }, [bookings, timeFilter, isUpcomingBooking]);
+  }, [depositBookings, timeFilter, isUpcomingBooking]);
 
-  const unpaidCount = bookings.filter((b) => !b.deposit_paid).length;
-  const paidCount = bookings.filter((b) => !!b.deposit_paid).length;
-  const upcomingCount = bookings.filter((b) => isUpcomingBooking(b.starts_at)).length;
-  const totalCollected = bookings
+  const unpaidCount = depositBookings.filter((b) => bookingRequiresDeposit(b, defaultDeposit)).length;
+  const paidCount = depositBookings.filter((b) => !!b.deposit_paid && (b.deposit_amount ?? defaultDeposit) > 0).length;
+  const upcomingCount = depositBookings.filter((b) => isUpcomingBooking(b.starts_at)).length;
+  const totalCollected = depositBookings
     .filter((b) => !!b.deposit_paid)
     .reduce((sum, b) => sum + (b.deposit_amount || defaultDeposit), 0);
 
@@ -480,14 +475,6 @@ const DepositsPage = () => {
                             </Button>
                             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleMarkUnpaid(b.id)} disabled={!b.deposit_paid}>
                               {t("deposits.unpaid")}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={b.vip_client ? "secondary" : "outline"}
-                              className="h-7 text-xs gap-1"
-                              onClick={() => handleToggleVip(b)}
-                            >
-                              <Star className="h-3 w-3" /> {t("deposits.badgeVip")}
                             </Button>
                           </div>
                         </TableCell>

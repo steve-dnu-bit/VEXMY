@@ -10,3 +10,10 @@ capacitor-cordova-ios-plugins
 
 # Web bundle is committed on apple-app-store so Xcode works after clone.
 # Re-run `npm run ios:prepare` after web app changes, then commit ios/App/App/public/.
+
+# Generated Config files
+App/App/capacitor.config.json
+App/App/config.xml
+
+# Firebase iOS config (download from Firebase Console; see GoogleService-Info.plist.example)
+App/App/GoogleService-Info.plist

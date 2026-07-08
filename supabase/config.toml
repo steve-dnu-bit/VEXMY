@@ -1,5 +1,33 @@
 project_id = "tkremoxfkgoiuwghtzwd"
 
+[auth]
+site_url = "https://velbok.com"
+additional_redirect_urls = [
+  "https://velbok.com/**",
+  "https://velbok.com/auth/app-callback",
+  "com.velbok.app://auth/callback",
+  "http://localhost:5173/**",
+  "http://localhost:8080/**",
+]
+
+# TOTP MFA only (no Advanced Phone MFA add-on)
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+
+[auth.sms.twilio]
+enabled = false
+
+[auth.hook.send_sms]
+enabled = false
+
 [functions.send-test-email]
 verify_jwt = true
 
@@ -69,6 +97,9 @@ verify_jwt = false
 [functions.whatsapp-webhook]
 verify_jwt = false
 
+[functions.sms-webhook]
+verify_jwt = false
+
 [functions.meta-webhook]
 verify_jwt = false
 
@@ -91,4 +122,19 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-review-request]
+verify_jwt = false
+
+[functions.mfa-trusted-device]
+verify_jwt = true
+
+[functions.register-push-token]
+verify_jwt = true
+
+[functions.ticket-push-notify]
+verify_jwt = false
+
+[functions.sms-test-send]
+verify_jwt = false
+
+[functions.vapi-webhook]
 verify_jwt = false

@@ -7,16 +7,32 @@
 		"iosScheme": "https"
 	},
 	"plugins": {
+		"SystemBars": {
+			"style": "DARK"
+		},
+		"CapacitorHttp": {
+			"enabled": true
+		},
 		"SplashScreen": {
 			"launchShowDuration": 1800,
 			"launchAutoHide": true,
 			"backgroundColor": "#0c0c0f",
 			"showSpinner": false
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
 		}
 	},
 	"packageClassList": [
 		"StripeTerminalPlugin",
 		"AppPlugin",
+		"CAPBrowserPlugin",
+		"CAPCameraPlugin",
+		"PushNotificationsPlugin",
 		"SplashScreenPlugin"
 	]
 }

@@ -64,7 +64,11 @@ const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
 });
 
 async function ensureAuthUser({ email, displayName, inviteType }) {
-  const meta = { display_name: displayName, ...(inviteType ? { invite_type: inviteType } : {}) };
+  const meta = {
+    display_name: displayName,
+    play_review: true,
+    ...(inviteType ? { invite_type: inviteType } : {}),
+  };
 
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
@@ -139,6 +143,24 @@ async function ensureRoles(userId, roles) {
   }
 }
 
+async function removeFromOtherOrgs(userId, keepOrgId) {
+  const { data: memberships, error } = await admin
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId);
+  if (error) throw error;
+
+  for (const row of memberships ?? []) {
+    if (row.organization_id === keepOrgId) continue;
+    const { error: deleteErr } = await admin
+      .from("organization_members")
+      .delete()
+      .eq("user_id", userId)
+      .eq("organization_id", row.organization_id);
+    if (deleteErr) throw deleteErr;
+  }
+}
+
 async function ensureOrg(adminUserId) {
   const { data: existing } = await admin.from("organizations").select("id").eq("slug", ORG_SLUG).maybeSingle();
   let orgId = existing?.id ?? null;
@@ -146,13 +168,19 @@ async function ensureOrg(adminUserId) {
   if (!orgId) {
     const { data: inserted, error } = await admin
       .from("organizations")
-      .insert({ name: ORG_NAME, slug: ORG_SLUG, owner_user_id: adminUserId, status: "active" })
+      .insert({
+        name: ORG_NAME,
+        slug: ORG_SLUG,
+        owner_user_id: adminUserId,
+        status: "active",
+        is_sandbox: true,
+      })
       .select("id")
       .single();
     if (error) throw error;
     orgId = inserted.id;
   } else {
-    await admin.from("organizations").update({ owner_user_id: adminUserId, status: "active" }).eq("id", orgId);
+    await admin.from("organizations").update({ owner_user_id: adminUserId, status: "active", is_sandbox: true }).eq("id", orgId);
   }
 
   await admin.from("organization_members").upsert(
@@ -165,7 +193,7 @@ async function ensureOrg(adminUserId) {
     const { error: shopErr } = await admin.from("shop_settings").insert({
       organization_id: orgId,
       shop_name: ORG_NAME,
-      legal_name: "Inkaholics Limited",
+      legal_name: "Velbok Play Review Ltd",
       trading_name: ORG_NAME,
       setup_completed_at: new Date().toISOString(),
     });
@@ -207,12 +235,14 @@ async function main() {
   const orgId = await ensureOrg(adminUser.id);
   await ensureRoles(adminUser.id, adminSpec.roles);
   await grantFeatures(adminUser.id, [...STAFF_FEATURES, ...CUSTOMER_FEATURES]);
+  await removeFromOtherOrgs(adminUser.id, orgId);
   results.push({ role: "admin", email: adminSpec.email, userId: adminUser.id });
 
   for (const spec of USERS.filter((u) => u.key !== "admin")) {
     const user = await ensureAuthUser(spec);
     await ensureProfile(user.id, spec.displayName);
     await linkMember(orgId, user.id);
+    await removeFromOtherOrgs(user.id, orgId);
     await ensureRoles(user.id, spec.roles);
     if (spec.grantAllStaff) {
       await grantFeatures(user.id, [...STAFF_FEATURES, ...CUSTOMER_FEATURES]);

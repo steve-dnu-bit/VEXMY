@@ -12,6 +12,7 @@ import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { loadShopSettings } from "@/lib/shopSettings";
 import { currencyForShopCountry, formatShopMoney } from "@/lib/shopCurrency";
 import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
+import { bookingRequiresDeposit } from "@/lib/serviceDeposit";
 
 type BookingForCheckout = {
   id: string;
@@ -81,6 +82,7 @@ const DepositCheckoutPage = () => {
 
   const depositAmount = booking ? (booking.deposit_amount ?? defaultDeposit) : defaultDeposit;
   const formattedDeposit = formatShopMoney(depositAmount, shopCurrency);
+  const requiresDeposit = booking ? bookingRequiresDeposit(booking, defaultDeposit) : false;
 
   return (
     <CustomerLayout>
@@ -111,6 +113,10 @@ const DepositCheckoutPage = () => {
                     <p className="text-sm mt-3 leading-relaxed border border-yellow-500/25 bg-yellow-500/10 rounded-md p-3 text-foreground/90">
                       {t("depositCheckout.vipExempt")}
                     </p>
+                  ) : !requiresDeposit ? (
+                    <p className="text-sm mt-3 leading-relaxed border border-border/60 bg-secondary/20 rounded-md p-3 text-muted-foreground">
+                      {t("schedule.noDepositForService")}
+                    </p>
                   ) : (
                     <>
                       <p className="text-sm mt-2">
@@ -124,7 +130,7 @@ const DepositCheckoutPage = () => {
                   )}
                 </div>
 
-                {!booking.deposit_paid && !booking.vip_client ? (
+                {!requiresDeposit ? null : !booking.deposit_paid && !booking.vip_client ? (
                   <Button
                     variant="gold"
                     className="w-full"

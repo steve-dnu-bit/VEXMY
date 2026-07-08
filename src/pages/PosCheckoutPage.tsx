@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PosArtistPicker, { type PosArtistOption } from "@/components/pos/PosArtistPicker";
+import { loadOrganizationArtists } from "@/lib/organizationMembers";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -130,6 +131,8 @@ const PosCheckoutPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [quickAddItem, setQuickAddItem] = useState<PosItemTemplate | null>(null);
   const [quickAddQty, setQuickAddQty] = useState("1");
+  /** Draft strings so cart qty fields can be cleared while typing (same pattern as billing). */
+  const [cartQtyDrafts, setCartQtyDrafts] = useState<Record<string, string>>({});
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   const isShopSession = artistId === POS_SHOP_SESSION_ID;
@@ -246,9 +249,7 @@ const PosCheckoutPage = () => {
     void (async () => {
       setLoading(true);
       try {
-        const [profilesRes, rolesRes, billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
-          supabase.from("profiles").select("user_id, display_name, portal_bg_color"),
-          supabase.from("user_roles").select("user_id, role").eq("role", "artist"),
+        const [billingCtx, posSettings, splits, connectRes, recentSalesRes] = await Promise.all([
           loadOrgBillingContext(),
           loadShopPosSettings(),
           loadArtistPosSplits(),
@@ -256,9 +257,9 @@ const PosCheckoutPage = () => {
           loadRecentPosSales(),
         ]);
 
-        const artistIds = new Set((rolesRes.data || []).map((r) => r.user_id));
-        const artistList = (profilesRes.data || []).filter((p) => artistIds.has(p.user_id)) as PosArtistOption[];
         const orgId = billingCtx.organizationId ?? null;
+        const artistList = (await loadOrganizationArtists(orgId)) as PosArtistOption[];
+        const artistIds = new Set(artistList.map((artist) => artist.user_id));
         const itemTemplates = await loadPosItemTemplates(orgId);
 
         setOrganizationId(orgId);
@@ -510,7 +511,22 @@ const PosCheckoutPage = () => {
   };
 
   const setCartQty = (key: string, raw: string) => {
+    setCartQtyDrafts((prev) => ({ ...prev, [key]: raw }));
     const parsed = parsePosQuantity(raw);
+    if (Number.isNaN(parsed)) return;
+    setCart((prev) => prev.map((c) => (c.key === key ? { ...c, quantity: parsed } : c)));
+  };
+
+  const commitCartQty = (key: string) => {
+    const draft = cartQtyDrafts[key];
+    setCartQtyDrafts((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+    if (draft === undefined) return;
+    const parsed = parsePosQuantity(draft);
     if (Number.isNaN(parsed)) return;
     setCart((prev) =>
       prev
@@ -520,6 +536,11 @@ const PosCheckoutPage = () => {
   };
 
   const removeCartItem = (key: string) => {
+    setCartQtyDrafts((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     setCart((prev) => prev.filter((c) => c.key !== key));
   };
 
@@ -582,6 +603,7 @@ const PosCheckoutPage = () => {
     );
     await refreshQuickItems();
     setCart([]);
+    setCartQtyDrafts({});
     setClientName("");
     setClientEmail("");
     setLinkedBooking(null);
@@ -590,6 +612,7 @@ const PosCheckoutPage = () => {
 
   const clearCart = () => {
     setCart([]);
+    setCartQtyDrafts({});
     setClientName("");
     setClientEmail("");
     setLastSaleId(null);
@@ -658,8 +681,16 @@ const PosCheckoutPage = () => {
   };
 
   const handlePay = async () => {
-    if ((!isShopSession && !artistId) || cart.length === 0) {
-      toast.error(t("pos.addItemsFirst"));
+    if (cart.length === 0) {
+      toast.error(t("pos.addItemsToCharge"));
+      return;
+    }
+    if (!isShopSession && !artistId) {
+      toast.error(t("pos.selectArtistToCharge"));
+      return;
+    }
+    if (!clientName.trim()) {
+      toast.error(t("pos.clientNameRequired"));
       return;
     }
     if (!connectReady && amountDue > 0) {
@@ -1044,6 +1075,8 @@ const PosCheckoutPage = () => {
                     showShopOption
                     shopLabel={t("pos.shopOnlySession")}
                     shopHint={t("pos.shopOnlySessionHint")}
+                    changeSelectionLabel={t("pos.changeSessionPayout")}
+                    hideSelectionLabel={t("pos.hideSessionPayoutOptions")}
                   />
                   <div>
                     <BookingClientSearch
@@ -1145,8 +1178,9 @@ const PosCheckoutPage = () => {
                                 min={0.01}
                                 step={posQtyStep(item.unitType)}
                                 inputMode="decimal"
-                                value={formatPosQuantity(item.quantity)}
+                                value={cartQtyDrafts[item.key] ?? formatPosQuantity(item.quantity)}
                                 onChange={(e) => setCartQty(item.key, e.target.value)}
+                                onBlur={() => commitCartQty(item.key)}
                                 className="h-8 w-16 px-1 text-center tabular-nums text-sm"
                                 aria-label={item.unitType === "hour" ? t("pos.hoursLabel") : t("pos.units")}
                               />
@@ -1318,7 +1352,7 @@ const PosCheckoutPage = () => {
                       type="button"
                       variant="gold"
                       className="w-full h-12 text-base"
-                      disabled={paying || readerFirmwareUpdating || cart.length === 0 || (!isShopSession && !artistId) || (amountDue > 0 && terminal.status === "processing")}
+                      disabled={paying || readerFirmwareUpdating || (amountDue > 0 && terminal.status === "processing")}
                       onClick={() => void handlePay()}
                     >
                       {paying || (amountDue > 0 && terminal.status === "processing") ? (

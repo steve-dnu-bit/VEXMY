@@ -37,11 +37,22 @@ serve(async (req) => {
     const { data: orgId } = await admin.rpc("resolve_user_organization_id", { _user_id: auth.user.id });
     if (!orgId) return jsonResponse({ error: "No organization found" }, 400);
 
-    const { data: hasInbox } = await admin.rpc("org_plan_has_feature", {
-      _org_id: orgId,
-      _feature: "staff_inbox",
-    });
-    if (!hasInbox) return jsonResponse({ error: "Unified inbox not included on your plan" }, 403);
+    const isSmsChannel = channel === "sms";
+    if (!isSmsChannel) {
+      const { data: hasInbox } = await admin.rpc("org_plan_has_feature", {
+        _org_id: orgId,
+        _feature: "staff_inbox",
+      });
+      if (!hasInbox) return jsonResponse({ error: "Unified inbox not included on your plan" }, 403);
+    } else {
+      const { data: hasReminders } = await admin.rpc("org_plan_has_feature", {
+        _org_id: orgId,
+        _feature: "reminders",
+      });
+      if (!hasReminders) {
+        return jsonResponse({ error: "SMS requires an active subscription with reminders" }, 403);
+      }
+    }
 
     if (action === "disconnect") {
       await admin
@@ -83,7 +94,7 @@ serve(async (req) => {
     const maxChannels = Number(maxChannelsRaw ?? 0);
     const socialCount = (activeSocial || []).filter((r: { channel: string }) => r.channel !== channel).length;
 
-    if (channel !== "email" && maxChannels === 1 && socialCount > 0) {
+    if (channel !== "email" && maxChannels === 1 && socialCount > 0 && channel !== "sms") {
       return jsonResponse({ error: "Studio plan allows one social channel. Disconnect the current channel first." }, 403);
     }
 
