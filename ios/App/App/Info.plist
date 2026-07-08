@@ -57,6 +57,8 @@
 	<string>Velbok connects to your Stripe WisePad card reader over Bluetooth to take in-person payments.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is required by Stripe to discover nearby Bluetooth card readers.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location access is required by Stripe to discover nearby Bluetooth card readers while you take in-person payments.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>
