@@ -1,0 +1,6 @@
+Velbok 1.0.54 (54) — Google Play release notes
+================================================
+
+• Rebuilt from latest mobile bundle with native startup reliability fixes
+• Improved Android WebView compatibility (dialogs, backdrop blur, paste/selection)
+• General stability and performance improvements

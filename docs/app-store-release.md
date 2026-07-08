@@ -228,3 +228,4 @@ Redeploy after changing env vars — the mobile app loads the bundled web assets
 | Push not working | `GoogleService-Info.plist`, APNs key in Firebase, Push capability in Xcode |
 | Camera / photo crash | Info.plist usage strings (already in repo) |
 | WisePad not found on iPhone | Allow Location + Bluetooth for Velbok; connect only through POS, not Settings → Bluetooth |
+| Camera / Stripe "not implemented on iOS" | You archived after `ios:build-lite`. Run `npm run ios:prepare`, verify `[verify-ios-plugins] OK`, then create a **new** archive |

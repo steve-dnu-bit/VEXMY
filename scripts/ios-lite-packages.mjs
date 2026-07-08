@@ -1,44 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageSwift = path.join(root, "ios/App/CapApp-SPM/Package.swift");
 const capacitorConfig = path.join(root, "ios/App/App/capacitor.config.json");
 const mode = process.argv[2] ?? "lite";
-
-const fullPackage = `// swift-tools-version: 5.9
-import PackageDescription
-
-// DO NOT MODIFY THIS FILE - managed by Capacitor CLI commands
-let package = Package(
-    name: "CapApp-SPM",
-    platforms: [.iOS(.v16)],
-    products: [
-        .library(
-            name: "CapApp-SPM",
-            targets: ["CapApp-SPM"])
-    ],
-    dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.0"),
-        .package(name: "CapacitorCommunityStripeTerminal", path: "../../../node_modules/@capacitor-community/stripe-terminal"),
-        .package(name: "CapacitorApp", path: "../../../node_modules/@capacitor/app"),
-        .package(name: "CapacitorSplashScreen", path: "../../../node_modules/@capacitor/splash-screen")
-    ],
-    targets: [
-        .target(
-            name: "CapApp-SPM",
-            dependencies: [
-                .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                .product(name: "Cordova", package: "capacitor-swift-pm"),
-                .product(name: "CapacitorCommunityStripeTerminal", package: "CapacitorCommunityStripeTerminal"),
-                .product(name: "CapacitorApp", package: "CapacitorApp"),
-                .product(name: "CapacitorSplashScreen", package: "CapacitorSplashScreen")
-            ]
-        )
-    ]
-)
-`;
 
 const litePackage = `// swift-tools-version: 5.9
 import PackageDescription
@@ -82,14 +50,32 @@ function patchCapacitorConfig(enableStripe) {
   fs.writeFileSync(capacitorConfig, `${JSON.stringify(json, null, "\t")}\n`);
 }
 
+function runNodeScript(relativePath) {
+  const script = path.join(root, relativePath);
+  const result = spawnSync(process.execPath, [script], { cwd: root, stdio: "inherit" });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+function runCapSyncIos() {
+  const result = spawnSync("npx", ["cap", "sync", "ios"], {
+    cwd: root,
+    stdio: "inherit",
+    shell: true,
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
 if (mode === "full") {
-  fs.writeFileSync(packageSwift, fullPackage);
-  patchCapacitorConfig(true);
-  console.log("[ios-lite-packages] Restored full CapApp-SPM (with Stripe Terminal).");
+  console.log("[ios-lite-packages] Restoring full iOS native plugins via cap sync...");
+  runCapSyncIos();
+  runNodeScript("scripts/fix-ios-spm-paths.mjs");
+  runNodeScript("scripts/patch-ios-capacitor-config.mjs");
+  console.log("[ios-lite-packages] Full CapApp-SPM restored (Camera, Stripe Terminal, Push, etc.).");
 } else if (mode === "lite") {
   fs.writeFileSync(packageSwift, litePackage);
   patchCapacitorConfig(false);
-  console.log("[ios-lite-packages] Using lite CapApp-SPM (no Stripe Terminal).");
+  console.log("[ios-lite-packages] Using lite CapApp-SPM (Simulator compile check only — no Stripe/Camera).");
+  console.log("[ios-lite-packages] Before TestFlight/App Store: npm run ios:prepare");
 } else {
   console.error("Usage: node scripts/ios-lite-packages.mjs [lite|full]");
   process.exit(1);

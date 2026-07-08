@@ -61,6 +61,8 @@
 	<string>Velbok uses the camera when you choose to take a photo for stencil or receipt uploads.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Velbok lets you pick photos from your library for stencil and receipt uploads.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Velbok may save stencil exports to your photo library when you choose to.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleURLTypes</key>

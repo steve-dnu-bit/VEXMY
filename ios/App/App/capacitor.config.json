@@ -33,6 +33,7 @@
 		"CAPBrowserPlugin",
 		"CAPCameraPlugin",
 		"PushNotificationsPlugin",
-		"SplashScreenPlugin"
+		"SplashScreenPlugin",
+		"TapToPayEducationPlugin"
 	]
 }

@@ -97,7 +97,10 @@ if (buildStatus === 0 && logText.includes("BUILD SUCCEEDED")) {
   console.log("========================================");
   console.log("  BUILD SUCCEEDED (lite)");
   console.log("========================================");
+  console.log("Restoring full native plugins (required before TestFlight)...");
+  if (run(`node "${join(root, "scripts/ios-lite-packages.mjs")}" full`) !== 0) process.exit(1);
   console.log("Next: npm run cap:ios → Simulator → Run");
+  console.log("For App Store: npm run ios:archive (never archive right after lite without ios:prepare)");
   process.exit(0);
 }
 

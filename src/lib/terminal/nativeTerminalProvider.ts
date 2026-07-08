@@ -3,6 +3,7 @@ import {
   TerminalConnectTypes,
   TerminalEventsEnum,
 } from "@capacitor-community/stripe-terminal";
+import { Capacitor } from "@capacitor/core";
 import { discoverBluetoothReaders } from "@/lib/terminal/discoverBluetoothReaders";
 import { discoverTapToPayReaders, formatTapToPayDiscoveryError } from "@/lib/terminal/discoverTapToPayReaders";
 import { ensureTerminalLocation } from "@/lib/terminal/ensureTerminalLocation";
@@ -209,6 +210,12 @@ async function registerTerminalEventListeners(): Promise<void> {
 }
 
 async function ensureNativeTerminalInitialized(): Promise<void> {
+  if (!Capacitor.isPluginAvailable("StripeTerminal")) {
+    throw new Error(
+      "Stripe Terminal is missing from this iOS build. On your Mac run npm run ios:prepare, then create a new Xcode archive — do not upload a build made after ios:build-lite.",
+    );
+  }
+
   activeOptions();
 
   await registerTerminalListeners();
