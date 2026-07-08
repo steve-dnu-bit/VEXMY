@@ -13,6 +13,7 @@ const REQUIRED_CONFIG_CLASSES = [
   "StripeTerminalPlugin",
   "CAPCameraPlugin",
   "TapToPayEducationPlugin",
+  "TerminalPermissionsPlugin",
 ];
 
 const REQUIRED_SPM_PACKAGES = [

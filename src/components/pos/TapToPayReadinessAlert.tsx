@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { nativePlatform } from "@/lib/platform";
+import { ensureNativeTerminalLocationPermission } from "@/lib/terminal/ensureAndroidTerminalReady";
+import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
 import {
   checkTapToPayEnvironment,
   describeTapToPayBlockers,
@@ -11,6 +14,97 @@ import {
   type TapToPayEnvironment,
 } from "@/lib/terminal/tapToPayReadiness";
 import { TapToPayEducation } from "@/lib/terminal/tapToPayEducation";
+
+function IosTerminalPermissionsAlert() {
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
+  const [requesting, setRequesting] = useState(false);
+  const [locationGranted, setLocationGranted] = useState(false);
+  const [bluetoothGranted, setBluetoothGranted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = () => {
+    setLoading(true);
+    void TerminalPermissions.checkReaderPermissions()
+      .then((state) => {
+        setLocationGranted(state.location === "granted");
+        setBluetoothGranted(state.bluetooth === "granted");
+        setError(null);
+      })
+      .catch(() => {
+        setLocationGranted(false);
+        setBluetoothGranted(false);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const requestPermissions = () => {
+    setRequesting(true);
+    setError(null);
+    void ensureNativeTerminalLocationPermission()
+      .then(() => refresh())
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : "Could not enable permissions.");
+        refresh();
+      })
+      .finally(() => setRequesting(false));
+  };
+
+  const ready = locationGranted && bluetoothGranted;
+
+  return (
+    <div className="space-y-3">
+      <Alert className={ready ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}>
+        {ready ? (
+          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        ) : (
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+        )}
+        <AlertTitle>{ready ? "Reader permissions enabled" : "Enable Location & Bluetooth"}</AlertTitle>
+        <AlertDescription className="text-sm space-y-2">
+          <p>
+            Velbok needs Location and Bluetooth to discover and connect your Stripe WisePad reader. Location is
+            required by payment regulations — it is not used for advertising.
+          </p>
+          {loading ? (
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Checking permissions…
+            </p>
+          ) : null}
+          {!loading && !ready ? (
+            <Button type="button" size="sm" onClick={requestPermissions} disabled={requesting}>
+              {requesting ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                  Waiting for permission…
+                </>
+              ) : (
+                "Allow Location & Bluetooth"
+              )}
+            </Button>
+          ) : null}
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+        </AlertDescription>
+      </Alert>
+
+      <Alert className="border-amber-500/40 bg-amber-500/5">
+        <AlertCircle className="h-4 w-4 text-amber-600" />
+        <AlertTitle>{t("pos.tapToPayPhoneBlocked")}</AlertTitle>
+        <AlertDescription className="text-sm space-y-2">
+          <p>
+            Tap to Pay on iPhone is not enabled in this build yet. Use WisePad (Bluetooth reader) mode above, or wait
+            until Apple approves Tap to Pay for com.velbok.app.
+          </p>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
 
 export function TapToPayReadinessAlert() {
   const { t } = useTranslation();
@@ -37,18 +131,7 @@ export function TapToPayReadinessAlert() {
   }, []);
 
   if (nativePlatform() === "ios") {
-    return (
-      <Alert className="border-amber-500/40 bg-amber-500/5">
-        <AlertCircle className="h-4 w-4 text-amber-600" />
-        <AlertTitle>{t("pos.tapToPayPhoneBlocked")}</AlertTitle>
-        <AlertDescription className="text-sm space-y-2">
-          <p>
-            Tap to Pay on iPhone is not enabled in this build yet. Use WisePad (Bluetooth reader) mode
-            above, or wait until Apple approves Tap to Pay for com.velbok.app.
-          </p>
-        </AlertDescription>
-      </Alert>
-    );
+    return <IosTerminalPermissionsAlert />;
   }
 
   if (nativePlatform() !== "android") return null;

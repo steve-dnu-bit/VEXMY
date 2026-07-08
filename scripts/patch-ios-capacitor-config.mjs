@@ -17,6 +17,7 @@ const REQUIRED_PACKAGE_CLASSES = [
   "PushNotificationsPlugin",
   "SplashScreenPlugin",
   "TapToPayEducationPlugin",
+  "TerminalPermissionsPlugin",
 ];
 
 if (!fs.existsSync(configPath)) {

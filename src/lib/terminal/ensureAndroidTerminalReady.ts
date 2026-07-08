@@ -1,5 +1,6 @@
 import { StripeTerminal } from "@capacitor-community/stripe-terminal";
 import { nativePlatform } from "@/lib/platform";
+import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
 
 const INIT_TIMEOUT_MS = 45_000;
 
@@ -18,10 +19,26 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
   });
 }
 
-/** Stripe Terminal requires location on native (Android and iOS) for reader discovery. */
-export async function ensureNativeTerminalLocationPermission(): Promise<void> {
-  if (nativePlatform() !== "android" && nativePlatform() !== "ios") return;
+async function ensureIosTerminalReaderPermissions(): Promise<void> {
+  const state = await TerminalPermissions.requestReaderPermissions().catch(() => ({
+    location: "denied" as const,
+    bluetooth: "denied" as const,
+  }));
 
+  if (state.location !== "granted") {
+    throw new Error(
+      "Location permission is required for card reader payments. Open iPhone Settings → Velbok → Location → While Using the App, then try again.",
+    );
+  }
+
+  if (state.bluetooth === "denied") {
+    throw new Error(
+      "Bluetooth permission is required to connect your WisePad reader. Open iPhone Settings → Velbok → Bluetooth → Allow, then try again.",
+    );
+  }
+}
+
+async function ensureAndroidLocationViaStripePlugin(): Promise<void> {
   const plugin = StripeTerminal as unknown as {
     checkPermissions?: () => Promise<{ location?: string }>;
     requestPermissions?: () => Promise<{ location?: string }>;
@@ -37,11 +54,21 @@ export async function ensureNativeTerminalLocationPermission(): Promise<void> {
   }
 
   if (state.location !== "granted") {
-    const settingsHint =
-      nativePlatform() === "ios"
-        ? "Open iPhone Settings → Velbok → Location → While Using the App, then try again."
-        : "Open Android Settings → Apps → Velbok → Permissions → Location → Allow, then try again.";
-    throw new Error(`Location permission is required for card reader payments. ${settingsHint}`);
+    throw new Error(
+      "Location permission is required for card reader payments. Open Android Settings → Apps → Velbok → Permissions → Location → Allow, then try again.",
+    );
+  }
+}
+
+/** Stripe Terminal requires location + Bluetooth on native for reader discovery. */
+export async function ensureNativeTerminalLocationPermission(): Promise<void> {
+  const platform = nativePlatform();
+  if (platform === "ios") {
+    await ensureIosTerminalReaderPermissions();
+    return;
+  }
+  if (platform === "android") {
+    await ensureAndroidLocationViaStripePlugin();
   }
 }
 
