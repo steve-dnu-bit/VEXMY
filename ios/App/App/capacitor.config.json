@@ -32,6 +32,7 @@
 		"AppPlugin",
 		"CAPBrowserPlugin",
 		"CAPCameraPlugin",
+		"GeolocationPlugin",
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
 		"TapToPayEducationPlugin",

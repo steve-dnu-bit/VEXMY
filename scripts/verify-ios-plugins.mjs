@@ -12,6 +12,7 @@ const packageSwiftPath = path.join(root, "ios/App/CapApp-SPM/Package.swift");
 const REQUIRED_CONFIG_CLASSES = [
   "StripeTerminalPlugin",
   "CAPCameraPlugin",
+  "GeolocationPlugin",
   "TapToPayEducationPlugin",
   "TerminalPermissionsPlugin",
 ];
@@ -19,6 +20,7 @@ const REQUIRED_CONFIG_CLASSES = [
 const REQUIRED_SPM_PACKAGES = [
   "CapacitorCommunityStripeTerminal",
   "CapacitorCamera",
+  "CapacitorGeolocation",
 ];
 
 let failed = false;

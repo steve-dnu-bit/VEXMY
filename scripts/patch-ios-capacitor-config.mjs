@@ -14,6 +14,7 @@ const REQUIRED_PACKAGE_CLASSES = [
   "AppPlugin",
   "CAPBrowserPlugin",
   "CAPCameraPlugin",
+  "GeolocationPlugin",
   "PushNotificationsPlugin",
   "SplashScreenPlugin",
   "TapToPayEducationPlugin",

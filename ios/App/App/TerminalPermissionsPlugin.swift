@@ -12,25 +12,25 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         CAPPluginMethod(name: "checkReaderPermissions", returnType: CAPPluginReturnPromise),
     ]
 
-    private var locationManager: CLLocationManager?
     private var bluetoothManager: CBCentralManager?
     private var pendingCall: CAPPluginCall?
     private var resolveTimer: Timer?
 
     @objc func checkReaderPermissions(_ call: CAPPluginCall) {
-        call.resolve([
-            "location": locationAuthString(),
-            "bluetooth": bluetoothAuthString(),
-        ])
+        DispatchQueue.main.async { [weak self] in
+            self?.resolvePermissionStatus(call)
+        }
     }
 
     @objc func requestReaderPermissions(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            self?.requestReaderPermissionsOnMain(call)
+        }
+    }
+
+    private func requestReaderPermissionsOnMain(_ call: CAPPluginCall) {
         pendingCall?.reject("Cancelled by a new permission request")
         pendingCall = call
-
-        if locationManager == nil {
-            _ = ensureLocationManager()
-        }
 
         if bluetoothManager == nil {
             bluetoothManager = CBCentralManager(delegate: self, queue: nil)
@@ -41,33 +41,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
             self?.finishPendingCall()
         }
 
-        let locationStatus = locationAuthString()
-        if locationStatus == "prompt" {
-            ensureLocationManager().requestWhenInUseAuthorization()
-        } else {
-            tryFinishPendingCall()
-        }
-    }
-
-    private func ensureLocationManager() -> CLLocationManager {
-        if let locationManager {
-            return locationManager
-        }
-        let manager = CLLocationManager()
-        manager.delegate = self
-        locationManager = manager
-        return manager
-    }
-
-    private func locationAuthString() -> String {
-        switch ensureLocationManager().authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            return "granted"
-        case .denied, .restricted:
-            return "denied"
-        default:
-            return "prompt"
-        }
+        tryFinishPendingCall()
     }
 
     private func bluetoothAuthString() -> String {
@@ -87,13 +61,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     private func tryFinishPendingCall() {
         guard pendingCall != nil else { return }
 
-        let location = locationAuthString()
         let bluetooth = bluetoothAuthString()
-
-        if location == "prompt" {
-            return
-        }
-
         if bluetooth == "prompt", bluetoothManager?.state == .unknown {
             return
         }
@@ -108,18 +76,14 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         guard let call = pendingCall else { return }
         pendingCall = nil
 
+        resolvePermissionStatus(call)
+    }
+
+    private func resolvePermissionStatus(_ call: CAPPluginCall) {
         call.resolve([
-            "location": locationAuthString(),
+            "location": "granted",
             "bluetooth": bluetoothAuthString(),
         ])
-    }
-
-    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        tryFinishPendingCall()
-    }
-
-    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        tryFinishPendingCall()
     }
 
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {

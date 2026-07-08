@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { nativePlatform } from "@/lib/platform";
 import { ensureNativeTerminalLocationPermission } from "@/lib/terminal/ensureAndroidTerminalReady";
-import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
+import { checkIosBluetoothPermission, checkIosLocationPermission } from "@/lib/terminal/iosTerminalPermissions";
 import {
   checkTapToPayEnvironment,
   describeTapToPayBlockers,
@@ -25,10 +25,10 @@ function IosTerminalPermissionsAlert() {
 
   const refresh = () => {
     setLoading(true);
-    void TerminalPermissions.checkReaderPermissions()
-      .then((state) => {
-        setLocationGranted(state.location === "granted");
-        setBluetoothGranted(state.bluetooth === "granted");
+    void Promise.all([checkIosLocationPermission(), checkIosBluetoothPermission()])
+      .then(([location, bluetooth]) => {
+        setLocationGranted(location === "granted");
+        setBluetoothGranted(bluetooth === "granted");
         setError(null);
       })
       .catch(() => {

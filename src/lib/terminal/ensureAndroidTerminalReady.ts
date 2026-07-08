@@ -1,6 +1,9 @@
 import { StripeTerminal } from "@capacitor-community/stripe-terminal";
 import { nativePlatform } from "@/lib/platform";
-import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
+import {
+  ensureIosBluetoothPermission,
+  ensureIosLocationPermission,
+} from "@/lib/terminal/iosTerminalPermissions";
 
 const INIT_TIMEOUT_MS = 45_000;
 
@@ -20,22 +23,8 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 }
 
 async function ensureIosTerminalReaderPermissions(): Promise<void> {
-  const state = await TerminalPermissions.requestReaderPermissions().catch(() => ({
-    location: "denied" as const,
-    bluetooth: "denied" as const,
-  }));
-
-  if (state.location !== "granted") {
-    throw new Error(
-      "Location permission is required for card reader payments. Open iPhone Settings → Velbok → Location → While Using the App, then try again.",
-    );
-  }
-
-  if (state.bluetooth === "denied") {
-    throw new Error(
-      "Bluetooth permission is required to connect your WisePad reader. Open iPhone Settings → Velbok → Bluetooth → Allow, then try again.",
-    );
-  }
+  await ensureIosLocationPermission();
+  await ensureIosBluetoothPermission();
 }
 
 async function ensureAndroidLocationViaStripePlugin(): Promise<void> {

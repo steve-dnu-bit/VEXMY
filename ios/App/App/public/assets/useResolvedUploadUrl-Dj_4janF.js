@@ -1,0 +1,1 @@
+import{r as t}from"./vendor-react-cPhoaX9Y.js";import{r as u}from"./uploadStorage-BYq4b4Is.js";function f(e){const[l,o]=t.useState(null);return t.useEffect(()=>{let r=!1;return u(e).then(s=>{r||o(s)}),()=>{r=!0}},[e]),l}export{f as u};
