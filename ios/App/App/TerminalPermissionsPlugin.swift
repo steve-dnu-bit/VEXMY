@@ -40,7 +40,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
 
         resolveTimer?.invalidate()
         resolveTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
-            self?.finishPendingCall(rejectMessage: "Permission request timed out. Try again from Settings if needed.")
+            self?.finishPendingCall()
         }
 
         let locationStatus = Self.locationAuthString()
@@ -93,20 +93,12 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         finishPendingCall()
     }
 
-    private func finishPendingCall(rejectMessage: String? = nil) {
+    private func finishPendingCall() {
         resolveTimer?.invalidate()
         resolveTimer = nil
 
         guard let call = pendingCall else { return }
         pendingCall = nil
-
-        if let rejectMessage {
-            call.reject(rejectMessage, nil, [
-                "location": Self.locationAuthString(),
-                "bluetooth": Self.bluetoothAuthString(),
-            ])
-            return
-        }
 
         call.resolve([
             "location": Self.locationAuthString(),
