@@ -19,8 +19,8 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
 
     @objc func checkReaderPermissions(_ call: CAPPluginCall) {
         call.resolve([
-            "location": Self.locationAuthString(),
-            "bluetooth": Self.bluetoothAuthString(),
+            "location": locationAuthString(),
+            "bluetooth": bluetoothAuthString(),
         ])
     }
 
@@ -29,9 +29,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         pendingCall = call
 
         if locationManager == nil {
-            let manager = CLLocationManager()
-            manager.delegate = self
-            locationManager = manager
+            _ = ensureLocationManager()
         }
 
         if bluetoothManager == nil {
@@ -43,16 +41,26 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
             self?.finishPendingCall()
         }
 
-        let locationStatus = Self.locationAuthString()
+        let locationStatus = locationAuthString()
         if locationStatus == "prompt" {
-            locationManager?.requestWhenInUseAuthorization()
+            ensureLocationManager().requestWhenInUseAuthorization()
         } else {
             tryFinishPendingCall()
         }
     }
 
-    private static func locationAuthString() -> String {
-        switch CLLocationManager.authorizationStatus() {
+    private func ensureLocationManager() -> CLLocationManager {
+        if let locationManager {
+            return locationManager
+        }
+        let manager = CLLocationManager()
+        manager.delegate = self
+        locationManager = manager
+        return manager
+    }
+
+    private func locationAuthString() -> String {
+        switch ensureLocationManager().authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
             return "granted"
         case .denied, .restricted:
@@ -62,7 +70,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         }
     }
 
-    private static func bluetoothAuthString() -> String {
+    private func bluetoothAuthString() -> String {
         if #available(iOS 13.0, *) {
             switch CBManager.authorization {
             case .allowedAlways:
@@ -79,8 +87,8 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     private func tryFinishPendingCall() {
         guard pendingCall != nil else { return }
 
-        let location = Self.locationAuthString()
-        let bluetooth = Self.bluetoothAuthString()
+        let location = locationAuthString()
+        let bluetooth = bluetoothAuthString()
 
         if location == "prompt" {
             return
@@ -101,8 +109,8 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         pendingCall = nil
 
         call.resolve([
-            "location": Self.locationAuthString(),
-            "bluetooth": Self.bluetoothAuthString(),
+            "location": locationAuthString(),
+            "bluetooth": bluetoothAuthString(),
         ])
     }
 
