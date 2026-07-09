@@ -22,21 +22,21 @@ function IosTerminalPermissionsAlert() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState(false);
-  const [locationGranted, setLocationGranted] = useState(false);
-  const [bluetoothGranted, setBluetoothGranted] = useState(false);
+  const [locationState, setLocationState] = useState<string>("prompt");
+  const [bluetoothState, setBluetoothState] = useState<string>("prompt");
   const [error, setError] = useState<string | null>(null);
 
   const refresh = () => {
     setLoading(true);
     void Promise.all([checkIosLocationPermission(), checkIosBluetoothPermission()])
       .then(([location, bluetooth]) => {
-        setLocationGranted(location === "granted");
-        setBluetoothGranted(bluetooth === "granted");
+        setLocationState(location);
+        setBluetoothState(bluetooth);
         setError(null);
       })
       .catch(() => {
-        setLocationGranted(false);
-        setBluetoothGranted(false);
+        setLocationState("disabled");
+        setBluetoothState("prompt");
       })
       .finally(() => setLoading(false));
   };
@@ -51,13 +51,22 @@ function IosTerminalPermissionsAlert() {
     void ensureIosReaderPermissions("bluetooth")
       .then(() => refresh())
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Could not enable permissions.");
+        const message =
+          err instanceof Error
+            ? err.message
+            : typeof err === "object" && err && "message" in err && typeof (err as { message: unknown }).message === "string"
+              ? (err as { message: string }).message
+              : "Could not enable permissions.";
+        setError(message);
         refresh();
       })
       .finally(() => setRequesting(false));
   };
 
+  const locationGranted = locationState === "granted";
+  const bluetoothGranted = bluetoothState === "granted";
   const ready = locationGranted && bluetoothGranted;
+  const locationServicesOff = locationState === "disabled";
 
   return (
     <div className="space-y-3">
@@ -67,12 +76,31 @@ function IosTerminalPermissionsAlert() {
         ) : (
           <AlertCircle className="h-4 w-4 text-amber-600" />
         )}
-        <AlertTitle>{ready ? "Reader permissions enabled" : "Enable Location & Bluetooth"}</AlertTitle>
+        <AlertTitle>
+          {ready
+            ? "Reader permissions enabled"
+            : locationServicesOff
+              ? "Turn on Location Services"
+              : "Enable Location & Bluetooth"}
+        </AlertTitle>
         <AlertDescription className="text-sm space-y-2">
-          <p>
-            Velbok needs Location and Bluetooth to discover and connect your Stripe WisePad reader. Location is
-            required by payment regulations — it is not used for advertising.
-          </p>
+          {locationServicesOff ? (
+            <p>
+              iPhone Location Services are OFF globally. Open Settings → Privacy &amp; Security → Location Services,
+              turn them ON, then return here. Velbok’s own Location toggle cannot work while this is off.
+            </p>
+          ) : (
+            <p>
+              Velbok needs Location and Bluetooth to discover and connect your Stripe WisePad reader. Location is
+              required by payment regulations — it is not used for advertising. Also turn on Precise Location for
+              Velbok if you see that option.
+            </p>
+          )}
+          {!loading ? (
+            <p className="text-xs text-muted-foreground">
+              Location: {locationState} · Bluetooth: {bluetoothState}
+            </p>
+          ) : null}
           {loading ? (
             <p className="text-xs text-muted-foreground flex items-center gap-2">
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -86,12 +114,14 @@ function IosTerminalPermissionsAlert() {
                   <Loader2 className="h-3 w-3 animate-spin mr-2" />
                   Waiting for permission…
                 </>
+              ) : locationServicesOff ? (
+                "Recheck Location Services"
               ) : (
                 "Allow Location & Bluetooth"
               )}
             </Button>
           ) : null}
-          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+          {error ? <p className="text-xs text-destructive whitespace-pre-wrap">{error}</p> : null}
         </AlertDescription>
       </Alert>
 
