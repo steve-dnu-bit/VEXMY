@@ -182,10 +182,8 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     }
 
     private func currentAuthStatus() -> CLAuthorizationStatus {
-        if #available(iOS 14.0, *) {
-            return locationManager?.authorizationStatus ?? CLLocationManager().authorizationStatus
-        }
-        return CLLocationManager.authorizationStatus()
+        ensureLocationManager()
+        return locationManager?.authorizationStatus ?? .notDetermined
     }
 
     private func requestLocationPermissionOnMain(_ call: CAPPluginCall) {
