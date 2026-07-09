@@ -17,6 +17,7 @@ import { fetchTerminalConfig } from "@/lib/terminal/fetchTerminalConfig";
 import { formatTerminalError } from "@/lib/terminal/formatTerminalError";
 import { initializeStripeTerminalWithTimeout } from "@/lib/terminal/ensureAndroidTerminalReady";
 import { ensureIosReaderPermissions } from "@/lib/terminal/iosTerminalPermissions";
+import { velbokDebugLog } from "@/lib/terminal/iosTerminalDebug";
 import { assertTapToPayEnvironmentReady } from "@/lib/terminal/tapToPayReadiness";
 import { nativePlatform, stripeTerminalIsTestMode } from "@/lib/platform";
 import { setCachedTerminalLocationId, getCachedTerminalLocationId } from "@/lib/terminal/terminalLocationCache";
@@ -318,6 +319,19 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
     async discoverAndConnect() {
       const options = activeOptions();
+      // #region agent log
+      velbokDebugLog(
+        "nativeTerminalProvider.ts:discoverAndConnect",
+        "entry",
+        {
+          platform: nativePlatform(),
+          readerMode: options.readerMode,
+          simulated: options.simulated,
+          locationId: options.locationId ?? null,
+        },
+        "E",
+      );
+      // #endregion
       try {
         beginTerminalOperation();
 
@@ -432,6 +446,14 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
         return connectedReader;
       } catch (error) {
+        // #region agent log
+        velbokDebugLog(
+          "nativeTerminalProvider.ts:discoverAndConnect",
+          "failed",
+          { error: error instanceof Error ? error.message : String(error) },
+          "E",
+        );
+        // #endregion
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
         throw new Error(formatTerminalError(error, "Reader connection failed"));
       }

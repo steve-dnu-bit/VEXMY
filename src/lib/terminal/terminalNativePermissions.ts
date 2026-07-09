@@ -13,11 +13,30 @@ export interface TerminalBluetoothPermission {
   bluetooth: TerminalPermissionState;
 }
 
+export interface TerminalIosDiagnostics {
+  isPad?: boolean;
+  model?: string;
+  systemVersion?: string;
+  buildVersion?: string;
+  buildNumber?: string;
+  locationServicesEnabled?: boolean;
+  authorizationStatus?: string;
+  location?: string;
+  accuracy?: string;
+  hasFix?: boolean;
+  horizontalAccuracyMeters?: number;
+  updatesStarted?: boolean;
+  bluetooth?: string;
+  bluetoothManagerState?: number;
+  nativeError?: string;
+}
+
 interface TerminalPermissionsPlugin {
   requestLocationPermission(): Promise<TerminalLocationPermission>;
   checkLocationPermission(): Promise<TerminalLocationPermission>;
   requestBluetoothPermission(): Promise<TerminalBluetoothPermission>;
   checkBluetoothPermission(): Promise<TerminalBluetoothPermission>;
+  getDiagnostics(): Promise<TerminalIosDiagnostics>;
   /** @deprecated Prefer requestLocationPermission + requestBluetoothPermission */
   requestReaderPermissions(): Promise<TerminalLocationPermission & TerminalBluetoothPermission>;
   /** @deprecated Prefer checkLocationPermission + checkBluetoothPermission */
@@ -53,6 +72,16 @@ export const TerminalPermissions = registerPlugin<TerminalPermissionsPlugin>("Te
       servicesEnabled: true,
       accuracy: "full",
       fixReady: true,
+    }),
+    getDiagnostics: async () => ({
+      isPad: false,
+      locationServicesEnabled: true,
+      authorizationStatus: "authorizedWhenInUse",
+      location: "granted",
+      accuracy: "full",
+      hasFix: true,
+      updatesStarted: true,
+      bluetooth: "granted",
     }),
   },
 });

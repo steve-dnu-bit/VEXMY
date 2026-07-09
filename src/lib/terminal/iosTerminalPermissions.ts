@@ -1,6 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
 import type { TerminalReaderMode } from "@/lib/terminal/types";
+import { velbokDebugLog } from "@/lib/terminal/iosTerminalDebug";
 
 export type PermissionOutcome = "granted" | "denied" | "prompt" | "restricted" | "disabled";
 
@@ -42,13 +43,38 @@ function asError(err: unknown, fallback: string): Error {
  * that is normal. We still start location updates for Stripe.
  */
 export async function ensureIosReaderPermissions(readerMode: TerminalReaderMode = "bluetooth"): Promise<void> {
+  // #region agent log
+  velbokDebugLog(
+    "iosTerminalPermissions.ts:ensureIosReaderPermissions",
+    "entry",
+    { readerMode, pluginAvailable: Capacitor.isPluginAvailable("TerminalPermissions") },
+    "B",
+  );
+  // #endregion
+
   if (!Capacitor.isPluginAvailable("TerminalPermissions")) {
     throw pluginMissingError();
   }
 
   try {
+    const before = await TerminalPermissions.checkLocationPermission().catch(() => null);
+    // #region agent log
+    velbokDebugLog("iosTerminalPermissions.ts:ensureIosReaderPermissions", "before requestLocation", { before }, "C");
+    // #endregion
     await TerminalPermissions.requestLocationPermission();
+    const after = await TerminalPermissions.checkLocationPermission().catch(() => null);
+    // #region agent log
+    velbokDebugLog("iosTerminalPermissions.ts:ensureIosReaderPermissions", "after requestLocation", { after }, "C");
+    // #endregion
   } catch (err) {
+    // #region agent log
+    velbokDebugLog(
+      "iosTerminalPermissions.ts:ensureIosReaderPermissions",
+      "requestLocation failed",
+      { error: err instanceof Error ? err.message : String(err) },
+      "D",
+    );
+    // #endregion
     throw asError(
       err,
       "Location permission is required for card reader payments. Open Settings → Privacy & Security → Location Services (ON), then Settings → Velbok → Location → While Using the App.",

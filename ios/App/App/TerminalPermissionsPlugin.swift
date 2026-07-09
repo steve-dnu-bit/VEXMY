@@ -27,6 +27,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         CAPPluginMethod(name: "checkBluetoothPermission", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestReaderPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "checkReaderPermissions", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getDiagnostics", returnType: CAPPluginReturnPromise),
     ]
 
     /// Must stay alive for the whole app session so Stripe can read location.
@@ -93,6 +94,48 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     @objc func requestReaderPermissions(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [weak self] in
             self?.requestLocationPermissionOnMain(call)
+        }
+    }
+
+    @objc func getDiagnostics(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.ensureLocationManager()
+            self.startLocationUpdates()
+
+            let auth = self.currentAuthStatus()
+            let authLabel: String = {
+                switch auth {
+                case .notDetermined: return "notDetermined"
+                case .restricted: return "restricted"
+                case .denied: return "denied"
+                case .authorizedAlways: return "authorizedAlways"
+                case .authorizedWhenInUse: return "authorizedWhenInUse"
+                @unknown default: return "unknown"
+                }
+            }()
+
+            var btState = -1
+            if let manager = self.bluetoothManager {
+                btState = manager.state.rawValue
+            }
+
+            call.resolve([
+                "isPad": UIDevice.current.userInterfaceIdiom == .pad,
+                "model": UIDevice.current.model,
+                "systemVersion": UIDevice.current.systemVersion,
+                "buildVersion": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "",
+                "buildNumber": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "",
+                "locationServicesEnabled": CLLocationManager.locationServicesEnabled(),
+                "authorizationStatus": authLabel,
+                "location": self.locationAuthString(),
+                "accuracy": self.accuracyString(),
+                "hasFix": self.lastKnownLocation != nil,
+                "horizontalAccuracyMeters": self.lastKnownLocation?.horizontalAccuracy ?? -1,
+                "updatesStarted": self.updatesStarted,
+                "bluetooth": self.bluetoothAuthString(),
+                "bluetoothManagerState": btState,
+            ])
         }
     }
 
