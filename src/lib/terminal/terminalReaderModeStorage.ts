@@ -4,18 +4,13 @@ import type { TerminalReaderMode } from "@/lib/terminal/types";
 const STORAGE_KEY = "velbok_terminal_reader_mode_v1";
 
 function defaultReaderMode(): TerminalReaderMode {
-  // iPad: WisePad only — no Tap to Pay, no GPS on Wi‑Fi models.
   if (isIpadDevice()) return "bluetooth";
-  // iPhone: WisePad until Apple approves Tap to Pay.
-  if (nativePlatform() === "ios") return "bluetooth";
-  if (nativePlatform() === "android") return "tap_to_pay";
-  return "bluetooth";
+  return nativePlatform() === "android" || nativePlatform() === "ios" ? "tap_to_pay" : "bluetooth";
 }
 
-/** Tap to Pay is not supported on iPad; iOS phones use WisePad until Apple approves TTP. */
+/** Tap to Pay is not supported on iPad — always use WisePad there. */
 function effectiveReaderMode(mode: TerminalReaderMode): TerminalReaderMode {
   if (isIpadDevice()) return "bluetooth";
-  if (nativePlatform() === "ios" && mode === "tap_to_pay") return "bluetooth";
   return mode;
 }
 

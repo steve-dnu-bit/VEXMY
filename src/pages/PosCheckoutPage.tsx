@@ -6,7 +6,6 @@ import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
-import { IosPosDiagnosticsPanel } from "@/components/pos/IosPosDiagnosticsPanel";
 import BookingClientSearch from "@/components/schedule/BookingClientSearch";
 import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
@@ -1295,13 +1294,6 @@ const PosCheckoutPage = () => {
                   ) : null}
 
                   <div className="space-y-2 pt-2">
-                    {nativePlatform() === "ios" && !simulatedReader ? (
-                      <IosPosDiagnosticsPanel
-                        stripeLocationId={locationId}
-                        readerMode={readerMode}
-                        connectReady={connectReady}
-                      />
-                    ) : null}
                     {terminal.status !== "connected" ? (
                       terminal.status === "discovering" || terminal.status === "connecting" ? (
                         <>

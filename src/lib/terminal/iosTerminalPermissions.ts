@@ -1,7 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
 import type { TerminalReaderMode } from "@/lib/terminal/types";
-import { velbokDebugLog } from "@/lib/terminal/iosTerminalDebug";
 
 export type PermissionOutcome = "granted" | "denied" | "prompt" | "restricted" | "disabled";
 
@@ -37,44 +36,15 @@ function asError(err: unknown, fallback: string): Error {
 /**
  * Stripe Terminal iOS: request When-In-Use via native CLLocationManager and keep
  * GPS updates running so Stripe can read the device location.
- *
- * Note: iOS only shows the Allow dialog when status is still "Ask Next Time"
- * (notDetermined). If Settings already shows Location On, no dialog will appear —
- * that is normal. We still start location updates for Stripe.
  */
 export async function ensureIosReaderPermissions(readerMode: TerminalReaderMode = "bluetooth"): Promise<void> {
-  // #region agent log
-  velbokDebugLog(
-    "iosTerminalPermissions.ts:ensureIosReaderPermissions",
-    "entry",
-    { readerMode, pluginAvailable: Capacitor.isPluginAvailable("TerminalPermissions") },
-    "B",
-  );
-  // #endregion
-
   if (!Capacitor.isPluginAvailable("TerminalPermissions")) {
     throw pluginMissingError();
   }
 
   try {
-    const before = await TerminalPermissions.checkLocationPermission().catch(() => null);
-    // #region agent log
-    velbokDebugLog("iosTerminalPermissions.ts:ensureIosReaderPermissions", "before requestLocation", { before }, "C");
-    // #endregion
     await TerminalPermissions.requestLocationPermission();
-    const after = await TerminalPermissions.checkLocationPermission().catch(() => null);
-    // #region agent log
-    velbokDebugLog("iosTerminalPermissions.ts:ensureIosReaderPermissions", "after requestLocation", { after }, "C");
-    // #endregion
   } catch (err) {
-    // #region agent log
-    velbokDebugLog(
-      "iosTerminalPermissions.ts:ensureIosReaderPermissions",
-      "requestLocation failed",
-      { error: err instanceof Error ? err.message : String(err) },
-      "D",
-    );
-    // #endregion
     throw asError(
       err,
       "Location permission is required for card reader payments. Open Settings → Privacy & Security → Location Services (ON), then Settings → Velbok → Location → While Using the App.",
@@ -93,10 +63,7 @@ export async function ensureIosReaderPermissions(readerMode: TerminalReaderMode 
   }
 }
 
-/**
- * Call once when POS opens. If status is still notDetermined, this triggers the
- * system Allow Location dialog. If already granted/denied, no dialog (iOS rule).
- */
+/** Call once when POS opens to warm location for Stripe. */
 export async function warmIosLocationForPos(): Promise<PermissionOutcome> {
   if (Capacitor.getPlatform() !== "ios") return "granted";
   if (!Capacitor.isPluginAvailable("TerminalPermissions")) return "prompt";
@@ -110,7 +77,6 @@ export async function warmIosLocationForPos(): Promise<PermissionOutcome> {
       return mapState(after.location);
     }
     if (state === "granted") {
-      // Re-enter request path so native plugin starts continuous GPS updates.
       await TerminalPermissions.requestLocationPermission().catch(() => undefined);
     }
     return state;

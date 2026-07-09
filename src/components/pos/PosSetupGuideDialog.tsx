@@ -113,7 +113,7 @@ const PosSetupGuideDialog = ({
 
               {usingTapToPay ? (
                 <div className="space-y-3">
-                  <TapToPayReadinessAlert />
+                  <TapToPayReadinessAlert readerMode={readerMode} />
                   {locationId ? (
                     <Button type="button" variant="outline" size="sm" disabled={testingStripeLink} onClick={onTestStripeLink}>
                       {testingStripeLink ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}

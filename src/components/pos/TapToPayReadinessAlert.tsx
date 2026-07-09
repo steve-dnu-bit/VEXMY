@@ -19,7 +19,7 @@ import {
 } from "@/lib/terminal/tapToPayReadiness";
 import { TapToPayEducation } from "@/lib/terminal/tapToPayEducation";
 
-function IosTerminalPermissionsAlert() {
+function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode?: "tap_to_pay" | "bluetooth" }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState(false);
@@ -53,7 +53,7 @@ function IosTerminalPermissionsAlert() {
   const requestPermissions = () => {
     setRequesting(true);
     setError(null);
-    void ensureIosReaderPermissions("bluetooth")
+    void ensureIosReaderPermissions(readerMode)
       .then(() => refresh())
       .catch((err: unknown) => {
         const message =
@@ -68,8 +68,9 @@ function IosTerminalPermissionsAlert() {
       .finally(() => setRequesting(false));
   };
 
+  const needsBluetooth = readerMode === "bluetooth";
   const locationGranted = locationState === "granted";
-  const bluetoothGranted = bluetoothState === "granted";
+  const bluetoothGranted = !needsBluetooth || bluetoothState === "granted";
   const ready = locationGranted && bluetoothGranted;
   const locationServicesOff = locationState === "disabled";
   const locationDenied = locationState === "denied";
@@ -166,7 +167,7 @@ function IosTerminalPermissionsAlert() {
   );
 }
 
-export function TapToPayReadinessAlert() {
+export function TapToPayReadinessAlert({ readerMode = "tap_to_pay" }: { readerMode?: "tap_to_pay" | "bluetooth" } = {}) {
   const { t } = useTranslation();
   const [env, setEnv] = useState<TapToPayEnvironment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -191,7 +192,7 @@ export function TapToPayReadinessAlert() {
   }, []);
 
   if (nativePlatform() === "ios") {
-    return <IosTerminalPermissionsAlert />;
+    return <IosTerminalPermissionsAlert readerMode={readerMode} />;
   }
 
   if (nativePlatform() !== "android") return null;
@@ -291,7 +292,7 @@ export function useTapToPayReady(): { ready: boolean; loading: boolean; refresh:
 
   const ready =
     nativePlatform() === "ios"
-      ? false
+      ? !loading && iosAvailable === true
       : nativePlatform() !== "android" || (!loading && env !== null && !hasTapToPayHardBlockers(env));
   return { ready, loading, refresh };
 }
