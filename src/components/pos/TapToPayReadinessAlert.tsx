@@ -17,7 +17,6 @@ import {
   hasTapToPayHardBlockers,
   type TapToPayEnvironment,
 } from "@/lib/terminal/tapToPayReadiness";
-import { TapToPayEducation } from "@/lib/terminal/tapToPayEducation";
 
 function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode?: "tap_to_pay" | "bluetooth" }) {
   const { t } = useTranslation();
@@ -43,8 +42,6 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
   };
 
   useEffect(() => {
-    // On POS open: if never asked, show the system dialog. If already On in Settings,
-    // iOS will not ask again — we still start GPS updates for Stripe.
     void warmIosLocationForPos()
       .then(() => refresh())
       .catch(() => refresh());
@@ -86,12 +83,16 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
         )}
         <AlertTitle>
           {ready
-            ? "Reader permissions enabled"
+            ? readerMode === "tap_to_pay"
+              ? "Location ready for Tap to Pay"
+              : "Reader permissions enabled"
             : locationServicesOff
               ? "Turn on Location Services"
               : locationDenied
                 ? "Location was denied earlier"
-                : "Enable Location & Bluetooth"}
+                : readerMode === "tap_to_pay"
+                  ? "Enable Location for Tap to Pay"
+                  : "Enable Location & Bluetooth"}
         </AlertTitle>
         <AlertDescription className="text-sm space-y-2">
           {locationServicesOff ? (
@@ -104,7 +105,7 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
               iPhone will not show the Allow dialog again after a previous denial. Open Settings → Velbok → Location →
               While Using the App, turn Precise Location ON, force-close Velbok, then reopen POS.
             </p>
-          ) : locationGranted && !bluetoothGranted ? (
+          ) : locationGranted && needsBluetooth && !bluetoothGranted ? (
             <p>
               Location is already allowed (iPhone will not ask again — that is normal). Tap the button below to allow
               Bluetooth for your WisePad reader.
@@ -114,6 +115,8 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
               Tap the button below — iPhone should show Allow Location. If nothing appears, Location may already be set
               in Settings, or Location Services may be off.
             </p>
+          ) : readerMode === "tap_to_pay" ? (
+            <p>Velbok needs Location for Stripe Tap to Pay on this iPhone.</p>
           ) : (
             <p>
               Velbok needs Location and Bluetooth for Stripe WisePad payments. If Location is already On in Settings,
@@ -122,7 +125,8 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
           )}
           {!loading ? (
             <p className="text-xs text-muted-foreground">
-              Location: {locationState} · Bluetooth: {bluetoothState}
+              Location: {locationState}
+              {needsBluetooth ? ` · Bluetooth: ${bluetoothState}` : ""}
             </p>
           ) : null}
           {loading ? (
@@ -142,8 +146,10 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
                 "Recheck Location Services"
               ) : locationDenied ? (
                 "I fixed Settings — Recheck"
-              ) : locationGranted ? (
+              ) : locationGranted && needsBluetooth ? (
                 "Allow Bluetooth"
+              ) : readerMode === "tap_to_pay" ? (
+                "Allow Location"
               ) : (
                 "Allow Location & Bluetooth"
               )}
@@ -152,18 +158,68 @@ function IosTerminalPermissionsAlert({ readerMode = "tap_to_pay" }: { readerMode
           {error ? <p className="text-xs text-destructive whitespace-pre-wrap">{error}</p> : null}
         </AlertDescription>
       </Alert>
+    </div>
+  );
+}
 
-      <Alert className="border-amber-500/40 bg-amber-500/5">
-        <AlertCircle className="h-4 w-4 text-amber-600" />
+function IosTapToPayEnvironmentAlert() {
+  const { t } = useTranslation();
+  const [env, setEnv] = useState<TapToPayEnvironment | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = () => {
+    setLoading(true);
+    void checkTapToPayEnvironment()
+      .then(setEnv)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  if (loading) {
+    return (
+      <p className="text-xs text-muted-foreground flex items-center gap-2">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        {t("pos.tapToPayCheckingPhone")}
+      </p>
+    );
+  }
+
+  if (!env) return null;
+
+  const hardBlockers = describeTapToPayBlockers(env);
+  const ready = !hasTapToPayHardBlockers(env);
+
+  if (!ready) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
         <AlertTitle>{t("pos.tapToPayPhoneBlocked")}</AlertTitle>
         <AlertDescription className="text-sm space-y-2">
-          <p>
-            Tap to Pay on iPhone is not enabled in this build yet. Use WisePad (Bluetooth reader) mode above, or wait
-            until Apple approves Tap to Pay for com.velbok.app.
-          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            {hardBlockers.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p className="text-xs opacity-90">{t("pos.tapToPayPhoneBlockedHint")}</p>
         </AlertDescription>
       </Alert>
-    </div>
+    );
+  }
+
+  return (
+    <Alert className="border-emerald-500/40 bg-emerald-500/5">
+      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      <AlertTitle className="text-emerald-800 dark:text-emerald-300">{t("pos.tapToPayPhoneReady")}</AlertTitle>
+      <AlertDescription className="text-xs space-y-2">
+        <p className="text-muted-foreground">
+          {t("pos.tapToPayPhoneReadyHint", { version: env.versionName || "?" })}
+          {env.deviceModel ? ` · ${env.deviceManufacturer ?? ""} ${env.deviceModel}`.trim() : ""}
+        </p>
+      </AlertDescription>
+    </Alert>
   );
 }
 
@@ -180,19 +236,23 @@ export function TapToPayReadinessAlert({ readerMode = "tap_to_pay" }: { readerMo
   };
 
   useEffect(() => {
-    if (nativePlatform() === "ios") {
-      setLoading(false);
+    if (nativePlatform() === "ios" || nativePlatform() === "android") {
+      refresh();
       return;
     }
-    if (nativePlatform() !== "android") {
-      setLoading(false);
-      return;
-    }
-    refresh();
+    setLoading(false);
   }, []);
 
   if (nativePlatform() === "ios") {
-    return <IosTerminalPermissionsAlert readerMode={readerMode} />;
+    if (readerMode === "bluetooth") {
+      return <IosTerminalPermissionsAlert readerMode={readerMode} />;
+    }
+    return (
+      <div className="space-y-3">
+        <IosTerminalPermissionsAlert readerMode={readerMode} />
+        <IosTapToPayEnvironmentAlert />
+      </div>
+    );
   }
 
   if (nativePlatform() !== "android") return null;
@@ -263,19 +323,10 @@ export function TapToPayReadinessAlert({ readerMode = "tap_to_pay" }: { readerMo
 
 export function useTapToPayReady(): { ready: boolean; loading: boolean; refresh: () => void } {
   const [env, setEnv] = useState<TapToPayEnvironment | null>(null);
-  const [iosAvailable, setIosAvailable] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(nativePlatform() === "android" || nativePlatform() === "ios");
 
   const refresh = () => {
-    if (nativePlatform() === "ios") {
-      setLoading(true);
-      void TapToPayEducation.isAvailable()
-        .then(({ available }) => setIosAvailable(available))
-        .catch(() => setIosAvailable(false))
-        .finally(() => setLoading(false));
-      return;
-    }
-    if (nativePlatform() !== "android") {
+    if (nativePlatform() !== "android" && nativePlatform() !== "ios") {
       setEnv(null);
       setLoading(false);
       return;
@@ -291,8 +342,8 @@ export function useTapToPayReady(): { ready: boolean; loading: boolean; refresh:
   }, []);
 
   const ready =
-    nativePlatform() === "ios"
-      ? !loading && iosAvailable === true
-      : nativePlatform() !== "android" || (!loading && env !== null && !hasTapToPayHardBlockers(env));
+    nativePlatform() === "android" || nativePlatform() === "ios"
+      ? !loading && env !== null && !hasTapToPayHardBlockers(env)
+      : true;
   return { ready, loading, refresh };
 }
