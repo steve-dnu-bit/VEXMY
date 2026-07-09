@@ -1,8 +1,7 @@
 import { StripeTerminal } from "@capacitor-community/stripe-terminal";
 import { nativePlatform } from "@/lib/platform";
-import {
-  ensureIosReaderPermissions,
-} from "@/lib/terminal/iosTerminalPermissions";
+import { ensureIosReaderPermissions } from "@/lib/terminal/iosTerminalPermissions";
+import type { TerminalReaderMode } from "@/lib/terminal/types";
 
 const INIT_TIMEOUT_MS = 45_000;
 
@@ -19,10 +18,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
         reject(error);
       });
   });
-}
-
-async function ensureIosTerminalReaderPermissions(): Promise<void> {
-  await ensureIosReaderPermissions();
 }
 
 async function ensureAndroidLocationViaStripePlugin(): Promise<void> {
@@ -48,10 +43,12 @@ async function ensureAndroidLocationViaStripePlugin(): Promise<void> {
 }
 
 /** Stripe Terminal requires location + Bluetooth on native for reader discovery. */
-export async function ensureNativeTerminalLocationPermission(): Promise<void> {
+export async function ensureNativeTerminalLocationPermission(
+  readerMode: TerminalReaderMode = "bluetooth",
+): Promise<void> {
   const platform = nativePlatform();
   if (platform === "ios") {
-    await ensureIosTerminalReaderPermissions();
+    await ensureIosReaderPermissions(readerMode);
     return;
   }
   if (platform === "android") {
@@ -62,8 +59,11 @@ export async function ensureNativeTerminalLocationPermission(): Promise<void> {
 /** @deprecated Use ensureNativeTerminalLocationPermission */
 export const ensureAndroidTerminalLocationPermission = ensureNativeTerminalLocationPermission;
 
-export async function initializeStripeTerminalWithTimeout(isTest: boolean): Promise<void> {
-  await ensureNativeTerminalLocationPermission();
+export async function initializeStripeTerminalWithTimeout(
+  isTest: boolean,
+  readerMode: TerminalReaderMode = "bluetooth",
+): Promise<void> {
+  await ensureNativeTerminalLocationPermission(readerMode);
   await withTimeout(
     StripeTerminal.initialize({ isTest }),
     INIT_TIMEOUT_MS,

@@ -4,8 +4,11 @@ import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { nativePlatform } from "@/lib/platform";
-import { ensureNativeTerminalLocationPermission } from "@/lib/terminal/ensureAndroidTerminalReady";
-import { checkIosBluetoothPermission, checkIosLocationPermission } from "@/lib/terminal/iosTerminalPermissions";
+import {
+  checkIosBluetoothPermission,
+  checkIosLocationPermission,
+  ensureIosReaderPermissions,
+} from "@/lib/terminal/iosTerminalPermissions";
 import {
   checkTapToPayEnvironment,
   describeTapToPayBlockers,
@@ -45,7 +48,7 @@ function IosTerminalPermissionsAlert() {
   const requestPermissions = () => {
     setRequesting(true);
     setError(null);
-    void ensureNativeTerminalLocationPermission()
+    void ensureIosReaderPermissions("bluetooth")
       .then(() => refresh())
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : "Could not enable permissions.");
@@ -231,7 +234,7 @@ export function useTapToPayReady(): { ready: boolean; loading: boolean; refresh:
 
   const ready =
     nativePlatform() === "ios"
-      ? !loading && iosAvailable === true
+      ? false
       : nativePlatform() !== "android" || (!loading && env !== null && !hasTapToPayHardBlockers(env));
   return { ready, loading, refresh };
 }

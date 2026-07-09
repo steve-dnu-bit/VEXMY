@@ -1,79 +1,124 @@
 import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 import { TerminalPermissions } from "@/lib/terminal/terminalNativePermissions";
+import type { TerminalReaderMode } from "@/lib/terminal/types";
 
 export type PermissionOutcome = "granted" | "denied" | "prompt" | "restricted" | "disabled";
 
-function pluginMissingError(): Error {
+function locationSettingsHint(): string {
+  return "Open iPhone Settings → Velbok → Location → While Using the App, then try again.";
+}
+
+function bluetoothSettingsHint(): string {
+  return "Open iPhone Settings → Velbok → Bluetooth → Allow, then try again.";
+}
+
+function locationPromptHint(): string {
+  return "Tap Allow when iPhone asks for Location access, then try Connect again.";
+}
+
+function bluetoothPromptHint(): string {
+  return "Tap Allow when iPhone asks for Bluetooth access, then try Connect again.";
+}
+
+function pluginMissingError(name: string): Error {
   return new Error(
-    "Terminal permissions are missing from this iOS build. On your Mac run npm run ios:prepare, then create a new Xcode archive — do not upload a build made after ios:build-lite.",
+    `${name} is missing from this iOS build. On your Mac run npm run ios:prepare, then create a new Xcode archive — do not upload a build made after ios:build-lite.`,
   );
 }
 
-function normalizeLocation(value: string | undefined): PermissionOutcome {
-  if (value === "granted" || value === "denied" || value === "prompt" || value === "restricted" || value === "disabled") {
-    return value;
-  }
+function mapGeolocationState(value: string | undefined): PermissionOutcome {
+  if (value === "granted" || value === "denied" || value === "prompt") return value;
   return "prompt";
 }
 
-function normalizeBluetooth(value: string | undefined): PermissionOutcome {
-  if (value === "granted" || value === "denied" || value === "prompt" || value === "restricted") {
-    return value;
-  }
-  return "prompt";
-}
-
-/** Stripe Terminal iOS: request Location + Bluetooth on the main thread before SDK calls. */
-export async function ensureIosReaderPermissions(): Promise<void> {
-  if (!Capacitor.isPluginAvailable("TerminalPermissions")) {
-    throw pluginMissingError();
+async function ensureIosLocationViaGeolocation(): Promise<void> {
+  if (!Capacitor.isPluginAvailable("Geolocation")) {
+    throw pluginMissingError("Geolocation");
   }
 
+  let state = await Geolocation.checkPermissions().catch(() => ({ location: "prompt" as const }));
+  let location = mapGeolocationState(state.location);
+
+  if (location === "granted") {
+    await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 20_000,
+      maximumAge: 60_000,
+    }).catch(() => undefined);
+    return;
+  }
+
+  if (location === "denied") {
+    throw new Error(`Location permission is required for card reader payments. ${locationSettingsHint()}`);
+  }
+
+  state = await Geolocation.requestPermissions().catch(() => ({ location: "denied" as const }));
+  location = mapGeolocationState(state.location);
+
+  if (location === "granted") {
+    await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 20_000,
+      maximumAge: 60_000,
+    }).catch(() => undefined);
+    return;
+  }
+
+  if (location === "denied") {
+    throw new Error(`Location permission is required for card reader payments. ${locationSettingsHint()}`);
+  }
+
+  // iOS sometimes only shows the dialog on getCurrentPosition after requestPermissions.
   try {
-    const state = await TerminalPermissions.requestReaderPermissions();
-    if (state.location !== "granted") {
-      throw new Error(
-        state.location === "disabled"
-          ? "Location Services are turned off on this iPhone. Open Settings → Privacy & Security → Location Services, turn them on, then try again."
-          : state.location === "restricted"
-            ? "Location access is restricted on this iPhone. Allow Location for Velbok in Settings, then try again."
-            : state.location === "denied"
-              ? "Location permission is required for card reader payments. Open Settings → Velbok → Location → While Using the App, then try again."
-              : "Location permission is required. Tap Connect again and choose Allow when iPhone asks.",
-      );
-    }
-    if (state.bluetooth === "denied" || state.bluetooth === "restricted") {
-      throw new Error(
-        "Bluetooth permission is required to connect your WisePad reader. Open Settings → Velbok → Bluetooth → Allow, then try again.",
-      );
-    }
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("Terminal permissions are missing")) {
-      throw error;
-    }
-    if (error instanceof Error && error.message.length > 0) {
-      throw error;
-    }
-    throw new Error(
-      "Could not request Location and Bluetooth permissions. Delete Velbok, reinstall from TestFlight, then tap Connect and choose Allow on each iPhone dialog.",
-    );
+    await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 30_000,
+      maximumAge: 0,
+    });
+    return;
+  } catch {
+    throw new Error(`Location permission is required for card reader payments. ${locationPromptHint()}`);
   }
 }
 
-/** @deprecated Use ensureIosReaderPermissions */
-export const ensureIosLocationPermission = ensureIosReaderPermissions;
+async function ensureIosBluetoothViaNative(): Promise<void> {
+  if (!Capacitor.isPluginAvailable("TerminalPermissions")) {
+    throw pluginMissingError("TerminalPermissions");
+  }
 
-/** @deprecated Use ensureIosReaderPermissions */
-export const ensureIosBluetoothPermission = ensureIosReaderPermissions;
+  const state = await TerminalPermissions.requestBluetoothPermission();
+  if (state.bluetooth === "granted" || state.bluetooth === "prompt") {
+    return;
+  }
+
+  if (state.bluetooth === "denied" || state.bluetooth === "restricted") {
+    throw new Error(`Bluetooth permission is required to connect your WisePad reader. ${bluetoothSettingsHint()}`);
+  }
+
+  throw new Error(`Bluetooth permission is required to connect your WisePad reader. ${bluetoothPromptHint()}`);
+}
+
+/** Stripe Terminal iOS: Location (Geolocation) + Bluetooth (native) before SDK calls. */
+export async function ensureIosReaderPermissions(readerMode: TerminalReaderMode = "bluetooth"): Promise<void> {
+  await ensureIosLocationViaGeolocation();
+
+  if (readerMode === "bluetooth") {
+    await ensureIosBluetoothViaNative();
+  }
+}
 
 export async function checkIosLocationPermission(): Promise<PermissionOutcome> {
-  if (!Capacitor.isPluginAvailable("TerminalPermissions")) return "prompt";
-  const state = await TerminalPermissions.checkReaderPermissions().catch(() => null);
-  return state ? normalizeLocation(state.location) : "prompt";
+  if (!Capacitor.isPluginAvailable("Geolocation")) return "prompt";
+  const state = await Geolocation.checkPermissions().catch(() => ({ location: "prompt" as const }));
+  return mapGeolocationState(state.location);
 }
 
 export async function checkIosBluetoothPermission(): Promise<PermissionOutcome> {
   if (!Capacitor.isPluginAvailable("TerminalPermissions")) return "prompt";
-  const state = await TerminalPermissions.checkReaderPermissions().catch(() => null);
-  return state ? normalizeBluetooth(state.bluetooth) : "prompt";
+  const state = await TerminalPermissions.checkBluetoothPermission().catch(() => ({ bluetooth: "prompt" as const }));
+  if (state.bluetooth === "granted") return "granted";
+  if (state.bluetooth === "denied") return "denied";
+  if (state.bluetooth === "restricted") return "restricted";
+  return "prompt";
 }

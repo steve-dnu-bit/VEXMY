@@ -16,8 +16,9 @@ import {
 import { fetchTerminalConfig } from "@/lib/terminal/fetchTerminalConfig";
 import { formatTerminalError } from "@/lib/terminal/formatTerminalError";
 import { initializeStripeTerminalWithTimeout } from "@/lib/terminal/ensureAndroidTerminalReady";
+import { ensureIosReaderPermissions } from "@/lib/terminal/iosTerminalPermissions";
 import { assertTapToPayEnvironmentReady } from "@/lib/terminal/tapToPayReadiness";
-import { stripeTerminalIsTestMode } from "@/lib/platform";
+import { nativePlatform, stripeTerminalIsTestMode } from "@/lib/platform";
 import { setCachedTerminalLocationId, getCachedTerminalLocationId } from "@/lib/terminal/terminalLocationCache";
 import { clearNativeReaderDisplay, updateNativeReaderDisplay, type ReaderDisplayCart } from "@/lib/terminal/readerDisplay";
 import { isNativeTerminalInitialized, isReaderFirmwareUpdating, setNativeTerminalInitialized, setReaderFirmwareUpdate, beginTerminalOperation, isTerminalOperationAborted } from "@/lib/terminal/nativeTerminalState";
@@ -233,7 +234,7 @@ async function ensureNativeTerminalInitialized(): Promise<void> {
     isTest ? "Starting phone payments (Stripe test mode)…" : "Starting phone payments…",
   );
 
-  await initializeStripeTerminalWithTimeout(isTest);
+  await initializeStripeTerminalWithTimeout(isTest, opts?.readerMode);
   await new Promise((resolve) => window.setTimeout(resolve, 400));
   setNativeTerminalInitialized(true);
 }
@@ -319,6 +320,10 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       const options = activeOptions();
       try {
         beginTerminalOperation();
+
+        if (nativePlatform() === "ios" && !options.simulated) {
+          await ensureIosReaderPermissions(options.readerMode);
+        }
 
         let locationId = options.locationId?.trim() || getCachedTerminalLocationId() || "";
         if (!locationId) {
