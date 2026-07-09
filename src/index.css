@@ -190,15 +190,20 @@
   }
 
   /*
-   * Capacitor WebView: backdrop-filter + light color-scheme paint the caret/selection
-   * handle as an opaque white or black square. Force dark chrome and a solid field fill.
+   * Capacitor WebView: backdrop-filter breaks paste menu, selection handles, and time inputs.
+   * Use solid fills on native only — do not set color-scheme or ::selection (breaks Android chrome).
    */
-  html.native-app {
-    color-scheme: dark;
+  html.native-app,
+  html.native-app * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 
-  html.native-app .field-surface {
-    @apply bg-secondary backdrop-blur-none;
+  html.native-app .field-surface,
+  html.native-app input:not([type="time"]):not([type="date"]),
+  html.native-app textarea,
+  html.native-app select {
+    @apply bg-secondary;
   }
 
   html.native-app input,
@@ -208,14 +213,16 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html.native-app ::selection {
-    background-color: hsl(var(--primary) / 0.35);
-    color: hsl(var(--foreground));
+  html.native-app .glass-surface {
+    @apply bg-card border-border/70;
   }
 
-  html.native-app ::-moz-selection {
-    background-color: hsl(var(--primary) / 0.35);
-    color: hsl(var(--foreground));
+  html.native-app .glass-surface-subtle {
+    @apply bg-card border-border/60;
+  }
+
+  html.native-app [role="dialog"] {
+    background-color: hsl(var(--card)) !important;
   }
 
   .bg-noise {

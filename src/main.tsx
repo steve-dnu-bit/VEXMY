@@ -12,6 +12,12 @@ async function start() {
   if (Capacitor.isNativePlatform()) {
     document.documentElement.classList.add("native-app");
     document.documentElement.classList.add(`native-${Capacitor.getPlatform()}`);
+    if (Capacitor.getPlatform() === "android") {
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute("content", "width=device-width, initial-scale=1.0, viewport-fit=cover");
+      }
+    }
     const { bootstrapNativeTerminalListener } = await import("@/lib/terminal/bootstrapNativeTerminal");
     void bootstrapNativeTerminalListener();
   }

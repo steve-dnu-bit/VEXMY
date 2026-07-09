@@ -1,35 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Always-dark theme (not DayNight) so WebView text selection handles stay dark, not light squares. -->
-    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/appBackground</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:textColorHighlight">@color/textHighlight</item>
-        <item name="android:colorControlActivated">@color/colorPrimary</item>
-        <item name="android:isLightTheme">false</item>
+        <item name="actionModeStyle">@style/Velbok.ActionMode</item>
+        <item name="actionModeTheme">@style/Velbok.ActionModeTheme</item>
+        <item name="actionModePopupWindowStyle">@style/Velbok.ActionModePopup</item>
+        <item name="popupMenuStyle">@style/Velbok.PopupMenu</item>
     </style>
 
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <!-- Do not set android:background here — it paints the caret/selection as an opaque block. -->
         <item name="android:windowBackground">@color/appBackground</item>
-        <item name="android:textColorHighlight">@color/textHighlight</item>
-        <item name="android:colorControlActivated">@color/colorPrimary</item>
-        <item name="android:isLightTheme">false</item>
+        <item name="actionModeStyle">@style/Velbok.ActionMode</item>
+        <item name="actionModeTheme">@style/Velbok.ActionModeTheme</item>
+        <item name="actionModePopupWindowStyle">@style/Velbok.ActionModePopup</item>
+        <item name="popupMenuStyle">@style/Velbok.PopupMenu</item>
     </style>
-
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/appBackground</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 
-    <!-- Stripe / Tap to Pay permission disclosure — explicit colors for all devices. -->
+    <style name="Velbok.ActionModeTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorControlNormal">@color/terminal_dialog_text_primary</item>
+        <item name="android:textColorPrimary">@color/terminal_dialog_text_primary</item>
+        <item name="android:actionMenuTextColor">@color/terminal_dialog_text_primary</item>
+    </style>
+
+    <style name="Velbok.ActionMode" parent="@style/Widget.AppCompat.ActionMode">
+        <item name="background">@color/terminal_dialog_background</item>
+        <item name="titleTextStyle">@style/Velbok.ActionModeTitle</item>
+    </style>
+
+    <style name="Velbok.ActionModeTitle" parent="@style/TextAppearance.AppCompat.Widget.ActionMode.Title">
+        <item name="android:textColor">@color/terminal_dialog_text_primary</item>
+    </style>
+
+    <style name="Velbok.ActionModePopup" parent="@style/Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@color/terminal_dialog_background</item>
+    </style>
+
+    <style name="Velbok.PopupMenu" parent="@style/Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@color/terminal_dialog_background</item>
+    </style>
+
     <style name="Velbok.TerminalPermissionDialog" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:windowBackground">@color/terminal_dialog_background</item>
         <item name="android:background">@color/terminal_dialog_background</item>

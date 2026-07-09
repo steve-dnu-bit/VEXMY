@@ -67,6 +67,16 @@ if (fs.existsSync(publicDownloads)) {
 
 removeApkArtifactsFromDist();
 
+/** Strip interactive-widget from mobile bundle — causes WebView overlay glitches on Android. */
+const indexPath = path.join(root, "dist/index.html");
+if (fs.existsSync(indexPath)) {
+  const html = fs
+    .readFileSync(indexPath, "utf8")
+    .replace(/,?\s*interactive-widget=resizes-content/g, "");
+  fs.writeFileSync(indexPath, html);
+  console.log("[build-mobile] Stripped interactive-widget from dist/index.html");
+}
+
 for (const name of ["android-version.json"]) {
   const file = path.join(distDownloads, name);
   if (fs.existsSync(file)) {

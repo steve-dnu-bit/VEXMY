@@ -415,9 +415,9 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
 
   return (
     <>
-      {/* Mobile overlay */}
-      <div className="fixed inset-0 bg-background/60 z-30 md:hidden" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 z-40 w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right">
+      {/* Mobile overlay — above app header (z-50) so edit button is not covered by logo */}
+      <div className="fixed inset-0 bg-background/60 z-[55] md:hidden" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 z-[60] w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right pt-safe md:pt-0">
         <div className="flex items-center justify-between p-3 border-b border-border">
           <h3 className="font-display text-sm font-semibold">{isBlocker ? t("schedule.blockerDetails") : t("schedule.bookingDetails")}</h3>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>

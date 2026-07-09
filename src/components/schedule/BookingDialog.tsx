@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { TimeInput } from "@/components/ui/time-input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { type Service } from "./ServicePresets";
@@ -992,7 +993,7 @@ const BookingDialog = ({
             </div>
             <div>
               <Label className="text-xs uppercase tracking-widest text-muted-foreground">{t("schedule.startTime")}</Label>
-              <Input type="time" step={900} value={form.start_time} onChange={(e) => update("start_time", e.target.value)} className="mt-1 field-surface border-border" />
+              <TimeInput step={900} value={form.start_time} onChange={(v) => update("start_time", v)} className="mt-1" />
             </div>
           </div>
           {isBlocker ? (
