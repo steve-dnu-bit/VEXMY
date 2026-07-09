@@ -59,7 +59,7 @@ import {
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
-import { isNativeApp, nativePlatform } from "@/lib/platform";
+import { isNativeApp, isIpadDevice, nativePlatform } from "@/lib/platform";
 import {
   dismissWisePadSetupGuide,
   hasWisePadFirmwareCompleted,
@@ -218,6 +218,13 @@ const PosCheckoutPage = () => {
   };
 
   const readerModeInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isIpadDevice()) return;
+    if (readerMode === "bluetooth") return;
+    setReaderMode("bluetooth");
+    saveTerminalReaderMode("bluetooth");
+  }, [readerMode]);
 
   useEffect(() => {
     if (!readerModeInitializedRef.current) {

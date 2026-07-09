@@ -37,6 +37,7 @@ interface TerminalPermissionsPlugin {
   requestBluetoothPermission(): Promise<TerminalBluetoothPermission>;
   checkBluetoothPermission(): Promise<TerminalBluetoothPermission>;
   getDiagnostics(): Promise<TerminalIosDiagnostics>;
+  openAppSettings(): Promise<void>;
   /** @deprecated Prefer requestLocationPermission + requestBluetoothPermission */
   requestReaderPermissions(): Promise<TerminalLocationPermission & TerminalBluetoothPermission>;
   /** @deprecated Prefer checkLocationPermission + checkBluetoothPermission */
@@ -83,5 +84,6 @@ export const TerminalPermissions = registerPlugin<TerminalPermissionsPlugin>("Te
       updatesStarted: true,
       bluetooth: "granted",
     }),
+    openAppSettings: async () => undefined,
   },
 });

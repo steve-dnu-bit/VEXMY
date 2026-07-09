@@ -28,6 +28,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         CAPPluginMethod(name: "requestReaderPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "checkReaderPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getDiagnostics", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openAppSettings", returnType: CAPPluginReturnPromise),
     ]
 
     /// Must stay alive for the whole app session so Stripe can read location.
@@ -136,6 +137,22 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
                 "bluetooth": self.bluetoothAuthString(),
                 "bluetoothManagerState": btState,
             ])
+        }
+    }
+
+    @objc func openAppSettings(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                call.reject("Settings URL unavailable")
+                return
+            }
+            UIApplication.shared.open(url, options: [:]) { success in
+                if success {
+                    call.resolve()
+                } else {
+                    call.reject("Could not open Settings")
+                }
+            }
         }
     }
 
