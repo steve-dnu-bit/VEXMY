@@ -14,7 +14,6 @@ const REQUIRED_CONFIG_CLASSES = [
   "CAPCameraPlugin",
   "GeolocationPlugin",
   "TapToPayEducationPlugin",
-  "TapToPayReadinessPlugin",
   "TerminalPermissionsPlugin",
 ];
 

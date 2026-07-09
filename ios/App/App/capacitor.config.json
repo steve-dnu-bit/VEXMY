@@ -36,7 +36,6 @@
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
 		"TapToPayEducationPlugin",
-		"TapToPayReadinessPlugin",
 		"TerminalPermissionsPlugin"
 	]
 }

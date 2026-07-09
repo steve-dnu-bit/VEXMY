@@ -12,7 +12,6 @@
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		TTPAY0021FED79650016851F /* TapToPayEducationPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTPAY0031FED79650016851F /* TapToPayEducationPlugin.swift */; };
-		TTPRD0021FED79650016851F /* TapToPayReadinessPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTPRD0031FED79650016851F /* TapToPayReadinessPlugin.swift */; };
 		TERM0021FED79650016851F /* TerminalPermissionsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = TERM0031FED79650016851F /* TerminalPermissionsPlugin.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
@@ -27,7 +26,6 @@
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		TTPAY0031FED79650016851F /* TapToPayEducationPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapToPayEducationPlugin.swift; sourceTree = "<group>"; };
-		TTPRD0031FED79650016851F /* TapToPayReadinessPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapToPayReadinessPlugin.swift; sourceTree = "<group>"; };
 		TERM0031FED79650016851F /* TerminalPermissionsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalPermissionsPlugin.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -74,7 +72,6 @@
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				TTPAY0031FED79650016851F /* TapToPayEducationPlugin.swift */,
-				TTPRD0031FED79650016851F /* TapToPayReadinessPlugin.swift */,
 				TERM0031FED79650016851F /* TerminalPermissionsPlugin.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
@@ -172,7 +169,6 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				TTPAY0021FED79650016851F /* TapToPayEducationPlugin.swift in Sources */,
-				TTPRD0021FED79650016851F /* TapToPayReadinessPlugin.swift in Sources */,
 				TERM0021FED79650016851F /* TerminalPermissionsPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -316,7 +312,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_TEAM = NS8FATRNW3;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
@@ -324,7 +320,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.67;
+				MARKETING_VERSION = 1.0.68;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.velbok.app;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -342,7 +338,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_TEAM = NS8FATRNW3;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
@@ -350,7 +346,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.67;
+				MARKETING_VERSION = 1.0.68;
 				PRODUCT_BUNDLE_IDENTIFIER = com.velbok.app;
 				PROVISIONING_PROFILE_SPECIFIER = f4346d1d-7aa3-4729-907f-2df189f33e29;
 				PRODUCT_NAME = "$(TARGET_NAME)";

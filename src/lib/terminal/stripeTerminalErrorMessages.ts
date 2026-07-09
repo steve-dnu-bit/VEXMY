@@ -74,9 +74,5 @@ export function formatStripeTerminalErrorMessage(raw: string): string {
     return "Stripe cannot read this iPhone’s location. Check: (1) Settings → Privacy & Security → Location Services is ON, (2) Settings → Velbok → Location is While Using the App, (3) Precise Location is ON for Velbok, (4) Airplane Mode is OFF. Then force-close Velbok and try Connect again.";
   }
 
-  if (/proximity-reader|payment\.acceptance|missing entitlement|entitlement.*tap to pay|SCPErrorTapToPayReaderNotAvailable/i.test(text)) {
-    return "Tap to Pay on iPhone requires Apple's Tap to Pay entitlement on com.velbok.app. The Apple Developer account holder must request it from Apple, enable it on the App ID, regenerate the provisioning profile, then install a new TestFlight build.";
-  }
-
   return text;
 }
