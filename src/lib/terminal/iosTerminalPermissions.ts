@@ -23,14 +23,6 @@ function mapState(value: string | undefined): PermissionOutcome {
   return "prompt";
 }
 
-/**
- * Stripe Terminal iOS: request When-In-Use location via native CLLocationManager
- * (main thread), warm a GPS fix, then request Bluetooth for WisePad.
- *
- * Do NOT use Capacitor Geolocation for this gate — it throws when system Location
- * Services are off and our previous code mapped that to a misleading "permission denied"
- * Settings toast even when Velbok's Location toggle was already On.
- */
 function asError(err: unknown, fallback: string): Error {
   if (err instanceof Error && err.message.trim()) return err;
   if (typeof err === "string" && err.trim()) return new Error(err);
@@ -41,6 +33,14 @@ function asError(err: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
+/**
+ * Stripe Terminal iOS: request When-In-Use via native CLLocationManager and keep
+ * GPS updates running so Stripe can read the device location.
+ *
+ * Note: iOS only shows the Allow dialog when status is still "Ask Next Time"
+ * (notDetermined). If Settings already shows Location On, no dialog will appear —
+ * that is normal. We still start location updates for Stripe.
+ */
 export async function ensureIosReaderPermissions(readerMode: TerminalReaderMode = "bluetooth"): Promise<void> {
   if (!Capacitor.isPluginAvailable("TerminalPermissions")) {
     throw pluginMissingError();
@@ -67,14 +67,38 @@ export async function ensureIosReaderPermissions(readerMode: TerminalReaderMode 
   }
 }
 
+/**
+ * Call once when POS opens. If status is still notDetermined, this triggers the
+ * system Allow Location dialog. If already granted/denied, no dialog (iOS rule).
+ */
+export async function warmIosLocationForPos(): Promise<PermissionOutcome> {
+  if (Capacitor.getPlatform() !== "ios") return "granted";
+  if (!Capacitor.isPluginAvailable("TerminalPermissions")) return "prompt";
+
+  try {
+    const current = await TerminalPermissions.checkLocationPermission();
+    const state = mapState(current.location);
+    if (state === "prompt") {
+      await TerminalPermissions.requestLocationPermission();
+      const after = await TerminalPermissions.checkLocationPermission();
+      return mapState(after.location);
+    }
+    if (state === "granted") {
+      // Re-enter request path so native plugin starts continuous GPS updates.
+      await TerminalPermissions.requestLocationPermission().catch(() => undefined);
+    }
+    return state;
+  } catch {
+    return "disabled";
+  }
+}
+
 export async function checkIosLocationPermission(): Promise<PermissionOutcome> {
   if (!Capacitor.isPluginAvailable("TerminalPermissions")) return "prompt";
   try {
     const state = await TerminalPermissions.checkLocationPermission();
     return mapState(state.location);
   } catch {
-    // checkPermissions throws when Location Services are globally off in some stacks;
-    // our native plugin returns location: "disabled" instead, but keep a safe fallback.
     return "disabled";
   }
 }

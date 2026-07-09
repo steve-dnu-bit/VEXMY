@@ -8,6 +8,7 @@ import {
   checkIosBluetoothPermission,
   checkIosLocationPermission,
   ensureIosReaderPermissions,
+  warmIosLocationForPos,
 } from "@/lib/terminal/iosTerminalPermissions";
 import {
   checkTapToPayEnvironment,
@@ -42,7 +43,11 @@ function IosTerminalPermissionsAlert() {
   };
 
   useEffect(() => {
-    refresh();
+    // On POS open: if never asked, show the system dialog. If already On in Settings,
+    // iOS will not ask again — we still start GPS updates for Stripe.
+    void warmIosLocationForPos()
+      .then(() => refresh())
+      .catch(() => refresh());
   }, []);
 
   const requestPermissions = () => {
@@ -67,6 +72,8 @@ function IosTerminalPermissionsAlert() {
   const bluetoothGranted = bluetoothState === "granted";
   const ready = locationGranted && bluetoothGranted;
   const locationServicesOff = locationState === "disabled";
+  const locationDenied = locationState === "denied";
+  const locationPrompt = locationState === "prompt";
 
   return (
     <div className="space-y-3">
@@ -81,19 +88,35 @@ function IosTerminalPermissionsAlert() {
             ? "Reader permissions enabled"
             : locationServicesOff
               ? "Turn on Location Services"
-              : "Enable Location & Bluetooth"}
+              : locationDenied
+                ? "Location was denied earlier"
+                : "Enable Location & Bluetooth"}
         </AlertTitle>
         <AlertDescription className="text-sm space-y-2">
           {locationServicesOff ? (
             <p>
               iPhone Location Services are OFF globally. Open Settings → Privacy &amp; Security → Location Services,
-              turn them ON, then return here. Velbok’s own Location toggle cannot work while this is off.
+              turn them ON, then return here.
+            </p>
+          ) : locationDenied ? (
+            <p>
+              iPhone will not show the Allow dialog again after a previous denial. Open Settings → Velbok → Location →
+              While Using the App, turn Precise Location ON, force-close Velbok, then reopen POS.
+            </p>
+          ) : locationGranted && !bluetoothGranted ? (
+            <p>
+              Location is already allowed (iPhone will not ask again — that is normal). Tap the button below to allow
+              Bluetooth for your WisePad reader.
+            </p>
+          ) : locationPrompt ? (
+            <p>
+              Tap the button below — iPhone should show Allow Location. If nothing appears, Location may already be set
+              in Settings, or Location Services may be off.
             </p>
           ) : (
             <p>
-              Velbok needs Location and Bluetooth to discover and connect your Stripe WisePad reader. Location is
-              required by payment regulations — it is not used for advertising. Also turn on Precise Location for
-              Velbok if you see that option.
+              Velbok needs Location and Bluetooth for Stripe WisePad payments. If Location is already On in Settings,
+              iPhone will not show an Allow popup again — that is normal.
             </p>
           )}
           {!loading ? (
@@ -116,6 +139,10 @@ function IosTerminalPermissionsAlert() {
                 </>
               ) : locationServicesOff ? (
                 "Recheck Location Services"
+              ) : locationDenied ? (
+                "I fixed Settings — Recheck"
+              ) : locationGranted ? (
+                "Allow Bluetooth"
               ) : (
                 "Allow Location & Bluetooth"
               )}

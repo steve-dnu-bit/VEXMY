@@ -4,15 +4,17 @@ import CoreLocation
 import CoreBluetooth
 
 /**
- Stripe Terminal on iOS requires:
- 1) Location Services ON globally
- 2) When-In-Use authorization for the app
- 3) A usable device location (Precise Location preferred)
- 4) Bluetooth authorization for WisePad
+ Stripe Terminal on iOS needs an *active* device location, not just the Settings toggle.
 
- Capacitor Geolocation alone is unreliable here (throws on services-off and
- maps failures to "denied"). This plugin uses CLLocationManager on the main
- thread and returns distinct statuses so JS can show the right fix.
+ Important iOS behavior:
+ - The system "Allow Location?" dialog appears ONLY when status is `.notDetermined`.
+ - If Settings → Velbok → Location is already On, Apple will NEVER show that dialog again.
+ - Stripe still fails unless Core Location is delivering coordinates (startUpdatingLocation).
+
+ This plugin:
+ 1) Requests When-In-Use if notDetermined (shows the dialog)
+ 2) Keeps a long-lived CLLocationManager and starts continuous updates once authorized
+ 3) Distinguishes services-off / denied / restricted with clear messages
  */
 @objc(TerminalPermissionsPlugin)
 public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDelegate, CBCentralManagerDelegate {
@@ -27,6 +29,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         CAPPluginMethod(name: "checkReaderPermissions", returnType: CAPPluginReturnPromise),
     ]
 
+    /// Must stay alive for the whole app session so Stripe can read location.
     private var locationManager: CLLocationManager?
     private var bluetoothManager: CBCentralManager?
 
@@ -35,14 +38,23 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     private var locationResolveTimer: Timer?
     private var bluetoothResolveTimer: Timer?
     private var waitingForLocationFix = false
-    private var waitingForFullAccuracy = false
+    private var lastKnownLocation: CLLocation?
+    private var updatesStarted = false
+
+    override public func load() {
+        super.load()
+        DispatchQueue.main.async { [weak self] in
+            self?.ensureLocationManager()
+            self?.warmLocationIfAlreadyAuthorized()
+        }
+    }
 
     // MARK: - JS entry points
 
     @objc func checkLocationPermission(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [weak self] in
             self?.ensureLocationManager()
-            self?.resolveLocationStatus(call, rejectOnFailure: false, requireFix: false)
+            self?.resolveLocationStatus(call, rejectOnFailure: false)
         }
     }
 
@@ -68,22 +80,19 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.ensureLocationManager()
-            let location = self.locationAuthString()
-            let bluetooth = self.bluetoothAuthString()
             call.resolve([
-                "location": location,
-                "bluetooth": bluetooth,
+                "location": self.locationAuthString(),
+                "bluetooth": self.bluetoothAuthString(),
                 "servicesEnabled": CLLocationManager.locationServicesEnabled(),
                 "accuracy": self.accuracyString(),
+                "hasFix": self.lastKnownLocation != nil,
             ])
         }
     }
 
     @objc func requestReaderPermissions(_ call: CAPPluginCall) {
-        // Sequential: location first (Stripe), then bluetooth.
         DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.requestLocationPermissionOnMain(call)
+            self?.requestLocationPermissionOnMain(call)
         }
     }
 
@@ -93,16 +102,36 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         if locationManager == nil {
             let manager = CLLocationManager()
             manager.delegate = self
-            manager.desiredAccuracy = kCLLocationAccuracyBest
+            manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            manager.distanceFilter = 10
+            manager.pausesLocationUpdatesAutomatically = false
+            if #available(iOS 14.0, *) {
+                manager.activityType = .other
+            }
             locationManager = manager
         }
+    }
+
+    private func warmLocationIfAlreadyAuthorized() {
+        ensureLocationManager()
+        guard CLLocationManager.locationServicesEnabled() else { return }
+        let status = currentAuthStatus()
+        if status == .authorizedWhenInUse || status == .authorizedAlways {
+            startLocationUpdates()
+        }
+    }
+
+    private func currentAuthStatus() -> CLAuthorizationStatus {
+        if #available(iOS 14.0, *) {
+            return locationManager?.authorizationStatus ?? CLLocationManager().authorizationStatus
+        }
+        return CLLocationManager.authorizationStatus()
     }
 
     private func requestLocationPermissionOnMain(_ call: CAPPluginCall) {
         pendingLocationCall?.reject("Cancelled by a new location permission request")
         pendingLocationCall = call
         waitingForLocationFix = false
-        waitingForFullAccuracy = false
 
         ensureLocationManager()
 
@@ -113,55 +142,69 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
             return
         }
 
-        let status = locationManager?.authorizationStatus ?? CLLocationManager().authorizationStatus
-        switch status {
+        switch currentAuthStatus() {
         case .notDetermined:
-            startLocationResolveTimer()
+            // This is the ONLY state where iOS shows the Allow Location dialog.
+            startLocationResolveTimer(seconds: 120)
             locationManager?.requestWhenInUseAuthorization()
         case .authorizedWhenInUse, .authorizedAlways:
+            // Dialog will NOT appear — already allowed in Settings. Feed GPS to Stripe.
             continueAfterLocationAuthorized()
         case .denied:
             finishLocationCall(rejectMessage:
-                "Location permission for Velbok is Off. Open Settings → Velbok → Location → While Using the App, then try again."
+                "Location was previously denied for Velbok, so iPhone will not ask again. Open Settings → Velbok → Location → While Using the App (and turn Precise Location ON), then force-close Velbok and try again."
             )
         case .restricted:
             finishLocationCall(rejectMessage:
                 "Location access is restricted on this iPhone (Screen Time or device policy). Allow Location for Velbok, then try again."
             )
         @unknown default:
-            startLocationResolveTimer()
+            startLocationResolveTimer(seconds: 120)
             locationManager?.requestWhenInUseAuthorization()
         }
     }
 
     private func continueAfterLocationAuthorized() {
-        guard pendingLocationCall != nil else { return }
+        guard pendingLocationCall != nil else {
+            startLocationUpdates()
+            return
+        }
 
-        // iOS 14+: Stripe needs a usable GPS fix. Ask for temporary Precise Location if reduced.
         if #available(iOS 14.0, *) {
             if let manager = locationManager, manager.accuracyAuthorization == .reducedAccuracy {
-                waitingForFullAccuracy = true
-                startLocationResolveTimer()
                 manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "TerminalPayment")
-                // Also start updates — if the purpose key is missing from Info.plist,
-                // the temporary request is a no-op and we still try to get a fix.
-                waitingForLocationFix = true
-                manager.requestLocation()
-                return
             }
         }
 
         waitingForLocationFix = true
-        startLocationResolveTimer()
-        locationManager?.requestLocation()
+        startLocationResolveTimer(seconds: 20)
+        startLocationUpdates()
+
+        // If we already have a recent fix, finish immediately.
+        if let last = lastKnownLocation, Date().timeIntervalSince(last.timestamp) < 120 {
+            waitingForLocationFix = false
+            finishLocationCall(rejectMessage: nil)
+        }
+    }
+
+    private func startLocationUpdates() {
+        ensureLocationManager()
+        guard let manager = locationManager else { return }
+        let status = currentAuthStatus()
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+        if !updatesStarted {
+            updatesStarted = true
+            manager.startUpdatingLocation()
+        }
+        // Also request a one-shot in case updates are slow to deliver.
+        manager.requestLocation()
     }
 
     private func locationAuthString() -> String {
         if !CLLocationManager.locationServicesEnabled() {
             return "disabled"
         }
-        let status = locationManager?.authorizationStatus ?? CLLocationManager().authorizationStatus
-        switch status {
+        switch currentAuthStatus() {
         case .authorizedAlways, .authorizedWhenInUse:
             return "granted"
         case .denied:
@@ -190,7 +233,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         return "full"
     }
 
-    private func resolveLocationStatus(_ call: CAPPluginCall, rejectOnFailure: Bool, requireFix: Bool) {
+    private func resolveLocationStatus(_ call: CAPPluginCall, rejectOnFailure: Bool) {
         let location = locationAuthString()
         let accuracy = accuracyString()
         let servicesEnabled = CLLocationManager.locationServicesEnabled()
@@ -204,7 +247,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
             }
             if location == "denied" {
                 call.reject(
-                    "Location permission for Velbok is Off. Open Settings → Velbok → Location → While Using the App, then try again."
+                    "Location was previously denied for Velbok, so iPhone will not ask again. Open Settings → Velbok → Location → While Using the App (and turn Precise Location ON), then force-close Velbok and try again."
                 )
                 return
             }
@@ -226,25 +269,30 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
             "location": location,
             "servicesEnabled": servicesEnabled,
             "accuracy": accuracy,
+            "hasFix": lastKnownLocation != nil,
             "fixReady": location == "granted" && servicesEnabled,
         ])
     }
 
-    private func startLocationResolveTimer() {
+    private func startLocationResolveTimer(seconds: TimeInterval) {
         locationResolveTimer?.invalidate()
-        locationResolveTimer = Timer.scheduledTimer(withTimeInterval: 45, repeats: false) { [weak self] _ in
+        locationResolveTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
             guard let self, self.pendingLocationCall != nil else { return }
-            // If auth was granted but GPS fix timed out, still allow Stripe to try —
-            // permission is what Stripe primarily checks; a warm fix is best-effort.
             let location = self.locationAuthString()
             if location == "granted" {
+                // Auth OK even without a fix yet — keep updates running for Stripe.
                 self.waitingForLocationFix = false
-                self.waitingForFullAccuracy = false
                 self.finishLocationCall(rejectMessage: nil)
                 return
             }
+            if location == "prompt" {
+                self.finishLocationCall(rejectMessage:
+                    "iPhone did not show the Location dialog in time. Force-close Velbok, reopen, open POS, and tap Allow Location & Bluetooth. If Settings already shows Location On, iPhone will not ask again — that is normal."
+                )
+                return
+            }
             self.finishLocationCall(rejectMessage:
-                "Location permission timed out. Tap Allow when iPhone asks for Location access, keep Location Services ON, then try Connect again."
+                "Location permission timed out. Keep Location Services ON, then try Connect again."
             )
         }
     }
@@ -253,7 +301,6 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         locationResolveTimer?.invalidate()
         locationResolveTimer = nil
         waitingForLocationFix = false
-        waitingForFullAccuracy = false
 
         guard let call = pendingLocationCall else { return }
         pendingLocationCall = nil
@@ -263,7 +310,7 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
             return
         }
 
-        resolveLocationStatus(call, rejectOnFailure: true, requireFix: false)
+        resolveLocationStatus(call, rejectOnFailure: true)
     }
 
     // MARK: - Bluetooth
@@ -356,28 +403,33 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     // MARK: - CLLocationManagerDelegate
 
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        guard pendingLocationCall != nil else { return }
-
         if !CLLocationManager.locationServicesEnabled() {
-            finishLocationCall(rejectMessage:
-                "Location Services are turned OFF on this iPhone. Open Settings → Privacy & Security → Location Services and turn them ON, then open Velbok again."
-            )
+            if pendingLocationCall != nil {
+                finishLocationCall(rejectMessage:
+                    "Location Services are turned OFF on this iPhone. Open Settings → Privacy & Security → Location Services and turn them ON, then open Velbok again."
+                )
+            }
             return
         }
 
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            if !waitingForLocationFix && !waitingForFullAccuracy {
+            startLocationUpdates()
+            if pendingLocationCall != nil, !waitingForLocationFix {
                 continueAfterLocationAuthorized()
             }
         case .denied:
-            finishLocationCall(rejectMessage:
-                "Location permission for Velbok is Off. Open Settings → Velbok → Location → While Using the App, then try again."
-            )
+            if pendingLocationCall != nil {
+                finishLocationCall(rejectMessage:
+                    "Location was previously denied for Velbok, so iPhone will not ask again. Open Settings → Velbok → Location → While Using the App (and turn Precise Location ON), then force-close Velbok and try again."
+                )
+            }
         case .restricted:
-            finishLocationCall(rejectMessage:
-                "Location access is restricted on this iPhone (Screen Time or device policy). Allow Location for Velbok, then try again."
-            )
+            if pendingLocationCall != nil {
+                finishLocationCall(rejectMessage:
+                    "Location access is restricted on this iPhone (Screen Time or device policy). Allow Location for Velbok, then try again."
+                )
+            }
         case .notDetermined:
             break
         @unknown default:
@@ -386,26 +438,25 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
     }
 
     public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        // iOS 13 and earlier
         locationManagerDidChangeAuthorization(manager)
     }
 
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard pendingLocationCall != nil else { return }
+        if let newest = locations.last {
+            lastKnownLocation = newest
+        }
+        guard pendingLocationCall != nil, waitingForLocationFix else { return }
         waitingForLocationFix = false
-        waitingForFullAccuracy = false
         finishLocationCall(rejectMessage: nil)
     }
 
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Keep updates running. If auth is granted, do not block Stripe on a temporary GPS miss.
         guard pendingLocationCall != nil else { return }
 
-        // Auth is granted — GPS fix failed (indoors / airplane / timeout).
-        // Stripe mainly needs authorization; proceed so payments can still work.
         let location = locationAuthString()
         if location == "granted" {
             waitingForLocationFix = false
-            waitingForFullAccuracy = false
             finishLocationCall(rejectMessage: nil)
             return
         }
@@ -413,22 +464,19 @@ public class TerminalPermissionsPlugin: CAPPlugin, CAPBridgedPlugin, CLLocationM
         let nsError = error as NSError
         if nsError.domain == kCLErrorDomain, nsError.code == CLError.denied.rawValue {
             finishLocationCall(rejectMessage:
-                "Location permission for Velbok is Off. Open Settings → Velbok → Location → While Using the App, then try again."
+                "Location was previously denied for Velbok, so iPhone will not ask again. Open Settings → Velbok → Location → While Using the App, then force-close Velbok and try again."
             )
             return
         }
 
         finishLocationCall(rejectMessage:
-            "Could not read this iPhone’s location (\(error.localizedDescription)). Turn off Airplane Mode, keep Location Services ON, go outdoors or near a window, then try Connect again."
+            "Could not read this iPhone’s location (\(error.localizedDescription)). Turn off Airplane Mode, keep Location Services ON, then try Connect again."
         )
     }
 
     public func locationManagerDidChangeAccuracyAuthorization(_ manager: CLLocationManager) {
-        guard pendingLocationCall != nil, waitingForFullAccuracy else { return }
-        waitingForFullAccuracy = false
-        if !waitingForLocationFix {
-            waitingForLocationFix = true
-            manager.requestLocation()
+        if manager.accuracyAuthorization == .fullAccuracy {
+            startLocationUpdates()
         }
     }
 
