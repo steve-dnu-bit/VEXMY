@@ -1,8 +1,7 @@
 import { StripeTerminal } from "@capacitor-community/stripe-terminal";
 import { nativePlatform } from "@/lib/platform";
 import {
-  ensureIosBluetoothPermission,
-  ensureIosLocationPermission,
+  ensureIosReaderPermissions,
 } from "@/lib/terminal/iosTerminalPermissions";
 
 const INIT_TIMEOUT_MS = 45_000;
@@ -23,8 +22,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 }
 
 async function ensureIosTerminalReaderPermissions(): Promise<void> {
-  await ensureIosLocationPermission();
-  await ensureIosBluetoothPermission();
+  await ensureIosReaderPermissions();
 }
 
 async function ensureAndroidLocationViaStripePlugin(): Promise<void> {

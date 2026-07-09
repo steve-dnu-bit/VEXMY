@@ -1,10 +1,11 @@
 import { registerPlugin } from "@capacitor/core";
 
-export type TerminalPermissionState = "granted" | "denied" | "prompt";
+export type TerminalPermissionState = "granted" | "denied" | "prompt" | "restricted" | "disabled";
 
 export interface TerminalReaderPermissions {
   location: TerminalPermissionState;
   bluetooth: TerminalPermissionState;
+  locationServicesEnabled?: boolean;
 }
 
 interface TerminalPermissionsPlugin {
