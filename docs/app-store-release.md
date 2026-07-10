@@ -95,7 +95,7 @@ If `ios:build-simulator` hangs for more than 20 minutes with **no new lines**, c
 3. Sync versions to native projects: `npm run sync:version`
 4. Prepare the iOS bundle: `npm run ios:prepare` (icons, mobile web build, `cap sync`)
 5. On a **Mac with Xcode 15+**, open the project: `npm run cap:ios`
-6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Build on an **iOS Simulator** first to verify the project compiles. Add **Tap to Pay on iPhone** only after Apple approves that entitlement on your App ID; WisePad Bluetooth checkout works without it.
+6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Build on an **iOS Simulator** first to verify the project compiles. **Tap to Pay on iPhone** development entitlement is granted for `com.velbok.app` — use a **Release** build with a development provisioning profile on a **registered test device** (publishing/TestFlight entitlement still requires Apple’s video review).
 7. Archive: Product → **Archive** → **Distribute App** → App Store Connect  
    Or from the repo root on macOS: `npm run ios:archive`
 
@@ -162,14 +162,16 @@ Include in **App Review notes**:
 
 ## Tap to Pay on iPhone
 
-Requirements (see also `docs/pos-tap-to-pay.md`):
+Requirements (see also `docs/pos-tap-to-pay.md` and `docs/apple-ttpoi/COMPLIANCE-JOURNEY.md`):
 
-- Apple must approve **Tap to Pay on iPhone** on your App ID
-- Physical iPhone (XS or later), iOS 16.4+
+- Development entitlement is granted for `com.velbok.app` (registered test devices only)
+- `App.entitlements` includes `com.apple.developer.proximity-reader.payment.acceptance`
+- Physical iPhone (XS or later), iOS 16.4+; education overlay needs iOS 18+
 - Stripe Terminal live mode in production builds
-- “How to Tap” education via `TapToPayEducationPlugin` (enable ProximityReader build after Apple Tap to Pay approval)
+- “How to Tap” via `TapToPayEducationPlugin` (`ProximityReaderDiscovery`)
+- Publishing entitlement (TestFlight / App Store) still requires Apple’s video + checklist review
 
-Test on **TestFlight** with a real device before submitting for Tap to Pay review.
+Install a **Release** build with a development provisioning profile on a registered iPhone before filming entitlement-review videos.
 
 Internal testers list: `releases/app-versions/ios/testflight-internal-testers.csv`
 
@@ -224,7 +226,7 @@ Redeploy after changing env vars — the mobile app loads the bundled web assets
 | Missing package product 'CapApp-SPM' | `npm install`, `npm run ios:prepare`, reset Xcode package caches |
 | No signing certificate | Xcode → Settings → Accounts → Manage Certificates → Apple Distribution |
 | Provisioning profile errors | `bash scripts/ios-reset-xcode-signing.sh`; use Simulator first |
-| Tap to Pay entitlement missing | Apple must approve Proximity Reader capability; use WisePad until then |
+| Tap to Pay entitlement missing | Enable proximity-reader on App ID + regenerate **development** profile; publishing entitlement still needs Apple video review |
 | Push not working | `GoogleService-Info.plist`, APNs key in Firebase, Push capability in Xcode |
 | Camera / photo crash | Info.plist usage strings (already in repo) |
 | WisePad not found on iPhone | Allow Location + Bluetooth for Velbok; connect only through POS, not Settings → Bluetooth |

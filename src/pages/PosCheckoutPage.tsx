@@ -6,6 +6,8 @@ import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
 import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
+import { PosPaymentFlowOverlay, type PosPaymentFlowPhase } from "@/components/pos/PosPaymentFlowOverlay";
+import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
 import BookingClientSearch from "@/components/schedule/BookingClientSearch";
 import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { formatShopMoney } from "@/lib/shopCurrency";
 import { cn } from "@/lib/utils";
 import { loadOrgBillingContext } from "@/lib/orgBilling";
@@ -76,6 +79,13 @@ import {
 import type { TerminalReaderMode } from "@/lib/terminal/types";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useSearchParams } from "react-router-dom";
+import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
+import {
+  checkTapToPayEnvironment,
+  formatTapToPayBlockersMessage,
+  hasTapToPayHardBlockers,
+} from "@/lib/terminal/tapToPayReadiness";
+import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
 
 interface CartEntry {
   key: string;
@@ -87,8 +97,9 @@ interface CartEntry {
 }
 
 const PosCheckoutPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { canManageBilling } = useSubscription();
   const [searchParams] = useSearchParams();
   const prefilledArtistId = searchParams.get("artistId");
   const prefilledClientName = searchParams.get("clientName");
@@ -116,6 +127,9 @@ const PosCheckoutPage = () => {
   const [locationId, setLocationId] = useState<string | null>(null);
   const [connectReady, setConnectReady] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [paymentFlowPhase, setPaymentFlowPhase] = useState<PosPaymentFlowPhase>("hidden");
+  const [paymentFlowDetail, setPaymentFlowDetail] = useState<string | null>(null);
+  const [paymentReceiptHint, setPaymentReceiptHint] = useState<string | null>(null);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
@@ -687,6 +701,75 @@ const PosCheckoutPage = () => {
     if (productsCsvInputRef.current) productsCsvInputRef.current.value = "";
   };
 
+  const classifyPaymentFailure = (message: string): PosPaymentFlowPhase => {
+    if (/timed?\s*out|timeout|cancelled|canceled|user.?cancel/i.test(message)) return "timed_out";
+    return "declined";
+  };
+
+  const ensureTapToPayConnected = async (): Promise<boolean> => {
+    if (terminal.status === "connected") return true;
+
+    if (!canManageBilling) {
+      setPaymentFlowPhase("declined");
+      setPaymentFlowDetail(t("pos.tapToPayContactAdmin"));
+      toast.error(t("pos.tapToPayContactAdmin"));
+      return false;
+    }
+
+    const env = await checkTapToPayEnvironment();
+    if (env && hasTapToPayHardBlockers(env)) {
+      const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
+      setPaymentFlowPhase("declined");
+      setPaymentFlowDetail(message);
+      toast.error(message);
+      return false;
+    }
+
+    setPaymentFlowPhase("initializing");
+    setPaymentFlowDetail(null);
+    await terminal.discoverAndConnect();
+    markWisePadFirmwareCompleted();
+    setShowWisePadGuide(false);
+    await showTapToPayEducationIfAvailable();
+    return true;
+  };
+
+  const shareDigitalReceipt = async (overrideEmail?: string) => {
+    const email = (overrideEmail || clientEmail).trim();
+    const amountText = formatShopMoney(amountDue > 0 ? amountDue : totals.total, currency);
+    const body = [
+      t("pos.checkoutTitle"),
+      clientName.trim() ? `${t("pos.clientName")}: ${clientName.trim()}` : null,
+      `${t("pos.total")}: ${amountText}`,
+      lastSaleId ? `Sale: ${lastSaleId}` : null,
+      t("pos.tapToPayFallbackWisePad"),
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (email) {
+      setClientEmail(email);
+      window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(
+        t("pos.digitalReceiptTitle"),
+      )}&body=${encodeURIComponent(body)}`;
+      setPaymentReceiptHint(t("pos.receiptShared"));
+      return;
+    }
+
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({ title: t("pos.digitalReceiptTitle"), text: body });
+        setPaymentReceiptHint(t("pos.receiptShared"));
+        return;
+      }
+      await navigator.clipboard.writeText(body);
+      setPaymentReceiptHint(t("pos.receiptShared"));
+      toast.success(t("pos.receiptShared"));
+    } catch {
+      toast.error(t("pos.receiptShareFailed"));
+    }
+  };
+
   const handlePay = async () => {
     if (cart.length === 0) {
       toast.error(t("pos.addItemsToCharge"));
@@ -714,14 +797,17 @@ const PosCheckoutPage = () => {
     }
 
     setPaying(true);
+    setPaymentReceiptHint(null);
+    setPaymentFlowDetail(null);
     let saleId: string | null = null;
     try {
       if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
-        try {
-          await terminal.discoverAndConnect();
-        } catch (connectError) {
-          throw connectError;
-        }
+        const connected = await ensureTapToPayConnected();
+        if (!connected) return;
+      }
+
+      if (usingTapToPay && amountDue > 0) {
+        setPaymentFlowPhase("processing");
       }
 
       const { data: piData, error: piErr } = await invokeEdgeFunctionJson<{
@@ -757,9 +843,17 @@ const PosCheckoutPage = () => {
 
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
-        toast.success(t("pos.depositCoversBalance"));
-        if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
-          toast.success(t("pos.receiptEmailSent"));
+        if (usingTapToPay) {
+          setPaymentFlowPhase("approved");
+          setPaymentFlowDetail(t("pos.depositCoversBalance"));
+          if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
+            setPaymentReceiptHint(t("pos.receiptEmailSent"));
+          }
+        } else {
+          toast.success(t("pos.depositCoversBalance"));
+          if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
+            toast.success(t("pos.receiptEmailSent"));
+          }
         }
         await finalizeSale();
         return;
@@ -783,9 +877,17 @@ const PosCheckoutPage = () => {
       });
 
       setLastSaleId(piData.saleId);
-      toast.success(t("pos.paymentSuccess"));
-      if (completeData?.receiptEmail?.sent) {
-        toast.success(t("pos.receiptEmailSent"));
+      if (usingTapToPay) {
+        setPaymentFlowPhase("approved");
+        setPaymentFlowDetail(t("pos.paymentSuccess"));
+        if (completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(t("pos.receiptEmailSent"));
+        }
+      } else {
+        toast.success(t("pos.paymentSuccess"));
+        if (completeData?.receiptEmail?.sent) {
+          toast.success(t("pos.receiptEmailSent"));
+        }
       }
       const transferErrors = completeData?.transfers?.errors ?? [];
       if (transferErrors.length > 0) {
@@ -799,7 +901,13 @@ const PosCheckoutPage = () => {
       await finalizeSale();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
-      toast.error(msg);
+      if (usingTapToPay) {
+        setPaymentFlowPhase(classifyPaymentFailure(msg));
+        setPaymentFlowDetail(msg);
+      } else {
+        toast.error(msg);
+        setPaymentFlowPhase("hidden");
+      }
       if (saleId) {
         await invokeEdgeFunctionJson("stripe-terminal-pos", {
           action: "complete_sale",
@@ -809,7 +917,48 @@ const PosCheckoutPage = () => {
       }
     } finally {
       setPaying(false);
+      if (!usingTapToPay) {
+        setPaymentFlowPhase("hidden");
+      }
     }
+  };
+
+  const handleTapToPayPrimary = async () => {
+    if (readerFirmwareUpdating || paying) return;
+
+    if (amountDue <= 0 && depositCredit > 0) {
+      void handlePay();
+      return;
+    }
+
+    if (cart.length === 0) {
+      // Apple 5.3: button stays enabled — if not ready to charge, still allow enable/Terms path.
+      if (terminal.status === "connected") {
+        toast.error(t("pos.addItemsToCharge"));
+        return;
+      }
+      if (connectBlockedReason) {
+        toast.error(connectBlockedReason);
+        return;
+      }
+      try {
+        setPaying(true);
+        const connected = await ensureTapToPayConnected();
+        if (connected) {
+          toast.success(t("pos.tapToPayPhoneReady"));
+          setPaymentFlowPhase("hidden");
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
+        setPaymentFlowPhase(classifyPaymentFailure(msg));
+        setPaymentFlowDetail(msg);
+      } finally {
+        setPaying(false);
+      }
+      return;
+    }
+
+    void handlePay();
   };
 
   if (loading) {
@@ -1294,12 +1443,73 @@ const PosCheckoutPage = () => {
                   ) : null}
 
                   <div className="space-y-2 pt-2">
-                    {terminal.status !== "connected" ? (
+                    {usingTapToPay ? (
+                      <>
+                        {/* Apple 5.1–5.3: prominent Tap to Pay CTA first; never greyed for enablement */}
+                        <Button
+                          type="button"
+                          variant="gold"
+                          className="w-full h-14 text-base font-semibold"
+                          disabled={paying || readerFirmwareUpdating || terminal.status === "processing"}
+                          onClick={() => void handleTapToPayPrimary()}
+                        >
+                          {paying ||
+                          terminal.status === "processing" ||
+                          terminal.status === "discovering" ||
+                          terminal.status === "connecting" ? (
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          ) : (
+                            <TapToPayWaveIcon className="h-5 w-5 mr-2" />
+                          )}
+                          {amountDue <= 0 && depositCredit > 0
+                            ? t("pos.completeNoCharge")
+                            : terminal.status === "discovering" || terminal.status === "connecting"
+                              ? t("pos.connectTapToPayProgress")
+                              : tapToPayOnIphoneLabel(i18n.language)}
+                        </Button>
+                        {amountDue > 0 ? (
+                          <p className="text-center text-sm font-medium tabular-nums text-muted-foreground">
+                            {formatShopMoney(amountDue, currency)}
+                          </p>
+                        ) : null}
+                        {!canManageBilling && terminal.status !== "connected" ? (
+                          <p className="text-xs text-amber-700 dark:text-amber-400 text-center leading-snug px-1">
+                            {t("pos.tapToPayContactAdmin")}
+                          </p>
+                        ) : null}
+                        {terminal.status === "discovering" || terminal.status === "connecting" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-muted-foreground"
+                            onClick={() => void terminal.cancelConnect()}
+                          >
+                            {t("common.cancel")}
+                          </Button>
+                        ) : null}
+                        {terminal.status === "connected" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-muted-foreground"
+                            disabled={readerFirmwareUpdating}
+                            onClick={() => void terminal.disconnect()}
+                          >
+                            {t("pos.disconnectReader")}
+                          </Button>
+                        ) : null}
+                        <p className="text-[11px] text-muted-foreground text-center leading-snug px-1">
+                          {t("pos.tapToPayFallbackWisePad")}
+                        </p>
+                      </>
+                    ) : terminal.status !== "connected" ? (
                       terminal.status === "discovering" || terminal.status === "connecting" ? (
                         <>
                           <Button type="button" variant="outline" className="w-full" disabled>
                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            {usingTapToPay ? t("pos.connectTapToPayProgress") : t("pos.connectReaderProgress")}
+                            {t("pos.connectReaderProgress")}
                           </Button>
                           <Button
                             type="button"
@@ -1316,13 +1526,8 @@ const PosCheckoutPage = () => {
                           type="button"
                           variant="outline"
                           className="w-full"
-                          disabled={readerFirmwareUpdating || !canConnectReader || (usingTapToPay && !tapToPayReady.ready)}
+                          disabled={readerFirmwareUpdating || !canConnectReader}
                           onClick={() => {
-                            if (usingTapToPay && !tapToPayReady.ready) {
-                              tapToPayReady.refresh();
-                              toast.error(t("pos.tapToPayPhoneBlocked"));
-                              return;
-                            }
                             if (connectBlockedReason) {
                               toast.error(connectBlockedReason);
                               return;
@@ -1340,7 +1545,7 @@ const PosCheckoutPage = () => {
                           }}
                         >
                           <Wifi className="h-4 w-4 mr-2" />
-                          {usingTapToPay ? t("pos.connectTapToPay") : t("pos.connectReader")}
+                          {t("pos.connectReader")}
                         </Button>
                       )
                     ) : (
@@ -1355,22 +1560,24 @@ const PosCheckoutPage = () => {
                       </p>
                     ) : null}
 
-                    <Button
-                      type="button"
-                      variant="gold"
-                      className="w-full h-12 text-base"
-                      disabled={paying || readerFirmwareUpdating || (amountDue > 0 && terminal.status === "processing")}
-                      onClick={() => void handlePay()}
-                    >
-                      {paying || (amountDue > 0 && terminal.status === "processing") ? (
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      ) : (
-                        <CreditCard className="h-5 w-5 mr-2" />
-                      )}
-                      {amountDue <= 0 && depositCredit > 0
-                        ? t("pos.completeNoCharge")
-                        : t("pos.chargeCard", { amount: formatShopMoney(amountDue, currency) })}
-                    </Button>
+                    {!usingTapToPay ? (
+                      <Button
+                        type="button"
+                        variant="gold"
+                        className="w-full h-12 text-base"
+                        disabled={paying || readerFirmwareUpdating || (amountDue > 0 && terminal.status === "processing")}
+                        onClick={() => void handlePay()}
+                      >
+                        {paying || (amountDue > 0 && terminal.status === "processing") ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : (
+                          <CreditCard className="h-5 w-5 mr-2" />
+                        )}
+                        {amountDue <= 0 && depositCredit > 0
+                          ? t("pos.completeNoCharge")
+                          : t("pos.chargeCard", { amount: formatShopMoney(amountDue, currency) })}
+                      </Button>
+                    ) : null}
 
                     {cart.length > 0 && (
                       <Button type="button" variant="ghost" size="sm" className="w-full" onClick={clearCart}>
@@ -1694,6 +1901,31 @@ const PosCheckoutPage = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <PosPaymentFlowOverlay
+          phase={
+            usingTapToPay &&
+            paymentFlowPhase === "hidden" &&
+            (terminal.status === "discovering" || terminal.status === "connecting")
+              ? "initializing"
+              : paymentFlowPhase
+          }
+          amountLabel={
+            paymentFlowPhase === "approved" || paymentFlowPhase === "declined" || paymentFlowPhase === "timed_out"
+              ? formatShopMoney(amountDue > 0 ? amountDue : totals.total, currency)
+              : amountDue > 0
+                ? formatShopMoney(amountDue, currency)
+                : undefined
+          }
+          detail={paymentFlowDetail || (usingTapToPay ? terminal.readerStatus : null)}
+          receiptHint={paymentReceiptHint}
+          onDismiss={() => {
+            setPaymentFlowPhase("hidden");
+            setPaymentFlowDetail(null);
+            setPaymentReceiptHint(null);
+          }}
+          onShareReceipt={usingTapToPay ? shareDigitalReceipt : undefined}
+        />
       </SubscriptionGate>
     </AppLayout>
   );
