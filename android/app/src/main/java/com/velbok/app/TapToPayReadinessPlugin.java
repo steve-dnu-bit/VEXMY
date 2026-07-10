@@ -1,10 +1,14 @@
 package com.velbok.app;
 
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import androidx.core.location.LocationManagerCompat;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -68,6 +72,13 @@ public class TapToPayReadinessPlugin extends Plugin {
                 getContext().getPackageName()
             ) == PackageManager.PERMISSION_GRANTED;
 
+            boolean locationServicesEnabled = false;
+            LocationManager locationManager =
+                (LocationManager) getContext().getSystemService(android.content.Context.LOCATION_SERVICE);
+            if (locationManager != null) {
+                locationServicesEnabled = LocationManagerCompat.isLocationEnabled(locationManager);
+            }
+
             int gmsStatus = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getContext());
             boolean googlePlayServicesOk = gmsStatus == ConnectionResult.SUCCESS;
 
@@ -78,6 +89,7 @@ public class TapToPayReadinessPlugin extends Plugin {
                     && hardwareKeystoreEcdh
                     && android13OrLater
                     && locationGranted
+                    && locationServicesEnabled
                     && googlePlayServicesOk;
 
             JSObject result = new JSObject();
@@ -89,6 +101,7 @@ public class TapToPayReadinessPlugin extends Plugin {
             result.put("androidSdk", androidSdk);
             result.put("android13OrLater", android13OrLater);
             result.put("locationGranted", locationGranted);
+            result.put("locationServicesEnabled", locationServicesEnabled);
             result.put("googlePlayServicesOk", googlePlayServicesOk);
             result.put("googlePlayServicesStatus", gmsStatus);
             result.put("deviceManufacturer", manufacturer);
@@ -105,6 +118,20 @@ public class TapToPayReadinessPlugin extends Plugin {
             call.resolve(result);
         } catch (Exception e) {
             call.reject(e.getMessage() != null ? e.getMessage() : "checkEnvironment failed");
+        }
+    }
+
+    /** Opens Velbok's Android app-permission screen so the user can allow Location / Nearby devices. */
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", getContext().getPackageName(), null));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject(e.getMessage() != null ? e.getMessage() : "openAppSettings failed");
         }
     }
 }

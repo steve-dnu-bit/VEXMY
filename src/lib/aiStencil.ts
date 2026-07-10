@@ -201,7 +201,15 @@ function shouldTryFallback(error: unknown): boolean {
     msg.includes("no stencil image") ||
     msg.includes("could not store") ||
     msg.includes("not configured yet") ||
-    msg.includes("ai gateway")
+    msg.includes("ai gateway") ||
+    msg.includes("reference image") ||
+    msg.includes("too large for the app") ||
+    msg.includes("invalid request") ||
+    msg.includes("unauthorized") ||
+    msg.includes("session expired") ||
+    msg.includes("502") ||
+    msg.includes("503") ||
+    msg.includes("504")
   );
 }
 
@@ -210,17 +218,18 @@ async function generateOnNative(
   style: StencilStyle,
   token: string,
 ): Promise<AiStencilResult> {
-  // Supabase edge uploads with service role — most reliable signed URL on mobile.
-  try {
-    return await generateViaSupabaseFunction(image, style);
-  } catch (supabaseError) {
-    if (!shouldTryFallback(supabaseError)) throw supabaseError;
-  }
-
+  // Prefer CapacitorHttp with a long timeout — patched fetch often drops large bodies
+  // or times out before Gemini finishes (30–90s).
   try {
     return await generateViaNativeHttp(image, style, token);
   } catch (nativeError) {
     if (!shouldTryFallback(nativeError)) throw nativeError;
+  }
+
+  try {
+    return await generateViaSupabaseFunction(image, style);
+  } catch (supabaseError) {
+    if (!shouldTryFallback(supabaseError)) throw supabaseError;
     return generateViaNetlifyFetch(image, style, token);
   }
 }

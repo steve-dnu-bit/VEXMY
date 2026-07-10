@@ -11,6 +11,7 @@
         <item name="actionModeTheme">@style/Velbok.ActionModeTheme</item>
         <item name="actionModePopupWindowStyle">@style/Velbok.ActionModePopup</item>
         <item name="popupMenuStyle">@style/Velbok.PopupMenu</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
@@ -21,12 +22,30 @@
         <item name="actionModeTheme">@style/Velbok.ActionModeTheme</item>
         <item name="actionModePopupWindowStyle">@style/Velbok.ActionModePopup</item>
         <item name="popupMenuStyle">@style/Velbok.PopupMenu</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
         <item name="windowSplashScreenBackground">@color/appBackground</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+
+    <!-- Theme passed to WebView for copy/paste ActionMode menus. -->
+    <style name="Velbok.WebViewTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="android:colorBackground">@color/terminal_dialog_background</item>
+        <item name="android:windowBackground">@color/appBackground</item>
+        <item name="android:textColorPrimary">@color/terminal_dialog_text_primary</item>
+        <item name="android:actionMenuTextColor">@color/terminal_dialog_text_primary</item>
+        <item name="actionMenuTextColor">@color/terminal_dialog_text_primary</item>
+        <item name="actionModeStyle">@style/Velbok.ActionMode</item>
+        <item name="actionModeTheme">@style/Velbok.ActionModeTheme</item>
+        <item name="actionModePopupWindowStyle">@style/Velbok.ActionModePopup</item>
+        <item name="popupMenuStyle">@style/Velbok.PopupMenu</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:isLightTheme">false</item>
     </style>
 
     <style name="Velbok.ActionModeTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">

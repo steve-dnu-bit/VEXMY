@@ -417,7 +417,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
     <>
       {/* Mobile overlay — above app header (z-50) so edit button is not covered by logo */}
       <div className="fixed inset-0 bg-background/60 z-[55] md:hidden" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 z-[60] w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right pt-safe md:pt-0">
+      <div className="schedule-detail-panel fixed top-0 right-0 bottom-0 z-[60] w-[85vw] max-w-xs md:relative md:w-72 md:z-auto border-l border-border bg-card flex flex-col animate-slide-in-right pt-safe md:pt-0">
         <div className="flex items-center justify-between p-3 border-b border-border">
           <h3 className="font-display text-sm font-semibold">{isBlocker ? t("schedule.blockerDetails") : t("schedule.bookingDetails")}</h3>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
@@ -431,7 +431,7 @@ const BookingDetailPanel = ({ booking, artistName, onClose, onEdit, resolveArtis
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 text-sm">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-3 pb-native-nav space-y-3 text-sm themed-scrollbar">
           <div>
             <p className="text-base font-display font-bold">{booking.client_name}</p>
             <Badge variant="outline" className={`mt-1 text-[10px] ${typeColors[booking.booking_type] || ""}`}>

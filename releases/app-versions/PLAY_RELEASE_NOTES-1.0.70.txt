@@ -1,0 +1,8 @@
+﻿Velbok 1.0.70 (70) — Google Play release notes
+================================================
+
+• Working Android app: paste bar, edit appointment overlays, dropdowns, WisePad location, and stencil generation fixes
+• Dark top copy/paste bar instead of white Capacitor logo block
+• Edit appointment dialog no longer covered by detail panel; dropdowns work inside the sheet
+• WisePad location/Bluetooth permission handling improved (including Dual App)
+• AI stencil uses longer native HTTP timeout on mobile

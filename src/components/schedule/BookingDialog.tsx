@@ -840,7 +840,7 @@ const BookingDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto overscroll-contain pb-native-nav themed-scrollbar sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">
             {bookingToEdit || editingBookingIdRef.current

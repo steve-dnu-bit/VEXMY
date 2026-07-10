@@ -13,6 +13,8 @@ export interface TapToPayEnvironment {
   androidSdk?: number;
   android13OrLater?: boolean;
   locationGranted?: boolean;
+  /** System Location / GPS toggle (separate from app permission). */
+  locationServicesEnabled?: boolean;
   googlePlayServicesOk?: boolean;
   deviceManufacturer?: string;
   deviceModel?: string;
@@ -23,6 +25,7 @@ export interface TapToPayEnvironment {
 
 interface TapToPayReadinessPlugin {
   checkEnvironment(): Promise<TapToPayEnvironment>;
+  openAppSettings(): Promise<void>;
 }
 
 const TapToPayReadiness = registerPlugin<TapToPayReadinessPlugin>("TapToPayReadiness", {
@@ -33,6 +36,7 @@ const TapToPayReadiness = registerPlugin<TapToPayReadinessPlugin>("TapToPayReadi
       developerOptionsEnabled: false,
       usbDebuggingEnabled: false,
     }),
+    openAppSettings: async () => undefined,
   },
 });
 
@@ -71,6 +75,9 @@ export function describeTapToPayBlockers(env: TapToPayEnvironment): string[] {
       "Location permission is required. Settings → Apps → Velbok → Permissions → Location → Allow.",
     );
   }
+  if (env.locationServicesEnabled === false) {
+    blockers.push("Location (GPS) is turned off. Open Android Settings → Location and turn it ON.");
+  }
   if (env.googlePlayServicesOk === false) {
     blockers.push(
       "Google Play Services is missing or outdated. Update it in the Play Store, then restart Velbok.",
@@ -106,6 +113,7 @@ export function hasTapToPayHardBlockers(env: TapToPayEnvironment): boolean {
     env.hasNfc === false ||
     env.hardwareKeystoreEcdh === false ||
     env.locationGranted === false ||
+    env.locationServicesEnabled === false ||
     env.googlePlayServicesOk === false
   );
 }

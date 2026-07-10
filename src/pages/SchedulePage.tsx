@@ -398,7 +398,7 @@ const SchedulePage = () => {
             view={view}
           />
 
-          {selectedBooking && (
+          {selectedBooking && !dialogOpen && (
             <BookingDetailPanel
               booking={selectedBooking}
               artistName={getArtistName(selectedBooking.artist_id)}

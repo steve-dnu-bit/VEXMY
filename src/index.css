@@ -157,6 +157,66 @@
     padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   }
 
+  /* Android gesture nav: env(safe-area-inset-bottom) is often 0 in WebView */
+  .pb-native-nav {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  html.native-android .pb-native-nav {
+    padding-bottom: max(5rem, env(safe-area-inset-bottom, 0px), 72px);
+  }
+
+  @media (min-width: 768px) {
+    html.native-android .pb-native-nav {
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  html.native-android .schedule-detail-panel {
+    bottom: max(env(safe-area-inset-bottom, 0px), 48px);
+  }
+
+  @media (min-width: 768px) {
+    html.native-android .schedule-detail-panel {
+      bottom: 0;
+    }
+  }
+
+  /* Native edit dialogs: bottom sheet so keyboard does not fight centered layout */
+  html.native-app .native-dialog-sheet {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 0.5rem));
+    transform: none;
+    translate: none;
+    border-radius: 1rem 1rem 0 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html.native-android .native-dialog-sheet {
+    max-height: min(88dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 48px));
+  }
+
+  /*
+   * Modal Dialog sets pointer-events:none on body. Portaled Select/Popover content
+   * lives outside the dialog, so it must re-enable pointer events and sit above z-[100].
+   */
+  [data-radix-select-viewport],
+  [data-radix-popper-content-wrapper],
+  [role="listbox"],
+  [data-radix-select-content] {
+    pointer-events: auto !important;
+  }
+
+  [data-radix-popper-content-wrapper] {
+    z-index: 110 !important;
+  }
+
   .top-safe {
     top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   }
