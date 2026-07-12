@@ -422,7 +422,11 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
     const opts = activeOptions();
     if (isReaderFirmwareUpdating()) return;
     if (Date.now() < suppressReaderDisplayUntilMs) return;
-    if (opts.readerMode === "tap_to_pay" && !opts.simulated) return;
+    // Tap to Pay has no cart screen. WisePad: never call setReaderDisplay —
+    // it drops the BT session and often crashes the next collectPaymentMethod.
+    if (opts.readerMode === "tap_to_pay" || opts.readerMode === "bluetooth") {
+      if (!opts.simulated) return;
+    }
     lastDisplayCart = cart;
     const connected = await refreshConnectedReaderFromSdk();
     if (!connected) return;
@@ -598,7 +602,10 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       try {
         paymentCollectCancelRequested = true;
         paymentCollectionInFlight = false;
-        await clearNativeReaderDisplay().catch(() => undefined);
+        // Skip clearReaderDisplay for live WisePad — it can tear down BT mid-disconnect.
+        if (activeOptions().readerMode !== "bluetooth" || activeOptions().simulated) {
+          await clearNativeReaderDisplay().catch(() => undefined);
+        }
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
         await StripeTerminal.disconnectReader();
       } finally {
@@ -635,6 +642,11 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       paymentCollectionInFlight = true;
       try {
         let connected = await refreshConnectedReaderFromSdk();
+        if (!connected && options.readerMode === "bluetooth") {
+          // Brief BT blip after a prior sale — wait before rediscovering.
+          await new Promise((resolve) => window.setTimeout(resolve, 800));
+          connected = await refreshConnectedReaderFromSdk();
+        }
         if (!connected) {
           await this.discoverAndConnect();
           connected = await refreshConnectedReaderFromSdk();
@@ -645,9 +657,11 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           );
         }
 
-        // Avoid setReaderDisplay immediately before collect — overlapping Terminal commands
-        // after a firmware update can crash or hang the native SDK. Clear any cart screen first.
-        await clearNativeReaderDisplay().catch(() => undefined);
+        // Never clearReaderDisplay / setReaderDisplay around WisePad collect — those
+        // Bluetooth commands drop the session and crash the next charge on iOS.
+        if (options.readerMode !== "bluetooth" || options.simulated) {
+          await clearNativeReaderDisplay().catch(() => undefined);
+        }
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
 
         if (paymentCollectCancelRequested) {
@@ -669,6 +683,9 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           throw new Error("Payment cancelled.");
         }
 
+        // Keep treating the reader as connected through post-payment BT blips.
+        beginConnectionHold(30_000);
+        suppressReaderDisplay(30_000);
         await refreshConnectedReaderFromSdk();
 
         const paymentIntentId = extractPaymentIntentId(clientSecret);
@@ -678,6 +695,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         };
       } catch (error) {
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+        beginConnectionHold(15_000);
         if (paymentCollectCancelRequested) {
           throw new Error("Payment cancelled.");
         }

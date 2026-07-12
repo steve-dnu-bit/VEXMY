@@ -133,6 +133,7 @@ const PosCheckoutPage = () => {
   const activeSaleIdRef = useRef<string | null>(null);
   const [paymentReceiptHint, setPaymentReceiptHint] = useState<string | null>(null);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
+  const [lastReceiptUrl, setLastReceiptUrl] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
   const [customForm, setCustomForm] = useState({
@@ -458,6 +459,9 @@ const PosCheckoutPage = () => {
 
   useEffect(() => {
     if (readerFirmwareUpdating) return;
+    // WisePad: never push cart to the reader screen — setReaderDisplay drops BT
+    // after a successful payment and crashes the next charge.
+    if (usingWisePad) return;
     void pushCartToReader();
   }, [
     terminal.status,
@@ -468,6 +472,7 @@ const PosCheckoutPage = () => {
     totals.subtotal,
     totals.taxAmount,
     readerFirmwareUpdating,
+    usingWisePad,
   ]);
 
   const dueSplit = useMemo(
@@ -787,6 +792,7 @@ function isPaymentOverlayNoise(status: string): boolean {
       clientName.trim() ? `${t("pos.clientName")}: ${clientName.trim()}` : null,
       `${t("pos.total")}: ${amountText}`,
       lastSaleId ? `Sale: ${lastSaleId}` : null,
+      lastReceiptUrl && !cancelled ? lastReceiptUrl : null,
       cancelled ? t("pos.cancelReceiptNote") : t("pos.tapToPayFallbackWisePad"),
     ]
       .filter(Boolean)
@@ -806,6 +812,7 @@ function isPaymentOverlayNoise(status: string): boolean {
         await navigator.share({
           title: cancelled ? t("pos.cancelReceiptEmailSubject") : t("pos.digitalReceiptTitle"),
           text: body,
+          url: lastReceiptUrl || undefined,
         });
         setPaymentReceiptHint(t("pos.receiptShared"));
         return;
@@ -816,6 +823,66 @@ function isPaymentOverlayNoise(status: string): boolean {
     } catch {
       toast.error(t("pos.receiptShareFailed"));
     }
+  };
+
+  const sendReceiptEmail = async (email: string) => {
+    if (!lastSaleId) return;
+    const { data, error } = await invokeEdgeFunctionJson<{
+      ok?: boolean;
+      receiptEmail?: { sent?: boolean; error?: string; skipped?: string } | null;
+    }>("stripe-terminal-pos", {
+      action: "send_receipt",
+      channel: "email",
+      saleId: lastSaleId,
+      to: email,
+    });
+    if (error || !data?.ok) {
+      toast.error(data?.receiptEmail?.error || error?.message || t("pos.receiptShareFailed"));
+      return;
+    }
+    setClientEmail(email);
+    setPaymentReceiptHint(t("pos.receiptEmailSent"));
+    toast.success(t("pos.receiptEmailSent"));
+  };
+
+  const sendReceiptSms = async (phone: string) => {
+    if (!lastSaleId) return;
+    const { data, error } = await invokeEdgeFunctionJson<{
+      ok?: boolean;
+      fallbackShare?: boolean;
+      receiptUrl?: string | null;
+      receiptSms?: { sent?: boolean; error?: string; skipped?: string } | null;
+    }>("stripe-terminal-pos", {
+      action: "send_receipt",
+      channel: "sms",
+      saleId: lastSaleId,
+      to: phone,
+    });
+
+    if (data?.receiptUrl) setLastReceiptUrl(data.receiptUrl);
+
+    if (data?.fallbackShare && data.receiptUrl) {
+      const body = t("pos.digitalReceiptTitle") + "\n" + data.receiptUrl;
+      try {
+        window.location.href = `sms:${encodeURIComponent(phone)}?&body=${encodeURIComponent(body)}`;
+      } catch {
+        try {
+          await navigator.clipboard.writeText(body);
+        } catch {
+          /* ignore */
+        }
+      }
+      setPaymentReceiptHint(t("pos.receiptSmsFallback"));
+      toast.message(t("pos.receiptSmsFallback"));
+      return;
+    }
+
+    if (error || !data?.ok) {
+      toast.error(data?.receiptSms?.error || error?.message || t("pos.receiptSmsFailed"));
+      return;
+    }
+    setPaymentReceiptHint(t("pos.receiptSmsSent"));
+    toast.success(t("pos.receiptSmsSent"));
   };
 
   const handlePay = async () => {
@@ -846,6 +913,7 @@ function isPaymentOverlayNoise(status: string): boolean {
 
     setPaying(true);
     setPaymentReceiptHint(null);
+    setLastReceiptUrl(null);
     setPaymentFlowDetail(null);
     activeSaleIdRef.current = null;
     let saleId: string | null = null;
@@ -864,6 +932,8 @@ function isPaymentOverlayNoise(status: string): boolean {
         saleId?: string;
         paymentIntentId?: string;
         zeroBalance?: boolean;
+        receiptUrl?: string | null;
+        receiptEmail?: { sent?: boolean } | null;
       }>("stripe-terminal-pos", {
         action: "create_payment_intent",
         artistId: chargeArtistId || undefined,
@@ -893,15 +963,16 @@ function isPaymentOverlayNoise(status: string): boolean {
 
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
+        if (piData.receiptUrl) setLastReceiptUrl(piData.receiptUrl);
         if (usingTapToPay || usingWisePad) {
           setPaymentFlowPhase("approved");
           setPaymentFlowDetail(t("pos.depositCoversBalance"));
-          if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
+          if (piData.receiptEmail?.sent) {
             setPaymentReceiptHint(t("pos.receiptEmailSent"));
           }
         } else {
           toast.success(t("pos.depositCoversBalance"));
-          if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
+          if (piData.receiptEmail?.sent) {
             toast.success(t("pos.receiptEmailSent"));
           }
         }
@@ -918,6 +989,7 @@ function isPaymentOverlayNoise(status: string): boolean {
       const { data: completeData } = await invokeEdgeFunctionJson<{
         transfers?: { errors?: string[] } | null;
         receiptEmail?: { sent?: boolean } | null;
+        receiptUrl?: string | null;
       }>("stripe-terminal-pos", {
         action: "complete_sale",
         saleId: piData.saleId,
@@ -927,6 +999,7 @@ function isPaymentOverlayNoise(status: string): boolean {
       });
 
       setLastSaleId(piData.saleId);
+      if (completeData?.receiptUrl) setLastReceiptUrl(completeData.receiptUrl);
       if (usingTapToPay || usingWisePad) {
         setPaymentFlowPhase("approved");
         setPaymentFlowDetail(t("pos.paymentSuccess"));
@@ -974,7 +1047,11 @@ function isPaymentOverlayNoise(status: string): boolean {
           });
           if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
             setPaymentReceiptHint(
-              phase === "timed_out" ? t("pos.cancelReceiptEmailSent") : t("pos.receiptEmailSent"),
+              phase === "timed_out"
+                ? t("pos.cancelReceiptEmailSent")
+                : t("pos.failedReceiptEmailSent", {
+                    defaultValue: "Payment unsuccessful notice emailed to the client.",
+                  }),
             );
           }
         }
@@ -1996,6 +2073,7 @@ function isPaymentOverlayNoise(status: string): boolean {
           }
           detail={paymentOverlayDetail}
           receiptHint={paymentReceiptHint}
+          receiptUrl={paymentFlowPhase === "approved" ? lastReceiptUrl : null}
           onDismiss={() => {
             setPaymentFlowPhase("hidden");
             setPaymentFlowDetail(null);
@@ -2008,6 +2086,16 @@ function isPaymentOverlayNoise(status: string): boolean {
               : undefined
           }
           onShareReceipt={usingTapToPay || usingWisePad ? shareDigitalReceipt : undefined}
+          onSendReceiptEmail={
+            (usingTapToPay || usingWisePad) && paymentFlowPhase === "approved" && lastSaleId
+              ? sendReceiptEmail
+              : undefined
+          }
+          onSendReceiptSms={
+            (usingTapToPay || usingWisePad) && paymentFlowPhase === "approved" && lastSaleId
+              ? sendReceiptSms
+              : undefined
+          }
         />
       </SubscriptionGate>
     </AppLayout>
