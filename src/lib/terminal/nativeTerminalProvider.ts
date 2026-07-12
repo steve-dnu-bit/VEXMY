@@ -374,11 +374,31 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
               ? "Activating Tap to Pay… first setup can take 1–2 minutes."
               : "Connecting to reader…",
           );
-          const connectPromise = StripeTerminal.connectReader({
+          const connectPayload: {
+            reader: (typeof readers)[0];
+            autoReconnectOnUnexpectedDisconnect: boolean;
+            locationId: string;
+            tapToPay?: boolean;
+            discoveryMethod?: string;
+            merchantDisplayName?: string;
+          } = {
             reader: readers[0],
-            autoReconnectOnUnexpectedDisconnect: true,
+            // iOS Tap to Pay: avoid auto-reconnect config issues; reconnect manually if needed.
+            autoReconnectOnUnexpectedDisconnect:
+              options.readerMode === "tap_to_pay" && nativePlatform() === "ios" ? false : true,
             locationId: activeLocationId,
-          } as Parameters<typeof StripeTerminal.connectReader>[0] & { locationId: string });
+          };
+          if (options.readerMode === "tap_to_pay") {
+            connectPayload.tapToPay = true;
+            connectPayload.discoveryMethod = "tap-to-pay";
+          }
+          const connectPromise = StripeTerminal.connectReader(
+            connectPayload as Parameters<typeof StripeTerminal.connectReader>[0] & {
+              locationId: string;
+              tapToPay?: boolean;
+              discoveryMethod?: string;
+            },
+          );
 
           const timeoutMs =
             options.readerMode === "tap_to_pay" && !options.simulated

@@ -74,6 +74,10 @@ export function formatStripeTerminalErrorMessage(raw: string): string {
     return "Stripe cannot read this iPhone’s location. Check: (1) Settings → Privacy & Security → Location Services is ON, (2) Settings → Velbok → Location is While Using the App, (3) Precise Location is ON for Velbok, (4) Airplane Mode is OFF. Then force-close Velbok and try Connect again.";
   }
 
+  if (/invalid scpconnectionconfiguration|incompatible with the selected reader|InvalidConnectionConfiguration/i.test(text)) {
+    return "Tap to Pay connection config was invalid (usually missing Terminal location, or Bluetooth config used by mistake). In Admin → POS, recreate the Terminal location, force-close Velbok, reopen Checkout, then try Tap to Pay again.";
+  }
+
   if (/proximity-reader|payment\.acceptance|missing entitlement|entitlement.*tap to pay|SCPErrorTapToPayReaderNotAvailable/i.test(text)) {
     return "Tap to Pay on iPhone requires Apple's Tap to Pay entitlement on com.velbok.app. Enable it on the App ID, regenerate a development provisioning profile for your registered test device, then install a new Release build (TestFlight needs the publishing entitlement).";
   }
