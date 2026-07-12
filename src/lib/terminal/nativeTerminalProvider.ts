@@ -69,12 +69,46 @@ async function resolveTerminalIsTest(): Promise<boolean> {
 
 function formatReaderInputMessage(options: string[] | undefined): string | null {
   if (!options?.length) return null;
-  const labels = options.map((option) =>
-    option
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (char) => char.toUpperCase()),
-  );
-  return labels.join(" · ");
+  const normalized = options.map((option) => option.trim().toUpperCase());
+  const hasSwipe = normalized.some((o) => o.includes("SWIPE"));
+  const hasInsert = normalized.some((o) => o.includes("INSERT"));
+  const hasTap = normalized.some((o) => o.includes("TAP"));
+
+  const actions: string[] = [];
+  if (hasTap) actions.push("tap");
+  if (hasInsert) actions.push("insert");
+  if (hasSwipe) actions.push("swipe");
+  if (!actions.length) {
+    return "Present the card on the WisePad…";
+  }
+  if (actions.length === 1) {
+    return `Ask the customer to ${actions[0]} their card on the WisePad…`;
+  }
+  if (actions.length === 2) {
+    return `Ask the customer to ${actions[0]} or ${actions[1]} their card on the WisePad…`;
+  }
+  return `Ask the customer to tap, insert, or swipe their card on the WisePad…`;
+}
+
+function readerInputStatusFromEvent(options: string[] | undefined, message?: string | null): string | null {
+  const fromOptions = formatReaderInputMessage(options);
+  if (fromOptions) return fromOptions;
+
+  const raw = message?.trim() ?? "";
+  // Native debug strings like "SCPReaderInputOption(rawValue: 6)" — decode bit flags.
+  const match = /rawValue:\s*(\d+)/i.exec(raw);
+  if (match) {
+    const value = Number(match[1]);
+    const decoded: string[] = [];
+    if (value & 1) decoded.push("SWIPE");
+    if (value & 2) decoded.push("INSERT");
+    if (value & 4) decoded.push("TAP");
+    return formatReaderInputMessage(decoded) || "Waiting for card on reader…";
+  }
+  if (/SCPReaderInputOption|ReaderInputOption/i.test(raw)) {
+    return "Waiting for card on reader…";
+  }
+  return raw || null;
 }
 
 function notifyFirmwareUpdate(active: boolean, progress = 0): void {
@@ -178,12 +212,18 @@ async function registerTerminalEventListeners(): Promise<void> {
   if (terminalEventListenersRegistered) return;
 
   await StripeTerminal.addListener(TerminalEventsEnum.RequestReaderInput, ({ options, message }) => {
-    const status = message?.trim() || formatReaderInputMessage(options);
+    const status = readerInputStatusFromEvent(options, message);
     if (status) latestProviderOptions?.onReaderStatus?.(status);
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.RequestDisplayMessage, ({ message }) => {
-    if (message) latestProviderOptions?.onReaderStatus?.(String(message));
+    const text = message ? String(message) : "";
+    if (!text) return;
+    if (/^\d+$/.test(text) || /rawValue|SCPReader/i.test(text)) {
+      latestProviderOptions?.onReaderStatus?.("Follow the prompts on the WisePad…");
+      return;
+    }
+    latestProviderOptions?.onReaderStatus?.(text);
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.PaymentStatusChange, ({ status }) => {
