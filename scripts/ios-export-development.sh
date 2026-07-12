@@ -41,7 +41,9 @@ rm -rf "$ARCHIVE_PATH" "$EXPORT_PATH"
 mkdir -p "$EXPORT_PATH"
 
 echo "==> Archiving with Automatic signing (team $TEAM_ID)..."
+echo "    git HEAD=$(git -C "$ROOT" rev-parse --short HEAD)"
 cd "$ROOT/ios/App"
+# Clear any manual profile so SPM packages (IONCameraLib) are not forced onto pay_test_velbok.
 xcodebuild \
   -project App.xcodeproj \
   -scheme App \
@@ -51,6 +53,8 @@ xcodebuild \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
   CODE_SIGN_IDENTITY="Apple Development" \
+  PROVISIONING_PROFILE_SPECIFIER= \
+  PROVISIONING_PROFILE= \
   archive
 
 echo "==> Exporting Development IPA..."
