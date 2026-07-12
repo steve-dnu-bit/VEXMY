@@ -125,6 +125,11 @@ let readerConnectInFlight = false;
 let paymentCollectionInFlight = false;
 /** Set when staff cancels from the payment overlay. */
 let paymentCollectCancelRequested = false;
+/** Rejects the in-flight collect promise when staff taps Cancel. */
+let activeCollectAbort: ((reason: Error) => void) | null = null;
+/** Brief pause between Terminal charges — back-to-back collects hang/crash on iOS. */
+let lastTerminalChargeFinishedAt = 0;
+const TERMINAL_CHARGE_SETTLE_MS = 900;
 /** After a successful connect, ignore brief BT/firmware disconnect blips. */
 let ignoreDisconnectsUntilMs = 0;
 /** Suppress setReaderDisplay briefly after connect — it drops WisePad BT sessions. */
@@ -397,6 +402,27 @@ const WISEPAD_WAITING_MESSAGE = "Waiting for card on reader…";
 const TAP_TO_PAY_CONNECT_TIMEOUT_MS = 180_000;
 const TAP_TO_PAY_CONNECT_CONFIRM_MS = 45_000;
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function isLivePhoneReader(mode: TerminalProviderOptions["readerMode"], simulated: boolean): boolean {
+  return !simulated && (mode === "tap_to_pay" || mode === "bluetooth");
+}
+
+function throwIfCollectCancelled(): void {
+  if (paymentCollectCancelRequested) {
+    throw new Error("Payment cancelled.");
+  }
+}
+
+async function waitForTerminalChargeSettle(mode: TerminalProviderOptions["readerMode"], simulated: boolean): Promise<void> {
+  if (!isLivePhoneReader(mode, simulated)) return;
+  const elapsed = Date.now() - lastTerminalChargeFinishedAt;
+  if (elapsed >= TERMINAL_CHARGE_SETTLE_MS) return;
+  await sleep(TERMINAL_CHARGE_SETTLE_MS - elapsed);
+}
+
 function withOperationTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = window.setTimeout(() => reject(new Error(message)), ms);
@@ -616,9 +642,9 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
     async cancelCollectPayment() {
       paymentCollectCancelRequested = true;
-      paymentCollectionInFlight = false;
       ignoreDisconnectsUntilMs = 0;
       latestProviderOptions?.onReaderStatus?.("Payment cancelled.");
+      activeCollectAbort?.(new Error("Payment cancelled."));
       await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
     },
 
@@ -638,13 +664,21 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         );
       }
 
+      if (paymentCollectionInFlight) {
+        throw new Error("A payment is already in progress. Wait for it to finish or cancel it first.");
+      }
+
       paymentCollectCancelRequested = false;
       paymentCollectionInFlight = true;
+      activeCollectAbort = null;
       try {
+        await waitForTerminalChargeSettle(options.readerMode, !!options.simulated);
+        throwIfCollectCancelled();
+
         let connected = await refreshConnectedReaderFromSdk();
         if (!connected && options.readerMode === "bluetooth") {
           // Brief BT blip after a prior sale — wait before rediscovering.
-          await new Promise((resolve) => window.setTimeout(resolve, 800));
+          await sleep(800);
           connected = await refreshConnectedReaderFromSdk();
         }
         if (!connected) {
@@ -657,15 +691,11 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           );
         }
 
-        // Never clearReaderDisplay / setReaderDisplay around WisePad collect — those
-        // Bluetooth commands drop the session and crash the next charge on iOS.
-        if (options.readerMode !== "bluetooth" || options.simulated) {
-          await clearNativeReaderDisplay().catch(() => undefined);
-        }
-        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+        throwIfCollectCancelled();
 
-        if (paymentCollectCancelRequested) {
-          throw new Error("Payment cancelled.");
+        // Never clearReaderDisplay around live phone readers — it drops sessions / blocks the next collect.
+        if (!isLivePhoneReader(options.readerMode, !!options.simulated)) {
+          await clearNativeReaderDisplay().catch(() => undefined);
         }
 
         options.onReaderStatus?.(
@@ -673,20 +703,27 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
             ? TAP_TO_PAY_WAITING_MESSAGE
             : WISEPAD_WAITING_MESSAGE,
         );
-        await StripeTerminal.collectPaymentMethod({ paymentIntent: clientSecret });
-        if (paymentCollectCancelRequested) {
-          throw new Error("Payment cancelled.");
-        }
+
+        const collectPromise = StripeTerminal.collectPaymentMethod({ paymentIntent: clientSecret });
+        const cancelRace = new Promise<never>((_, reject) => {
+          activeCollectAbort = reject;
+          if (paymentCollectCancelRequested) {
+            reject(new Error("Payment cancelled."));
+          }
+        });
+        await Promise.race([collectPromise, cancelRace]);
+        activeCollectAbort = null;
+        throwIfCollectCancelled();
+
         options.onReaderStatus?.("Confirming payment…");
         await StripeTerminal.confirmPaymentIntent();
-        if (paymentCollectCancelRequested) {
-          throw new Error("Payment cancelled.");
-        }
+        throwIfCollectCancelled();
 
         // Keep treating the reader as connected through post-payment BT blips.
         beginConnectionHold(30_000);
         suppressReaderDisplay(30_000);
         await refreshConnectedReaderFromSdk();
+        lastTerminalChargeFinishedAt = Date.now();
 
         const paymentIntentId = extractPaymentIntentId(clientSecret);
         return {
@@ -696,11 +733,13 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       } catch (error) {
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
         beginConnectionHold(15_000);
-        if (paymentCollectCancelRequested) {
+        lastTerminalChargeFinishedAt = Date.now();
+        if (paymentCollectCancelRequested || (error instanceof Error && /cancel/i.test(error.message))) {
           throw new Error("Payment cancelled.");
         }
         throw new Error(formatTerminalError(error, "Payment failed"));
       } finally {
+        activeCollectAbort = null;
         paymentCollectionInFlight = false;
         paymentCollectCancelRequested = false;
       }

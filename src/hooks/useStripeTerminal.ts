@@ -229,6 +229,7 @@ export function useStripeTerminal(options: {
   }, []);
 
   const cancelCollectPayment = useCallback(async () => {
+    setStatus("connected");
     try {
       const provider = providerRef.current ?? (await ensureProvider());
       if (provider.cancelCollectPayment) {

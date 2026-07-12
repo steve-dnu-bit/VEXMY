@@ -131,6 +131,7 @@ const PosCheckoutPage = () => {
   const [paymentFlowPhase, setPaymentFlowPhase] = useState<PosPaymentFlowPhase>("hidden");
   const [paymentFlowDetail, setPaymentFlowDetail] = useState<string | null>(null);
   const activeSaleIdRef = useRef<string | null>(null);
+  const paySessionActiveRef = useRef(false);
   const [paymentReceiptHint, setPaymentReceiptHint] = useState<string | null>(null);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [lastReceiptUrl, setLastReceiptUrl] = useState<string | null>(null);
@@ -731,12 +732,15 @@ function isPaymentOverlayNoise(status: string): boolean {
   const cancelPosPayment = async () => {
     setPaymentFlowPhase("timed_out");
     setPaymentFlowDetail(t("pos.paymentCancelled"));
-    setPaying(false);
     const saleId = activeSaleIdRef.current;
     try {
-      await terminal.cancelCollectPayment();
+      if (terminal.status === "discovering" || terminal.status === "connecting") {
+        await terminal.cancelConnect();
+      } else {
+        await terminal.cancelCollectPayment();
+      }
     } catch {
-      /* collect promise will also reject */
+      /* collect/connect promise will also reject */
     }
     if (saleId) {
       const { data: completeData } = await invokeEdgeFunctionJson<{
@@ -910,7 +914,12 @@ function isPaymentOverlayNoise(status: string): boolean {
       toast.error(t("pos.artistConnectMissingBeforePay"));
       return;
     }
+    if (paySessionActiveRef.current) {
+      toast.message(t("pos.paymentInProgressWait"));
+      return;
+    }
 
+    paySessionActiveRef.current = true;
     setPaying(true);
     setPaymentReceiptHint(null);
     setLastReceiptUrl(null);
@@ -1058,6 +1067,7 @@ function isPaymentOverlayNoise(status: string): boolean {
         activeSaleIdRef.current = null;
       }
     } finally {
+      paySessionActiveRef.current = false;
       setPaying(false);
       if (!usingTapToPay && !usingWisePad) {
         setPaymentFlowPhase("hidden");

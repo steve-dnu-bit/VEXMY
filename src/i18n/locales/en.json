@@ -2231,6 +2231,7 @@
     "paymentInitializingHint": "Tap to Pay on iPhone will be ready shortly. Keep Velbok open.",
     "paymentProcessing": "Processing payment…",
     "paymentProcessingHint": "Follow the prompts on the reader or phone. You can cancel below if needed.",
+    "paymentInProgressWait": "Wait for the current payment to finish or cancel it before starting another.",
     "paymentApproved": "Payment approved",
     "paymentDeclined": "Payment declined",
     "paymentTimedOut": "Payment cancelled",
