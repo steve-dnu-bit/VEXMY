@@ -70,6 +70,24 @@ export async function sendPosReceiptEmailIfNeeded(
     if (isValidEmail(bookingEmail)) clientEmail = bookingEmail;
   }
 
+  if (!isValidEmail(clientEmail) && sale.client_name?.trim()) {
+    const { data: rows } = await admin
+      .from("bookings")
+      .select("client_email")
+      .eq("organization_id", sale.organization_id)
+      .ilike("client_name", sale.client_name.trim())
+      .not("client_email", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    for (const row of rows ?? []) {
+      const email = row.client_email?.trim().toLowerCase() || null;
+      if (isValidEmail(email)) {
+        clientEmail = email;
+        break;
+      }
+    }
+  }
+
   if (!isValidEmail(clientEmail)) {
     return { sent: false, skipped: "no_client_email" };
   }
@@ -207,6 +225,24 @@ export async function sendPosCancelledNoticeEmailIfNeeded(
     bookingClientUserId = booking?.client_user_id ?? null;
     const bookingEmail = booking?.client_email?.trim().toLowerCase() || null;
     if (isValidEmail(bookingEmail)) clientEmail = bookingEmail;
+  }
+
+  if (!isValidEmail(clientEmail) && sale.client_name?.trim()) {
+    const { data: rows } = await admin
+      .from("bookings")
+      .select("client_email")
+      .eq("organization_id", sale.organization_id)
+      .ilike("client_name", sale.client_name.trim())
+      .not("client_email", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    for (const row of rows ?? []) {
+      const email = row.client_email?.trim().toLowerCase() || null;
+      if (isValidEmail(email)) {
+        clientEmail = email;
+        break;
+      }
+    }
   }
 
   if (!isValidEmail(clientEmail)) {

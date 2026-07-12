@@ -68,6 +68,81 @@ function normalizeClientEmail(value: unknown): string | null {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
 }
 
+/**
+ * Resolve client email for automatic POS receipts (server Resend/SMTP — not the phone mail app).
+ * Order: explicit → linked booking → profile → latest org booking matching client name.
+ */
+async function resolveClientEmailForPos(params: {
+  // deno-lint-ignore no-explicit-any
+  admin: any;
+  organizationId: string;
+  clientEmail?: string | null;
+  clientName?: string | null;
+  bookingId?: string | null;
+}): Promise<string | null> {
+  const explicit = normalizeClientEmail(params.clientEmail);
+  if (explicit) return explicit;
+
+  if (params.bookingId) {
+    const { data: booking } = await params.admin
+      .from("bookings")
+      .select("client_email, client_user_id")
+      .eq("id", params.bookingId)
+      .eq("organization_id", params.organizationId)
+      .maybeSingle();
+    const fromBooking = normalizeClientEmail(booking?.client_email);
+    if (fromBooking) return fromBooking;
+    if (booking?.client_user_id) {
+      const { data: profile } = await params.admin
+        .from("profiles")
+        .select("email")
+        .eq("user_id", booking.client_user_id)
+        .maybeSingle();
+      const fromProfile = normalizeClientEmail(profile?.email);
+      if (fromProfile) return fromProfile;
+    }
+  }
+
+  const name = typeof params.clientName === "string" ? params.clientName.trim() : "";
+  if (name.length >= 2) {
+    const { data: rows } = await params.admin
+      .from("bookings")
+      .select("client_email")
+      .eq("organization_id", params.organizationId)
+      .ilike("client_name", name)
+      .not("client_email", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(8);
+
+    for (const row of rows ?? []) {
+      const email = normalizeClientEmail(row.client_email);
+      if (email) return email;
+    }
+
+    const { data: withUser } = await params.admin
+      .from("bookings")
+      .select("client_user_id")
+      .eq("organization_id", params.organizationId)
+      .ilike("client_name", name)
+      .not("client_user_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    for (const row of withUser ?? []) {
+      if (!row.client_user_id) continue;
+      const { data: profile } = await params.admin
+        .from("profiles")
+        .select("email")
+        .eq("user_id", row.client_user_id)
+        .maybeSingle();
+      const email = normalizeClientEmail(profile?.email);
+      if (email) return email;
+    }
+  }
+
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -311,7 +386,14 @@ serve(async (req) => {
       const artistId = typeof body.artistId === "string" ? body.artistId : null;
       const items = Array.isArray(body.items) ? (body.items as PosLineItem[]) : [];
       const clientName = typeof body.clientName === "string" ? body.clientName.trim() : "";
-      let clientEmail = normalizeClientEmail(body.clientEmail);
+      let clientEmail = await resolveClientEmailForPos({
+        admin,
+        organizationId: orgId,
+        clientEmail: body.clientEmail,
+        clientName,
+        bookingId,
+      });
+
       const shopAmount = Number(body.shopAmount) || 0;
       const artistAmount = Number(body.artistAmount) || 0;
       const shopSplitPercent = Number(body.shopSplitPercent) || 0;
@@ -359,15 +441,6 @@ serve(async (req) => {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
-        }
-
-        if (!clientEmail) {
-          const { data: bookingEmailRow } = await admin
-            .from("bookings")
-            .select("client_email")
-            .eq("id", bookingId)
-            .maybeSingle();
-          clientEmail = normalizeClientEmail(bookingEmailRow?.client_email);
         }
 
         if (depositCreditAmount > 0) {

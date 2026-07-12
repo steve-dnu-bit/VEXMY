@@ -2195,7 +2195,7 @@
     "selectArtistToCharge": "Select an artist or shop session before charging",
     "clientEmail": "Client email",
     "clientEmailPlaceholder": "name@example.com",
-    "clientEmailHint": "A PDF receipt will be emailed after payment if an address is provided.",
+    "clientEmailHint": "Receipts send automatically from Velbok (not the phone mail app) when we know the client email — from this field, a linked booking, or a past booking with the same name. Share is only a backup.",
     "receiptEmailSent": "Receipt emailed to the client.",
     "orderSummary": "Order summary",
     "withArtist": "With {{name}}",
