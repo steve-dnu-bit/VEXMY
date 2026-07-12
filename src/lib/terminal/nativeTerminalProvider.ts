@@ -87,47 +87,12 @@ function notifyFirmwareUpdate(active: boolean, progress = 0): void {
 let paymentCollectionInFlight = false;
 /** True while discover/connect is running — do not kick off optional installs mid-connect. */
 let readerConnectInFlight = false;
-let firmwareInstallKickoffInFlight = false;
-/** Optional update reported while we were busy — install after connect settles. */
-let pendingOptionalFirmwareInstall = false;
 
-async function kickOffOptionalFirmwareInstall(reason: string): Promise<void> {
-  if (paymentCollectionInFlight || readerConnectInFlight) {
-    pendingOptionalFirmwareInstall = true;
-    latestProviderOptions?.onReaderStatus?.(
-      "WisePad update available — it will install after connection finishes.",
-    );
-    return;
-  }
-  if (isReaderFirmwareUpdating() || firmwareInstallKickoffInFlight) return;
-
-  pendingOptionalFirmwareInstall = false;
-  latestProviderOptions?.onReaderStatus?.(reason);
-  firmwareInstallKickoffInFlight = true;
-  try {
-    await StripeTerminal.installAvailableUpdate();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error ?? "unknown error");
-    latestProviderOptions?.onReaderStatus?.(
-      `Could not start WisePad firmware update: ${message}. Disconnect, move closer, use mobile data, then reconnect.`,
-    );
-    notifyFirmwareUpdate(false);
-  } finally {
-    firmwareInstallKickoffInFlight = false;
-  }
-}
-
-function scheduleDeferredOptionalFirmwareInstall(): void {
-  if (!pendingOptionalFirmwareInstall) return;
-  window.setTimeout(() => {
-    if (!pendingOptionalFirmwareInstall) return;
-    if (paymentCollectionInFlight || readerConnectInFlight || isReaderFirmwareUpdating()) return;
-    void kickOffOptionalFirmwareInstall(
-      "WisePad firmware update available — starting install. Keep Velbok open and the reader nearby.",
-    );
-  }, 1500);
-}
-
+/**
+ * Optional WisePad updates must be installed manually.
+ * Auto-calling installAvailableUpdate during/after connect has crashed the iOS app
+ * (disconnect + install overlapping connectReader).
+ */
 async function registerTerminalListeners(): Promise<void> {
   if (connectionTokenListenerRegistered) return;
 
@@ -209,9 +174,10 @@ async function registerTerminalEventListeners(): Promise<void> {
 
   // Optional WisePad updates are reported as available but do NOT install until we call
   // installAvailableUpdate(). Never start that during connect/collect — it crashes the iOS SDK.
+  // Optional updates: report only. Never auto-install — that races with connect and crashes iOS.
   await StripeTerminal.addListener(TerminalEventsEnum.ReportAvailableUpdate, () => {
-    void kickOffOptionalFirmwareInstall(
-      "WisePad firmware update available — starting install. Keep Velbok open and the reader nearby.",
+    latestProviderOptions?.onReaderStatus?.(
+      "WisePad optional update available. You can keep taking payments; install later from Setup if prompted.",
     );
   });
 
@@ -379,7 +345,6 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
     async discoverAndConnect() {
       const options = activeOptions();
       readerConnectInFlight = true;
-      pendingOptionalFirmwareInstall = false;
       try {
         beginTerminalOperation();
 
@@ -529,15 +494,18 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         throw new Error(formatTerminalError(error, "Reader connection failed"));
       } finally {
         readerConnectInFlight = false;
-        scheduleDeferredOptionalFirmwareInstall();
       }
     },
 
     async disconnect() {
-      await clearNativeReaderDisplay();
-      await StripeTerminal.disconnectReader();
-      sdkConnectedReader = null;
-      clearTerminalConnectionEstablished();
+      try {
+        await clearNativeReaderDisplay().catch(() => undefined);
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+        await StripeTerminal.disconnectReader();
+      } finally {
+        sdkConnectedReader = null;
+        clearTerminalConnectionEstablished();
+      }
     },
 
     async collectAndProcess(clientSecret: string) {

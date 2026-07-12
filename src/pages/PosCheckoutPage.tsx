@@ -198,11 +198,7 @@ const PosCheckoutPage = () => {
         markWisePadFirmwareCompleted();
         setShowWisePadGuide(false);
         toast.success(t("pos.wisePadFirmwareComplete"));
-        // Defer disconnect so Stripe can finish native callbacks without crashing.
-        window.setTimeout(() => {
-          void terminal.disconnect().catch(() => undefined);
-          toast.message(t("pos.wisePadReconnectAfterFirmware"));
-        }, 800);
+        // Do NOT disconnect here — tearing down mid/post-connect crashes Stripe Terminal on iOS.
       }
     },
   });

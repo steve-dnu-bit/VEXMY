@@ -376,6 +376,56 @@ if (!source.includes(markerV2)) {
   console.log("[patch-stripe-terminal-ios] Finish-update crash fix (v2) already present.");
 }
 
+const markerV3 = "// velbok: ios listener payload json-safe v3";
+if (!source.includes(markerV3)) {
+  // Capacitor can crash when notifyListeners receives OptionSet/enum rawValues (UInt).
+  let replacedInput = 0;
+  const oldInput = `self.plugin?.notifyListeners(TerminalEvents.RequestReaderInput.rawValue, data: ["options": TerminalMappers.mapFromReaderInputOptions(inputOptions), "message": inputOptions.rawValue])`;
+  const newInput = `${markerV3}
+        self.plugin?.notifyListeners(TerminalEvents.RequestReaderInput.rawValue, data: ["options": TerminalMappers.mapFromReaderInputOptions(inputOptions), "message": String(describing: inputOptions)])`;
+  while (source.includes(oldInput)) {
+    source = source.replace(oldInput, newInput);
+    replacedInput += 1;
+  }
+  if (replacedInput > 0) {
+    applied += replacedInput;
+    console.log(`[patch-stripe-terminal-ios] Applied RequestReaderInput JSON-safe fix (${replacedInput}).`);
+  }
+
+  let replacedDisplay = 0;
+  const oldDisplay = `"message": displayMessage.rawValue`;
+  const newDisplay = `"message": result /* ${markerV3} */`;
+  while (source.includes(oldDisplay)) {
+    source = source.replace(oldDisplay, newDisplay);
+    replacedDisplay += 1;
+  }
+  if (replacedDisplay > 0) {
+    applied += replacedDisplay;
+    console.log(`[patch-stripe-terminal-ios] Applied RequestDisplayMessage JSON-safe fix (${replacedDisplay}).`);
+  }
+
+  const oldReconnect = `self.plugin?.notifyListeners(TerminalEvents.ReaderReconnectStarted.rawValue, data: ["reader": self.convertReaderInterface(reader: reader), "reason": disconnectReason.rawValue])`;
+  const newReconnect = `${markerV3}
+        self.plugin?.notifyListeners(TerminalEvents.ReaderReconnectStarted.rawValue, data: ["reader": self.convertReaderInterface(reader: reader), "reason": TerminalMappers.mapFromReaderDisconnectReason(disconnectReason)])`;
+  if (source.includes(oldReconnect)) {
+    source = source.replace(oldReconnect, newReconnect);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Applied ReaderReconnectStarted JSON-safe fix.");
+  }
+
+  // Soften UnexpectedReaderDisconnect — convertReaderInterface during disconnect can fault.
+  const oldUnexpected = `        self.plugin?.notifyListeners(TerminalEvents.UnexpectedReaderDisconnect.rawValue, data: ["reader": self.convertReaderInterface(reader: reader)])`;
+  const newUnexpected = `        ${markerV3}
+        self.plugin?.notifyListeners(TerminalEvents.UnexpectedReaderDisconnect.rawValue, data: [:])`;
+  if (source.includes(oldUnexpected)) {
+    source = source.replace(oldUnexpected, newUnexpected);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Applied UnexpectedReaderDisconnect safety fix.");
+  }
+} else {
+  console.log("[patch-stripe-terminal-ios] Listener payload JSON-safe fix (v3) already present.");
+}
+
 if (applied > 0) {
   fs.writeFileSync(target, source);
   console.log(`[patch-stripe-terminal-ios] Wrote ${applied} patch(es).`);

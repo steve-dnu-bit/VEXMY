@@ -62,6 +62,10 @@ if ! grep -q "velbok: ios finish-update nil crash fix v2" "$PLUGIN_SWIFT"; then
   echo "ERROR: WisePad crash patch missing from StripeTerminal.swift — refuse to archive."
   exit 1
 fi
+if ! grep -q "velbok: ios listener payload json-safe v3" "$PLUGIN_SWIFT"; then
+  echo "ERROR: Listener JSON-safe patch (v3) missing — refuse to archive."
+  exit 1
+fi
 echo "    Stripe Terminal crash patches OK"
 
 echo "==> Archiving with Automatic signing (team $TEAM_ID)..."
