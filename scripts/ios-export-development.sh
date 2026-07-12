@@ -51,6 +51,19 @@ if [[ "$PBX_VERSION" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
+echo "==> Ensuring Stripe Terminal iOS patches are applied..."
+node "$ROOT/scripts/patch-stripe-terminal-ios.mjs"
+PLUGIN_SWIFT="$ROOT/node_modules/@capacitor-community/stripe-terminal/ios/Sources/StripeTerminalPlugin/StripeTerminal.swift"
+if [[ ! -f "$PLUGIN_SWIFT" ]]; then
+  echo "ERROR: Stripe Terminal iOS plugin missing. Run: npm install && npm run ios:prepare"
+  exit 1
+fi
+if ! grep -q "velbok: ios finish-update nil crash fix v2" "$PLUGIN_SWIFT"; then
+  echo "ERROR: WisePad crash patch missing from StripeTerminal.swift — refuse to archive."
+  exit 1
+fi
+echo "    Stripe Terminal crash patches OK"
+
 echo "==> Archiving with Automatic signing (team $TEAM_ID)..."
 echo "    git HEAD=$(git -C "$ROOT" rev-parse --short HEAD)"
 cd "$ROOT/ios/App"

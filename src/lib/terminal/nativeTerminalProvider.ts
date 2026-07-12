@@ -85,7 +85,48 @@ function notifyFirmwareUpdate(active: boolean, progress = 0): void {
 
 /** Prevent optional firmware install from starting while a card payment is in flight. */
 let paymentCollectionInFlight = false;
+/** True while discover/connect is running — do not kick off optional installs mid-connect. */
+let readerConnectInFlight = false;
 let firmwareInstallKickoffInFlight = false;
+/** Optional update reported while we were busy — install after connect settles. */
+let pendingOptionalFirmwareInstall = false;
+
+async function kickOffOptionalFirmwareInstall(reason: string): Promise<void> {
+  if (paymentCollectionInFlight || readerConnectInFlight) {
+    pendingOptionalFirmwareInstall = true;
+    latestProviderOptions?.onReaderStatus?.(
+      "WisePad update available — it will install after connection finishes.",
+    );
+    return;
+  }
+  if (isReaderFirmwareUpdating() || firmwareInstallKickoffInFlight) return;
+
+  pendingOptionalFirmwareInstall = false;
+  latestProviderOptions?.onReaderStatus?.(reason);
+  firmwareInstallKickoffInFlight = true;
+  try {
+    await StripeTerminal.installAvailableUpdate();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error ?? "unknown error");
+    latestProviderOptions?.onReaderStatus?.(
+      `Could not start WisePad firmware update: ${message}. Disconnect, move closer, use mobile data, then reconnect.`,
+    );
+    notifyFirmwareUpdate(false);
+  } finally {
+    firmwareInstallKickoffInFlight = false;
+  }
+}
+
+function scheduleDeferredOptionalFirmwareInstall(): void {
+  if (!pendingOptionalFirmwareInstall) return;
+  window.setTimeout(() => {
+    if (!pendingOptionalFirmwareInstall) return;
+    if (paymentCollectionInFlight || readerConnectInFlight || isReaderFirmwareUpdating()) return;
+    void kickOffOptionalFirmwareInstall(
+      "WisePad firmware update available — starting install. Keep Velbok open and the reader nearby.",
+    );
+  }, 1500);
+}
 
 async function registerTerminalListeners(): Promise<void> {
   if (connectionTokenListenerRegistered) return;
@@ -167,31 +208,11 @@ async function registerTerminalEventListeners(): Promise<void> {
   });
 
   // Optional WisePad updates are reported as available but do NOT install until we call
-  // installAvailableUpdate(). Without that call the UI can sit at 0% forever.
+  // installAvailableUpdate(). Never start that during connect/collect — it crashes the iOS SDK.
   await StripeTerminal.addListener(TerminalEventsEnum.ReportAvailableUpdate, () => {
-    if (paymentCollectionInFlight) {
-      latestProviderOptions?.onReaderStatus?.(
-        "WisePad update available — it will install after this payment finishes.",
-      );
-      return;
-    }
-    if (isReaderFirmwareUpdating() || firmwareInstallKickoffInFlight) return;
-
-    latestProviderOptions?.onReaderStatus?.(
+    void kickOffOptionalFirmwareInstall(
       "WisePad firmware update available — starting install. Keep Velbok open and the reader nearby.",
     );
-    firmwareInstallKickoffInFlight = true;
-    void StripeTerminal.installAvailableUpdate()
-      .catch((error) => {
-        const message = error instanceof Error ? error.message : String(error ?? "unknown error");
-        latestProviderOptions?.onReaderStatus?.(
-          `Could not start WisePad firmware update: ${message}. Disconnect, move closer, use mobile data, then reconnect.`,
-        );
-        notifyFirmwareUpdate(false);
-      })
-      .finally(() => {
-        firmwareInstallKickoffInFlight = false;
-      });
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, () => {
@@ -357,6 +378,8 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
     async discoverAndConnect() {
       const options = activeOptions();
+      readerConnectInFlight = true;
+      pendingOptionalFirmwareInstall = false;
       try {
         beginTerminalOperation();
 
@@ -390,6 +413,12 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           await fetchTerminalConnectionToken(locationId);
         }
 
+        options.onReaderStatus?.(
+          options.readerMode === "bluetooth" && !options.simulated
+            ? "Searching for WisePad…"
+            : "Searching for reader…",
+        );
+
         const readers = options.simulated
           ? (await StripeTerminal.discoverReaders({
               type: TerminalConnectTypes.Simulated,
@@ -407,6 +436,9 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           throw new Error(wisePadNotFoundMessage());
         }
 
+        // Let discovery cancel settle before connect — overlapping commands crash Stripe Terminal on iOS.
+        await new Promise((resolve) => window.setTimeout(resolve, 400));
+
         const connectOnce = async (activeLocationId: string) => {
           options.onReaderStatus?.(
             options.readerMode === "tap_to_pay" && !options.simulated
@@ -422,9 +454,8 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
             merchantDisplayName?: string;
           } = {
             reader: readers[0],
-            // iOS Tap to Pay: avoid auto-reconnect config issues; reconnect manually if needed.
-            autoReconnectOnUnexpectedDisconnect:
-              options.readerMode === "tap_to_pay" && nativePlatform() === "ios" ? false : true,
+            // Auto-reconnect during/after firmware has caused native crashes on iOS.
+            autoReconnectOnUnexpectedDisconnect: false,
             locationId: activeLocationId,
           };
           if (options.readerMode === "tap_to_pay") {
@@ -442,12 +473,14 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           const timeoutMs =
             options.readerMode === "tap_to_pay" && !options.simulated
               ? TAP_TO_PAY_CONNECT_TIMEOUT_MS
-              : 60_000;
+              : 90_000;
 
           await withOperationTimeout(
             connectPromise,
             timeoutMs,
-            "Tap to Pay connection timed out. Keep Velbok in the foreground, allow Location, and try mobile data.",
+            options.readerMode === "bluetooth"
+              ? "WisePad connection timed out. Keep the reader powered on and within 1 metre, then try again."
+              : "Tap to Pay connection timed out. Keep Velbok in the foreground, allow Location, and try mobile data.",
           );
         };
 
@@ -480,8 +513,9 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         );
         sdkConnectedReader = connectedReader;
 
-        if (lastDisplayCart) {
-          await new Promise((resolve) => window.setTimeout(resolve, 600));
+        // Skip cart display right after connect — it races with required firmware install on WisePad.
+        if (lastDisplayCart && !isReaderFirmwareUpdating()) {
+          await new Promise((resolve) => window.setTimeout(resolve, 800));
           try {
             await pushDisplay(lastDisplayCart);
           } catch (displayError) {
@@ -493,6 +527,9 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       } catch (error) {
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
         throw new Error(formatTerminalError(error, "Reader connection failed"));
+      } finally {
+        readerConnectInFlight = false;
+        scheduleDeferredOptionalFirmwareInstall();
       }
     },
 

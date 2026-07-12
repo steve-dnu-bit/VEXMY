@@ -198,9 +198,11 @@ const PosCheckoutPage = () => {
         markWisePadFirmwareCompleted();
         setShowWisePadGuide(false);
         toast.success(t("pos.wisePadFirmwareComplete"));
-        // Fresh connect after firmware avoids Stripe SDK crashes on the next charge.
-        void terminal.disconnect().catch(() => undefined);
-        toast.message(t("pos.wisePadReconnectAfterFirmware"));
+        // Defer disconnect so Stripe can finish native callbacks without crashing.
+        window.setTimeout(() => {
+          void terminal.disconnect().catch(() => undefined);
+          toast.message(t("pos.wisePadReconnectAfterFirmware"));
+        }, 800);
       }
     },
   });
