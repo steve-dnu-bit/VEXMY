@@ -1,7 +1,6 @@
 import Foundation
 import Capacitor
 import UIKit
-import Security
 
 #if canImport(ProximityReader)
 import ProximityReader
@@ -17,18 +16,20 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "isAvailable", returnType: CAPPluginReturnPromise),
     ]
 
+    /// SecTask entitlement APIs are macOS-only; on iOS scan the embedded profile when present.
     private func hasTapToPayEntitlement() -> Bool {
-        guard let task = SecTaskCreateFromSelf(nil) else { return false }
-        guard let value = SecTaskCopyValueForEntitlement(
-            task,
-            "com.apple.developer.proximity-reader.payment.acceptance" as CFString,
-            nil
-        ) else {
-            return false
-        }
-        if let boolValue = value as? Bool { return boolValue }
-        if let number = value as? NSNumber { return number.boolValue }
+        if UIDevice.current.userInterfaceIdiom == .pad { return false }
+        #if targetEnvironment(simulator)
         return false
+        #else
+        if let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+           let data = try? Data(contentsOf: url),
+           let text = String(data: data, encoding: .ascii) ?? String(data: data, encoding: .utf8) {
+            return text.contains("com.apple.developer.proximity-reader.payment.acceptance")
+        }
+        // Signed device builds may omit a readable provision; App.entitlements carries the key.
+        return true
+        #endif
     }
 
     @objc func isAvailable(_ call: CAPPluginCall) {
@@ -52,7 +53,7 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func showHowToTap(_ call: CAPPluginCall) {
         guard hasTapToPayEntitlement() else {
             call.reject(
-                "Tap to Pay on iPhone requires Apple's com.apple.developer.proximity-reader.payment.acceptance entitlement on com.velbok.app. Request it from Apple Developer, regenerate your provisioning profile, then rebuild."
+                "Tap to Pay on iPhone requires Apple's com.apple.developer.proximity-reader.payment.acceptance entitlement on com.velbok.app. Enable Tap to Pay on iPhone under Additional Capabilities, use a Development profile that includes it, then rebuild."
             )
             return
         }
