@@ -540,6 +540,39 @@ export function buildPosReceiptEmail(params: {
   });
 }
 
+export function buildPosCancelNoticeEmail(params: {
+  brand?: ShopBranding;
+  clientName: string;
+  receiptNumber: string;
+  amountText: string;
+  cancelled: boolean;
+  locale?: EmailLanguage;
+}): string {
+  const brand = params.brand ?? getShopBranding();
+  const locale = params.locale ?? "en";
+  const intro = params.cancelled
+    ? t(locale, "posCancelNotice.introCancelled", { shopName: escapeHtml(brand.shopName) })
+    : t(locale, "posCancelNotice.introFailed", { shopName: escapeHtml(brand.shopName) });
+
+  const details = emailDetailTable([
+    { label: t(locale, "posCancelNotice.reference"), value: params.receiptNumber },
+    { label: t(locale, "posCancelNotice.amountAttempted"), value: params.amountText },
+  ]);
+
+  return emailLayout({
+    brand,
+    locale,
+    badge: t(locale, "posCancelNotice.badge"),
+    title: params.cancelled
+      ? t(locale, "posCancelNotice.titleCancelled")
+      : t(locale, "posCancelNotice.titleFailed"),
+    greeting: t(locale, "common.greeting", { name: escapeHtml(params.clientName) }),
+    intro,
+    bodyHtml: details,
+    footerNote: t(locale, "posCancelNotice.footer"),
+  });
+}
+
 export function buildAftercareEmail(params: {
   kind: "tattoo" | "piercing";
   clientName: string;

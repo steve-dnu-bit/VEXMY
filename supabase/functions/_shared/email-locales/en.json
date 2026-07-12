@@ -183,6 +183,10 @@
     },
     "posReceipt": {
       "default": "Your receipt {{receiptNumber}} — {{shopName}}"
+    },
+    "posCancelNotice": {
+      "cancelled": "Payment cancelled {{receiptNumber}} — {{shopName}}",
+      "failed": "Payment not completed {{receiptNumber}} — {{shopName}}"
     }
   },
   "posReceipt": {
@@ -206,6 +210,16 @@
       "body": "Your itemised receipt is attached as a PDF. Keep it for your records."
     },
     "footer": "This receipt was sent automatically after your in-studio payment."
+  },
+  "posCancelNotice": {
+    "badge": "Payment update",
+    "titleCancelled": "Payment cancelled",
+    "titleFailed": "Payment not completed",
+    "introCancelled": "Your card payment at {{shopName}} was cancelled. No charge was taken.",
+    "introFailed": "Your card payment at {{shopName}} was not completed. No charge was taken.",
+    "amountAttempted": "Amount attempted",
+    "reference": "Reference",
+    "footer": "If you have questions, reply to this email or contact the studio."
   },
   "reviewRequest": {
     "badge": "Thank you",

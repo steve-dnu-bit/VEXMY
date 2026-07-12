@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getShopBrandingForBooking } from "./branding.ts";
-import { buildPosReceiptEmail } from "./email-templates.ts";
+import { buildPosReceiptEmail, buildPosCancelNoticeEmail } from "./email-templates.ts";
 import { emailLocaleToIntlDateLocale, resolveEmailLocale, t, type EmailLanguage } from "./email-i18n.ts";
 import { getEmailDeliveryStatus, sendTransactionalEmail } from "./email.ts";
 import { buildPosReceiptPdf, type PosReceiptLineItem } from "./pos-receipt-pdf.ts";
@@ -166,6 +166,97 @@ export async function sendPosReceiptEmailIfNeeded(
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed to send receipt email";
     console.error("POS receipt email failed", { saleId, clientEmail, message });
+    return { sent: false, error: message };
+  }
+}
+
+/** Short notice when a Terminal payment was cancelled or failed — no charge taken. */
+export async function sendPosCancelledNoticeEmailIfNeeded(
+  admin: SupabaseClient,
+  saleId: string,
+): Promise<PosReceiptSendResult> {
+  const emailConfig = getEmailDeliveryStatus();
+  if (!emailConfig.from || (!emailConfig.resendApi && !emailConfig.smtp)) {
+    return { sent: false, skipped: "email_not_configured" };
+  }
+
+  const { data: sale } = await admin
+    .from("pos_sales")
+    .select(
+      "id, organization_id, artist_id, client_name, client_email, booking_id, currency, total, status, created_at, receipt_email_sent_at",
+    )
+    .eq("id", saleId)
+    .maybeSingle();
+
+  if (!sale || (sale.status !== "cancelled" && sale.status !== "failed")) {
+    return { sent: false, skipped: "sale_not_cancelled" };
+  }
+  if (sale.receipt_email_sent_at) {
+    return { sent: false, skipped: "already_sent" };
+  }
+
+  let clientEmail = sale.client_email?.trim().toLowerCase() || null;
+  let bookingClientUserId: string | null = null;
+
+  if (!isValidEmail(clientEmail) && sale.booking_id) {
+    const { data: booking } = await admin
+      .from("bookings")
+      .select("client_email, client_user_id")
+      .eq("id", sale.booking_id)
+      .maybeSingle();
+    bookingClientUserId = booking?.client_user_id ?? null;
+    const bookingEmail = booking?.client_email?.trim().toLowerCase() || null;
+    if (isValidEmail(bookingEmail)) clientEmail = bookingEmail;
+  }
+
+  if (!isValidEmail(clientEmail)) {
+    return { sent: false, skipped: "no_client_email" };
+  }
+
+  const brand = await getShopBrandingForBooking(admin, {
+    organizationId: sale.organization_id,
+    artistId: sale.artist_id,
+  });
+  const locale: EmailLanguage = await resolveEmailLocale(admin, {
+    recipientUserId: bookingClientUserId,
+    organizationId: sale.organization_id,
+  });
+  const receiptNumber = sale.id.slice(0, 8).toUpperCase();
+  const clientName = sale.client_name?.trim() || "Guest";
+  const amountText = formatShopMoney(Number(sale.total) || 0, sale.currency || "gbp");
+  const cancelled = sale.status === "cancelled";
+
+  const html = buildPosCancelNoticeEmail({
+    brand,
+    locale,
+    clientName,
+    receiptNumber,
+    amountText,
+    cancelled,
+  });
+
+  try {
+    await sendTransactionalEmail({
+      to: clientEmail,
+      subject: cancelled
+        ? t(locale, "subjects.posCancelNotice.cancelled", { shopName: brand.shopName, receiptNumber })
+        : t(locale, "subjects.posCancelNotice.failed", { shopName: brand.shopName, receiptNumber }),
+      html,
+      fromKind: "booking",
+      fromDisplayName: brand.shopName,
+      replyTo: brand.supportEmail ?? undefined,
+    });
+
+    await admin
+      .from("pos_sales")
+      .update({ receipt_email_sent_at: new Date().toISOString(), client_email: clientEmail })
+      .eq("id", saleId)
+      .is("receipt_email_sent_at", null);
+
+    return { sent: true };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to send cancel notice email";
+    console.error("POS cancel notice email failed", { saleId, clientEmail, message });
     return { sent: false, error: message };
   }
 }

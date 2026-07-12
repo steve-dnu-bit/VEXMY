@@ -130,6 +130,7 @@ const PosCheckoutPage = () => {
   const [paying, setPaying] = useState(false);
   const [paymentFlowPhase, setPaymentFlowPhase] = useState<PosPaymentFlowPhase>("hidden");
   const [paymentFlowDetail, setPaymentFlowDetail] = useState<string | null>(null);
+  const activeSaleIdRef = useRef<string | null>(null);
   const [paymentReceiptHint, setPaymentReceiptHint] = useState<string | null>(null);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
@@ -710,24 +711,40 @@ const PosCheckoutPage = () => {
     return "declined";
   };
 
+function isPaymentOverlayNoise(status: string): boolean {
+  return /signal dropped|keeping session|reconnecting|optional update/i.test(status);
+}
+
   const paymentOverlayDetail = (() => {
     if (paymentFlowDetail) return paymentFlowDetail;
-    if (!usingTapToPay) return null;
+    if (!usingTapToPay && !usingWisePad) return null;
     const status = terminal.readerStatus?.trim() || "";
-    if (!status) return null;
-    // Don't show WisePad-style recovery noise on the Tap to Pay payment sheet.
-    if (/signal dropped|keeping session|reconnecting|optional update/i.test(status)) return null;
+    if (!status || isPaymentOverlayNoise(status)) return null;
     return status;
   })();
 
-  const cancelTapToPayPayment = async () => {
+  const cancelPosPayment = async () => {
     setPaymentFlowPhase("timed_out");
     setPaymentFlowDetail(t("pos.paymentCancelled"));
     setPaying(false);
+    const saleId = activeSaleIdRef.current;
     try {
       await terminal.cancelCollectPayment();
     } catch {
       /* collect promise will also reject */
+    }
+    if (saleId) {
+      const { data: completeData } = await invokeEdgeFunctionJson<{
+        receiptEmail?: { sent?: boolean } | null;
+      }>("stripe-terminal-pos", {
+        action: "complete_sale",
+        saleId,
+        status: "cancelled",
+      });
+      if (completeData?.receiptEmail?.sent) {
+        setPaymentReceiptHint(t("pos.cancelReceiptEmailSent"));
+      }
+      activeSaleIdRef.current = null;
     }
   };
 
@@ -762,12 +779,15 @@ const PosCheckoutPage = () => {
   const shareDigitalReceipt = async (overrideEmail?: string) => {
     const email = (overrideEmail || clientEmail).trim();
     const amountText = formatShopMoney(amountDue > 0 ? amountDue : totals.total, currency);
+    const cancelled =
+      paymentFlowPhase === "timed_out" || paymentFlowPhase === "declined";
     const body = [
       t("pos.checkoutTitle"),
+      cancelled ? t("pos.paymentCancelled") : t("pos.paymentApproved"),
       clientName.trim() ? `${t("pos.clientName")}: ${clientName.trim()}` : null,
       `${t("pos.total")}: ${amountText}`,
       lastSaleId ? `Sale: ${lastSaleId}` : null,
-      t("pos.tapToPayFallbackWisePad"),
+      cancelled ? t("pos.cancelReceiptNote") : t("pos.tapToPayFallbackWisePad"),
     ]
       .filter(Boolean)
       .join("\n");
@@ -775,7 +795,7 @@ const PosCheckoutPage = () => {
     if (email) {
       setClientEmail(email);
       window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(
-        t("pos.digitalReceiptTitle"),
+        cancelled ? t("pos.cancelReceiptEmailSubject") : t("pos.digitalReceiptTitle"),
       )}&body=${encodeURIComponent(body)}`;
       setPaymentReceiptHint(t("pos.receiptShared"));
       return;
@@ -783,7 +803,10 @@ const PosCheckoutPage = () => {
 
     try {
       if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-        await navigator.share({ title: t("pos.digitalReceiptTitle"), text: body });
+        await navigator.share({
+          title: cancelled ? t("pos.cancelReceiptEmailSubject") : t("pos.digitalReceiptTitle"),
+          text: body,
+        });
         setPaymentReceiptHint(t("pos.receiptShared"));
         return;
       }
@@ -824,6 +847,7 @@ const PosCheckoutPage = () => {
     setPaying(true);
     setPaymentReceiptHint(null);
     setPaymentFlowDetail(null);
+    activeSaleIdRef.current = null;
     let saleId: string | null = null;
     try {
       if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
@@ -831,7 +855,7 @@ const PosCheckoutPage = () => {
         if (!connected) return;
       }
 
-      if (usingTapToPay && amountDue > 0) {
+      if (amountDue > 0 && (usingTapToPay || usingWisePad)) {
         setPaymentFlowPhase("processing");
       }
 
@@ -865,10 +889,11 @@ const PosCheckoutPage = () => {
       }
 
       saleId = piData.saleId;
+      activeSaleIdRef.current = piData.saleId;
 
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
-        if (usingTapToPay) {
+        if (usingTapToPay || usingWisePad) {
           setPaymentFlowPhase("approved");
           setPaymentFlowDetail(t("pos.depositCoversBalance"));
           if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
@@ -902,7 +927,7 @@ const PosCheckoutPage = () => {
       });
 
       setLastSaleId(piData.saleId);
-      if (usingTapToPay) {
+      if (usingTapToPay || usingWisePad) {
         setPaymentFlowPhase("approved");
         setPaymentFlowDetail(t("pos.paymentSuccess"));
         if (completeData?.receiptEmail?.sent) {
@@ -926,8 +951,9 @@ const PosCheckoutPage = () => {
       await finalizeSale();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
-      if (usingTapToPay) {
-        const phase = classifyPaymentFailure(msg);
+      const phase = classifyPaymentFailure(msg);
+      const completeStatus = phase === "timed_out" ? "cancelled" : "failed";
+      if (usingTapToPay || usingWisePad) {
         setPaymentFlowPhase(phase);
         setPaymentFlowDetail(phase === "timed_out" ? t("pos.paymentCancelled") : msg);
       } else {
@@ -935,15 +961,28 @@ const PosCheckoutPage = () => {
         setPaymentFlowPhase("hidden");
       }
       if (saleId) {
-        await invokeEdgeFunctionJson("stripe-terminal-pos", {
-          action: "complete_sale",
-          saleId,
-          status: "failed",
-        });
+        // Cancel button may have already completed the sale as cancelled.
+        if (activeSaleIdRef.current === null && /cancel/i.test(msg)) {
+          /* already finalized by cancelPosPayment */
+        } else {
+          const { data: completeData } = await invokeEdgeFunctionJson<{
+            receiptEmail?: { sent?: boolean } | null;
+          }>("stripe-terminal-pos", {
+            action: "complete_sale",
+            saleId,
+            status: completeStatus,
+          });
+          if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
+            setPaymentReceiptHint(
+              phase === "timed_out" ? t("pos.cancelReceiptEmailSent") : t("pos.receiptEmailSent"),
+            );
+          }
+        }
+        activeSaleIdRef.current = null;
       }
     } finally {
       setPaying(false);
-      if (!usingTapToPay) {
+      if (!usingTapToPay && !usingWisePad) {
         setPaymentFlowPhase("hidden");
       }
     }
@@ -1942,7 +1981,7 @@ const PosCheckoutPage = () => {
 
         <PosPaymentFlowOverlay
           phase={
-            usingTapToPay &&
+            (usingTapToPay || usingWisePad) &&
             paymentFlowPhase === "hidden" &&
             (terminal.status === "discovering" || terminal.status === "connecting")
               ? "initializing"
@@ -1963,11 +2002,12 @@ const PosCheckoutPage = () => {
             setPaymentReceiptHint(null);
           }}
           onCancel={
-            usingTapToPay && (paymentFlowPhase === "processing" || paymentFlowPhase === "initializing")
-              ? () => cancelTapToPayPayment()
+            (usingTapToPay || usingWisePad) &&
+            (paymentFlowPhase === "processing" || paymentFlowPhase === "initializing")
+              ? () => cancelPosPayment()
               : undefined
           }
-          onShareReceipt={usingTapToPay ? shareDigitalReceipt : undefined}
+          onShareReceipt={usingTapToPay || usingWisePad ? shareDigitalReceipt : undefined}
         />
       </SubscriptionGate>
     </AppLayout>

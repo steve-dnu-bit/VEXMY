@@ -17,7 +17,7 @@ import {
 } from "../_shared/stripe-connect.ts";
 import { callerHasPosAccess } from "../_shared/auth.ts";
 import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
-import { sendPosReceiptEmailIfNeeded } from "../_shared/pos-receipt-email.ts";
+import { sendPosReceiptEmailIfNeeded, sendPosCancelledNoticeEmailIfNeeded } from "../_shared/pos-receipt-email.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -591,6 +591,8 @@ serve(async (req) => {
           stripeConnectAccountId: connect.stripeConnectAccountId,
         });
         receiptResult = await sendPosReceiptEmailIfNeeded(admin, saleId);
+      } else if (status === "cancelled" || status === "failed") {
+        receiptResult = await sendPosCancelledNoticeEmailIfNeeded(admin, saleId);
       }
 
       return new Response(
