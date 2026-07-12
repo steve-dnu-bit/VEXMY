@@ -40,6 +40,17 @@ mkdir -p "$ARCHIVE_DIR"
 rm -rf "$ARCHIVE_PATH" "$EXPORT_PATH"
 mkdir -p "$EXPORT_PATH"
 
+echo "==> Syncing mobile version from scripts/mobile-version.json..."
+node "$ROOT/scripts/sync-mobile-version.mjs"
+EXPECTED_VERSION="$(node -e "console.log(JSON.parse(require('fs').readFileSync('scripts/mobile-version.json','utf8')).versionName)")"
+PBX_VERSION="$(grep -m1 'MARKETING_VERSION' "$ROOT/ios/App/App.xcodeproj/project.pbxproj" | sed -E 's/.*=[[:space:]]*([^;]+);/\1/' | tr -d '[:space:]')"
+echo "    expected version: $EXPECTED_VERSION"
+echo "    project.pbxproj:  $PBX_VERSION"
+if [[ "$PBX_VERSION" != "$EXPECTED_VERSION" ]]; then
+  echo "ERROR: project.pbxproj MARKETING_VERSION ($PBX_VERSION) != mobile-version.json ($EXPECTED_VERSION)"
+  exit 1
+fi
+
 echo "==> Archiving with Automatic signing (team $TEAM_ID)..."
 echo "    git HEAD=$(git -C "$ROOT" rev-parse --short HEAD)"
 cd "$ROOT/ios/App"
@@ -77,10 +88,25 @@ if [[ -z "$IPA" ]]; then
   IPA="$EXPORT_PATH/App.ipa"
 fi
 
+INFO_PLIST="$ARCHIVE_PATH/Products/Applications/App.app/Info.plist"
+ARCHIVED_VERSION="?"
+ARCHIVED_BUILD="?"
+if [[ -f "$INFO_PLIST" ]]; then
+  ARCHIVED_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST" 2>/dev/null || echo "?")"
+  ARCHIVED_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST" 2>/dev/null || echo "?")"
+fi
+
 echo ""
 echo "========================================"
 echo "  DEVELOPMENT IPA READY"
 echo "========================================"
+echo "Version: $ARCHIVED_VERSION ($ARCHIVED_BUILD)"
 echo "IPA: $IPA"
+if [[ "$ARCHIVED_VERSION" != "$EXPECTED_VERSION" ]]; then
+  echo "WARNING: archived CFBundleShortVersionString is $ARCHIVED_VERSION, expected $EXPECTED_VERSION"
+  echo "         Do not install this IPA — clean DerivedData and rebuild."
+  exit 1
+fi
 echo ""
 echo "Next: upload to https://www.diawi.com then open the link in Safari on your iPhone."
+echo "On iPhone Settings → General → iPhone Storage → Velbok, confirm version $EXPECTED_VERSION."
