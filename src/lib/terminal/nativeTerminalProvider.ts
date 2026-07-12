@@ -83,6 +83,10 @@ function notifyFirmwareUpdate(active: boolean, progress = 0): void {
   });
 }
 
+/** Prevent optional firmware install from starting while a card payment is in flight. */
+let paymentCollectionInFlight = false;
+let firmwareInstallKickoffInFlight = false;
+
 async function registerTerminalListeners(): Promise<void> {
   if (connectionTokenListenerRegistered) return;
 
@@ -165,19 +169,28 @@ async function registerTerminalEventListeners(): Promise<void> {
   // Optional WisePad updates are reported as available but do NOT install until we call
   // installAvailableUpdate(). Without that call the UI can sit at 0% forever.
   await StripeTerminal.addListener(TerminalEventsEnum.ReportAvailableUpdate, () => {
+    if (paymentCollectionInFlight) {
+      latestProviderOptions?.onReaderStatus?.(
+        "WisePad update available — it will install after this payment finishes.",
+      );
+      return;
+    }
+    if (isReaderFirmwareUpdating() || firmwareInstallKickoffInFlight) return;
+
     latestProviderOptions?.onReaderStatus?.(
       "WisePad firmware update available — starting install. Keep Velbok open and the reader nearby.",
     );
+    firmwareInstallKickoffInFlight = true;
     void StripeTerminal.installAvailableUpdate()
-      .then(() => {
-        // StartInstallingUpdate should follow; keep Charge enabled until then.
-      })
       .catch((error) => {
         const message = error instanceof Error ? error.message : String(error ?? "unknown error");
         latestProviderOptions?.onReaderStatus?.(
           `Could not start WisePad firmware update: ${message}. Disconnect, move closer, use mobile data, then reconnect.`,
         );
         notifyFirmwareUpdate(false);
+      })
+      .finally(() => {
+        firmwareInstallKickoffInFlight = false;
       });
   });
 
@@ -500,6 +513,13 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
       await ensureNativeTerminalInitialized();
 
+      if (isReaderFirmwareUpdating()) {
+        throw new Error(
+          "WisePad firmware update is still running. Wait until it finishes, then charge again.",
+        );
+      }
+
+      paymentCollectionInFlight = true;
       try {
         let connected = await refreshConnectedReaderFromSdk();
         if (!connected) {
@@ -508,17 +528,14 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         }
         if (!connected) {
           throw new Error(
-            "Stripe Terminal is not connected. Tap Enable Tap to Pay, wait until connected, then try again.",
+            "Stripe Terminal is not connected. Connect the WisePad (or Tap to Pay), wait until connected, then try again.",
           );
         }
 
-        if (lastDisplayCart) {
-          try {
-            await pushDisplay(lastDisplayCart);
-          } catch (displayError) {
-            console.warn("Reader display update before payment failed", displayError);
-          }
-        }
+        // Avoid setReaderDisplay immediately before collect — overlapping Terminal commands
+        // after a firmware update can crash or hang the native SDK. Clear any cart screen first.
+        await clearNativeReaderDisplay().catch(() => undefined);
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
 
         options.onReaderStatus?.(
           options.readerMode === "tap_to_pay" && !options.simulated
@@ -537,7 +554,10 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           readerId: sdkConnectedReader?.id || null,
         };
       } catch (error) {
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
         throw new Error(formatTerminalError(error, "Payment failed"));
+      } finally {
+        paymentCollectionInFlight = false;
       }
     },
   };

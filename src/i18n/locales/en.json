@@ -2286,6 +2286,7 @@
     "wisePadFirmwareTipNetwork": "If progress stays at 0% for more than a minute: keep the WisePad within ~1 metre, turn off Wi‑Fi and use mobile data, then disconnect and reconnect.",
     "wisePadFirmwareTokenNote": "Velbok pauses checkout actions during the update so the connection stays stable.",
     "wisePadFirmwareComplete": "WisePad firmware update complete — you can take payments now.",
+    "wisePadReconnectAfterFirmware": "Reconnect the WisePad, then tap Charge.",
     "wisePadFirmwareStuckHint": "Still at 0%? The update may not have started. Disconnect the reader, use mobile data, reconnect, and leave Velbok open.",
     "chargeCard": "Charge {{amount}}",
     "clearOrder": "Clear order",
