@@ -5,6 +5,7 @@ import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
+import { WisePadSetupPanels } from "@/components/pos/WisePadSetupPanels";
 import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
 import { PosPaymentFlowOverlay, type PosPaymentFlowPhase } from "@/components/pos/PosPaymentFlowOverlay";
 import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
@@ -1442,6 +1443,17 @@ const PosCheckoutPage = () => {
                     </details>
                   ) : null}
 
+                  {usingWisePad ? (
+                    <WisePadSetupPanels
+                      terminal={terminal}
+                      showFirstTimeGuide={showWisePadGuide}
+                      onDismissGuide={() => {
+                        dismissWisePadSetupGuide();
+                        setShowWisePadGuide(false);
+                      }}
+                    />
+                  ) : null}
+
                   <div className="space-y-2 pt-2">
                     {usingTapToPay ? (
                       <>
@@ -1602,14 +1614,15 @@ const PosCheckoutPage = () => {
                   {terminal.status === "connected" && cart.length === 0 && usingWisePad ? (
                     <p className="text-xs text-muted-foreground">{t("pos.readerDisplayHint")}</p>
                   ) : null}
-                  {terminal.readerStatus && !readerFirmwareUpdating ? (
+                  {terminal.readerStatus ? (
                     <p
                       className={
-                        terminal.status === "discovering" || terminal.status === "connecting"
-                          ? "text-sm font-medium text-foreground"
-                          : /firmware|update/i.test(terminal.readerStatus)
-                            ? "text-sm font-medium text-amber-700 dark:text-amber-400"
-                            : "text-xs text-muted-foreground"
+                        terminal.status === "discovering" ||
+                        terminal.status === "connecting" ||
+                        readerFirmwareUpdating ||
+                        /firmware|update/i.test(terminal.readerStatus)
+                          ? "text-sm font-medium text-amber-700 dark:text-amber-400"
+                          : "text-xs text-muted-foreground"
                       }
                     >
                       {terminal.readerStatus}

@@ -108,7 +108,10 @@ async function registerTerminalListeners(): Promise<void> {
     notifyFirmwareUpdate(false);
     markTerminalConnectionEstablished();
     await refreshConnectedReaderFromSdk();
-    latestProviderOptions?.onReaderStatus?.("Tap to Pay ready");
+    const mode = latestProviderOptions?.readerMode;
+    latestProviderOptions?.onReaderStatus?.(
+      mode === "tap_to_pay" ? "Tap to Pay ready" : "WisePad connected",
+    );
   });
 
   connectionTokenListenerRegistered = true;
@@ -159,12 +162,17 @@ async function registerTerminalEventListeners(): Promise<void> {
     }
   });
 
+  // Available ≠ installing. Do not disable Charge until install actually starts —
+  // otherwise checkout looks greyed out with no on-screen firmware UI.
   await StripeTerminal.addListener(TerminalEventsEnum.ReportAvailableUpdate, () => {
-    notifyFirmwareUpdate(true, 0);
+    latestProviderOptions?.onReaderStatus?.(
+      "WisePad update available — keep Velbok open; install may start automatically.",
+    );
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, () => {
     notifyFirmwareUpdate(true, 0);
+    latestProviderOptions?.onReaderStatus?.("Installing WisePad firmware… keep Velbok open.");
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ReaderSoftwareUpdateProgress, ({ progress }) => {
