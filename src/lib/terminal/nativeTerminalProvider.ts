@@ -26,6 +26,8 @@ import {
   clearTerminalConnectionEstablished,
   formatConnectionStatusForStaff,
   hasTerminalConnectionBeenEstablished,
+  isStripeConnectedStatus,
+  isStripeNotConnectedStatus,
   markTerminalConnectionEstablished,
 } from "@/lib/terminal/terminalConnectionStatus";
 import { waitForTerminalConnected } from "@/lib/terminal/waitForTerminalConnected";
@@ -85,8 +87,46 @@ function notifyFirmwareUpdate(active: boolean, progress = 0): void {
 
 /** Prevent optional firmware install from starting while a card payment is in flight. */
 let paymentCollectionInFlight = false;
-/** True while discover/connect is running — do not kick off optional installs mid-connect. */
+/** True while discover/connect is running — ignore transient disconnect noise. */
 let readerConnectInFlight = false;
+/** After a successful connect, ignore brief BT/firmware disconnect blips. */
+let ignoreDisconnectsUntilMs = 0;
+/** Suppress setReaderDisplay briefly after connect — it drops WisePad BT sessions. */
+let suppressReaderDisplayUntilMs = 0;
+
+function beginConnectionHold(ms = 12_000): void {
+  ignoreDisconnectsUntilMs = Math.max(ignoreDisconnectsUntilMs, Date.now() + ms);
+}
+
+function suppressReaderDisplay(ms = 8_000): void {
+  suppressReaderDisplayUntilMs = Math.max(suppressReaderDisplayUntilMs, Date.now() + ms);
+}
+
+function shouldIgnoreDisconnectEvents(): boolean {
+  return (
+    readerConnectInFlight ||
+    isReaderFirmwareUpdating() ||
+    paymentCollectionInFlight ||
+    Date.now() < ignoreDisconnectsUntilMs
+  );
+}
+
+function handleReaderLost(reason?: string): void {
+  if (shouldIgnoreDisconnectEvents()) {
+    if (reason) {
+      latestProviderOptions?.onReaderStatus?.(
+        `Reader signal dropped briefly (${reason}) — keeping session, waiting to recover…`,
+      );
+    }
+    return;
+  }
+  sdkConnectedReader = null;
+  clearTerminalConnectionEstablished();
+  unexpectedDisconnectHandler?.();
+  if (reason) {
+    latestProviderOptions?.onReaderStatus?.(`Reader disconnected (${reason})`);
+  }
+}
 
 /**
  * Optional WisePad updates must be installed manually.
@@ -110,18 +150,20 @@ async function registerTerminalListeners(): Promise<void> {
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.UnexpectedReaderDisconnect, () => {
-    sdkConnectedReader = null;
-    unexpectedDisconnectHandler?.();
+    handleReaderLost("unexpected");
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ConnectedReader, async () => {
-    notifyFirmwareUpdate(false);
+    // Do not clear firmware state here — required updates often install during connect.
     markTerminalConnectionEstablished();
+    beginConnectionHold(15_000);
     await refreshConnectedReaderFromSdk();
     const mode = latestProviderOptions?.readerMode;
-    latestProviderOptions?.onReaderStatus?.(
-      mode === "tap_to_pay" ? "Tap to Pay ready" : "WisePad connected",
-    );
+    if (!isReaderFirmwareUpdating()) {
+      latestProviderOptions?.onReaderStatus?.(
+        mode === "tap_to_pay" ? "Tap to Pay ready" : "WisePad connected",
+      );
+    }
   });
 
   connectionTokenListenerRegistered = true;
@@ -156,33 +198,32 @@ async function registerTerminalEventListeners(): Promise<void> {
     const statusText = status ? String(status) : "";
     if (!statusText) return;
 
-    const staffMessage = formatConnectionStatusForStaff(statusText);
+    const mode = latestProviderOptions?.readerMode ?? "tap_to_pay";
+    const staffMessage = formatConnectionStatusForStaff(statusText, mode);
     if (staffMessage) latestProviderOptions?.onReaderStatus?.(staffMessage);
 
-    if (/^connected$/i.test(statusText.trim()) || (statusText.toUpperCase().includes("CONNECTED") && !statusText.toUpperCase().includes("NOT"))) {
+    if (isStripeConnectedStatus(statusText)) {
       markTerminalConnectionEstablished();
+      beginConnectionHold(15_000);
+      void refreshConnectedReaderFromSdk();
       return;
     }
 
-    // Only treat NOT_CONNECTED as a disconnect after we were connected — startup always begins NOT_CONNECTED.
-    if (/notConnected|NOT_CONNECTED/i.test(statusText) && hasTerminalConnectionBeenEstablished()) {
-      sdkConnectedReader = null;
-      clearTerminalConnectionEstablished();
-      unexpectedDisconnectHandler?.();
+    if (isStripeNotConnectedStatus(statusText) && hasTerminalConnectionBeenEstablished()) {
+      handleReaderLost("not connected");
     }
   });
 
-  // Optional WisePad updates are reported as available but do NOT install until we call
-  // installAvailableUpdate(). Never start that during connect/collect — it crashes the iOS SDK.
-  // Optional updates: report only. Never auto-install — that races with connect and crashes iOS.
+  // Optional updates: report only. Never auto-install — races with connect and crashes iOS.
   await StripeTerminal.addListener(TerminalEventsEnum.ReportAvailableUpdate, () => {
     latestProviderOptions?.onReaderStatus?.(
-      "WisePad optional update available. You can keep taking payments; install later from Setup if prompted.",
+      "WisePad optional update available. You can keep taking payments.",
     );
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, () => {
     notifyFirmwareUpdate(true, 0);
+    beginConnectionHold(120_000);
     latestProviderOptions?.onReaderStatus?.(
       "Installing WisePad firmware… keep Velbok open, phone unlocked, reader powered on and nearby.",
     );
@@ -191,9 +232,9 @@ async function registerTerminalEventListeners(): Promise<void> {
   await StripeTerminal.addListener(TerminalEventsEnum.ReaderSoftwareUpdateProgress, (payload) => {
     const raw = typeof payload?.progress === "number" ? payload.progress : Number(payload?.progress);
     if (!Number.isFinite(raw)) return;
-    // Stripe uses 0–1; some bridges may already send 0–100.
     const percent = raw > 1 ? Math.round(Math.min(100, raw)) : Math.round(Math.max(0, Math.min(1, raw)) * 100);
     notifyFirmwareUpdate(true, percent);
+    beginConnectionHold(120_000);
     latestProviderOptions?.onReaderStatus?.(`Installing WisePad firmware… ${percent}%`);
   });
 
@@ -204,33 +245,35 @@ async function registerTerminalEventListeners(): Promise<void> {
       return;
     }
     notifyFirmwareUpdate(false);
-    latestProviderOptions?.onReaderStatus?.("WisePad firmware update complete.");
+    beginConnectionHold(20_000);
+    latestProviderOptions?.onReaderStatus?.("WisePad firmware update complete — stay on this screen.");
     latestProviderOptions?.onFirmwareUpdateChange?.({ active: false, progress: 100, completed: true });
+    void refreshConnectedReaderFromSdk();
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.DisconnectedReader, ({ reason }) => {
-    sdkConnectedReader = null;
-    clearTerminalConnectionEstablished();
-    unexpectedDisconnectHandler?.();
-    if (reason) {
-      const reasonText = String(reason).replace(/_/g, " ");
-      latestProviderOptions?.onReaderStatus?.(`Reader disconnected (${reasonText})`);
-    }
+    const reasonText = reason ? String(reason).replace(/_/g, " ") : "disconnected";
+    handleReaderLost(reasonText);
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ReaderReconnectStarted, () => {
-    latestProviderOptions?.onReaderStatus?.("Reconnecting to WisePad…");
+    beginConnectionHold(30_000);
+    latestProviderOptions?.onReaderStatus?.("Reconnecting to WisePad… keep the reader nearby.");
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ReaderReconnectSucceeded, async () => {
+    markTerminalConnectionEstablished();
+    beginConnectionHold(15_000);
     await refreshConnectedReaderFromSdk();
-    latestProviderOptions?.onReaderStatus?.("Reader reconnected");
+    latestProviderOptions?.onReaderStatus?.("WisePad reconnected");
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ReaderReconnectFailed, () => {
+    ignoreDisconnectsUntilMs = 0;
     latestProviderOptions?.onReaderStatus?.(
-      "Reader reconnect failed — check phone internet (try mobile data), keep reader on and near phone",
+      "Reader reconnect failed — keep reader on and near phone, then tap Connect again.",
     );
+    handleReaderLost("reconnect failed");
   });
 
   terminalEventListenersRegistered = true;
@@ -328,6 +371,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
   const pushDisplay = async (cart: ReaderDisplayCart) => {
     const opts = activeOptions();
     if (isReaderFirmwareUpdating()) return;
+    if (Date.now() < suppressReaderDisplayUntilMs) return;
     if (opts.readerMode === "tap_to_pay" && !opts.simulated) return;
     lastDisplayCart = cart;
     const connected = await refreshConnectedReaderFromSdk();
@@ -402,13 +446,14 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         }
 
         // Let discovery cancel settle before connect — overlapping commands crash Stripe Terminal on iOS.
-        await new Promise((resolve) => window.setTimeout(resolve, 400));
+        await new Promise((resolve) => window.setTimeout(resolve, 600));
+        beginConnectionHold(20_000);
 
         const connectOnce = async (activeLocationId: string) => {
           options.onReaderStatus?.(
             options.readerMode === "tap_to_pay" && !options.simulated
               ? "Activating Tap to Pay… first setup can take 1–2 minutes. Keep Velbok open."
-              : "Connecting to reader…",
+              : "Connecting to WisePad… keep the reader nearby.",
           );
           const connectPayload: {
             reader: (typeof readers)[0];
@@ -419,8 +464,8 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
             merchantDisplayName?: string;
           } = {
             reader: readers[0],
-            // Auto-reconnect during/after firmware has caused native crashes on iOS.
-            autoReconnectOnUnexpectedDisconnect: false,
+            // WisePad needs auto-reconnect for brief BT drops; Tap to Pay stays manual.
+            autoReconnectOnUnexpectedDisconnect: options.readerMode === "bluetooth",
             locationId: activeLocationId,
           };
           if (options.readerMode === "tap_to_pay") {
@@ -462,32 +507,34 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           }
         }
 
-        await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
+        // Discovery was already cancelled in discoverBluetoothReaders/discoverTapToPayReaders.
+        // Do not cancel again after connect — that can drop the live WisePad session on iOS.
 
         const mappedReader = mapReader(readers[0]);
+        sdkConnectedReader = mappedReader;
+        markTerminalConnectionEstablished();
+        beginConnectionHold(20_000);
+
         const connectWaitMs =
           options.readerMode === "tap_to_pay" && !options.simulated
             ? TAP_TO_PAY_CONNECT_CONFIRM_MS
-            : 30_000;
+            : 20_000;
 
         const connectedReader = await waitForTerminalConnected(
           refreshConnectedReaderFromSdk,
           connectWaitMs,
           (message) => options.onReaderStatus?.(message),
-          options.readerMode === "tap_to_pay" && !options.simulated ? mappedReader : undefined,
+          mappedReader,
         );
         sdkConnectedReader = connectedReader;
+        markTerminalConnectionEstablished();
+        beginConnectionHold(20_000);
+        suppressReaderDisplay(10_000);
+        options.onReaderStatus?.(
+          options.readerMode === "bluetooth" ? "WisePad connected" : "Tap to Pay ready",
+        );
 
-        // Skip cart display right after connect — it races with required firmware install on WisePad.
-        if (lastDisplayCart && !isReaderFirmwareUpdating()) {
-          await new Promise((resolve) => window.setTimeout(resolve, 800));
-          try {
-            await pushDisplay(lastDisplayCart);
-          } catch (displayError) {
-            console.warn("Reader display update after connect failed", displayError);
-          }
-        }
-
+        // Never push cart display immediately after WisePad connect — it drops the BT session.
         return connectedReader;
       } catch (error) {
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);

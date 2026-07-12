@@ -55,9 +55,9 @@ export function useStripeTerminal(options: {
       readerMode: options.readerMode,
       locationId: options.locationId,
       onUnexpectedDisconnect: () => {
+        // Keep status messages; only clear connection when the provider confirms a real loss.
         setReader(null);
         setStatus("idle");
-        setReaderStatus(null);
       },
       onConnectionTokenError: (message) => {
         setError(message);
