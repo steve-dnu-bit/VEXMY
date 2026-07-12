@@ -275,8 +275,8 @@ function wisePadNotFoundMessage(): string {
 const TAP_TO_PAY_WAITING_MESSAGE = "Ask the customer to hold their card or phone near this device…";
 const WISEPAD_WAITING_MESSAGE = "Waiting for card on reader…";
 
-const TAP_TO_PAY_CONNECT_TIMEOUT_MS = 90_000;
-const TAP_TO_PAY_CONNECT_CONFIRM_MS = 25_000;
+const TAP_TO_PAY_CONNECT_TIMEOUT_MS = 180_000;
+const TAP_TO_PAY_CONNECT_CONFIRM_MS = 45_000;
 
 function withOperationTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -371,7 +371,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         const connectOnce = async (activeLocationId: string) => {
           options.onReaderStatus?.(
             options.readerMode === "tap_to_pay" && !options.simulated
-              ? "Activating Tap to Pay… first setup can take 1–2 minutes."
+              ? "Activating Tap to Pay… first setup can take 1–2 minutes. Keep Velbok open."
               : "Connecting to reader…",
           );
           const connectPayload: {
