@@ -214,6 +214,7 @@ export function useStripeTerminal(options: {
     try {
       if (isNativeTerminalInitialized()) {
         const { StripeTerminal } = await import("@capacitor-community/stripe-terminal");
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
       }
       if (providerRef.current) {
@@ -227,6 +228,22 @@ export function useStripeTerminal(options: {
     }
   }, []);
 
+  const cancelCollectPayment = useCallback(async () => {
+    try {
+      const provider = providerRef.current ?? (await ensureProvider());
+      if (provider.cancelCollectPayment) {
+        await provider.cancelCollectPayment();
+      } else if (isNativeTerminalInitialized()) {
+        const { StripeTerminal } = await import("@capacitor-community/stripe-terminal");
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+      }
+    } finally {
+      const stillConnected = await syncReaderFromSdk();
+      setStatus(stillConnected ? "connected" : "idle");
+      setReaderStatus("Payment cancelled.");
+    }
+  }, [ensureProvider, syncReaderFromSdk]);
+
   return {
     status,
     reader,
@@ -235,6 +252,7 @@ export function useStripeTerminal(options: {
     firmwareUpdate,
     discoverAndConnect,
     cancelConnect,
+    cancelCollectPayment,
     disconnect,
     collectAndProcess,
     updateReaderDisplay,

@@ -119,10 +119,12 @@ function notifyFirmwareUpdate(active: boolean, progress = 0): void {
   });
 }
 
-/** Prevent optional firmware install from starting while a card payment is in flight. */
-let paymentCollectionInFlight = false;
 /** True while discover/connect is running — ignore transient disconnect noise. */
 let readerConnectInFlight = false;
+/** True while collectPaymentMethod / confirm is running. */
+let paymentCollectionInFlight = false;
+/** Set when staff cancels from the payment overlay. */
+let paymentCollectCancelRequested = false;
 /** After a successful connect, ignore brief BT/firmware disconnect blips. */
 let ignoreDisconnectsUntilMs = 0;
 /** Suppress setReaderDisplay briefly after connect — it drops WisePad BT sessions. */
@@ -232,6 +234,14 @@ async function registerTerminalEventListeners(): Promise<void> {
 
   await StripeTerminal.addListener(TerminalEventsEnum.Failed, (info) => {
     if (info?.message) latestProviderOptions?.onReaderStatus?.(info.message);
+    // Unblock a hung collect when the SDK reports cancel/fail during Tap to Pay.
+    if (
+      paymentCollectionInFlight &&
+      /cancel|cancell?ed|timed?\s*out|abort/i.test(String(info?.message ?? ""))
+    ) {
+      paymentCollectCancelRequested = true;
+      void StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+    }
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ConnectionStatusChange, ({ status }) => {
@@ -586,6 +596,8 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
     async disconnect() {
       try {
+        paymentCollectCancelRequested = true;
+        paymentCollectionInFlight = false;
         await clearNativeReaderDisplay().catch(() => undefined);
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
         await StripeTerminal.disconnectReader();
@@ -593,6 +605,14 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         sdkConnectedReader = null;
         clearTerminalConnectionEstablished();
       }
+    },
+
+    async cancelCollectPayment() {
+      paymentCollectCancelRequested = true;
+      paymentCollectionInFlight = false;
+      ignoreDisconnectsUntilMs = 0;
+      latestProviderOptions?.onReaderStatus?.("Payment cancelled.");
+      await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
     },
 
     async collectAndProcess(clientSecret: string) {
@@ -611,6 +631,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         );
       }
 
+      paymentCollectCancelRequested = false;
       paymentCollectionInFlight = true;
       try {
         let connected = await refreshConnectedReaderFromSdk();
@@ -629,14 +650,24 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         await clearNativeReaderDisplay().catch(() => undefined);
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
 
+        if (paymentCollectCancelRequested) {
+          throw new Error("Payment cancelled.");
+        }
+
         options.onReaderStatus?.(
           options.readerMode === "tap_to_pay" && !options.simulated
             ? TAP_TO_PAY_WAITING_MESSAGE
             : WISEPAD_WAITING_MESSAGE,
         );
         await StripeTerminal.collectPaymentMethod({ paymentIntent: clientSecret });
+        if (paymentCollectCancelRequested) {
+          throw new Error("Payment cancelled.");
+        }
         options.onReaderStatus?.("Confirming payment…");
         await StripeTerminal.confirmPaymentIntent();
+        if (paymentCollectCancelRequested) {
+          throw new Error("Payment cancelled.");
+        }
 
         await refreshConnectedReaderFromSdk();
 
@@ -647,9 +678,13 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         };
       } catch (error) {
         await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+        if (paymentCollectCancelRequested) {
+          throw new Error("Payment cancelled.");
+        }
         throw new Error(formatTerminalError(error, "Payment failed"));
       } finally {
         paymentCollectionInFlight = false;
+        paymentCollectCancelRequested = false;
       }
     },
   };

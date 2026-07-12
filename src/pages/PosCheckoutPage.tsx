@@ -704,8 +704,31 @@ const PosCheckoutPage = () => {
   };
 
   const classifyPaymentFailure = (message: string): PosPaymentFlowPhase => {
-    if (/timed?\s*out|timeout|cancelled|canceled|user.?cancel/i.test(message)) return "timed_out";
+    if (/timed?\s*out|timeout|cancelled|canceled|user.?cancel|payment cancelled/i.test(message)) {
+      return "timed_out";
+    }
     return "declined";
+  };
+
+  const paymentOverlayDetail = (() => {
+    if (paymentFlowDetail) return paymentFlowDetail;
+    if (!usingTapToPay) return null;
+    const status = terminal.readerStatus?.trim() || "";
+    if (!status) return null;
+    // Don't show WisePad-style recovery noise on the Tap to Pay payment sheet.
+    if (/signal dropped|keeping session|reconnecting|optional update/i.test(status)) return null;
+    return status;
+  })();
+
+  const cancelTapToPayPayment = async () => {
+    setPaymentFlowPhase("timed_out");
+    setPaymentFlowDetail(t("pos.paymentCancelled"));
+    setPaying(false);
+    try {
+      await terminal.cancelCollectPayment();
+    } catch {
+      /* collect promise will also reject */
+    }
   };
 
   const ensureTapToPayConnected = async (): Promise<boolean> => {
@@ -904,8 +927,9 @@ const PosCheckoutPage = () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
       if (usingTapToPay) {
-        setPaymentFlowPhase(classifyPaymentFailure(msg));
-        setPaymentFlowDetail(msg);
+        const phase = classifyPaymentFailure(msg);
+        setPaymentFlowPhase(phase);
+        setPaymentFlowDetail(phase === "timed_out" ? t("pos.paymentCancelled") : msg);
       } else {
         toast.error(msg);
         setPaymentFlowPhase("hidden");
@@ -1931,13 +1955,18 @@ const PosCheckoutPage = () => {
                 ? formatShopMoney(amountDue, currency)
                 : undefined
           }
-          detail={paymentFlowDetail || (usingTapToPay ? terminal.readerStatus : null)}
+          detail={paymentOverlayDetail}
           receiptHint={paymentReceiptHint}
           onDismiss={() => {
             setPaymentFlowPhase("hidden");
             setPaymentFlowDetail(null);
             setPaymentReceiptHint(null);
           }}
+          onCancel={
+            usingTapToPay && (paymentFlowPhase === "processing" || paymentFlowPhase === "initializing")
+              ? () => cancelTapToPayPayment()
+              : undefined
+          }
           onShareReceipt={usingTapToPay ? shareDigitalReceipt : undefined}
         />
       </SubscriptionGate>

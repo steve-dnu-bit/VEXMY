@@ -20,6 +20,7 @@ export type PosPaymentFlowOverlayProps = {
   detail?: string | null;
   receiptHint?: string | null;
   onDismiss: () => void;
+  onCancel?: () => Promise<void> | void;
   onShareReceipt?: (email?: string) => Promise<void> | void;
 };
 
@@ -29,11 +30,13 @@ export function PosPaymentFlowOverlay({
   detail,
   receiptHint,
   onDismiss,
+  onCancel,
   onShareReceipt,
 }: PosPaymentFlowOverlayProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [sharing, setSharing] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   if (phase === "hidden") return null;
 
@@ -59,6 +62,16 @@ export function PosPaymentFlowOverlay({
       await onShareReceipt(email.trim() || undefined);
     } finally {
       setSharing(false);
+    }
+  };
+
+  const cancel = async () => {
+    if (!onCancel || cancelling) return;
+    setCancelling(true);
+    try {
+      await onCancel();
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -98,6 +111,15 @@ export function PosPaymentFlowOverlay({
             ) : null}
           </div>
         </div>
+
+        {busy && onCancel ? (
+          <div className="mt-6">
+            <Button type="button" variant="outline" className="w-full" disabled={cancelling} onClick={() => void cancel()}>
+              {cancelling ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {t("common.cancel")}
+            </Button>
+          </div>
+        ) : null}
 
         {!busy ? (
           <div className="mt-6 space-y-4">
