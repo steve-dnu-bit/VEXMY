@@ -162,22 +162,39 @@ async function registerTerminalEventListeners(): Promise<void> {
     }
   });
 
-  // Available ≠ installing. Do not disable Charge until install actually starts —
-  // otherwise checkout looks greyed out with no on-screen firmware UI.
+  // Optional WisePad updates are reported as available but do NOT install until we call
+  // installAvailableUpdate(). Without that call the UI can sit at 0% forever.
   await StripeTerminal.addListener(TerminalEventsEnum.ReportAvailableUpdate, () => {
     latestProviderOptions?.onReaderStatus?.(
-      "WisePad update available — keep Velbok open; install may start automatically.",
+      "WisePad firmware update available — starting install. Keep Velbok open and the reader nearby.",
     );
+    void StripeTerminal.installAvailableUpdate()
+      .then(() => {
+        // StartInstallingUpdate should follow; keep Charge enabled until then.
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : String(error ?? "unknown error");
+        latestProviderOptions?.onReaderStatus?.(
+          `Could not start WisePad firmware update: ${message}. Disconnect, move closer, use mobile data, then reconnect.`,
+        );
+        notifyFirmwareUpdate(false);
+      });
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, () => {
     notifyFirmwareUpdate(true, 0);
-    latestProviderOptions?.onReaderStatus?.("Installing WisePad firmware… keep Velbok open.");
+    latestProviderOptions?.onReaderStatus?.(
+      "Installing WisePad firmware… keep Velbok open, phone unlocked, reader powered on and nearby.",
+    );
   });
 
-  await StripeTerminal.addListener(TerminalEventsEnum.ReaderSoftwareUpdateProgress, ({ progress }) => {
-    const percent = Math.round(Math.max(0, Math.min(1, progress)) * 100);
+  await StripeTerminal.addListener(TerminalEventsEnum.ReaderSoftwareUpdateProgress, (payload) => {
+    const raw = typeof payload?.progress === "number" ? payload.progress : Number(payload?.progress);
+    if (!Number.isFinite(raw)) return;
+    // Stripe uses 0–1; some bridges may already send 0–100.
+    const percent = raw > 1 ? Math.round(Math.min(100, raw)) : Math.round(Math.max(0, Math.min(1, raw)) * 100);
     notifyFirmwareUpdate(true, percent);
+    latestProviderOptions?.onReaderStatus?.(`Installing WisePad firmware… ${percent}%`);
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.FinishInstallingUpdate, (args) => {
@@ -187,6 +204,7 @@ async function registerTerminalEventListeners(): Promise<void> {
       return;
     }
     notifyFirmwareUpdate(false);
+    latestProviderOptions?.onReaderStatus?.("WisePad firmware update complete.");
     latestProviderOptions?.onFirmwareUpdateChange?.({ active: false, progress: 100, completed: true });
   });
 
