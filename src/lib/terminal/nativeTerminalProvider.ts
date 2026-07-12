@@ -130,6 +130,43 @@ let activeCollectAbort: ((reason: Error) => void) | null = null;
 /** Brief pause between Terminal charges — back-to-back collects hang/crash on iOS. */
 let lastTerminalChargeFinishedAt = 0;
 const TERMINAL_CHARGE_SETTLE_MS = 900;
+const TERMINAL_CANCEL_SDK_MS = 3_000;
+
+async function awaitWithPaymentCancel<T>(promise: Promise<T>): Promise<T> {
+  throwIfCollectCancelled();
+  return new Promise<T>((resolve, reject) => {
+    const fail = (error: Error) => {
+      cleanup();
+      reject(error);
+    };
+    const cleanup = () => {
+      if (activeCollectAbort === fail) activeCollectAbort = null;
+    };
+    activeCollectAbort = fail;
+    if (paymentCollectCancelRequested) {
+      fail(new Error("Payment cancelled."));
+      return;
+    }
+    promise
+      .then((value) => {
+        cleanup();
+        resolve(value);
+      })
+      .catch((error) => {
+        cleanup();
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+  });
+}
+
+async function cancelNativeCollectWithTimeout(): Promise<void> {
+  paymentCollectCancelRequested = true;
+  activeCollectAbort?.(new Error("Payment cancelled."));
+  await Promise.race([
+    StripeTerminal.cancelCollectPaymentMethod(),
+    sleep(TERMINAL_CANCEL_SDK_MS),
+  ]).catch(() => undefined);
+}
 /** After a successful connect, ignore brief BT/firmware disconnect blips. */
 let ignoreDisconnectsUntilMs = 0;
 /** Suppress setReaderDisplay briefly after connect — it drops WisePad BT sessions. */
@@ -245,7 +282,8 @@ async function registerTerminalEventListeners(): Promise<void> {
       /cancel|cancell?ed|timed?\s*out|abort/i.test(String(info?.message ?? ""))
     ) {
       paymentCollectCancelRequested = true;
-      void StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+      activeCollectAbort?.(new Error("Payment cancelled."));
+      void cancelNativeCollectWithTimeout();
     }
   });
 
@@ -644,8 +682,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       paymentCollectCancelRequested = true;
       ignoreDisconnectsUntilMs = 0;
       latestProviderOptions?.onReaderStatus?.("Payment cancelled.");
-      activeCollectAbort?.(new Error("Payment cancelled."));
-      await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+      await cancelNativeCollectWithTimeout();
     },
 
     async collectAndProcess(clientSecret: string) {
@@ -682,7 +719,13 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           connected = await refreshConnectedReaderFromSdk();
         }
         if (!connected) {
+          if (isTerminalOperationAborted() || paymentCollectCancelRequested) {
+            throw new Error("Payment cancelled.");
+          }
           await this.discoverAndConnect();
+          if (isTerminalOperationAborted() || paymentCollectCancelRequested) {
+            throw new Error("Payment cancelled.");
+          }
           connected = await refreshConnectedReaderFromSdk();
         }
         if (!connected) {
@@ -705,18 +748,11 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         );
 
         const collectPromise = StripeTerminal.collectPaymentMethod({ paymentIntent: clientSecret });
-        const cancelRace = new Promise<never>((_, reject) => {
-          activeCollectAbort = reject;
-          if (paymentCollectCancelRequested) {
-            reject(new Error("Payment cancelled."));
-          }
-        });
-        await Promise.race([collectPromise, cancelRace]);
-        activeCollectAbort = null;
+        await awaitWithPaymentCancel(collectPromise);
         throwIfCollectCancelled();
 
         options.onReaderStatus?.("Confirming payment…");
-        await StripeTerminal.confirmPaymentIntent();
+        await awaitWithPaymentCancel(StripeTerminal.confirmPaymentIntent());
         throwIfCollectCancelled();
 
         // Keep treating the reader as connected through post-payment BT blips.
@@ -731,7 +767,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           readerId: sdkConnectedReader?.id || null,
         };
       } catch (error) {
-        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+        await cancelNativeCollectWithTimeout();
         beginConnectionHold(15_000);
         lastTerminalChargeFinishedAt = Date.now();
         if (paymentCollectCancelRequested || (error instanceof Error && /cancel/i.test(error.message))) {

@@ -132,6 +132,7 @@ const PosCheckoutPage = () => {
   const [paymentFlowDetail, setPaymentFlowDetail] = useState<string | null>(null);
   const activeSaleIdRef = useRef<string | null>(null);
   const paySessionActiveRef = useRef(false);
+  const paymentCancelledRef = useRef(false);
   const [paymentReceiptHint, setPaymentReceiptHint] = useState<string | null>(null);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
   const [lastReceiptUrl, setLastReceiptUrl] = useState<string | null>(null);
@@ -729,32 +730,42 @@ function isPaymentOverlayNoise(status: string): boolean {
     return status;
   })();
 
-  const cancelPosPayment = async () => {
+  const cancelPosPayment = () => {
+    paymentCancelledRef.current = true;
     setPaymentFlowPhase("timed_out");
     setPaymentFlowDetail(t("pos.paymentCancelled"));
+
     const saleId = activeSaleIdRef.current;
-    try {
-      if (terminal.status === "discovering" || terminal.status === "connecting") {
-        await terminal.cancelConnect();
-      } else {
-        await terminal.cancelCollectPayment();
+    activeSaleIdRef.current = null;
+
+    void (async () => {
+      try {
+        await Promise.race([
+          (async () => {
+            await terminal.cancelCollectPayment();
+            if (terminal.status === "discovering" || terminal.status === "connecting") {
+              await terminal.cancelConnect();
+            }
+          })(),
+          new Promise<void>((resolve) => window.setTimeout(resolve, 4_000)),
+        ]);
+      } catch {
+        /* handlePay catch will also reject the in-flight collect */
       }
-    } catch {
-      /* collect/connect promise will also reject */
-    }
-    if (saleId) {
-      const { data: completeData } = await invokeEdgeFunctionJson<{
-        receiptEmail?: { sent?: boolean } | null;
-      }>("stripe-terminal-pos", {
-        action: "complete_sale",
-        saleId,
-        status: "cancelled",
-      });
-      if (completeData?.receiptEmail?.sent) {
-        setPaymentReceiptHint(t("pos.cancelReceiptEmailSent"));
+
+      if (saleId) {
+        const { data: completeData } = await invokeEdgeFunctionJson<{
+          receiptEmail?: { sent?: boolean } | null;
+        }>("stripe-terminal-pos", {
+          action: "complete_sale",
+          saleId,
+          status: "cancelled",
+        });
+        if (completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(t("pos.cancelReceiptEmailSent"));
+        }
       }
-      activeSaleIdRef.current = null;
-    }
+    })();
   };
 
   const ensureTapToPayConnected = async (): Promise<boolean> => {
@@ -920,6 +931,7 @@ function isPaymentOverlayNoise(status: string): boolean {
     }
 
     paySessionActiveRef.current = true;
+    paymentCancelledRef.current = false;
     setPaying(true);
     setPaymentReceiptHint(null);
     setLastReceiptUrl(null);
@@ -970,6 +982,10 @@ function isPaymentOverlayNoise(status: string): boolean {
       saleId = piData.saleId;
       activeSaleIdRef.current = piData.saleId;
 
+      if (paymentCancelledRef.current) {
+        throw new Error("Payment cancelled.");
+      }
+
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
         if (piData.receiptUrl) setLastReceiptUrl(piData.receiptUrl);
@@ -991,6 +1007,10 @@ function isPaymentOverlayNoise(status: string): boolean {
 
       if (!piData.clientSecret) {
         throw new Error(t("pos.paymentFailed"));
+      }
+
+      if (paymentCancelledRef.current) {
+        throw new Error("Payment cancelled.");
       }
 
       const result = await terminal.collectAndProcess(piData.clientSecret);
@@ -1033,7 +1053,8 @@ function isPaymentOverlayNoise(status: string): boolean {
       await finalizeSale();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
-      const phase = classifyPaymentFailure(msg);
+      const cancelled = paymentCancelledRef.current || /cancel/i.test(msg);
+      const phase = cancelled ? "timed_out" : classifyPaymentFailure(msg);
       const completeStatus = phase === "timed_out" ? "cancelled" : "failed";
       if (usingTapToPay || usingWisePad) {
         setPaymentFlowPhase(phase);
@@ -1042,32 +1063,41 @@ function isPaymentOverlayNoise(status: string): boolean {
         toast.error(msg);
         setPaymentFlowPhase("hidden");
       }
-      if (saleId) {
-        // Cancel button may have already completed the sale as cancelled.
-        if (activeSaleIdRef.current === null && /cancel/i.test(msg)) {
-          /* already finalized by cancelPosPayment */
-        } else {
-          const { data: completeData } = await invokeEdgeFunctionJson<{
-            receiptEmail?: { sent?: boolean } | null;
-          }>("stripe-terminal-pos", {
-            action: "complete_sale",
-            saleId,
-            status: completeStatus,
-          });
-          if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
-            setPaymentReceiptHint(
-              phase === "timed_out"
-                ? t("pos.cancelReceiptEmailSent")
-                : t("pos.failedReceiptEmailSent", {
-                    defaultValue: "Payment unsuccessful notice emailed to the client.",
-                  }),
-            );
-          }
+      if (saleId && !cancelled) {
+        const { data: completeData } = await invokeEdgeFunctionJson<{
+          receiptEmail?: { sent?: boolean } | null;
+        }>("stripe-terminal-pos", {
+          action: "complete_sale",
+          saleId,
+          status: completeStatus,
+        });
+        if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(
+            phase === "timed_out"
+              ? t("pos.cancelReceiptEmailSent")
+              : t("pos.failedReceiptEmailSent", {
+                  defaultValue: "Payment unsuccessful notice emailed to the client.",
+                }),
+          );
+        }
+        activeSaleIdRef.current = null;
+      } else if (saleId && cancelled && activeSaleIdRef.current !== null) {
+        // Cancel button may not have finished complete_sale yet — fallback once.
+        const { data: completeData } = await invokeEdgeFunctionJson<{
+          receiptEmail?: { sent?: boolean } | null;
+        }>("stripe-terminal-pos", {
+          action: "complete_sale",
+          saleId,
+          status: "cancelled",
+        });
+        if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(t("pos.cancelReceiptEmailSent"));
         }
         activeSaleIdRef.current = null;
       }
     } finally {
       paySessionActiveRef.current = false;
+      paymentCancelledRef.current = false;
       setPaying(false);
       if (!usingTapToPay && !usingWisePad) {
         setPaymentFlowPhase("hidden");

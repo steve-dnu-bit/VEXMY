@@ -130,13 +130,13 @@ export function PosPaymentFlowOverlay({
     }
   };
 
-  const cancel = async () => {
+  const cancel = () => {
     if (!onCancel || cancelling) return;
     setCancelling(true);
     try {
-      await onCancel();
+      onCancel();
     } finally {
-      setCancelling(false);
+      window.setTimeout(() => setCancelling(false), 300);
     }
   };
 

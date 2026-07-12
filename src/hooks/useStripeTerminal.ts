@@ -183,9 +183,10 @@ export function useStripeTerminal(options: {
         return result;
       } catch (e) {
         const msg = formatTerminalError(e, "Payment failed");
-        setError(msg);
+        const cancelled = /cancel/i.test(msg);
+        setError(cancelled ? null : msg);
         const stillConnected = await syncReaderFromSdk();
-        setStatus(stillConnected ? "connected" : "error");
+        setStatus(stillConnected ? "connected" : "idle");
         throw new Error(msg);
       }
     },
