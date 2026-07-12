@@ -7,16 +7,9 @@
 	<key>destination</key>
 	<string>export</string>
 	<key>signingStyle</key>
-	<string>manual</string>
-	<key>signingCertificate</key>
-	<string>Apple Development</string>
+	<string>automatic</string>
 	<key>teamID</key>
 	<string>NS8FATRNW3</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>com.velbok.app</key>
-		<string>pay_test_velbok</string>
-	</dict>
 	<key>stripSwiftSymbols</key>
 	<true/>
 	<key>compileBitcode</key>
