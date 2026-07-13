@@ -1,0 +1,42 @@
+{
+	"appId": "com.velbok.app",
+	"appName": "Velbok",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "https"
+	},
+	"plugins": {
+		"SystemBars": {
+			"style": "DARK"
+		},
+		"CapacitorHttp": {
+			"enabled": true
+		},
+		"SplashScreen": {
+			"launchShowDuration": 1800,
+			"launchAutoHide": true,
+			"backgroundColor": "#0c0c0f",
+			"showSpinner": false
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	},
+	"packageClassList": [
+		"StripeTerminalPlugin",
+		"AppPlugin",
+		"CAPBrowserPlugin",
+		"CAPCameraPlugin",
+		"GeolocationPlugin",
+		"PushNotificationsPlugin",
+		"SplashScreenPlugin",
+		"TapToPayEducationPlugin",
+		"TapToPayReadinessPlugin",
+		"TerminalPermissionsPlugin"
+	]
+}

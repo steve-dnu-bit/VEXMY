@@ -62,6 +62,7 @@ const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
 const AccountDeletionPage = lazy(() => import("./pages/AccountDeletionPage"));
 const CustomerEmbedLoginPage = lazy(() => import("./pages/CustomerEmbedLoginPage"));
 const PosCheckoutPage = lazy(() => import("./pages/PosCheckoutPage"));
+const PosReceiptPage = lazy(() => import("./pages/PosReceiptPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -141,6 +142,7 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/account-deletion" element={<AccountDeletionPage />} />
                 <Route path="/cookies" element={<CookiePolicyPage />} />
+                <Route path="/receipt/:token" element={<PosReceiptPage />} />
                 <Route element={<CustomerPortalShell />}>
                   <Route path="/consent" element={<ConsentPage />} />
                   <Route path="/account" element={<ProtectedRoute><CustomerAccountPage /></ProtectedRoute>} />

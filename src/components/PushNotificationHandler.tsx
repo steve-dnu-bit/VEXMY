@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { App } from "@capacitor/app";
 import { PushNotifications } from "@capacitor/push-notifications";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useAuth } from "@/hooks/useAuth";
 import { isNativeApp } from "@/lib/platform";
 import {
+  clearDeliveredPushNotifications,
   parsePushData,
   registerForPushNotifications,
   registerNativePushToken,
@@ -38,9 +40,17 @@ const PushNotificationHandler = () => {
 
       const actionHandle = await PushNotifications.addListener("pushNotificationActionPerformed", (event) => {
         const payload = parsePushData(event.notification.data as Record<string, unknown> | undefined);
+        void clearDeliveredPushNotifications();
         if (payload.path) navigate(payload.path);
       });
       handles.push(actionHandle);
+
+      const appStateHandle = await App.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) void clearDeliveredPushNotifications();
+      });
+      handles.push(appStateHandle);
+
+      void clearDeliveredPushNotifications();
 
       const permission = await requestNativePushPermission();
       if (cancelled || permission !== "granted") return;

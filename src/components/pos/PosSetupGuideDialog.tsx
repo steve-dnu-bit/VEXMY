@@ -16,7 +16,7 @@ import { TapToPayReadinessAlert } from "@/components/pos/TapToPayReadinessAlert"
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import type { TerminalReaderMode } from "@/lib/terminal/types";
 import type { useStripeTerminal } from "@/hooks/useStripeTerminal";
-import { isNativeApp, nativePlatform } from "@/lib/platform";
+import { isNativeApp, nativePlatform, isIpadDevice } from "@/lib/platform";
 
 type PosSetupGuideDialogProps = {
   open: boolean;
@@ -94,22 +94,26 @@ const PosSetupGuideDialog = ({
                 </label>
                 <label
                   htmlFor="setup-reader-tap"
-                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 ${readerMode === "tap_to_pay" ? "border-primary bg-primary/5" : "border-border"}`}
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 ${readerMode === "tap_to_pay" ? "border-primary bg-primary/5" : "border-border"} ${isIpadDevice() ? "opacity-50 pointer-events-none" : ""}`}
                 >
-                  <RadioGroupItem id="setup-reader-tap" value="tap_to_pay" className="mt-0.5" />
+                  <RadioGroupItem id="setup-reader-tap" value="tap_to_pay" className="mt-0.5" disabled={isIpadDevice()} />
                   <div>
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <Smartphone className="h-4 w-4" />
                       {t("pos.readerModeTapToPay")}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{t("pos.readerModeTapToPayHint")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {isIpadDevice()
+                        ? "Not available on iPad — use WisePad (Bluetooth reader)."
+                        : t("pos.readerModeTapToPayHint")}
+                    </p>
                   </div>
                 </label>
               </RadioGroup>
 
               {usingTapToPay ? (
                 <div className="space-y-3">
-                  <TapToPayReadinessAlert />
+                  <TapToPayReadinessAlert readerMode={readerMode} />
                   {locationId ? (
                     <Button type="button" variant="outline" size="sm" disabled={testingStripeLink} onClick={onTestStripeLink}>
                       {testingStripeLink ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}

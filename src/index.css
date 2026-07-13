@@ -266,6 +266,12 @@
     @apply bg-secondary;
   }
 
+  html.native-app .glass-surface,
+  html.native-app .glass-surface-subtle {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
   html.native-app input,
   html.native-app textarea,
   html.native-app [contenteditable="true"] {

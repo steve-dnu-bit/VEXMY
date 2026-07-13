@@ -55,9 +55,9 @@ export function useStripeTerminal(options: {
       readerMode: options.readerMode,
       locationId: options.locationId,
       onUnexpectedDisconnect: () => {
+        // Keep status messages; only clear connection when the provider confirms a real loss.
         setReader(null);
         setStatus("idle");
-        setReaderStatus(null);
       },
       onConnectionTokenError: (message) => {
         setError(message);
@@ -183,9 +183,10 @@ export function useStripeTerminal(options: {
         return result;
       } catch (e) {
         const msg = formatTerminalError(e, "Payment failed");
-        setError(msg);
+        const cancelled = /cancel/i.test(msg);
+        setError(cancelled ? null : msg);
         const stillConnected = await syncReaderFromSdk();
-        setStatus(stillConnected ? "connected" : "error");
+        setStatus(stillConnected ? "connected" : "idle");
         throw new Error(msg);
       }
     },
@@ -214,6 +215,7 @@ export function useStripeTerminal(options: {
     try {
       if (isNativeTerminalInitialized()) {
         const { StripeTerminal } = await import("@capacitor-community/stripe-terminal");
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
       }
       if (providerRef.current) {
@@ -227,6 +229,23 @@ export function useStripeTerminal(options: {
     }
   }, []);
 
+  const cancelCollectPayment = useCallback(async () => {
+    setStatus("connected");
+    try {
+      const provider = providerRef.current ?? (await ensureProvider());
+      if (provider.cancelCollectPayment) {
+        await provider.cancelCollectPayment();
+      } else if (isNativeTerminalInitialized()) {
+        const { StripeTerminal } = await import("@capacitor-community/stripe-terminal");
+        await StripeTerminal.cancelCollectPaymentMethod().catch(() => undefined);
+      }
+    } finally {
+      const stillConnected = await syncReaderFromSdk();
+      setStatus(stillConnected ? "connected" : "idle");
+      setReaderStatus("Payment cancelled.");
+    }
+  }, [ensureProvider, syncReaderFromSdk]);
+
   return {
     status,
     reader,
@@ -235,6 +254,7 @@ export function useStripeTerminal(options: {
     firmwareUpdate,
     discoverAndConnect,
     cancelConnect,
+    cancelCollectPayment,
     disconnect,
     collectAndProcess,
     updateReaderDisplay,

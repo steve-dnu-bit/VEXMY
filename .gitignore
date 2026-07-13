@@ -36,6 +36,13 @@ android/app/*firebase-adminsdk*.json
 docs/play-internal-testers.txt
 docs/play-review-credentials.txt
 
+# Apple TTPOI proprietary materials (local working copies only)
+docs/apple-ttpoi/Tap to Pay on iPhone App Requirements/
+docs/apple-ttpoi/requirements-extracted.txt
+docs/apple-ttpoi/checklist-extracted.txt
+docs/apple-ttpoi/extract_requirements.py
+docs/apple-ttpoi/*.zip
+
 # Supabase CLI local cache
 supabase/.temp/
 

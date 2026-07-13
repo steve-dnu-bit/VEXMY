@@ -26,6 +26,8 @@ export interface TerminalProvider {
   discoverAndConnect(): Promise<TerminalReaderInfo>;
   disconnect(): Promise<void>;
   collectAndProcess(clientSecret: string): Promise<TerminalCollectResult>;
+  /** Cancel an in-flight collectPaymentMethod (Tap to Pay / WisePad). */
+  cancelCollectPayment?(): Promise<void>;
   getConnectedReader(): TerminalReaderInfo | null;
   updateReaderDisplay?(cart: import("@/lib/terminal/readerDisplay").ReaderDisplayCart): Promise<void>;
 }

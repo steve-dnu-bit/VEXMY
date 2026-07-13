@@ -63,3 +63,13 @@ export async function registerForPushNotifications(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   await PushNotifications.register();
 }
+
+/** Clear notification center entries (iOS badge is cleared in AppDelegate on become-active). */
+export async function clearDeliveredPushNotifications(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await PushNotifications.removeAllDeliveredNotifications();
+  } catch {
+    // Older plugin builds may not expose this — native AppDelegate still clears the badge.
+  }
+}

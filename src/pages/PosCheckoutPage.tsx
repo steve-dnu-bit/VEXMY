@@ -5,7 +5,10 @@ import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
+import { WisePadSetupPanels } from "@/components/pos/WisePadSetupPanels";
 import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
+import { PosPaymentFlowOverlay, type PosPaymentFlowPhase } from "@/components/pos/PosPaymentFlowOverlay";
+import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
 import BookingClientSearch from "@/components/schedule/BookingClientSearch";
 import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
@@ -23,6 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { formatShopMoney } from "@/lib/shopCurrency";
 import { cn } from "@/lib/utils";
 import { loadOrgBillingContext } from "@/lib/orgBilling";
@@ -58,7 +62,7 @@ import {
 } from "@/lib/posCheckout";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { useStripeTerminal } from "@/hooks/useStripeTerminal";
-import { isNativeApp, nativePlatform } from "@/lib/platform";
+import { isNativeApp, isIpadDevice, nativePlatform } from "@/lib/platform";
 import {
   dismissWisePadSetupGuide,
   hasWisePadFirmwareCompleted,
@@ -76,6 +80,13 @@ import {
 import type { TerminalReaderMode } from "@/lib/terminal/types";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useSearchParams } from "react-router-dom";
+import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
+import {
+  checkTapToPayEnvironment,
+  formatTapToPayBlockersMessage,
+  hasTapToPayHardBlockers,
+} from "@/lib/terminal/tapToPayReadiness";
+import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
 
 interface CartEntry {
   key: string;
@@ -87,8 +98,9 @@ interface CartEntry {
 }
 
 const PosCheckoutPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { canManageBilling } = useSubscription();
   const [searchParams] = useSearchParams();
   const prefilledArtistId = searchParams.get("artistId");
   const prefilledClientName = searchParams.get("clientName");
@@ -116,7 +128,14 @@ const PosCheckoutPage = () => {
   const [locationId, setLocationId] = useState<string | null>(null);
   const [connectReady, setConnectReady] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [paymentFlowPhase, setPaymentFlowPhase] = useState<PosPaymentFlowPhase>("hidden");
+  const [paymentFlowDetail, setPaymentFlowDetail] = useState<string | null>(null);
+  const activeSaleIdRef = useRef<string | null>(null);
+  const paySessionActiveRef = useRef(false);
+  const paymentCancelledRef = useRef(false);
+  const [paymentReceiptHint, setPaymentReceiptHint] = useState<string | null>(null);
   const [lastSaleId, setLastSaleId] = useState<string | null>(null);
+  const [lastReceiptUrl, setLastReceiptUrl] = useState<string | null>(null);
   const [recentSales, setRecentSales] = useState<PosSaleRow[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
   const [customForm, setCustomForm] = useState({
@@ -183,6 +202,7 @@ const PosCheckoutPage = () => {
         markWisePadFirmwareCompleted();
         setShowWisePadGuide(false);
         toast.success(t("pos.wisePadFirmwareComplete"));
+        // Do NOT disconnect here — tearing down mid/post-connect crashes Stripe Terminal on iOS.
       }
     },
   });
@@ -217,6 +237,13 @@ const PosCheckoutPage = () => {
   };
 
   const readerModeInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isIpadDevice()) return;
+    if (readerMode === "bluetooth") return;
+    setReaderMode("bluetooth");
+    saveTerminalReaderMode("bluetooth");
+  }, [readerMode]);
 
   useEffect(() => {
     if (!readerModeInitializedRef.current) {
@@ -434,6 +461,9 @@ const PosCheckoutPage = () => {
 
   useEffect(() => {
     if (readerFirmwareUpdating) return;
+    // WisePad: never push cart to the reader screen — setReaderDisplay drops BT
+    // after a successful payment and crashes the next charge.
+    if (usingWisePad) return;
     void pushCartToReader();
   }, [
     terminal.status,
@@ -444,6 +474,7 @@ const PosCheckoutPage = () => {
     totals.subtotal,
     totals.taxAmount,
     readerFirmwareUpdating,
+    usingWisePad,
   ]);
 
   const dueSplit = useMemo(
@@ -680,6 +711,195 @@ const PosCheckoutPage = () => {
     if (productsCsvInputRef.current) productsCsvInputRef.current.value = "";
   };
 
+  const classifyPaymentFailure = (message: string): PosPaymentFlowPhase => {
+    if (/timed?\s*out|timeout|cancelled|canceled|user.?cancel|payment cancelled/i.test(message)) {
+      return "timed_out";
+    }
+    return "declined";
+  };
+
+function isPaymentOverlayNoise(status: string): boolean {
+  return /signal dropped|keeping session|reconnecting|optional update/i.test(status);
+}
+
+  const paymentOverlayDetail = (() => {
+    if (paymentFlowDetail) return paymentFlowDetail;
+    if (!usingTapToPay && !usingWisePad) return null;
+    const status = terminal.readerStatus?.trim() || "";
+    if (!status || isPaymentOverlayNoise(status)) return null;
+    return status;
+  })();
+
+  const cancelPosPayment = () => {
+    paymentCancelledRef.current = true;
+    setPaymentFlowPhase("timed_out");
+    setPaymentFlowDetail(t("pos.paymentCancelled"));
+
+    const saleId = activeSaleIdRef.current;
+    activeSaleIdRef.current = null;
+
+    void (async () => {
+      try {
+        await Promise.race([
+          (async () => {
+            await terminal.cancelCollectPayment();
+            if (terminal.status === "discovering" || terminal.status === "connecting") {
+              await terminal.cancelConnect();
+            }
+          })(),
+          new Promise<void>((resolve) => window.setTimeout(resolve, 4_000)),
+        ]);
+      } catch {
+        /* handlePay catch will also reject the in-flight collect */
+      }
+
+      if (saleId) {
+        const { data: completeData } = await invokeEdgeFunctionJson<{
+          receiptEmail?: { sent?: boolean } | null;
+        }>("stripe-terminal-pos", {
+          action: "complete_sale",
+          saleId,
+          status: "cancelled",
+        });
+        if (completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(t("pos.cancelReceiptEmailSent"));
+        }
+      }
+    })();
+  };
+
+  const ensureTapToPayConnected = async (): Promise<boolean> => {
+    if (terminal.status === "connected") return true;
+
+    if (!canManageBilling) {
+      setPaymentFlowPhase("declined");
+      setPaymentFlowDetail(t("pos.tapToPayContactAdmin"));
+      toast.error(t("pos.tapToPayContactAdmin"));
+      return false;
+    }
+
+    const env = await checkTapToPayEnvironment();
+    if (env && hasTapToPayHardBlockers(env)) {
+      const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
+      setPaymentFlowPhase("declined");
+      setPaymentFlowDetail(message);
+      toast.error(message);
+      return false;
+    }
+
+    setPaymentFlowPhase("initializing");
+    setPaymentFlowDetail(null);
+    await terminal.discoverAndConnect();
+    markWisePadFirmwareCompleted();
+    setShowWisePadGuide(false);
+    await showTapToPayEducationIfAvailable();
+    return true;
+  };
+
+  const shareDigitalReceipt = async (overrideEmail?: string) => {
+    const email = (overrideEmail || clientEmail).trim();
+    const amountText = formatShopMoney(amountDue > 0 ? amountDue : totals.total, currency);
+    const cancelled =
+      paymentFlowPhase === "timed_out" || paymentFlowPhase === "declined";
+    const body = [
+      t("pos.checkoutTitle"),
+      cancelled ? t("pos.paymentCancelled") : t("pos.paymentApproved"),
+      clientName.trim() ? `${t("pos.clientName")}: ${clientName.trim()}` : null,
+      `${t("pos.total")}: ${amountText}`,
+      lastSaleId ? `Sale: ${lastSaleId}` : null,
+      lastReceiptUrl && !cancelled ? lastReceiptUrl : null,
+      cancelled ? t("pos.cancelReceiptNote") : t("pos.tapToPayFallbackWisePad"),
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (email) {
+      setClientEmail(email);
+      window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(
+        cancelled ? t("pos.cancelReceiptEmailSubject") : t("pos.digitalReceiptTitle"),
+      )}&body=${encodeURIComponent(body)}`;
+      setPaymentReceiptHint(t("pos.receiptShared"));
+      return;
+    }
+
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({
+          title: cancelled ? t("pos.cancelReceiptEmailSubject") : t("pos.digitalReceiptTitle"),
+          text: body,
+          url: lastReceiptUrl || undefined,
+        });
+        setPaymentReceiptHint(t("pos.receiptShared"));
+        return;
+      }
+      await navigator.clipboard.writeText(body);
+      setPaymentReceiptHint(t("pos.receiptShared"));
+      toast.success(t("pos.receiptShared"));
+    } catch {
+      toast.error(t("pos.receiptShareFailed"));
+    }
+  };
+
+  const sendReceiptEmail = async (email: string) => {
+    if (!lastSaleId) return;
+    const { data, error } = await invokeEdgeFunctionJson<{
+      ok?: boolean;
+      receiptEmail?: { sent?: boolean; error?: string; skipped?: string } | null;
+    }>("stripe-terminal-pos", {
+      action: "send_receipt",
+      channel: "email",
+      saleId: lastSaleId,
+      to: email,
+    });
+    if (error || !data?.ok) {
+      toast.error(data?.receiptEmail?.error || error?.message || t("pos.receiptShareFailed"));
+      return;
+    }
+    setClientEmail(email);
+    setPaymentReceiptHint(t("pos.receiptEmailSent"));
+    toast.success(t("pos.receiptEmailSent"));
+  };
+
+  const sendReceiptSms = async (phone: string) => {
+    if (!lastSaleId) return;
+    const { data, error } = await invokeEdgeFunctionJson<{
+      ok?: boolean;
+      fallbackShare?: boolean;
+      receiptUrl?: string | null;
+      receiptSms?: { sent?: boolean; error?: string; skipped?: string } | null;
+    }>("stripe-terminal-pos", {
+      action: "send_receipt",
+      channel: "sms",
+      saleId: lastSaleId,
+      to: phone,
+    });
+
+    if (data?.receiptUrl) setLastReceiptUrl(data.receiptUrl);
+
+    if (data?.fallbackShare && data.receiptUrl) {
+      const body = t("pos.digitalReceiptTitle") + "\n" + data.receiptUrl;
+      try {
+        window.location.href = `sms:${encodeURIComponent(phone)}?&body=${encodeURIComponent(body)}`;
+      } catch {
+        try {
+          await navigator.clipboard.writeText(body);
+        } catch {
+          /* ignore */
+        }
+      }
+      setPaymentReceiptHint(t("pos.receiptSmsFallback"));
+      toast.message(t("pos.receiptSmsFallback"));
+      return;
+    }
+
+    if (error || !data?.ok) {
+      toast.error(data?.receiptSms?.error || error?.message || t("pos.receiptSmsFailed"));
+      return;
+    }
+    setPaymentReceiptHint(t("pos.receiptSmsSent"));
+    toast.success(t("pos.receiptSmsSent"));
+  };
+
   const handlePay = async () => {
     if (cart.length === 0) {
       toast.error(t("pos.addItemsToCharge"));
@@ -705,16 +925,27 @@ const PosCheckoutPage = () => {
       toast.error(t("pos.artistConnectMissingBeforePay"));
       return;
     }
+    if (paySessionActiveRef.current) {
+      toast.message(t("pos.paymentInProgressWait"));
+      return;
+    }
 
+    paySessionActiveRef.current = true;
+    paymentCancelledRef.current = false;
     setPaying(true);
+    setPaymentReceiptHint(null);
+    setLastReceiptUrl(null);
+    setPaymentFlowDetail(null);
+    activeSaleIdRef.current = null;
     let saleId: string | null = null;
     try {
       if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
-        try {
-          await terminal.discoverAndConnect();
-        } catch (connectError) {
-          throw connectError;
-        }
+        const connected = await ensureTapToPayConnected();
+        if (!connected) return;
+      }
+
+      if (amountDue > 0 && (usingTapToPay || usingWisePad)) {
+        setPaymentFlowPhase("processing");
       }
 
       const { data: piData, error: piErr } = await invokeEdgeFunctionJson<{
@@ -722,6 +953,8 @@ const PosCheckoutPage = () => {
         saleId?: string;
         paymentIntentId?: string;
         zeroBalance?: boolean;
+        receiptUrl?: string | null;
+        receiptEmail?: { sent?: boolean } | null;
       }>("stripe-terminal-pos", {
         action: "create_payment_intent",
         artistId: chargeArtistId || undefined,
@@ -747,12 +980,26 @@ const PosCheckoutPage = () => {
       }
 
       saleId = piData.saleId;
+      activeSaleIdRef.current = piData.saleId;
+
+      if (paymentCancelledRef.current) {
+        throw new Error("Payment cancelled.");
+      }
 
       if (piData.zeroBalance) {
         setLastSaleId(piData.saleId);
-        toast.success(t("pos.depositCoversBalance"));
-        if ((piData as { receiptEmail?: { sent?: boolean } }).receiptEmail?.sent) {
-          toast.success(t("pos.receiptEmailSent"));
+        if (piData.receiptUrl) setLastReceiptUrl(piData.receiptUrl);
+        if (usingTapToPay || usingWisePad) {
+          setPaymentFlowPhase("approved");
+          setPaymentFlowDetail(t("pos.depositCoversBalance"));
+          if (piData.receiptEmail?.sent) {
+            setPaymentReceiptHint(t("pos.receiptEmailSent"));
+          }
+        } else {
+          toast.success(t("pos.depositCoversBalance"));
+          if (piData.receiptEmail?.sent) {
+            toast.success(t("pos.receiptEmailSent"));
+          }
         }
         await finalizeSale();
         return;
@@ -762,11 +1009,16 @@ const PosCheckoutPage = () => {
         throw new Error(t("pos.paymentFailed"));
       }
 
+      if (paymentCancelledRef.current) {
+        throw new Error("Payment cancelled.");
+      }
+
       const result = await terminal.collectAndProcess(piData.clientSecret);
 
       const { data: completeData } = await invokeEdgeFunctionJson<{
         transfers?: { errors?: string[] } | null;
         receiptEmail?: { sent?: boolean } | null;
+        receiptUrl?: string | null;
       }>("stripe-terminal-pos", {
         action: "complete_sale",
         saleId: piData.saleId,
@@ -776,9 +1028,18 @@ const PosCheckoutPage = () => {
       });
 
       setLastSaleId(piData.saleId);
-      toast.success(t("pos.paymentSuccess"));
-      if (completeData?.receiptEmail?.sent) {
-        toast.success(t("pos.receiptEmailSent"));
+      if (completeData?.receiptUrl) setLastReceiptUrl(completeData.receiptUrl);
+      if (usingTapToPay || usingWisePad) {
+        setPaymentFlowPhase("approved");
+        setPaymentFlowDetail(t("pos.paymentSuccess"));
+        if (completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(t("pos.receiptEmailSent"));
+        }
+      } else {
+        toast.success(t("pos.paymentSuccess"));
+        if (completeData?.receiptEmail?.sent) {
+          toast.success(t("pos.receiptEmailSent"));
+        }
       }
       const transferErrors = completeData?.transfers?.errors ?? [];
       if (transferErrors.length > 0) {
@@ -792,17 +1053,94 @@ const PosCheckoutPage = () => {
       await finalizeSale();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.paymentFailed");
-      toast.error(msg);
-      if (saleId) {
-        await invokeEdgeFunctionJson("stripe-terminal-pos", {
+      const cancelled = paymentCancelledRef.current || /cancel/i.test(msg);
+      const phase = cancelled ? "timed_out" : classifyPaymentFailure(msg);
+      const completeStatus = phase === "timed_out" ? "cancelled" : "failed";
+      if (usingTapToPay || usingWisePad) {
+        setPaymentFlowPhase(phase);
+        setPaymentFlowDetail(phase === "timed_out" ? t("pos.paymentCancelled") : msg);
+      } else {
+        toast.error(msg);
+        setPaymentFlowPhase("hidden");
+      }
+      if (saleId && !cancelled) {
+        const { data: completeData } = await invokeEdgeFunctionJson<{
+          receiptEmail?: { sent?: boolean } | null;
+        }>("stripe-terminal-pos", {
           action: "complete_sale",
           saleId,
-          status: "failed",
+          status: completeStatus,
         });
+        if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(
+            phase === "timed_out"
+              ? t("pos.cancelReceiptEmailSent")
+              : t("pos.failedReceiptEmailSent", {
+                  defaultValue: "Payment unsuccessful notice emailed to the client.",
+                }),
+          );
+        }
+        activeSaleIdRef.current = null;
+      } else if (saleId && cancelled && activeSaleIdRef.current !== null) {
+        // Cancel button may not have finished complete_sale yet — fallback once.
+        const { data: completeData } = await invokeEdgeFunctionJson<{
+          receiptEmail?: { sent?: boolean } | null;
+        }>("stripe-terminal-pos", {
+          action: "complete_sale",
+          saleId,
+          status: "cancelled",
+        });
+        if ((usingTapToPay || usingWisePad) && completeData?.receiptEmail?.sent) {
+          setPaymentReceiptHint(t("pos.cancelReceiptEmailSent"));
+        }
+        activeSaleIdRef.current = null;
       }
     } finally {
+      paySessionActiveRef.current = false;
+      paymentCancelledRef.current = false;
       setPaying(false);
+      if (!usingTapToPay && !usingWisePad) {
+        setPaymentFlowPhase("hidden");
+      }
     }
+  };
+
+  const handleTapToPayPrimary = async () => {
+    if (readerFirmwareUpdating || paying) return;
+
+    if (amountDue <= 0 && depositCredit > 0) {
+      void handlePay();
+      return;
+    }
+
+    if (cart.length === 0) {
+      // Apple 5.3: button stays enabled — if not ready to charge, still allow enable/Terms path.
+      if (terminal.status === "connected") {
+        toast.error(t("pos.addItemsToCharge"));
+        return;
+      }
+      if (connectBlockedReason) {
+        toast.error(connectBlockedReason);
+        return;
+      }
+      try {
+        setPaying(true);
+        const connected = await ensureTapToPayConnected();
+        if (connected) {
+          toast.success(t("pos.tapToPayPhoneReady"));
+          setPaymentFlowPhase("hidden");
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
+        setPaymentFlowPhase(classifyPaymentFailure(msg));
+        setPaymentFlowDetail(msg);
+      } finally {
+        setPaying(false);
+      }
+      return;
+    }
+
+    void handlePay();
   };
 
   if (loading) {
@@ -1286,13 +1624,85 @@ const PosCheckoutPage = () => {
                     </details>
                   ) : null}
 
+                  {usingWisePad ? (
+                    <WisePadSetupPanels
+                      terminal={terminal}
+                      showFirstTimeGuide={showWisePadGuide}
+                      onDismissGuide={() => {
+                        dismissWisePadSetupGuide();
+                        setShowWisePadGuide(false);
+                      }}
+                    />
+                  ) : null}
+
                   <div className="space-y-2 pt-2">
-                    {terminal.status !== "connected" ? (
+                    {usingTapToPay ? (
+                      <>
+                        {/* Apple 5.1–5.3: prominent Tap to Pay CTA first; never greyed for enablement */}
+                        <Button
+                          type="button"
+                          variant="gold"
+                          className="w-full h-14 text-base font-semibold"
+                          disabled={paying || readerFirmwareUpdating || terminal.status === "processing"}
+                          onClick={() => void handleTapToPayPrimary()}
+                        >
+                          {paying ||
+                          terminal.status === "processing" ||
+                          terminal.status === "discovering" ||
+                          terminal.status === "connecting" ? (
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          ) : (
+                            <TapToPayWaveIcon className="h-5 w-5 mr-2" />
+                          )}
+                          {amountDue <= 0 && depositCredit > 0
+                            ? t("pos.completeNoCharge")
+                            : terminal.status === "discovering" || terminal.status === "connecting"
+                              ? t("pos.connectTapToPayProgress")
+                              : tapToPayOnIphoneLabel(i18n.language)}
+                        </Button>
+                        {amountDue > 0 ? (
+                          <p className="text-center text-sm font-medium tabular-nums text-muted-foreground">
+                            {formatShopMoney(amountDue, currency)}
+                          </p>
+                        ) : null}
+                        {!canManageBilling && terminal.status !== "connected" ? (
+                          <p className="text-xs text-amber-700 dark:text-amber-400 text-center leading-snug px-1">
+                            {t("pos.tapToPayContactAdmin")}
+                          </p>
+                        ) : null}
+                        {terminal.status === "discovering" || terminal.status === "connecting" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-muted-foreground"
+                            onClick={() => void terminal.cancelConnect()}
+                          >
+                            {t("common.cancel")}
+                          </Button>
+                        ) : null}
+                        {terminal.status === "connected" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-muted-foreground"
+                            disabled={readerFirmwareUpdating}
+                            onClick={() => void terminal.disconnect()}
+                          >
+                            {t("pos.disconnectReader")}
+                          </Button>
+                        ) : null}
+                        <p className="text-[11px] text-muted-foreground text-center leading-snug px-1">
+                          {t("pos.tapToPayFallbackWisePad")}
+                        </p>
+                      </>
+                    ) : terminal.status !== "connected" ? (
                       terminal.status === "discovering" || terminal.status === "connecting" ? (
                         <>
                           <Button type="button" variant="outline" className="w-full" disabled>
                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            {usingTapToPay ? t("pos.connectTapToPayProgress") : t("pos.connectReaderProgress")}
+                            {t("pos.connectReaderProgress")}
                           </Button>
                           <Button
                             type="button"
@@ -1309,13 +1719,8 @@ const PosCheckoutPage = () => {
                           type="button"
                           variant="outline"
                           className="w-full"
-                          disabled={readerFirmwareUpdating || !canConnectReader || (usingTapToPay && !tapToPayReady.ready)}
+                          disabled={readerFirmwareUpdating || !canConnectReader}
                           onClick={() => {
-                            if (usingTapToPay && !tapToPayReady.ready) {
-                              tapToPayReady.refresh();
-                              toast.error(t("pos.tapToPayPhoneBlocked"));
-                              return;
-                            }
                             if (connectBlockedReason) {
                               toast.error(connectBlockedReason);
                               return;
@@ -1333,7 +1738,7 @@ const PosCheckoutPage = () => {
                           }}
                         >
                           <Wifi className="h-4 w-4 mr-2" />
-                          {usingTapToPay ? t("pos.connectTapToPay") : t("pos.connectReader")}
+                          {t("pos.connectReader")}
                         </Button>
                       )
                     ) : (
@@ -1348,22 +1753,24 @@ const PosCheckoutPage = () => {
                       </p>
                     ) : null}
 
-                    <Button
-                      type="button"
-                      variant="gold"
-                      className="w-full h-12 text-base"
-                      disabled={paying || readerFirmwareUpdating || (amountDue > 0 && terminal.status === "processing")}
-                      onClick={() => void handlePay()}
-                    >
-                      {paying || (amountDue > 0 && terminal.status === "processing") ? (
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      ) : (
-                        <CreditCard className="h-5 w-5 mr-2" />
-                      )}
-                      {amountDue <= 0 && depositCredit > 0
-                        ? t("pos.completeNoCharge")
-                        : t("pos.chargeCard", { amount: formatShopMoney(amountDue, currency) })}
-                    </Button>
+                    {!usingTapToPay ? (
+                      <Button
+                        type="button"
+                        variant="gold"
+                        className="w-full h-12 text-base"
+                        disabled={paying || readerFirmwareUpdating || (amountDue > 0 && terminal.status === "processing")}
+                        onClick={() => void handlePay()}
+                      >
+                        {paying || (amountDue > 0 && terminal.status === "processing") ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : (
+                          <CreditCard className="h-5 w-5 mr-2" />
+                        )}
+                        {amountDue <= 0 && depositCredit > 0
+                          ? t("pos.completeNoCharge")
+                          : t("pos.chargeCard", { amount: formatShopMoney(amountDue, currency) })}
+                      </Button>
+                    ) : null}
 
                     {cart.length > 0 && (
                       <Button type="button" variant="ghost" size="sm" className="w-full" onClick={clearCart}>
@@ -1388,14 +1795,15 @@ const PosCheckoutPage = () => {
                   {terminal.status === "connected" && cart.length === 0 && usingWisePad ? (
                     <p className="text-xs text-muted-foreground">{t("pos.readerDisplayHint")}</p>
                   ) : null}
-                  {terminal.readerStatus && !readerFirmwareUpdating ? (
+                  {terminal.readerStatus ? (
                     <p
                       className={
-                        terminal.status === "discovering" || terminal.status === "connecting"
-                          ? "text-sm font-medium text-foreground"
-                          : /firmware|update/i.test(terminal.readerStatus)
-                            ? "text-sm font-medium text-amber-700 dark:text-amber-400"
-                            : "text-xs text-muted-foreground"
+                        terminal.status === "discovering" ||
+                        terminal.status === "connecting" ||
+                        readerFirmwareUpdating ||
+                        /firmware|update/i.test(terminal.readerStatus)
+                          ? "text-sm font-medium text-amber-700 dark:text-amber-400"
+                          : "text-xs text-muted-foreground"
                       }
                     >
                       {terminal.readerStatus}
@@ -1687,6 +2095,48 @@ const PosCheckoutPage = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <PosPaymentFlowOverlay
+          phase={
+            (usingTapToPay || usingWisePad) &&
+            paymentFlowPhase === "hidden" &&
+            (terminal.status === "discovering" || terminal.status === "connecting")
+              ? "initializing"
+              : paymentFlowPhase
+          }
+          amountLabel={
+            paymentFlowPhase === "approved" || paymentFlowPhase === "declined" || paymentFlowPhase === "timed_out"
+              ? formatShopMoney(amountDue > 0 ? amountDue : totals.total, currency)
+              : amountDue > 0
+                ? formatShopMoney(amountDue, currency)
+                : undefined
+          }
+          detail={paymentOverlayDetail}
+          receiptHint={paymentReceiptHint}
+          receiptUrl={paymentFlowPhase === "approved" ? lastReceiptUrl : null}
+          onDismiss={() => {
+            setPaymentFlowPhase("hidden");
+            setPaymentFlowDetail(null);
+            setPaymentReceiptHint(null);
+          }}
+          onCancel={
+            (usingTapToPay || usingWisePad) &&
+            (paymentFlowPhase === "processing" || paymentFlowPhase === "initializing")
+              ? () => cancelPosPayment()
+              : undefined
+          }
+          onShareReceipt={usingTapToPay || usingWisePad ? shareDigitalReceipt : undefined}
+          onSendReceiptEmail={
+            (usingTapToPay || usingWisePad) && paymentFlowPhase === "approved" && lastSaleId
+              ? sendReceiptEmail
+              : undefined
+          }
+          onSendReceiptSms={
+            (usingTapToPay || usingWisePad) && paymentFlowPhase === "approved" && lastSaleId
+              ? sendReceiptSms
+              : undefined
+          }
+        />
       </SubscriptionGate>
     </AppLayout>
   );

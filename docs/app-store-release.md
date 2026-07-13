@@ -1,105 +1,233 @@
 # App Store release checklist (Velbok iOS)
 
-Operator: **Inkaholics Limited** · Bundle ID: **com.velbok.app** · Website: **https://velbok.com**
+Operator: **Inkaholics Limited** (UK) · Website: **https://velbok.com** · Bundle ID: **com.velbok.app**
 
-iOS builds **must run on a Mac** (Xcode). You can prepare the web bundle on Windows with `npm run ios:prepare`, then archive on your cloud Mac.
+The iOS app is a **Capacitor shell** around the same React web app used on Android and velbok.com. Native code is limited to Stripe Terminal (Tap to Pay + WisePad) and Apple’s required Tap to Pay education overlay.
 
----
+## Use the correct branch
 
-## One-time Apple Developer setup
+All iOS / Xcode work happens on **`apple-app-store`**, not `play-store-launch` or `main`.
 
-1. [Apple Developer](https://developer.apple.com/account) → **Certificates, Identifiers & Profiles**
-2. **Identifiers** → App ID `com.velbok.app` with:
-   - Push Notifications
-   - **Proximity Reader Payment Acceptance** (Tap to Pay on iPhone — Stripe)
-3. Note your **Team ID** (Membership page, 10 characters) — needed for builds.
-4. **App Store Connect** → create app **Velbok** with bundle `com.velbok.app`.
+```bash
+git fetch origin
+git checkout apple-app-store
+git pull
+```
 
-### Firebase (push notifications)
+In Xcode you do **not** switch branches inside the IDE for day-to-day work — switch in Terminal first, then reopen the project.
+
+## First time on a Mac (fix black screen)
+
+A **black screen** almost always means the web app was not copied into the iOS project.
+
+1. Clone and checkout `apple-app-store` (see above).
+2. Copy env: `cp .env.example .env` and set `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` (only needed when **rebuilding** the web bundle).
+3. Install and import the web app into iOS:
+   ```bash
+   npm install
+   npm run ios:prepare
+   ```
+   `npm install` is required — CapApp-SPM links to Capacitor plugins in `node_modules`, which are not committed to git.
+4. Open Xcode: `npm run cap:ios`
+5. If Xcode shows **Missing package product 'CapApp-SPM'**:
+   - Quit Xcode
+   - Run `npm install` and `npm run ios:prepare` again
+   - Reopen Xcode → **File → Packages → Reset Package Caches**
+   - **File → Packages → Resolve Package Versions**
+6. Select your **Apple Developer Team** under Signing & Capabilities.
+7. For the first build test, use an **iPhone Simulator** (no provisioning profile needed).
+8. After signing works, run on a **physical iPhone** for Tap to Pay testing.
+
+This branch **commits** `ios/App/App/public/` so a fresh clone can open in Xcode immediately. After you change the React app, run `npm run ios:prepare` again and commit the updated `public/` folder.
+
+## Fix: missing `.mobileprovision` error
+
+If Xcode shows:
+
+> Build input file cannot be found: `...Provisioning Profiles/xxxxxxxx.mobileprovision`
+
+that is a **signing cache problem on your Mac**, not missing app code.
+
+1. Quit Xcode.
+2. From the repo root:
+   ```bash
+   bash scripts/ios-reset-xcode-signing.sh
+   git pull
+   npm install
+   npm run ios:prepare
+   ```
+3. Open Xcode → target **App** → **Signing & Capabilities**:
+   - Check **Automatically manage signing**
+   - Select your **Team**
+   - Bundle ID: `com.velbok.app`
+4. **Xcode → Settings → Accounts** → your Apple ID → **Download Manual Profiles**
+5. Select **iPhone 15 Simulator** (or any Simulator) and build first.
+6. **Product → Clean Build Folder**, then build again.
+
+Only use **Any iOS Device** or a real iPhone after signing shows no errors.
+
+## Xcode stuck on “Pre-planning 1/163”
+
+Xcode is often hung resolving Swift packages (CapApp-SPM). Do this:
+
+1. **Force quit Xcode** (Cmd+Q; if needed: Activity Monitor → quit Xcode).
+2. In Terminal:
+   ```bash
+   cd VEXMY
+   git pull
+   npm install
+   bash scripts/ios-reset-xcode-signing.sh
+   rm -rf ios/App/CapApp-SPM/.build
+   ```
+3. Build from Terminal (shows real output instead of a frozen bar):
+   ```bash
+   npm run ios:build-simulator
+   ```
+   First run can take **10–20 minutes** while it downloads Capacitor packages from GitHub. You should see log lines moving — that means it is working.
+4. When that succeeds, open Xcode: `npm run cap:ios` → select **iPhone 17 Simulator** → Run.
+
+If `ios:build-simulator` hangs for more than 20 minutes with **no new lines**, check your internet connection (Xcode must reach `github.com` for Capacitor SPM).
+
+## Before each release
+
+1. Set production `.env` / Netlify `VITE_*` vars (Supabase, branding).
+2. Bump `scripts/mobile-version.json` (`versionName` + `versionCode`).
+3. Sync versions to native projects: `npm run sync:version`
+4. Prepare the iOS bundle: `npm run ios:prepare` (icons, mobile web build, `cap sync`)
+5. On a **Mac with Xcode 15+**, open the project: `npm run cap:ios`
+6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Build on an **iOS Simulator** first to verify the project compiles. **Tap to Pay on iPhone** development entitlement is granted for `com.velbok.app` — use a **Release** build with a development provisioning profile on a **registered test device** (publishing/TestFlight entitlement still requires Apple’s video review).
+7. Archive: Product → **Archive** → **Distribute App** → App Store Connect  
+   Or from the repo root on macOS: `npm run ios:archive`
+
+Output IPA (when using the script): `releases/app-versions/ios/export/App.ipa`
+
+## App Store Connect setup
+
+| Item | Value |
+|------|--------|
+| App name | Velbok |
+| Bundle ID | `com.velbok.app` |
+| Primary category | Business |
+| Privacy policy | https://velbok.com/privacy |
+| Support URL | https://velbok.com/contact |
+| Marketing URL | https://velbok.com |
+| Age rating | **Not designed for children under 13** (business software) |
+| Financial features | Yes (Stripe in-person payments, studio invoicing) |
+
+## Firebase (push notifications)
 
 1. Firebase Console → iOS app `com.velbok.app`
 2. Download `GoogleService-Info.plist` → place at `ios/App/App/GoogleService-Info.plist`
 3. Upload APNs `.p8` key to Firebase (see `docs/mobile-push-setup.md`)
 4. Set `FIREBASE_SERVICE_ACCOUNT_JSON` in Supabase secrets
 
----
+`App.entitlements` includes `aps-environment: production`. Push capability must be enabled on the App ID in Apple Developer.
 
-## Before each release
+## App Privacy (nutrition labels)
 
-1. Bump in `ios/App/App.xcodeproj` (or Xcode → Target → General):
-   - **Version** (`MARKETING_VERSION`) — e.g. `1.0.40`
-   - **Build** (`CURRENT_PROJECT_VERSION`) — must increase every upload, e.g. `41`
-2. Align with Android when possible (`android/app/build.gradle`).
-3. On **any machine**: `npm run ios:prepare` (syncs latest web app into `ios/`).
-4. On **Mac**: archive and upload (script or Xcode).
+Declare honestly — mirror the Android data safety form in Play Console:
 
----
+- **Contact info:** name, email, phone, address
+- **Health:** consent form medical questions (optional per booking)
+- **Financial info:** invoices/deposits; card data handled by Stripe
+- **Photos:** avatars, chat attachments, consent signatures
+- **Location:** precise location when using Stripe Terminal / Tap to Pay (reader discovery)
+- **Identifiers:** user ID, device ID (session)
+- **Usage data:** bookings, cookie consent audit (web only; native hides cookie banner)
 
-## Option A — Automated script (cloud Mac)
+**Data linked to the user:** yes (account, bookings, payments).  
+**Tracking:** no.  
+**Third parties:** Stripe, Supabase, Resend, Twilio (per studio, optional).
 
-```bash
-git clone <your-repo> && cd VEXMY
-export APPLE_TEAM_ID=YOUR10CHARTEAMID
-chmod +x scripts/ios-archive.sh
-./scripts/ios-archive.sh
+## Account deletion (Guideline 5.1.1)
+
+In-app account deletion **request** is available (same as Android):
+
+- Staff: **Settings** → Account deletion request card
+- Customers: **Account → Security**
+
+Flow opens a pre-filled email to `privacy@velbok.com`. Document this in App Review notes.
+
+## Subscriptions (Guideline 3.1.1)
+
+Velbok is **B2B studio management SaaS**. Platform subscriptions are billed via **Stripe Checkout / Customer Portal** (web), not App Store IAP. The native app:
+
+- Hides marketing/pricing pages
+- Redirects `/subscribe` → `/billing` (shop invoicing)
+- Manages platform subscription from **Admin → Subscription** (Stripe portal)
+
+Include in **App Review notes**:
+
+> Velbok is a business tool for tattoo studio staff. Subscriptions are purchased outside the app via Stripe for the studio’s Velbok platform plan. In-app payments are Stripe Connect charges between studios and their clients (physical services), not digital goods.
+
+## Tap to Pay on iPhone
+
+Requirements (see also `docs/pos-tap-to-pay.md` and `docs/apple-ttpoi/COMPLIANCE-JOURNEY.md`):
+
+- Development entitlement is granted for `com.velbok.app` (registered test devices only)
+- `App.entitlements` includes `com.apple.developer.proximity-reader.payment.acceptance`
+- Physical iPhone (XS or later), iOS 16.4+; education overlay needs iOS 18+
+- Stripe Terminal live mode in production builds
+- “How to Tap” via `TapToPayEducationPlugin` (`ProximityReaderDiscovery`)
+- Publishing entitlement (TestFlight / App Store) still requires Apple’s video + checklist review
+
+Install a **Release** build with a development provisioning profile on a registered iPhone before filming entitlement-review videos.
+
+Internal testers list: `releases/app-versions/ios/testflight-internal-testers.csv`
+
+## Permissions (Info.plist)
+
+| Key | Purpose |
+|-----|---------|
+| `NSBluetoothAlwaysUsageDescription` | WisePad card reader |
+| `NSBluetoothPeripheralUsageDescription` | WisePad card reader |
+| `NSLocationWhenInUseUsageDescription` | Stripe Bluetooth reader discovery |
+
+## Encryption export
+
+`ITSAppUsesNonExemptEncryption` is set to **false** (HTTPS/TLS only). Confirm during upload if prompted.
+
+## Edge function secrets (production)
+
+Same as Android — see `docs/google-play-release.md`. Deploy after backend changes:
+
+```powershell
+supabase functions deploy validate-stripe-connect stripe-terminal-pos meta-webhook whatsapp-webhook submit-consent --project-ref tkremoxfkgoiuwghtzwd
+npm run db:push
 ```
 
-Archive-only (no upload):
+## Version source of truth
 
-```bash
-SKIP_UPLOAD=1 ./scripts/ios-archive.sh
+Edit `scripts/mobile-version.json`, then run `npm run sync:version` to update:
+
+- `ios/App/App.xcodeproj` (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
+- `android/app/build.gradle` (`versionName`, `versionCode`)
+- `public/downloads/android-version.json` and `public/downloads/ios-version.json`
+
+## Screenshots
+
+Capture on iPhone 6.7" and 6.5" (required sizes in App Store Connect). Show: schedule, POS checkout, client list, settings. Use production or staging data without real client PII.
+
+## Netlify production env
+
+```
+VITE_SHOP_LEGAL_NAME=Inkaholics Limited
+VITE_SHOP_PRIVACY_EMAIL=privacy@velbok.com
+VITE_SHOP_WEBSITE_URL=https://velbok.com
 ```
 
-Sign in to Xcode first: **Xcode → Settings → Accounts** → add Apple ID.
-
----
-
-## Option B — Xcode GUI (recommended first time)
-
-1. `npm ci && npm run cap:sync`
-2. `open ios/App/App.xcodeproj`
-3. Select **App** target → **Signing & Capabilities**
-   - Team: your Inkaholics / developer team
-   - Bundle ID: `com.velbok.app`
-   - Capabilities: Push Notifications, **Proximity Reader Payment Acceptance** (should match `App.entitlements`)
-4. **Product → Archive**
-5. Organizer → **Distribute App** → **App Store Connect** → upload
-6. Leave **Upload your app's symbols** enabled (dSYM for crash reports)
-
----
-
-## App Store Connect after upload
-
-| Item | Value |
-|------|--------|
-| Privacy policy | https://velbok.com/privacy |
-| Category | Business / Productivity |
-| Age rating | Complete questionnaire (booking app, not child-directed) |
-| Export compliance | `ITSAppUsesNonExemptEncryption` is `false` in Info.plist (HTTPS only) |
-
-### TestFlight first
-
-Use **Internal testing** before public release. Tap to Pay requires a **physical iPhone** (not Simulator).
-
----
+Redeploy after changing env vars — the mobile app loads the bundled web assets from the last `cap:sync`, not live Netlify, unless you change the build pipeline.
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
+| Black screen on launch | Run `npm run ios:prepare` from repo root |
+| Missing package product 'CapApp-SPM' | `npm install`, `npm run ios:prepare`, reset Xcode package caches |
 | No signing certificate | Xcode → Settings → Accounts → Manage Certificates → Apple Distribution |
-| Provisioning profile errors | Enable Automatic signing; `-allowProvisioningUpdates` in script |
-| Tap to Pay entitlement missing | Apple must approve Proximity Reader capability on your account |
+| Provisioning profile errors | `bash scripts/ios-reset-xcode-signing.sh`; use Simulator first |
+| Tap to Pay entitlement missing | Enable proximity-reader on App ID + regenerate **development** profile; publishing entitlement still needs Apple video review |
 | Push not working | `GoogleService-Info.plist`, APNs key in Firebase, Push capability in Xcode |
 | Camera / photo crash | Info.plist usage strings (already in repo) |
-
----
-
-## Outputs
-
-| Artifact | Path |
-|----------|------|
-| Archive | `ios/build/Velbok.xcarchive` |
-| IPA copy | `releases/app-versions/ios/velbok-*-build*.ipa` |
-
-Play Store Android builds remain separate: `npm run android:bundle` on Windows.
+| WisePad not found on iPhone | Allow Location + Bluetooth for Velbok; connect only through POS, not Settings → Bluetooth |
+| Camera / Stripe "not implemented on iOS" | You archived after `ios:build-lite`. Run `npm run ios:prepare`, verify `[verify-ios-plugins] OK`, then create a **new** archive |

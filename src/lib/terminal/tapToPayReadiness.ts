@@ -21,6 +21,9 @@ export interface TapToPayEnvironment {
   stripeListWarning?: boolean;
   versionName?: string;
   versionCode?: number;
+  /** iOS: Apple Tap to Pay on iPhone entitlement in signed build */
+  tapToPayEntitlementGranted?: boolean;
+  isPad?: boolean;
 }
 
 interface TapToPayReadinessPlugin {
@@ -41,7 +44,8 @@ const TapToPayReadiness = registerPlugin<TapToPayReadinessPlugin>("TapToPayReadi
 });
 
 export async function checkTapToPayEnvironment(): Promise<TapToPayEnvironment | null> {
-  if (nativePlatform() !== "android") return null;
+  const platform = nativePlatform();
+  if (platform !== "android" && platform !== "ios") return null;
   try {
     return await TapToPayReadiness.checkEnvironment();
   } catch {
@@ -53,9 +57,20 @@ export async function checkTapToPayEnvironment(): Promise<TapToPayEnvironment | 
 export function describeTapToPayBlockers(env: TapToPayEnvironment): string[] {
   const blockers: string[] = [];
 
+  if (env.isPad) {
+    blockers.push("Tap to Pay is not available on iPad. Switch to WisePad (Bluetooth reader) in reader mode.");
+  }
+  if (env.tapToPayEntitlementGranted === false) {
+    blockers.push(
+      "This iPhone build is missing Apple's Tap to Pay entitlement. Enable com.apple.developer.proximity-reader.payment.acceptance on the App ID, regenerate a development provisioning profile that includes your test device, then install a new release build.",
+    );
+  }
+
   if (env.debugBuild) {
     blockers.push(
-      "This Velbok install is debuggable (not a release build). Uninstall Velbok, then install velbok-release.apk only.",
+      nativePlatform() === "ios"
+        ? "Tap to Pay requires a Release build (development profile on a registered test device is OK) — not an Xcode Debug run."
+        : "This Velbok install is debuggable (not a release build). Uninstall Velbok, then install velbok-release.apk only.",
     );
   }
   if (env.android13OrLater === false) {
@@ -72,7 +87,9 @@ export function describeTapToPayBlockers(env: TapToPayEnvironment): string[] {
   }
   if (env.locationGranted === false) {
     blockers.push(
-      "Location permission is required. Settings → Apps → Velbok → Permissions → Location → Allow.",
+      nativePlatform() === "ios"
+        ? "Location permission is required. Settings → Privacy & Security → Location Services (ON), then Settings → Velbok → Location → While Using the App with Precise Location ON."
+        : "Location permission is required. Settings → Apps → Velbok → Permissions → Location → Allow.",
     );
   }
   if (env.locationServicesEnabled === false) {
@@ -107,6 +124,8 @@ export function describeTapToPayWarnings(env: TapToPayEnvironment): string[] {
 
 /** Hard blockers only — device list and dev-options sensors are warnings. */
 export function hasTapToPayHardBlockers(env: TapToPayEnvironment): boolean {
+  if (env.isPad) return true;
+  if (env.tapToPayEntitlementGranted === false) return true;
   return (
     env.debugBuild ||
     env.android13OrLater === false ||

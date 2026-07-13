@@ -1,6 +1,8 @@
 import { StripeTerminal } from "@capacitor-community/stripe-terminal";
 import { registerPlugin } from "@capacitor/core";
 import { nativePlatform } from "@/lib/platform";
+import { ensureIosReaderPermissions } from "@/lib/terminal/iosTerminalPermissions";
+import type { TerminalReaderMode } from "@/lib/terminal/types";
 
 const INIT_TIMEOUT_MS = 45_000;
 
@@ -43,9 +45,7 @@ async function openVelbokAppSettings(): Promise<void> {
 }
 
 /** Android BLE (WisePad) + Tap to Pay require location permission and Location services ON. */
-export async function ensureAndroidTerminalLocationPermission(): Promise<void> {
-  if (nativePlatform() !== "android") return;
-
+async function ensureAndroidLocationViaStripePlugin(): Promise<void> {
   const env = await TerminalReadiness.checkEnvironment().catch(() => null);
   if (env?.locationServicesEnabled === false) {
     throw new Error(
@@ -83,8 +83,28 @@ export async function ensureAndroidTerminalLocationPermission(): Promise<void> {
   }
 }
 
-export async function initializeStripeTerminalWithTimeout(isTest: boolean): Promise<void> {
-  await ensureAndroidTerminalLocationPermission();
+/** Stripe Terminal requires location + Bluetooth on native for reader discovery. */
+export async function ensureNativeTerminalLocationPermission(
+  readerMode: TerminalReaderMode = "bluetooth",
+): Promise<void> {
+  const platform = nativePlatform();
+  if (platform === "ios") {
+    await ensureIosReaderPermissions(readerMode);
+    return;
+  }
+  if (platform === "android") {
+    await ensureAndroidLocationViaStripePlugin();
+  }
+}
+
+/** @deprecated Use ensureNativeTerminalLocationPermission */
+export const ensureAndroidTerminalLocationPermission = ensureNativeTerminalLocationPermission;
+
+export async function initializeStripeTerminalWithTimeout(
+  isTest: boolean,
+  readerMode: TerminalReaderMode = "bluetooth",
+): Promise<void> {
+  await ensureNativeTerminalLocationPermission(readerMode);
   await withTimeout(
     StripeTerminal.initialize({ isTest }),
     INIT_TIMEOUT_MS,

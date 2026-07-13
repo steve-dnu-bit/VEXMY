@@ -48,6 +48,9 @@ export function WisePadSetupPanels({ terminal, showFirstTimeGuide, onDismissGuid
           <AlertDescription className="space-y-3 text-foreground">
             <Progress value={firmwareUpdate.progress} className="h-2" />
             <p>{t("pos.wisePadFirmwareBody")}</p>
+            {firmwareUpdate.progress <= 0 ? (
+              <p className="text-sm text-amber-800 dark:text-amber-300">{t("pos.wisePadFirmwareStuckHint")}</p>
+            ) : null}
             <ul className="list-disc pl-5 space-y-1 text-sm">
               <li className="flex gap-2">
                 <Smartphone className="h-4 w-4 shrink-0 mt-0.5" />

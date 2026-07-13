@@ -20,6 +20,12 @@ export function nativePlatform(): "android" | "ios" | "web" {
   return "web";
 }
 
+/** iPad (including iPadOS desktop UA). */
+export function isIpadDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 /** Stripe Terminal simulated readers require test-mode secret keys. */
 export function stripeTerminalIsTestMode(): boolean {
   const flag = import.meta.env.VITE_STRIPE_TERMINAL_TEST_MODE;

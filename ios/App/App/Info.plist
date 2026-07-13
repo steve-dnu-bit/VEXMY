@@ -28,9 +28,13 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.business</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -52,11 +56,25 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Velbok connects to your Stripe WisePad card reader over Bluetooth to take in-person payments.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location access is required by Stripe to discover nearby Bluetooth card readers.</string>
+	<string>Location access is required in order to accept payments.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location access is required in order to accept payments.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>TerminalPayment</key>
+		<string>Precise location is required by Stripe to accept in-person card payments securely.</string>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>remote-notification</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Velbok uses the camera when you choose to take a photo for stencil or receipt uploads.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Velbok lets you pick photos from your library for stencil and receipt uploads.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Velbok may save stencil exports to your photo library when you choose to.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleURLTypes</key>

@@ -2,6 +2,36 @@
 
 Velbok native app push uses **Firebase Cloud Messaging (FCM)** for both Google Play and the App Store.
 
+## iOS — what’s already wired in the repo
+
+These are done in code / Xcode project (no manual SwiftUI Firebase snippet needed):
+
+- `AppDelegate.swift` — `FirebaseApp.configure()` + APNs→FCM token bridge for Capacitor
+- `App.xcodeproj` — SPM packages `FirebaseCore` + `FirebaseMessaging`
+- `App.entitlements` — `aps-environment: production`
+- `Info.plist` — `remote-notification` background mode
+- JS — `PushNotificationHandler` + `register-push-token` edge function
+
+Check anytime:
+
+```bash
+npm run verify:ios-push
+```
+
+Install the Firebase plist after you download it:
+
+```bash
+node scripts/install-ios-google-services.mjs "C:\path\to\GoogleService-Info.plist"
+```
+
+### Still requires your Apple / Firebase / Supabase login
+
+1. Put real `GoogleService-Info.plist` at `ios/App/App/` (gitignored)
+2. Apple Developer → APNs Auth Key (`.p8`) for the team
+3. Firebase Console → Cloud Messaging → upload that `.p8` (Key ID + Team ID)
+4. Supabase secret `FIREBASE_SERVICE_ACCOUNT_JSON` (same Firebase project as Android: `comvelbookapp`)
+5. Rebuild a **TestFlight / Release** build on a **physical iPhone** and allow notifications
+
 Push is sent for:
 
 | Audience | Events |

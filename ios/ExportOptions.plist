@@ -5,7 +5,20 @@
 	<key>method</key>
 	<string>app-store-connect</string>
 	<key>destination</key>
-	<string>upload</string>
+	<string>export</string>
+	<key>signingStyle</key>
+	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+	<key>teamID</key>
+	<string>NS8FATRNW3</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.velbok.app</key>
+		<string>Velbok App Store</string>
+	</dict>
+	<key>stripSwiftSymbols</key>
+	<true/>
 	<key>uploadSymbols</key>
 	<true/>
 	<key>manageAppVersionAndBuildNumber</key>

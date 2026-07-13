@@ -17,7 +17,7 @@ import {
 } from "../_shared/stripe-connect.ts";
 import { callerHasPosAccess } from "../_shared/auth.ts";
 import { executePosSplitTransfers } from "../_shared/pos-split-transfers.ts";
-import { sendPosReceiptEmailIfNeeded } from "../_shared/pos-receipt-email.ts";
+import { sendPosReceiptEmailIfNeeded, sendPosCancelledNoticeEmailIfNeeded, getPosReceiptLinkForSale, sendPosReceiptEmailToAddress, sendPosReceiptSmsLink } from "../_shared/pos-receipt-email.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -66,6 +66,81 @@ function normalizeClientEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const email = value.trim().toLowerCase();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
+/**
+ * Resolve client email for automatic POS receipts (server Resend/SMTP — not the phone mail app).
+ * Order: explicit → linked booking → profile → latest org booking matching client name.
+ */
+async function resolveClientEmailForPos(params: {
+  // deno-lint-ignore no-explicit-any
+  admin: any;
+  organizationId: string;
+  clientEmail?: string | null;
+  clientName?: string | null;
+  bookingId?: string | null;
+}): Promise<string | null> {
+  const explicit = normalizeClientEmail(params.clientEmail);
+  if (explicit) return explicit;
+
+  if (params.bookingId) {
+    const { data: booking } = await params.admin
+      .from("bookings")
+      .select("client_email, client_user_id")
+      .eq("id", params.bookingId)
+      .eq("organization_id", params.organizationId)
+      .maybeSingle();
+    const fromBooking = normalizeClientEmail(booking?.client_email);
+    if (fromBooking) return fromBooking;
+    if (booking?.client_user_id) {
+      const { data: profile } = await params.admin
+        .from("profiles")
+        .select("email")
+        .eq("user_id", booking.client_user_id)
+        .maybeSingle();
+      const fromProfile = normalizeClientEmail(profile?.email);
+      if (fromProfile) return fromProfile;
+    }
+  }
+
+  const name = typeof params.clientName === "string" ? params.clientName.trim() : "";
+  if (name.length >= 2) {
+    const { data: rows } = await params.admin
+      .from("bookings")
+      .select("client_email")
+      .eq("organization_id", params.organizationId)
+      .ilike("client_name", name)
+      .not("client_email", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(8);
+
+    for (const row of rows ?? []) {
+      const email = normalizeClientEmail(row.client_email);
+      if (email) return email;
+    }
+
+    const { data: withUser } = await params.admin
+      .from("bookings")
+      .select("client_user_id")
+      .eq("organization_id", params.organizationId)
+      .ilike("client_name", name)
+      .not("client_user_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    for (const row of withUser ?? []) {
+      if (!row.client_user_id) continue;
+      const { data: profile } = await params.admin
+        .from("profiles")
+        .select("email")
+        .eq("user_id", row.client_user_id)
+        .maybeSingle();
+      const email = normalizeClientEmail(profile?.email);
+      if (email) return email;
+    }
+  }
+
+  return null;
 }
 
 serve(async (req) => {
@@ -311,7 +386,15 @@ serve(async (req) => {
       const artistId = typeof body.artistId === "string" ? body.artistId : null;
       const items = Array.isArray(body.items) ? (body.items as PosLineItem[]) : [];
       const clientName = typeof body.clientName === "string" ? body.clientName.trim() : "";
-      let clientEmail = normalizeClientEmail(body.clientEmail);
+      const bookingId = typeof body.bookingId === "string" ? body.bookingId.trim() : null;
+      let clientEmail = await resolveClientEmailForPos({
+        admin,
+        organizationId: orgId,
+        clientEmail: body.clientEmail,
+        clientName,
+        bookingId,
+      });
+
       const shopAmount = Number(body.shopAmount) || 0;
       const artistAmount = Number(body.artistAmount) || 0;
       const shopSplitPercent = Number(body.shopSplitPercent) || 0;
@@ -319,7 +402,6 @@ serve(async (req) => {
       const subtotal = Number(body.subtotal) || 0;
       const taxAmount = Number(body.taxAmount) || 0;
       const gratuityAmount = Number(body.gratuityAmount) || 0;
-      const bookingId = typeof body.bookingId === "string" ? body.bookingId.trim() : null;
 
       const shopOnlyPayout = artistAmount <= 0 && shopSplitPercent >= 100;
 
@@ -359,15 +441,6 @@ serve(async (req) => {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
-        }
-
-        if (!clientEmail) {
-          const { data: bookingEmailRow } = await admin
-            .from("bookings")
-            .select("client_email")
-            .eq("id", bookingId)
-            .maybeSingle();
-          clientEmail = normalizeClientEmail(bookingEmailRow?.client_email);
         }
 
         if (depositCreditAmount > 0) {
@@ -442,9 +515,16 @@ serve(async (req) => {
         }
 
         const receiptResult = await sendPosReceiptEmailIfNeeded(admin, saleRow.id);
+        const receiptLink = await getPosReceiptLinkForSale(admin, saleRow.id);
 
         return new Response(
-          JSON.stringify({ saleId: saleRow.id, zeroBalance: true, receiptEmail: receiptResult }),
+          JSON.stringify({
+            saleId: saleRow.id,
+            zeroBalance: true,
+            receiptEmail: receiptResult,
+            receiptUrl: receiptLink?.url ?? null,
+            receiptToken: receiptLink?.token ?? null,
+          }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
@@ -582,6 +662,7 @@ serve(async (req) => {
 
       let transferResult: Awaited<ReturnType<typeof executePosSplitTransfers>> | null = null;
       let receiptResult: Awaited<ReturnType<typeof sendPosReceiptEmailIfNeeded>> | null = null;
+      let receiptLink: { token: string; url: string } | null = null;
       if (status === "succeeded" && paymentIntentId) {
         transferResult = await executePosSplitTransfers({
           admin,
@@ -591,6 +672,9 @@ serve(async (req) => {
           stripeConnectAccountId: connect.stripeConnectAccountId,
         });
         receiptResult = await sendPosReceiptEmailIfNeeded(admin, saleId);
+        receiptLink = await getPosReceiptLinkForSale(admin, saleId);
+      } else if (status === "cancelled" || status === "failed") {
+        receiptResult = await sendPosCancelledNoticeEmailIfNeeded(admin, saleId);
       }
 
       return new Response(
@@ -605,7 +689,85 @@ serve(async (req) => {
             }
             : null,
           receiptEmail: receiptResult,
+          receiptUrl: receiptLink?.url ?? null,
+          receiptToken: receiptLink?.token ?? null,
         }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (action === "send_receipt") {
+      const saleId = typeof body.saleId === "string" ? body.saleId : null;
+      const channel = body.channel === "sms" ? "sms" : "email";
+      const to = typeof body.to === "string" ? body.to.trim() : "";
+
+      if (!saleId) {
+        return new Response(JSON.stringify({ error: "saleId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: sale } = await admin
+        .from("pos_sales")
+        .select("id, status, organization_id")
+        .eq("id", saleId)
+        .eq("organization_id", orgId)
+        .maybeSingle();
+
+      if (!sale || sale.status !== "succeeded") {
+        return new Response(JSON.stringify({ error: "Sale not found or not succeeded" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (channel === "email") {
+        const result = await sendPosReceiptEmailToAddress(admin, saleId, to);
+        return new Response(JSON.stringify({ ok: result.sent, receiptEmail: result }), {
+          status: result.sent ? 200 : 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const result = await sendPosReceiptSmsLink(admin, saleId, to);
+      return new Response(
+        JSON.stringify({
+          ok: result.sent,
+          receiptSms: result,
+          receiptUrl: result.url ?? null,
+          fallbackShare: result.skipped === "sms_not_configured",
+        }),
+        {
+          status: result.sent || result.skipped === "sms_not_configured" ? 200 : 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (action === "get_receipt_link") {
+      const saleId = typeof body.saleId === "string" ? body.saleId : null;
+      if (!saleId) {
+        return new Response(JSON.stringify({ error: "saleId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: sale } = await admin
+        .from("pos_sales")
+        .select("id, status")
+        .eq("id", saleId)
+        .eq("organization_id", orgId)
+        .maybeSingle();
+      if (!sale || sale.status !== "succeeded") {
+        return new Response(JSON.stringify({ error: "Sale not found or not succeeded" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const link = await getPosReceiptLinkForSale(admin, saleId);
+      return new Response(
+        JSON.stringify({ ok: true, receiptUrl: link?.url ?? null, receiptToken: link?.token ?? null }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

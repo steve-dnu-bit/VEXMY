@@ -1,12 +1,15 @@
 App/build
 App/Pods
 App/output
-App/App/public
 DerivedData
+ios/DerivedData
 xcuserdata
 
 # Cordova plugins for Capacitor
 capacitor-cordova-ios-plugins
+
+# Web bundle is committed on apple-app-store so Xcode works after clone.
+# Re-run `npm run ios:prepare` after web app changes, then commit ios/App/App/public/.
 
 # Generated Config files
 App/App/capacitor.config.json

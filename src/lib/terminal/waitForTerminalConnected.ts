@@ -69,7 +69,7 @@ export async function waitForTerminalConnected(
         return;
       }
       void fail(
-        "Tap to Pay did not connect in time. Keep Velbok open, allow Location, Developer options OFF, then try again.",
+        "Reader did not stay connected. Keep Velbok open, reader powered on and nearby, then try Connect again.",
       );
     }, timeoutMs);
 
