@@ -1,4 +1,5 @@
 import UIKit
+import UserNotifications
 import Capacitor
 import FirebaseCore
 import FirebaseMessaging
@@ -43,7 +44,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // Push payloads set badge: 1 — clear when the user opens the app.
+        application.applicationIconBadgeNumber = 0
+        if #available(iOS 10.0, *) {
+            UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
