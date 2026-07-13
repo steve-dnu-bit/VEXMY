@@ -67,6 +67,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>
+		<string>remote-notification</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Velbok uses the camera when you choose to take a photo for stencil or receipt uploads.</string>
