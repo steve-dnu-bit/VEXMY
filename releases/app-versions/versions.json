@@ -1,14 +1,32 @@
 {
   "packageId": "com.velbok.app",
-  "exportedAt": "2026-07-03",
-  "note": "1.0.42: dark selection chrome (no light cursor square), charge toasts for missing fields.",
+  "exportedAt": "2026-07-16",
+  "note": "1.0.92 (build 92): archived Android release.",
   "releases": [
+    {
+      "versionName": "1.0.92",
+      "versionCode": 92,
+      "format": "apk",
+      "file": "apk/velbok-1.0.92-build92.apk",
+      "status": "latest",
+      "installable": true,
+      "sizeBytes": 51587242
+    },
+    {
+      "versionName": "1.0.92",
+      "versionCode": 92,
+      "format": "aab",
+      "file": "aab/velbok-1.0.92-build92.aab",
+      "status": "play-store-bundle",
+      "installable": false,
+      "sizeBytes": 52743901
+    },
     {
       "versionName": "1.0.42",
       "versionCode": 43,
       "format": "apk",
       "file": "apk/velbok-1.0.42-build43.apk",
-      "status": "latest",
+      "status": "superseded",
       "installable": true,
       "sizeBytes": 52057299,
       "changes": [
@@ -21,7 +39,7 @@
       "versionCode": 43,
       "format": "aab",
       "file": "aab/velbok-1.0.42-build43.aab",
-      "status": "play-store-bundle",
+      "status": "superseded",
       "installable": false,
       "sizeBytes": 53089137,
       "changes": [

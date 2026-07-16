@@ -1,38 +1,36 @@
 # Velbok Android build archive
 
-Exported builds found on this machine, renamed with version numbers.
+Every signed release is saved here with a fixed naming scheme:
 
-## Latest — 1.0.42 (build 43)
+```
+apk/velbok-{versionName}-build{versionCode}.apk
+aab/velbok-{versionName}-build{versionCode}.aab
+```
 
-**Google Play:** upload `aab/velbok-1.0.42-build43.aab` (~51 MB)
+Example: `aab/velbok-1.0.92-build92.aab`
 
-**Side-load APK:** `apk/velbok-1.0.42-build43.apk` (~50 MB)
+After `assembleRelease` + `bundleRelease`, run:
 
-### Changes
-- Fixed light/opaque square behind the text cursor when typing in the app
-- Checkout Charge stays tappable and shows a toast if items, artist, or client are missing
-- Billing quantity clear/retype fix
-- Transparent logo assets
+```powershell
+npm run android:archive
+```
 
-## Previous — 1.0.41 (build 42)
+That also updates:
+
+- `public/downloads/velbok-android.apk` (website sideload)
+- `releases/velbok-release.apk` / `.aab` (latest convenience copies)
+- `versions.json` (manifest)
+
+`npm run build` / `copy-release-apk.mjs` call the same archive step, so website deploys stay consistent.
 
 ## Install APK (side-load)
 
 ```powershell
-adb install -r "apk\velbok-1.0.42-build43.apk"
+adb install -r "apk\velbok-1.0.92-build92.apk"
 ```
 
 ## Play Store bundle (AAB)
 
-Upload `aab/velbok-1.0.42-build43.aab` to Google Play Console — not installable directly on a phone.
-
-## Google Play release notes (paste)
-
-```
-• Fixed light/opaque square behind the text cursor when typing in the app
-• Checkout Charge stays tappable and shows a clear toast if items, artist, or client are missing
-• Billing quantity fields can be cleared and retyped
-• Transparent logo assets across the app UI
-```
+Upload `aab/velbok-*-build*.aab` to Google Play Console — not installable directly on a phone.
 
 See `versions.json` for the full manifest.

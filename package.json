@@ -42,7 +42,8 @@
     "ios:ipa": "bash scripts/ios-ipa-from-archive.sh",
     "macincloud:setup": "bash scripts/macincloud-ios-setup.sh",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
-    "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"
+    "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease",
+    "android:archive": "node scripts/archive-android-release.mjs"
   },
   "dependencies": {
     "@capacitor-community/stripe-terminal": "^8.1.1",
