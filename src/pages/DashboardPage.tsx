@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getUserOrganizationId } from "@/lib/shopSettings";
-import AppLayout from "@/components/AppLayout";
 import LazySalesReportsPanel from "@/components/dashboard/LazySalesReportsPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -201,7 +200,6 @@ const DashboardPage = () => {
   const panelClass = "rounded-xl border border-border/70 bg-card/55 backdrop-blur-md p-5";
 
   return (
-    <AppLayout>
       <div className="p-4 md:p-6">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -398,7 +396,6 @@ const DashboardPage = () => {
 
         <LazySalesReportsPanel currency={shopCurrency} />
       </div>
-    </AppLayout>
   );
 };
 

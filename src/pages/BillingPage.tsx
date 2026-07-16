@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import AppLayout from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -202,12 +201,10 @@ const BillingPage = () => {
 
   if (!isAdmin && !loading) {
     return (
-      <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
           <AlertCircle className="h-10 w-10 text-muted-foreground" />
           <p className="text-muted-foreground">{t("billing.adminRequired")}</p>
         </div>
-      </AppLayout>
     );
   }
 
@@ -215,7 +212,6 @@ const BillingPage = () => {
   const fmt = (amount: number, currency?: string | null) => formatShopMoney(amount, currency || shopCurrency);
 
   return (
-    <AppLayout>
       <SubscriptionGate>
       <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -511,7 +507,6 @@ const BillingPage = () => {
         <StripeConnectCard compact returnPath="/billing" refreshPath="/billing" />
       </div>
       </SubscriptionGate>
-    </AppLayout>
   );
 };
 

@@ -5,7 +5,6 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { getStencilMaxForPlan } from "@/lib/pricingPlans";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "@/components/AppLayout";
 import { StencilCompare } from "@/components/stencil/StencilCompare";
 import { generateAiStencil, STENCIL_STYLES, DEFAULT_STENCIL_STYLE, StencilQuotaError, type StencilStyle } from "@/lib/aiStencil";
 import { STENCIL_STYLE_EXAMPLES } from "@/lib/stencilStyleExamples";
@@ -271,7 +270,7 @@ const StencilPage = () => {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="p-4 md:p-6 max-w-3xl mx-auto">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
@@ -754,7 +753,7 @@ const StencilPage = () => {
           )}
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </>
   );
 };
 

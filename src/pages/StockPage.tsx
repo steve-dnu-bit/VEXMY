@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -226,7 +225,6 @@ const StockPage = () => {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
 
   return (
-    <AppLayout>
       <SubscriptionGate>
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
         <div className="flex items-center justify-between">
@@ -450,7 +448,6 @@ const StockPage = () => {
         </Card>
       </div>
       </SubscriptionGate>
-    </AppLayout>
   );
 };
 

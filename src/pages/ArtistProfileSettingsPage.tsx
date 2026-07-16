@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -181,7 +180,6 @@ const ArtistProfileSettingsPage = () => {
   }
 
   return (
-    <AppLayout>
       <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
         <div>
           <h1 className="font-display text-2xl font-bold">{t("artistProfile.title")}</h1>
@@ -354,7 +352,6 @@ const ArtistProfileSettingsPage = () => {
           </Button>
         </div>
       </div>
-    </AppLayout>
   );
 };
 

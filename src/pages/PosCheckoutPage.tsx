@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, Plus, CreditCard, Loader2, User, Wifi, WifiOff, CheckCircle2, Upload, Download, Search, Settings2, ChevronDown, Trash2 } from "lucide-react";
-import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import PosSetupGuideDialog from "@/components/pos/PosSetupGuideDialog";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
@@ -1145,17 +1144,14 @@ function isPaymentOverlayNoise(status: string): boolean {
 
   if (loading) {
     return (
-      <AppLayout>
         <div className="flex justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      </AppLayout>
     );
   }
 
   if (!posEnabled) {
     return (
-      <AppLayout>
         <SubscriptionGate>
           <div className="mx-auto max-w-lg py-12 px-4 space-y-4">
             <Card>
@@ -1169,12 +1165,10 @@ function isPaymentOverlayNoise(status: string): boolean {
             </Card>
           </div>
         </SubscriptionGate>
-      </AppLayout>
     );
   }
 
   return (
-    <AppLayout>
       <SubscriptionGate>
         <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -2138,7 +2132,6 @@ function isPaymentOverlayNoise(status: string): boolean {
           }
         />
       </SubscriptionGate>
-    </AppLayout>
   );
 };
 

@@ -1,12 +1,12 @@
 import { lazy } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 import StaffRoute from "@/components/StaffRoute";
+import AppLayout from "@/components/AppLayout";
 import AuthHomeRedirect from "@/components/AuthHomeRedirect";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
-import { Outlet } from "react-router-dom";
 
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
 const SchedulePage = lazy(() => import("@/pages/SchedulePage"));
@@ -55,6 +55,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const ProtectedAppShell = () => (
+  <ProtectedRoute>
+    <AppLayout />
+  </ProtectedRoute>
+);
+
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, mfaVerificationRequired } = useAuth();
   const isRecoveryFlow =
@@ -98,21 +104,23 @@ const MobileAppRoutes = () => (
       <Route path="/deposit-payment" element={<ProtectedRoute><CustomerDepositsPage /></ProtectedRoute>} />
       <Route path="/deposit-payment/checkout" element={<ProtectedRoute><DepositCheckoutPage /></ProtectedRoute>} />
     </Route>
-    <Route path="/checkout" element={<ProtectedRoute><StaffRoute><PosCheckoutPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/schedule" element={<ProtectedRoute><StaffRoute><SchedulePage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/inbox" element={<ProtectedRoute><StaffRoute><InboxPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/stencil" element={<ProtectedRoute><StaffRoute><StencilPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/clients" element={<ProtectedRoute><StaffRoute><ClientsPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/services" element={<ProtectedRoute><StaffRoute><ServicesPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/deposits" element={<ProtectedRoute><StaffRoute><DepositsPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/billing" element={<ProtectedRoute><StaffRoute><BillingPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/stock" element={<ProtectedRoute><StaffRoute><StockPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/admin" element={<ProtectedRoute><StaffRoute><AdminPage /></StaffRoute></ProtectedRoute>} />
-    <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-    <Route path="/artist-profile-settings" element={<ProtectedRoute><ArtistProfileSettingsPage /></ProtectedRoute>} />
+    <Route element={<ProtectedAppShell />}>
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/artist-profile-settings" element={<ArtistProfileSettingsPage />} />
+      <Route path="/checkout" element={<StaffRoute><PosCheckoutPage /></StaffRoute>} />
+      <Route path="/schedule" element={<StaffRoute><SchedulePage /></StaffRoute>} />
+      <Route path="/inbox" element={<StaffRoute><InboxPage /></StaffRoute>} />
+      <Route path="/stencil" element={<StaffRoute><StencilPage /></StaffRoute>} />
+      <Route path="/clients" element={<StaffRoute><ClientsPage /></StaffRoute>} />
+      <Route path="/services" element={<StaffRoute><ServicesPage /></StaffRoute>} />
+      <Route path="/deposits" element={<StaffRoute><DepositsPage /></StaffRoute>} />
+      <Route path="/billing" element={<StaffRoute><BillingPage /></StaffRoute>} />
+      <Route path="/stock" element={<StaffRoute><StockPage /></StaffRoute>} />
+      <Route path="/admin" element={<StaffRoute><AdminPage /></StaffRoute>} />
+      <Route path="/dashboard" element={<StaffRoute><DashboardPage /></StaffRoute>} />
+    </Route>
     <Route path="/shop-setup" element={<ProtectedRoute><ShopSetupWizardPage /></ProtectedRoute>} />
     <Route path="/customer-profile-setup" element={<ProtectedRoute><CustomerProfileSetupPage /></ProtectedRoute>} />
-    <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
     {/* Marketing / platform / customer portal — not included in the mobile app shell */}
     <Route path="/pricing" element={<Navigate to="/auth" replace />} />
     <Route path="/subscribe" element={<Navigate to="/billing" replace />} />

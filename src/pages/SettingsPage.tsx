@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -108,7 +107,6 @@ const SettingsPage = () => {
   };
 
   return (
-    <AppLayout>
       <div className="p-4 md:p-6 max-w-2xl">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold">
@@ -291,7 +289,6 @@ const SettingsPage = () => {
 
         </div>
       </div>
-    </AppLayout>
   );
 };
 
