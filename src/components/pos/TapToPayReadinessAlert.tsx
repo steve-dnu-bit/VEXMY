@@ -215,7 +215,10 @@ function IosTapToPayEnvironmentAlert() {
       <AlertTitle className="text-emerald-800 dark:text-emerald-300">{t("pos.tapToPayPhoneReady")}</AlertTitle>
       <AlertDescription className="text-xs space-y-2">
         <p className="text-muted-foreground">
-          {t("pos.tapToPayPhoneReadyHint", { version: env.versionName || "?" })}
+          {t(
+            nativePlatform() === "ios" ? "pos.tapToPayPhoneReadyHint" : "pos.tapToPayPhoneReadyHintAndroid",
+            { version: env.versionName || "?" },
+          )}
           {env.deviceModel ? ` · ${env.deviceManufacturer ?? ""} ${env.deviceModel}`.trim() : ""}
         </p>
       </AlertDescription>
@@ -306,7 +309,10 @@ export function TapToPayReadinessAlert({ readerMode = "tap_to_pay" }: { readerMo
       </AlertTitle>
       <AlertDescription className="text-xs space-y-2">
         <p className="text-muted-foreground">
-          {t("pos.tapToPayPhoneReadyHint", { version: env.versionName || "?" })}
+          {t(
+            nativePlatform() === "ios" ? "pos.tapToPayPhoneReadyHint" : "pos.tapToPayPhoneReadyHintAndroid",
+            { version: env.versionName || "?" },
+          )}
           {env.deviceModel ? ` · ${env.deviceManufacturer ?? ""} ${env.deviceModel}`.trim() : ""}
         </p>
         {[...deviceWarnings, ...envWarnings].map((line) => (

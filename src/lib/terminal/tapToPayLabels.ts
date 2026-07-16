@@ -1,3 +1,5 @@
+import { nativePlatform } from "@/lib/platform";
+
 /** Apple Tap to Pay on iPhone button copy (App Requirements v1.6 localization table). */
 const LONG_FORM: Record<string, string> = {
   en: "Tap to Pay on iPhone",
@@ -43,14 +45,28 @@ function normalizeLang(language: string): string {
   return LONG_FORM[base] ? base : "en";
 }
 
-/** Long form when Tap to Pay is the only / primary acceptance method on this screen. */
+/** True only in the native iOS app — Apple requires “Tap to Pay on iPhone” branding there. */
+export function usesAppleTapToPayBranding(): boolean {
+  return nativePlatform() === "ios";
+}
+
+/** Long form when Tap to Pay is the only / primary acceptance method on this screen (iPhone only). */
 export function tapToPayOnIphoneLabel(language: string): string {
   const key = normalizeLang(language);
   return LONG_FORM[key] || LONG_FORM.en;
 }
 
-/** Short form when multiple payment methods are listed. */
+/** Short form when multiple payment methods are listed, or on Android / web. */
 export function tapToPayShortLabel(language: string): string {
   const key = normalizeLang(language);
   return SHORT_FORM[key] || SHORT_FORM.en;
+}
+
+/**
+ * Primary Tap to Pay CTA label for the current platform.
+ * iPhone: Apple long-form branding. Android/web: short “Tap to Pay” (never “on iPhone”).
+ */
+export function tapToPayPrimaryCtaLabel(language: string): string {
+  if (usesAppleTapToPayBranding()) return tapToPayOnIphoneLabel(language);
+  return tapToPayShortLabel(language);
 }

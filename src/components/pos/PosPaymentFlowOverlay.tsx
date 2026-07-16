@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { usesAppleTapToPayBranding } from "@/lib/terminal/tapToPayLabels";
 
 export type PosPaymentFlowPhase =
   | "hidden"
@@ -169,7 +170,13 @@ export function PosPaymentFlowOverlay({
             {amountLabel ? <p className="text-2xl font-bold tabular-nums">{amountLabel}</p> : null}
             {detail ? <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detail}</p> : null}
             {busy && phase === "initializing" ? (
-              <p className="text-sm text-muted-foreground">{t("pos.paymentInitializingHint")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t(
+                  usesAppleTapToPayBranding()
+                    ? "pos.paymentInitializingHint"
+                    : "pos.paymentInitializingHintAndroid",
+                )}
+              </p>
             ) : null}
             {busy && phase === "processing" ? (
               <p className="text-sm text-muted-foreground">{t("pos.paymentProcessingHint")}</p>

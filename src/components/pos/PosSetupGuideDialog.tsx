@@ -123,7 +123,7 @@ const PosSetupGuideDialog = ({
                   <Alert>
                     <AlertTitle className="text-sm">{t("pos.tapToPayInfoTitle")}</AlertTitle>
                     <AlertDescription className="text-xs space-y-2">
-                      <p>{t("pos.tapToPayInfoBody")}</p>
+                      <p>{t(nativePlatform() === "ios" ? "pos.tapToPayInfoBody" : "pos.tapToPayInfoBodyAndroid")}</p>
                       {nativePlatform() === "ios" && onShowTapToPayEducation ? (
                         <Button type="button" size="sm" variant="outline" onClick={onShowTapToPayEducation}>
                           {t("pos.tapToPayHowToTap")}

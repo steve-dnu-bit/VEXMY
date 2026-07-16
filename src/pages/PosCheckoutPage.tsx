@@ -79,7 +79,7 @@ import {
 import type { TerminalReaderMode } from "@/lib/terminal/types";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useSearchParams } from "react-router-dom";
-import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
+import { tapToPayPrimaryCtaLabel, usesAppleTapToPayBranding } from "@/lib/terminal/tapToPayLabels";
 import {
   checkTapToPayEnvironment,
   formatTapToPayBlockersMessage,
@@ -772,8 +772,8 @@ function isPaymentOverlayNoise(status: string): boolean {
 
     if (!canManageBilling) {
       setPaymentFlowPhase("declined");
-      setPaymentFlowDetail(t("pos.tapToPayContactAdmin"));
-      toast.error(t("pos.tapToPayContactAdmin"));
+      setPaymentFlowDetail(t(usesAppleTapToPayBranding() ? "pos.tapToPayContactAdmin" : "pos.tapToPayContactAdminAndroid"));
+      toast.error(t(usesAppleTapToPayBranding() ? "pos.tapToPayContactAdmin" : "pos.tapToPayContactAdminAndroid"));
       return false;
     }
 
@@ -1651,17 +1651,29 @@ function isPaymentOverlayNoise(status: string): boolean {
                           {amountDue <= 0 && depositCredit > 0
                             ? t("pos.completeNoCharge")
                             : terminal.status === "discovering" || terminal.status === "connecting"
-                              ? t("pos.connectTapToPayProgress")
-                              : tapToPayOnIphoneLabel(i18n.language)}
+                              ? t(
+                                  usesAppleTapToPayBranding()
+                                    ? "pos.connectTapToPayProgress"
+                                    : "pos.connectTapToPayProgressAndroid",
+                                )
+                              : usesAppleTapToPayBranding()
+                                ? tapToPayPrimaryCtaLabel(i18n.language)
+                                : cart.length > 0 || amountDue > 0
+                                  ? t("pos.chargeCard", { amount: formatShopMoney(amountDue, currency) })
+                                  : t("pos.connectTapToPayAndroid")}
                         </Button>
-                        {amountDue > 0 ? (
+                        {amountDue > 0 && usesAppleTapToPayBranding() ? (
                           <p className="text-center text-sm font-medium tabular-nums text-muted-foreground">
                             {formatShopMoney(amountDue, currency)}
                           </p>
                         ) : null}
                         {!canManageBilling && terminal.status !== "connected" ? (
                           <p className="text-xs text-amber-700 dark:text-amber-400 text-center leading-snug px-1">
-                            {t("pos.tapToPayContactAdmin")}
+                            {t(
+                              usesAppleTapToPayBranding()
+                                ? "pos.tapToPayContactAdmin"
+                                : "pos.tapToPayContactAdminAndroid",
+                            )}
                           </p>
                         ) : null}
                         {terminal.status === "discovering" || terminal.status === "connecting" ? (
