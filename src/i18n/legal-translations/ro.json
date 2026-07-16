@@ -11,7 +11,7 @@
     },
     "privacy": {
       "title": "Notificare de confidențialitate (UK/EU GDPR)",
-      "lastUpdated": "18 iunie 2026",
+      "lastUpdated": "16 iulie 2026",
       "sections": {
         "general": {
           "title": "Cine suntem",
@@ -36,7 +36,7 @@
         },
         "whenCollect": {
           "title": "Când colectăm date",
-          "p1": "Colectăm date când creați un cont, vă abonați la Velbok, configurați un studio, gestionați rezervări sau facturare, completați formulare de consimțământ, folosiți mesageria din aplicație, contactați suportul sau utilizați funcții de plată pe web sau mobil."
+          "p1": "Colectăm date când creați un cont, vă abonați la Velbok, configurați un studio, gestionați rezervări sau facturare, completați formulare de consimțământ, folosiți mesageria din aplicație, folosiți instrumentele de șabloane IA, contactați suportul sau folosiți funcțiile de plată pe web sau mobil."
         },
         "mobile": {
           "title": "Aplicație mobilă (Android / iOS)",
@@ -45,7 +45,7 @@
         },
         "subprocessors": {
           "title": "Furnizori de servicii (sub-împuterniciți)",
-          "p1": "Folosim furnizori de încredere pentru a opera Velbok, inclusiv: Supabase (autentificare, bază de date, stocare fișiere, edge functions), Stripe (plăți, plăți Connect, Terminal / Tap to Pay), Resend (e-mail tranzacțional), Twilio (WhatsApp/SMS opțional per studio) și Netlify (găzduire site web). Fiecare furnizor procesează datele în baza unui contract și a propriilor termeni de confidențialitate.",
+          "p1": "Folosim furnizori de încredere pentru a opera Velbok, inclusiv: Supabase (autentificare, bază de date, stocare fișiere, funcții edge), Stripe (plăți, plăți Connect, Terminal / Tap to Pay), Resend (e-mail tranzacțional), Twilio (WhatsApp/SMS opțional per studio), Netlify (găzduire site și AI Gateway pentru generarea de șabloane prin Google Gemini) și Vapi (suport vocal opțional al platformei). Fiecare furnizor prelucrează date în baza unui contract și a propriilor termeni de confidențialitate.",
           "p2": "Nu vindem date personale. Partajăm date doar acolo unde este necesar pentru a furniza serviciul, a respecta legea sau a preveni fraudele."
         },
         "transfers": {
@@ -58,7 +58,7 @@
           "consent": "Consimțământ:",
           "consentDesc": "cookie-uri opționale pe site, opt-in-uri de marketing și consimțământ explicit pentru date de sănătate în formularele de consimțământ ale studio-ului.",
           "contract": "Contract:",
-          "contractDesc": "furnizarea serviciului Velbok, abonamente studio, rezervări, avansuri și facturi.",
+          "contractDesc": "furnizarea serviciului Velbok, abonamente studio, rezervări, avansuri, facturi și instrumente de șabloane IA activate pe planul dvs.",
           "legal": "Obligație legală:",
           "legalDesc": "fiscalitate, contabilitate și solicitări legale de la autorități.",
           "legitimate": "Interese legitime:",
@@ -68,7 +68,7 @@
         },
         "howUse": {
           "title": "Cum și de ce folosim datele",
-          "p1": "Folosim date personale pentru a opera Velbok, a autentifica utilizatorii, a procesa abonamentele studio și plățile clienților, a livra notificări, a sprijini studiourile, a îmbunătăți fiabilitatea și a respecta obligațiile legale.",
+          "p1": "Folosim datele personale pentru a opera Velbok, a autentifica utilizatorii, a procesa abonamentele studio și plățile clienților, a livra notificări și funcții IA activate pe planul dvs., a sprijini studiourile, a îmbunătăți fiabilitatea și a respecta obligațiile legale.",
           "p2": "{{shopLegalName}} nu vinde date personale către terți pentru marketingul acestora."
         },
         "cookies": {
@@ -100,12 +100,18 @@
         "updates": {
           "title": "Actualizări ale politicii",
           "p1": "Putem actualiza periodic această notificare. Modificările materiale vor fi publicate la velbok.com/privacy cu o dată revizuită."
+        },
+        "ai": {
+          "title": "Funcții IA și prelucrare prin furnizori IA terți",
+          "p1": "Velbok oferă instrumente opționale bazate pe IA, inclusiv generarea de șabloane pentru tatuaje. Când alegeți generarea de șabloane IA, trimitem imaginea de referință încărcată și preferința de stil selectată către Netlify, care direcționează cererea către modelul de imagine Gemini de la Google prin Netlify AI Gateway. Prelucrarea este legată de contul dvs. conectat, supusă limitelor de utilizare per cont, și este folosită doar pentru a genera șablonul solicitat.",
+          "p2": "Previzualizările de șabloane generate de IA sunt stocate în spațiul nostru de fișiere până la 24 de ore, apoi șterse automat. Nu folosim imaginile de referință sau ieșirile IA pentru a antrena propriile modele și nu vindem acest conținut către terți. Se aplică termenii și politicile de confidențialitate ale Google și Netlify. Nu încărcați imagini pe care nu aveți dreptul să le folosiți sau conținut cu date personale sau categorii speciale inutile.",
+          "p3": "Suportul telefonic opțional al platformei Velbok poate folosi IA vocală terță (Vapi). Metadatele apelurilor și transcrierile pot fi înregistrate pentru calitate și suport, conform secțiunii despre furnizorii de servicii."
         }
       }
     },
     "terms": {
       "title": "Termeni și condiții de utilizare",
-      "lastUpdated": "18 iunie 2026",
+      "lastUpdated": "16 iulie 2026",
       "sections": {
         "scope": {
           "title": "1. Acord",
@@ -122,7 +128,8 @@
         },
         "acceptableUse": {
           "title": "4. Utilizare acceptabilă",
-          "p1": "Nu trebuie să utilizați abuziv Serviciul, să interferați cu controalele de securitate, să încărcați conținut ilegal sau să folosiți Serviciul într-un mod care încalcă legea aplicabilă, inclusiv UK GDPR, EU GDPR și regulile de protecție a consumatorilor."
+          "p1": "Nu trebuie să utilizați abuziv Serviciul, să interferați cu controalele de securitate, să încărcați conținut ilegal sau să folosiți Serviciul într-un mod care încalcă legea aplicabilă, inclusiv UK GDPR, EU GDPR și regulile de protecție a consumatorilor.",
+          "p2": "Nu trebuie să trimiteți prin funcțiile IA date personale ilicite, care încalcă drepturi sau inutil de sensibile."
         },
         "bookings": {
           "title": "5. Fluxuri de rezervare și plată",
@@ -142,7 +149,8 @@
         "dataProcessing": {
           "title": "8. Roluri în protecția datelor",
           "p1": "Pentru datele de cont studio și facturare, Inkaholics Limited este operatorul de date. Pentru rezervările clienților, formularele de consimțământ, mesajele și datele CRM pe care le introduceți despre clienții dvs., sunteți operatorul, iar Inkaholics Limited acționează ca împuternicit conform instrucțiunilor dvs. documentate, conform Notificării noastre de confidențialitate.",
-          "p2": "Trebuie să aveți un temei legal și, acolo unde este necesar, notificări de confidențialitate și consimțăminte adecvate pentru datele clienților pe care le procesați prin Velbok. Nu trebuie să încărcați conținut ilegal sau date din categorii speciale dincolo de ceea ce Serviciul este conceput să suporte."
+          "p2": "Trebuie să aveți un temei legal și, acolo unde este necesar, notificări de confidențialitate și consimțăminte adecvate pentru datele clienților pe care le procesați prin Velbok. Nu trebuie să încărcați conținut ilegal sau date din categorii speciale dincolo de ceea ce Serviciul este conceput să suporte.",
+          "p3": "Când folosiți funcții IA (cum ar fi generarea de șabloane), ne instruiți să prelucrăm imaginile de referință încărcate prin furnizori IA terți exclusiv pentru a furniza acea funcție, conform Notei noastre de confidențialitate. Sunteți responsabil să aveți drepturi asupra conținutului trimis și ca trimiterile să respecte legea aplicabilă."
         },
         "ip": {
           "title": "9. Proprietate intelectuală",
@@ -155,11 +163,13 @@
         },
         "thirdParty": {
           "title": "11. Servicii terțe",
-          "p1": "Serviciul integrează terți precum Stripe (plăți), Supabase (găzduire) și furnizori de e-mail. Termenii și politicile lor de confidențialitate se aplică serviciilor lor. Nu răspundem pentru întreruperi, erori sau acțiuni ale furnizorilor terți dincolo de controlul nostru rezonabil."
+          "p1": "Serviciul integrează terți precum Stripe (plăți), Supabase (găzduire), furnizori de e-mail, Netlify AI Gateway cu Google Gemini (generare șabloane IA) și Vapi (suport vocal opțional al platformei). Termenii și politicile lor de confidențialitate se aplică serviciilor lor. Nu suntem răspunzători pentru întreruperi, erori sau acte ale furnizorilor terți în afara controlului nostru rezonabil.",
+          "p2": "Furnizorii IA terți prelucrează date doar pentru a furniza funcția solicitată. Cerem ca această prelucrare să fie limitată la livrarea Serviciului și să nu fie folosită pentru antrenarea modelelor pe conținutul dvs. în scopuri nelegate ale furnizorului, sub rezerva politicilor fiecărui furnizor."
         },
         "disclaimer": {
           "title": "12. Declinări de responsabilitate",
-          "p1": "Serviciul este furnizat „ca atare” și „după disponibilitate”. Nu garantăm funcționare neîntreruptă sau fără erori. Velbok este doar software — nu oferim consultanță juridică, medicală, fiscală sau profesională, iar Serviciul nu garantează conformitatea dvs. reglementară."
+          "p1": "Serviciul este furnizat „ca atare” și „după disponibilitate”. Nu garantăm funcționare neîntreruptă sau fără erori. Velbok este doar software — nu oferim consultanță juridică, medicală, fiscală sau profesională, iar Serviciul nu garantează conformitatea dvs. reglementară.",
+          "p2": "Ieșirile generate de IA (cum ar fi șabloanele) sunt oferite doar ca asistență de design. Ieșirile pot fi imperfecte; sunteți responsabil să le revizuiți înainte de utilizarea pe clienți."
         },
         "indemnity": {
           "title": "13. Despăgubire",

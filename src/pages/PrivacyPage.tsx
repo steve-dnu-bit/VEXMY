@@ -15,6 +15,9 @@ const PrivacyPage = () => {
       {t(`legal.privacy.sections.${key}.p2`, { defaultValue: "" }) ? (
         <p>{t(`legal.privacy.sections.${key}.p2`, vars)}</p>
       ) : null}
+      {t(`legal.privacy.sections.${key}.p3`, { defaultValue: "" }) ? (
+        <p>{t(`legal.privacy.sections.${key}.p3`, vars)}</p>
+      ) : null}
       {extra}
     </section>
   );
@@ -42,6 +45,7 @@ const PrivacyPage = () => {
       {section("healthData")}
       {section("whenCollect")}
       {section("mobile")}
+      {section("ai")}
       {section("subprocessors")}
       {section("transfers")}
 

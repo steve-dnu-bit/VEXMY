@@ -2317,12 +2317,11 @@
       "cookies": "Cookies",
       "home": "Accueil",
       "documentation": "Documentation",
-      "studioLogin": "Connexion studio",
-      "accountDeletion": "Suppression de compte"
+      "studioLogin": "Connexion studio"
     },
     "privacy": {
       "title": "Notice de confidentialité (UK/EU GDPR)",
-      "lastUpdated": "18 juin 2026",
+      "lastUpdated": "16 juillet 2026",
       "sections": {
         "general": {
           "title": "Qui sommes-nous",
@@ -2347,7 +2346,7 @@
         },
         "whenCollect": {
           "title": "Quand nous collectons des données",
-          "p1": "Nous collectons des données lorsque vous créez un compte, vous abonnez à Velbok, configurez un studio, gérez des réservations ou la facturation, remplissez des formulaires de consentement, utilisez la messagerie in-app, contactez le support ou utilisez les fonctionnalités de paiement sur le web ou mobile."
+          "p1": "Nous collectons des données lorsque vous créez un compte, vous abonnez à Velbok, configurez un studio, gérez des réservations ou la facturation, complétez des formulaires de consentement, utilisez la messagerie intégrée, utilisez les outils de pochoirs IA, contactez le support ou utilisez les fonctions de paiement sur le web ou mobile."
         },
         "mobile": {
           "title": "Application mobile (Android / iOS)",
@@ -2356,7 +2355,7 @@
         },
         "subprocessors": {
           "title": "Prestataires de services (sous-traitants)",
-          "p1": "Nous utilisons des prestataires de confiance pour exploiter Velbok, notamment : Supabase (authentification, base de données, stockage de fichiers, edge functions), Stripe (paiements, paiements Connect, Terminal / Tap to Pay), Resend (e-mails transactionnels), Twilio (WhatsApp/SMS optionnel par studio) et Netlify (hébergement du site web). Chaque prestataire traite les données sous contrat et selon ses propres conditions de confidentialité.",
+          "p1": "Nous utilisons des prestataires de confiance pour faire fonctionner Velbok, notamment : Supabase (authentification, base de données, stockage de fichiers, fonctions edge), Stripe (paiements, versements Connect, Terminal / Tap to Pay), Resend (e-mails transactionnels), Twilio (WhatsApp/SMS optionnel par studio), Netlify (hébergement du site et AI Gateway pour la génération de pochoirs via Google Gemini) et Vapi (support vocal optionnel de la plateforme). Chaque prestataire traite les données sous contrat et selon ses propres conditions de confidentialité.",
           "p2": "Nous ne vendons pas de données personnelles. Nous partageons des données uniquement lorsque nécessaire pour fournir le service, respecter la loi ou prévenir la fraude."
         },
         "transfers": {
@@ -2369,7 +2368,7 @@
           "consent": "Consentement :",
           "consentDesc": "cookies optionnels sur le site web, opt-ins marketing et consentement explicite pour les données de santé dans les formulaires de consentement studio.",
           "contract": "Contrat :",
-          "contractDesc": "fourniture du service Velbok, abonnements studio, réservations, acomptes et factures.",
+          "contractDesc": "fourniture du service Velbok, abonnements studio, réservations, acomptes, factures et outils de pochoirs IA activés sur votre forfait.",
           "legal": "Obligation légale :",
           "legalDesc": "fiscalité, comptabilité et demandes légales des autorités.",
           "legitimate": "Intérêts légitimes :",
@@ -2379,7 +2378,7 @@
         },
         "howUse": {
           "title": "Comment et pourquoi nous utilisons les données",
-          "p1": "Nous utilisons les données personnelles pour exploiter Velbok, authentifier les utilisateurs, traiter les abonnements studio et les paiements clients, envoyer des notifications, accompagner les studios, améliorer la fiabilité et respecter les obligations légales.",
+          "p1": "Nous utilisons les données personnelles pour exploiter Velbok, authentifier les utilisateurs, traiter les abonnements studio et les paiements clients, fournir des notifications et les fonctionnalités IA activées sur votre forfait, assister les studios, améliorer la fiabilité et respecter nos obligations légales.",
           "p2": "{{shopLegalName}} ne vend pas de données personnelles à des tiers pour leur propre marketing."
         },
         "cookies": {
@@ -2406,19 +2405,23 @@
           "title": "Vos droits",
           "p1": "Vous pouvez demander l'accès, la rectification, la suppression (le cas échéant), la limitation, l'opposition, la portabilité et le retrait du consentement. Envoyez un e-mail à",
           "orWriteTo": "ou écrivez à :",
-          "p2": "Si nous refusons une demande, nous en expliquerons les raisons. Vous pouvez déposer une plainte auprès du UK ICO ou de votre autorité de contrôle locale de l'UE.",
-          "accountDeletionLink": "page de suppression de compte",
-          "p1AfterLink": "ou par email"
+          "p2": "Si nous refusons une demande, nous en expliquerons les raisons. Vous pouvez déposer une plainte auprès du UK ICO ou de votre autorité de contrôle locale de l'UE."
         },
         "updates": {
           "title": "Mises à jour de la politique",
           "p1": "Nous pouvons mettre à jour cette notice périodiquement. Les modifications importantes seront publiées sur velbok.com/privacy avec une date révisée."
+        },
+        "ai": {
+          "title": "Fonctionnalités IA et traitement par des fournisseurs IA tiers",
+          "p1": "Velbok propose des outils optionnels alimentés par l'IA, notamment la génération de pochoirs de tatouage. Lorsque vous choisissez la génération de pochoir IA, nous envoyons l'image de référence que vous téléversez et votre préférence de style à Netlify, qui achemine la demande vers le modèle d'image Gemini de Google via Netlify AI Gateway. Le traitement est lié à votre compte connecté, soumis aux limites d'utilisation du compte, et sert uniquement à générer le pochoir demandé.",
+          "p2": "Les aperçus de pochoirs générés par l'IA sont stockés dans notre espace de fichiers pendant 24 heures maximum, puis supprimés automatiquement. Nous n'utilisons pas vos images de référence ni les sorties IA pour entraîner nos propres modèles, et nous ne vendons pas ce contenu à des tiers. Les conditions et politiques de confidentialité de Google et Netlify s'appliquent à leur traitement. Ne téléversez pas d'images que vous n'avez pas le droit d'utiliser, ni de contenu incluant des données personnelles ou des catégories particulières inutiles.",
+          "p3": "Le support téléphonique optionnel de la plateforme Velbok peut utiliser une IA vocale tierce (Vapi). Les métadonnées d'appel et les transcriptions peuvent être enregistrées à des fins de qualité et de support, comme décrit dans notre section sur les prestataires."
         }
       }
     },
     "terms": {
       "title": "Conditions générales d'utilisation",
-      "lastUpdated": "18 juin 2026",
+      "lastUpdated": "16 juillet 2026",
       "sections": {
         "scope": {
           "title": "1. Accord",
@@ -2435,7 +2438,8 @@
         },
         "acceptableUse": {
           "title": "4. Utilisation acceptable",
-          "p1": "Vous ne devez pas utiliser abusivement le Service, perturber les contrôles de sécurité, télécharger du contenu illégal ou utiliser le Service d'une manière qui enfreint la loi applicable, y compris le UK GDPR, l'EU GDPR et les règles de protection des consommateurs."
+          "p1": "Vous ne devez pas utiliser abusivement le Service, perturber les contrôles de sécurité, télécharger du contenu illégal ou utiliser le Service d'une manière qui enfreint la loi applicable, y compris le UK GDPR, l'EU GDPR et les règles de protection des consommateurs.",
+          "p2": "Vous ne devez pas soumettre via les fonctionnalités IA des données personnelles illicites, contrefaisantes ou inutilement sensibles."
         },
         "bookings": {
           "title": "5. Flux de réservation et de paiement",
@@ -2455,7 +2459,8 @@
         "dataProcessing": {
           "title": "8. Rôles en matière de protection des données",
           "p1": "Pour les données de compte studio et de facturation, Inkaholics Limited est le responsable du traitement. Pour les réservations clients, formulaires de consentement, messages et données CRM que vous saisissez concernant vos clients, vous êtes le responsable et Inkaholics Limited agit en tant que sous-traitant selon vos instructions documentées, comme décrit dans notre Notice de confidentialité.",
-          "p2": "Vous devez disposer d'une base légale et, le cas échéant, de notices de confidentialité et consentements appropriés pour les données clients que vous traitez via Velbok. Vous ne devez pas télécharger de contenu illégal ou de données sensibles au-delà de ce pour quoi le Service est conçu."
+          "p2": "Vous devez disposer d'une base légale et, le cas échéant, de notices de confidentialité et consentements appropriés pour les données clients que vous traitez via Velbok. Vous ne devez pas télécharger de contenu illégal ou de données sensibles au-delà de ce pour quoi le Service est conçu.",
+          "p3": "Lorsque vous utilisez des fonctionnalités IA (telles que la génération de pochoirs), vous nous demandez de traiter les images de référence téléversées via des fournisseurs IA tiers uniquement pour fournir cette fonctionnalité, comme décrit dans notre Notice de confidentialité. Vous êtes responsable de disposer des droits sur tout contenu soumis et de respecter la loi applicable."
         },
         "ip": {
           "title": "9. Propriété intellectuelle",
@@ -2468,11 +2473,13 @@
         },
         "thirdParty": {
           "title": "11. Services tiers",
-          "p1": "Le Service intègre des tiers tels que Stripe (paiements), Supabase (hébergement) et des fournisseurs d'e-mail. Leurs conditions et politiques de confidentialité s'appliquent à leurs services. Nous ne sommes pas responsables des pannes, erreurs ou actes de prestataires tiers au-delà de notre contrôle raisonnable."
+          "p1": "Le Service intègre des tiers tels que Stripe (paiements), Supabase (hébergement), des fournisseurs d'e-mail, Netlify AI Gateway avec Google Gemini (génération de pochoirs IA) et Vapi (support vocal optionnel de la plateforme). Leurs conditions et politiques de confidentialité s'appliquent à leurs services. Nous ne sommes pas responsables des interruptions, erreurs ou actes de prestataires tiers hors de notre contrôle raisonnable.",
+          "p2": "Les fournisseurs IA tiers ne traitent les données que pour fournir la fonctionnalité demandée. Nous exigeons que ce traitement soit limité à la fourniture du Service et ne serve pas à entraîner des modèles sur votre contenu à des fins non liées, sous réserve des politiques de chaque fournisseur."
         },
         "disclaimer": {
           "title": "12. Avertissements",
-          "p1": "Le Service est fourni « tel quel » et « selon disponibilité ». Nous ne garantissons pas un fonctionnement ininterrompu ou sans erreur. Velbok est un logiciel uniquement — nous ne fournissons pas de conseils juridiques, médicaux, fiscaux ou professionnels, et le Service ne garantit pas votre conformité réglementaire."
+          "p1": "Le Service est fourni « tel quel » et « selon disponibilité ». Nous ne garantissons pas un fonctionnement ininterrompu ou sans erreur. Velbok est un logiciel uniquement — nous ne fournissons pas de conseils juridiques, médicaux, fiscaux ou professionnels, et le Service ne garantit pas votre conformité réglementaire.",
+          "p2": "Les sorties générées par l'IA (telles que les pochoirs) sont fournies uniquement à titre d'aide à la conception. Les sorties peuvent être imparfaites ; vous êtes responsable de les vérifier avant toute utilisation sur un client."
         },
         "indemnity": {
           "title": "13. Indemnisation",
@@ -2530,28 +2537,6 @@
           "p1": "Nous pouvons mettre à jour cette politique pour refléter des changements juridiques, techniques ou produit. La dernière version et la date de mise à jour sont toujours publiées ici."
         }
       }
-    },
-    "accountDeletion": {
-      "title": "Suppression de compte",
-      "lastUpdated": "22 juin 2026",
-      "overviewTitle": "Demander la suppression de votre compte Velbok",
-      "overviewP1": "{{shopLegalName}} (exerçant sous le nom de Velbok) vous permet de demander la suppression de votre compte de plateforme et des données personnelles associées que nous contrôlons.",
-      "overviewP2": "Si vous avez réservé auprès d'un studio de tatouage via Velbok, le studio peut également conserver les dossiers clients séparément. Contactez directement le studio pour les enregistrements en studio qu'ils contrôlent.",
-      "inAppTitle": "Supprimer de l'application ou du site Web",
-      "inAppP1": "Les utilisateurs connectés peuvent lancer une demande de suppression à partir des paramètres :",
-      "inAppStaff": "Personnel du studio : Paramètres → Suppression du compte",
-      "inAppCustomer": "Portail client : Compte → Sécurité → Suppression de compte",
-      "signInToRequest": "Connectez-vous pour pré-remplir les détails de votre compte dans l'e-mail de demande de suppression.",
-      "emailTitle": "Demande par email",
-      "emailP1": "Vous pouvez également nous envoyer un e-mail à partir de l'adresse liée à votre compte. Incluez votre nom complet et l’e-mail que vous utilisez pour vous connecter.",
-      "emailP2": "Nous pouvons demander une vérification supplémentaire avant de traiter la demande.",
-      "whatDeletedTitle": "Ce que nous supprimons",
-      "whatDeleted1": "Votre compte de connexion Velbok et les détails de votre profil que nous détenons en tant que contrôleur de la plateforme.",
-      "whatDeleted2": "Préférences côté plate-forme, notifications et adhésion du personnel liées à votre compte utilisateur.",
-      "whatDeleted3": "Certains dossiers peuvent être conservés lorsque la loi l'exige (par exemple en matière fiscale, de prévention de la fraude ou de litiges non résolus).",
-      "timingTitle": "Combien de temps cela prend",
-      "timingP1": "Notre objectif est de confirmer la réception dans un délai de quelques jours ouvrables et de procéder à la suppression éligible dans un délai de 30 jours, à moins qu'un délai plus long ne soit requis par la loi ou pour résoudre un abonnement actif ou un litige.",
-      "privacyLinkLead": "Pour plus de détails sur la façon dont nous traitons les données personnelles et vos droits, consultez notre"
     }
   },
   "depositCheckout": {

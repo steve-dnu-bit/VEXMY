@@ -2314,15 +2314,14 @@
       "lastUpdated": "Senast uppdaterad:",
       "terms": "Villkor",
       "privacy": "Integritet",
-      "cookies": "Småkakor",
+      "cookies": "Cookies",
       "home": "Hem",
       "documentation": "Dokumentation",
-      "studioLogin": "Studioinloggning",
-      "accountDeletion": "Radering av konto"
+      "studioLogin": "Studioinloggning"
     },
     "privacy": {
       "title": "Integritetspolicy (UK/EU GDPR)",
-      "lastUpdated": "18 juni 2026",
+      "lastUpdated": "16 juli 2026",
       "sections": {
         "general": {
           "title": "Vilka vi är",
@@ -2347,7 +2346,7 @@
         },
         "whenCollect": {
           "title": "När vi samlar in data",
-          "p1": "Vi samlar in data när du skapar ett konto, prenumererar på Velbok, konfigurerar en studio, hanterar bokningar eller fakturering, fyller i samtyckesformulär, använder meddelanden i appen, kontaktar support eller använder betalningsfunktioner på webb eller mobil."
+          "p1": "Vi samlar in data när du skapar ett konto, prenumererar på Velbok, konfigurerar en studio, hanterar bokningar eller fakturering, fyller i samtyckesformulär, använder meddelanden i appen, använder AI-stencilverktyg, kontaktar support eller använder betalningsfunktioner på webb eller mobil."
         },
         "mobile": {
           "title": "Mobilapp (Android / iOS)",
@@ -2356,7 +2355,7 @@
         },
         "subprocessors": {
           "title": "Tjänsteleverantörer (underbiträden)",
-          "p1": "Vi använder betrodda leverantörer för att driva Velbok, inklusive: Supabase (autentisering, databas, fillagring, edge functions), Stripe (betalningar, Connect-utbetalningar, Terminal / Tap to Pay), Resend (transaktionsmejl), Twilio (valfritt WhatsApp/SMS per studio) och Netlify (webbhosting). Varje leverantör behandlar data enligt avtal och sina egna integritetsvillkor.",
+          "p1": "Vi använder betrodda leverantörer för att driva Velbok, inklusive: Supabase (autentisering, databas, fillagring, edge-funktioner), Stripe (betalningar, Connect-utbetalningar, Terminal / Tap to Pay), Resend (transaktionsmejl), Twilio (valfritt WhatsApp/SMS per studio), Netlify (webbhotell och AI Gateway för stencilgenerering via Google Gemini) och Vapi (valfri plattformsröstsupport). Varje leverantör behandlar data enligt avtal och sina egna integritetsvillkor.",
           "p2": "Vi säljer inte personuppgifter. Vi delar data endast när det behövs för att tillhandahålla tjänsten, följa lagen eller förebygga bedrägerier."
         },
         "transfers": {
@@ -2369,7 +2368,7 @@
           "consent": "Samtycke:",
           "consentDesc": "valfria cookies på webbplatsen, marknadsföringsopt-in och uttryckligt samtycke för hälsodata i studios samtyckesformulär.",
           "contract": "Avtal:",
-          "contractDesc": "tillhandahållande av Velbok-tjänsten, studioprenumerationer, bokningar, depositioner och fakturor.",
+          "contractDesc": "tillhandahållande av Velbok-tjänsten, studioprenumerationer, bokningar, depositioner, fakturor och AI-stencilverktyg aktiverade på din plan.",
           "legal": "Rättslig förpliktelse:",
           "legalDesc": "skatt, redovisning och lagliga begäranden från myndigheter.",
           "legitimate": "Berättigade intressen:",
@@ -2379,7 +2378,7 @@
         },
         "howUse": {
           "title": "Hur och varför vi använder data",
-          "p1": "Vi använder personuppgifter för att driva Velbok, autentisera användare, behandla studioprenumerationer och kundbetalningar, leverera aviseringar, stödja studior, förbättra tillförlitlighet och uppfylla rättsliga skyldigheter.",
+          "p1": "Vi använder personuppgifter för att driva Velbok, autentisera användare, behandla studioprenumerationer och kundbetalningar, leverera aviseringar och AI-funktioner aktiverade på din plan, stödja studior, förbättra tillförlitlighet och uppfylla rättsliga skyldigheter.",
           "p2": "{{shopLegalName}} säljer inte personuppgifter till tredje part för deras egen marknadsföring."
         },
         "cookies": {
@@ -2406,19 +2405,23 @@
           "title": "Dina rättigheter",
           "p1": "Du kan begära tillgång, rättelse, radering (där tillämpligt), begränsning, invändning, portabilitet och återkallelse av samtycke. Mejla",
           "orWriteTo": "eller skriv till:",
-          "p2": "Om vi avslår en begäran förklarar vi varför. Du kan klaga till UK ICO eller din lokala EU-tillsynsmyndighet.",
-          "accountDeletionLink": "sidan för borttagning av konto",
-          "p1AfterLink": "eller mejla"
+          "p2": "Om vi avslår en begäran förklarar vi varför. Du kan klaga till UK ICO eller din lokala EU-tillsynsmyndighet."
         },
         "updates": {
           "title": "Policyuppdateringar",
           "p1": "Vi kan uppdatera denna policy med jämna mellanrum. Väsentliga ändringar publiceras på velbok.com/privacy med ett reviderat datum."
+        },
+        "ai": {
+          "title": "AI-funktioner och behandling via tredjeparts-AI",
+          "p1": "Velbok erbjuder valfria AI-drivna verktyg, inklusive generering av tatueringsstencil. När du väljer AI-stencilgenerering skickar vi referensbilden du laddar upp och din valda stilpreferens till Netlify, som vidarebefordrar begäran till Googles Gemini-bildmodell via Netlify AI Gateway. Behandlingen är kopplad till ditt inloggade konto, omfattas av användningsgränser per konto och används endast för att generera den begärda stencilen.",
+          "p2": "AI-genererade stencilförhandsvisningar lagras i vår fillagring i upp till 24 timmar och raderas sedan automatiskt. Vi använder inte dina referensbilder eller AI-utdata för att träna våra egna modeller och säljer inte detta innehåll till tredje part. Googles och Netlifys villkor och integritetspolicyer gäller för deras behandling. Ladda inte upp bilder du inte har rätt att använda, eller innehåll med onödiga personuppgifter eller särskilda kategorier av data.",
+          "p3": "Valfri telefonsupport för Velbok-plattformen kan använda tredjeparts röst-AI (Vapi). Samtalsmetadata och transkriptioner kan loggas för kvalitet och support, enligt vår sektion om tjänsteleverantörer."
         }
       }
     },
     "terms": {
       "title": "Användarvillkor",
-      "lastUpdated": "18 juni 2026",
+      "lastUpdated": "16 juli 2026",
       "sections": {
         "scope": {
           "title": "1. Avtal",
@@ -2435,7 +2438,8 @@
         },
         "acceptableUse": {
           "title": "4. Acceptabel användning",
-          "p1": "Du får inte missbruka tjänsten, störa säkerhetskontroller, ladda upp olagligt innehåll eller använda tjänsten på sätt som bryter mot tillämplig lag, inklusive UK GDPR, EU GDPR och konsumentskyddsregler."
+          "p1": "Du får inte missbruka tjänsten, störa säkerhetskontroller, ladda upp olagligt innehåll eller använda tjänsten på sätt som bryter mot tillämplig lag, inklusive UK GDPR, EU GDPR och konsumentskyddsregler.",
+          "p2": "Du får inte skicka in olagliga, intrångsgörande eller onödigt känsliga personuppgifter via AI-funktioner."
         },
         "bookings": {
           "title": "5. Boknings- och betalningsflöden",
@@ -2455,7 +2459,8 @@
         "dataProcessing": {
           "title": "8. Dataskyddsroller",
           "p1": "För studiokonto- och faktureringsdata är Inkaholics Limited personuppgiftsansvarig. För kundbokningar, samtyckesformulär, meddelanden och CRM-data du anger om dina kunder är du personuppgiftsansvarig och Inkaholics Limited agerar som personuppgiftsbiträde enligt dina dokumenterade instruktioner, enligt vår integritetspolicy.",
-          "p2": "Du måste ha laglig grund och, där det krävs, lämpliga integritetspolicyer och samtycken för kunddata du behandlar via Velbok. Du får inte ladda upp olagligt innehåll eller särskilda kategorier av data utöver vad tjänsten är utformad för."
+          "p2": "Du måste ha laglig grund och, där det krävs, lämpliga integritetspolicyer och samtycken för kunddata du behandlar via Velbok. Du får inte ladda upp olagligt innehåll eller särskilda kategorier av data utöver vad tjänsten är utformad för.",
+          "p3": "När du använder AI-funktioner (som stencilgenerering) instruerar du oss att behandla uppladdade referensbilder via tredjeparts-AI-leverantörer enbart för att leverera den funktionen, enligt vår integritetspolicy. Du ansvarar för att ha rättigheter till allt innehåll du skickar in och att inlämningar följer tillämplig lag."
         },
         "ip": {
           "title": "9. Immateriella rättigheter",
@@ -2468,11 +2473,13 @@
         },
         "thirdParty": {
           "title": "11. Tredjepartstjänster",
-          "p1": "Tjänsten integrerar tredje parter som Stripe (betalningar), Supabase (hosting) och e-postleverantörer. Deras villkor och integritetspolicyer gäller för deras tjänster. Vi ansvarar inte för avbrott, fel eller tredjepartsleverantörers handlingar utöver vår rimliga kontroll."
+          "p1": "Tjänsten integrerar tredje parter som Stripe (betalningar), Supabase (hosting), e-postleverantörer, Netlify AI Gateway med Google Gemini (AI-stencilgenerering) och Vapi (valfri plattformsröstsupport). Deras villkor och integritetspolicyer gäller för deras tjänster. Vi ansvarar inte för avbrott, fel eller handlingar från tredjepartsleverantörer utanför vår rimliga kontroll.",
+          "p2": "Tredjeparts-AI-leverantörer behandlar data endast för att tillhandahålla den begärda funktionen. Vi kräver att sådan behandling begränsas till att leverera Tjänsten och inte används för att träna modeller på ditt innehåll för leverantörens orelaterade ändamål, med förbehåll för varje leverantörs policy."
         },
         "disclaimer": {
           "title": "12. Ansvarsfriskrivningar",
-          "p1": "Tjänsten tillhandahålls \"i befintligt skick\" och \"som tillgänglig\". Vi garanterar inte oavbruten eller felfri drift. Velbok är endast programvara — vi ger inte juridisk, medicinsk, skatte- eller professionell rådgivning, och tjänsten garanterar inte din regelefterlevnad."
+          "p1": "Tjänsten tillhandahålls \"i befintligt skick\" och \"som tillgänglig\". Vi garanterar inte oavbruten eller felfri drift. Velbok är endast programvara — vi ger inte juridisk, medicinsk, skatte- eller professionell rådgivning, och tjänsten garanterar inte din regelefterlevnad.",
+          "p2": "AI-genererade utdata (som stenciler) tillhandahålls endast som designhjälp. Utdata kan vara ofullkomliga; du ansvarar för att granska dem innan användning på kunder."
         },
         "indemnity": {
           "title": "13. Skadeslöshet",
@@ -2530,28 +2537,6 @@
           "p1": "Vi kan uppdatera denna policy för att återspegla juridiska, tekniska eller produktrelaterade ändringar. Den senaste versionen och uppdateringsdatum publiceras alltid här."
         }
       }
-    },
-    "accountDeletion": {
-      "title": "Radering av konto",
-      "lastUpdated": "22 juni 2026",
-      "overviewTitle": "Begär radering av ditt Velbok-konto",
-      "overviewP1": "{{shopLegalName}} (handlar som Velbok) låter dig begära radering av ditt plattformskonto och tillhörande personuppgifter som vi kontrollerar.",
-      "overviewP2": "Om du har bokat med en tatueringsstudio genom Velbok, kan studion också hålla klientrekord separat. Kontakta studion direkt för in-studioskivor de kontrollerar.",
-      "inAppTitle": "Ta bort från appen eller webbplatsen",
-      "inAppP1": "Inloggade användare kan starta en raderingsbegäran från Inställningar:",
-      "inAppStaff": "Studiopersonal: Inställningar → Radering av konto",
-      "inAppCustomer": "Kundportal: Konto → Säkerhet → Kontoradering",
-      "signInToRequest": "Logga in för att fylla i dina kontouppgifter i e-postmeddelandet med begäran om borttagning.",
-      "emailTitle": "Begäran via e-post",
-      "emailP1": "Du kan också maila oss från adressen som är kopplad till ditt konto. Inkludera ditt fullständiga namn och den e-postadress du använder för att logga in.",
-      "emailP2": "Vi kan be om ytterligare verifiering innan vi behandlar begäran.",
-      "whatDeletedTitle": "Det vi raderar",
-      "whatDeleted1": "Ditt Velbok inloggningskonto och din profilinformation har vi som plattformskontroller.",
-      "whatDeleted2": "Platssidans preferenser, meddelanden och personalmedlemskap kopplade till ditt användarkonto.",
-      "whatDeleted3": "Vissa register kan bevaras där det krävs enligt lag (till exempel skatt, förebyggande av bedrägeri eller olösta tvister).",
-      "timingTitle": "Hur lång tid det tar",
-      "timingP1": "Vi strävar efter att bekräfta mottagandet inom några arbetsdagar och slutföra kvalificerad radering inom 30 dagar, såvida inte en längre period krävs enligt lag eller för att lösa en aktiv prenumeration eller tvist.",
-      "privacyLinkLead": "För fullständig information om hur vi behandlar personuppgifter och dina rättigheter, se vår"
     }
   },
   "depositCheckout": {

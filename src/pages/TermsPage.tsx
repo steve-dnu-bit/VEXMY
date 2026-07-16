@@ -35,6 +35,9 @@ const TermsPage = () => {
           {t(`legal.terms.sections.${key}.p2`, { defaultValue: "" }) ? (
             <p>{t(`legal.terms.sections.${key}.p2`, vars)}</p>
           ) : null}
+          {t(`legal.terms.sections.${key}.p3`, { defaultValue: "" }) ? (
+            <p>{t(`legal.terms.sections.${key}.p3`, vars)}</p>
+          ) : null}
         </section>
       ))}
     </LegalPageLayout>

@@ -11,7 +11,7 @@
     },
     "privacy": {
       "title": "Aviso de privacidad (UK/EU GDPR)",
-      "lastUpdated": "18 de junio de 2026",
+      "lastUpdated": "16 de julio de 2026",
       "sections": {
         "general": {
           "title": "Quiénes somos",
@@ -36,7 +36,7 @@
         },
         "whenCollect": {
           "title": "Cuándo recopilamos datos",
-          "p1": "Recopilamos datos cuando crea una cuenta, se suscribe a Velbok, configura un estudio, gestiona reservas o facturación, completa formularios de consentimiento, usa la mensajería in-app, contacta con soporte o utiliza funciones de pago en web o móvil."
+          "p1": "Recopilamos datos cuando crea una cuenta, se suscribe a Velbok, configura un estudio, gestiona reservas o facturación, completa formularios de consentimiento, usa la mensajería en la app, usa las herramientas de plantillas con IA, contacta con soporte o usa funciones de pago en web o móvil."
         },
         "mobile": {
           "title": "Aplicación móvil (Android / iOS)",
@@ -45,7 +45,7 @@
         },
         "subprocessors": {
           "title": "Proveedores de servicios (subencargados)",
-          "p1": "Utilizamos proveedores de confianza para operar Velbok, incluidos: Supabase (autenticación, base de datos, almacenamiento de archivos, edge functions), Stripe (pagos, pagos Connect, Terminal / Tap to Pay), Resend (correo transaccional), Twilio (WhatsApp/SMS opcional por estudio) y Netlify (hosting del sitio web). Cada proveedor trata los datos bajo contrato y sus propios términos de privacidad.",
+          "p1": "Usamos proveedores de confianza para operar Velbok, incluidos: Supabase (autenticación, base de datos, almacenamiento de archivos, funciones edge), Stripe (pagos, pagos Connect, Terminal / Tap to Pay), Resend (correo transaccional), Twilio (WhatsApp/SMS opcional por estudio), Netlify (alojamiento web y AI Gateway para generación de plantillas mediante Google Gemini) y Vapi (soporte de voz opcional de la plataforma). Cada proveedor procesa datos bajo contrato y sus propios términos de privacidad.",
           "p2": "No vendemos datos personales. Compartimos datos solo cuando es necesario para prestar el servicio, cumplir la ley o prevenir fraudes."
         },
         "transfers": {
@@ -58,7 +58,7 @@
           "consent": "Consentimiento:",
           "consentDesc": "cookies opcionales en el sitio web, suscripciones de marketing y consentimiento explícito para datos sanitarios en formularios de consentimiento del estudio.",
           "contract": "Contrato:",
-          "contractDesc": "prestación del servicio Velbok, suscripciones de estudio, reservas, depósitos y facturas.",
+          "contractDesc": "prestación del servicio Velbok, suscripciones de estudio, reservas, depósitos, facturas y herramientas de plantillas con IA habilitadas en su plan.",
           "legal": "Obligación legal:",
           "legalDesc": "fiscal, contable y solicitudes legítimas de las autoridades.",
           "legitimate": "Intereses legítimos:",
@@ -68,7 +68,7 @@
         },
         "howUse": {
           "title": "Cómo y por qué usamos los datos",
-          "p1": "Utilizamos datos personales para operar Velbok, autenticar usuarios, procesar suscripciones de estudio y pagos de clientes, enviar notificaciones, apoyar a los estudios, mejorar la fiabilidad y cumplir obligaciones legales.",
+          "p1": "Usamos datos personales para operar Velbok, autenticar usuarios, procesar suscripciones de estudio y pagos de clientes, enviar notificaciones y funciones de IA habilitadas en su plan, apoyar estudios, mejorar la fiabilidad y cumplir obligaciones legales.",
           "p2": "{{shopLegalName}} no vende datos personales a terceros para su propio marketing."
         },
         "cookies": {
@@ -100,12 +100,18 @@
         "updates": {
           "title": "Actualizaciones del aviso",
           "p1": "Podemos actualizar este aviso periódicamente. Los cambios sustanciales se publicarán en velbok.com/privacy con una fecha revisada."
+        },
+        "ai": {
+          "title": "Funciones de IA y tratamiento por proveedores de IA de terceros",
+          "p1": "Velbok ofrece herramientas opcionales con IA, incluida la generación de plantillas de tatuaje. Cuando elige la generación de plantillas con IA, enviamos la imagen de referencia que sube y su preferencia de estilo a Netlify, que enruta la solicitud al modelo de imagen Gemini de Google mediante Netlify AI Gateway. El tratamiento está vinculado a su cuenta iniciada, sujeto a límites de uso por cuenta, y se usa solo para generar la plantilla solicitada.",
+          "p2": "Las vistas previas de plantillas generadas por IA se almacenan en nuestro almacenamiento de archivos hasta 24 horas y luego se eliminan automáticamente. No usamos sus imágenes de referencia ni salidas de IA para entrenar nuestros propios modelos, y no vendemos este contenido a terceros. Se aplican los términos y políticas de privacidad de Google y Netlify. No suba imágenes que no tenga derecho a usar, ni contenido con datos personales o categorías especiales innecesarios.",
+          "p3": "El soporte telefónico opcional de la plataforma Velbok puede usar IA de voz de terceros (Vapi). Los metadatos de llamadas y las transcripciones pueden registrarse para calidad y soporte, como se describe en nuestra sección de proveedores de servicios."
         }
       }
     },
     "terms": {
       "title": "Términos y condiciones de uso",
-      "lastUpdated": "18 de junio de 2026",
+      "lastUpdated": "16 de julio de 2026",
       "sections": {
         "scope": {
           "title": "1. Acuerdo",
@@ -122,7 +128,8 @@
         },
         "acceptableUse": {
           "title": "4. Uso aceptable",
-          "p1": "No debe hacer un uso indebido del Servicio, interferir con los controles de seguridad, subir contenido ilícito ni utilizar el Servicio de forma que infrinja la ley aplicable, incluidos el GDPR del Reino Unido, el GDPR de la UE y las normas de protección al consumidor."
+          "p1": "No debe hacer un uso indebido del Servicio, interferir con los controles de seguridad, subir contenido ilícito ni utilizar el Servicio de forma que infrinja la ley aplicable, incluidos el GDPR del Reino Unido, el GDPR de la UE y las normas de protección al consumidor.",
+          "p2": "No debe enviar a través de las funciones de IA datos personales ilícitos, infractores o innecesariamente sensibles."
         },
         "bookings": {
           "title": "5. Flujos de reserva y pago",
@@ -142,7 +149,8 @@
         "dataProcessing": {
           "title": "8. Roles en protección de datos",
           "p1": "Para los datos de cuenta y facturación del estudio, Inkaholics Limited es el responsable del tratamiento. Para reservas de clientes, formularios de consentimiento, mensajes y datos CRM que introduce sobre sus clientes, usted es el responsable e Inkaholics Limited actúa como encargado del tratamiento según sus instrucciones documentadas, como se describe en nuestro Aviso de privacidad.",
-          "p2": "Debe tener una base legal y, cuando proceda, avisos de privacidad y consentimientos adecuados para los datos de clientes que trate a través de Velbok. No debe subir contenido ilícito ni datos de categoría especial más allá de lo que el Servicio está diseñado para soportar."
+          "p2": "Debe tener una base legal y, cuando proceda, avisos de privacidad y consentimientos adecuados para los datos de clientes que trate a través de Velbok. No debe subir contenido ilícito ni datos de categoría especial más allá de lo que el Servicio está diseñado para soportar.",
+          "p3": "Cuando usa funciones de IA (como la generación de plantillas), nos instruye para procesar imágenes de referencia subidas a través de proveedores de IA de terceros únicamente para ofrecer esa función, como se describe en nuestro Aviso de privacidad. Usted es responsable de tener derechos sobre el contenido enviado y de que las presentaciones cumplan la ley aplicable."
         },
         "ip": {
           "title": "9. Propiedad intelectual",
@@ -155,11 +163,13 @@
         },
         "thirdParty": {
           "title": "11. Servicios de terceros",
-          "p1": "El Servicio integra terceros como Stripe (pagos), Supabase (hosting) y proveedores de correo. Sus términos y políticas de privacidad se aplican a sus servicios. No somos responsables de interrupciones, errores o actos de proveedores terceros más allá de nuestro control razonable."
+          "p1": "El Servicio integra terceros como Stripe (pagos), Supabase (alojamiento), proveedores de correo, Netlify AI Gateway con Google Gemini (generación de plantillas con IA) y Vapi (soporte de voz opcional de la plataforma). Sus términos y políticas de privacidad se aplican a sus servicios. No somos responsables de interrupciones, errores o actos de proveedores terceros fuera de nuestro control razonable.",
+          "p2": "Los proveedores de IA de terceros procesan datos solo para proporcionar la función solicitada. Exigimos que dicho procesamiento se limite a prestar el Servicio y no se use para entrenar modelos con su contenido para fines no relacionados del proveedor, sujeto a las políticas de cada proveedor."
         },
         "disclaimer": {
           "title": "12. Exenciones de responsabilidad",
-          "p1": "El Servicio se proporciona \"tal cual\" y \"según disponibilidad\". No garantizamos un funcionamiento ininterrumpido o libre de errores. Velbok es solo software — no ofrecemos asesoramiento legal, médico, fiscal o profesional, y el Servicio no garantiza su cumplimiento normativo."
+          "p1": "El Servicio se proporciona \"tal cual\" y \"según disponibilidad\". No garantizamos un funcionamiento ininterrumpido o libre de errores. Velbok es solo software — no ofrecemos asesoramiento legal, médico, fiscal o profesional, y el Servicio no garantiza su cumplimiento normativo.",
+          "p2": "Las salidas generadas por IA (como plantillas) se proporcionan solo como ayuda de diseño. Las salidas pueden ser imperfectas; usted es responsable de revisarlas antes de usarlas con clientes."
         },
         "indemnity": {
           "title": "13. Indemnización",

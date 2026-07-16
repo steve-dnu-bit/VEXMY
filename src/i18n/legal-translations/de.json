@@ -11,7 +11,7 @@
     },
     "privacy": {
       "title": "Datenschutzhinweis (UK/EU GDPR)",
-      "lastUpdated": "18. Juni 2026",
+      "lastUpdated": "16. Juli 2026",
       "sections": {
         "general": {
           "title": "Wer wir sind",
@@ -36,7 +36,7 @@
         },
         "whenCollect": {
           "title": "Wann wir Daten erheben",
-          "p1": "Wir erheben Daten, wenn Sie ein Konto erstellen, Velbok abonnieren, ein Studio konfigurieren, Buchungen oder Abrechnungen verwalten, Einwilligungsformulare ausfüllen, In-App-Nachrichten nutzen, den Support kontaktieren oder Zahlungsfunktionen im Web oder in der App verwenden."
+          "p1": "Wir erheben Daten, wenn Sie ein Konto erstellen, Velbok abonnieren, ein Studio konfigurieren, Buchungen oder Abrechnungen verwalten, Einwilligungsformulare ausfüllen, In-App-Nachrichten nutzen, KI-Schablonen-Tools verwenden, den Support kontaktieren oder Zahlungsfunktionen im Web oder mobil nutzen."
         },
         "mobile": {
           "title": "Mobil-App (Android / iOS)",
@@ -45,7 +45,7 @@
         },
         "subprocessors": {
           "title": "Dienstleister (Unterauftragsverarbeiter)",
-          "p1": "Wir nutzen vertrauenswürdige Anbieter zum Betrieb von Velbok, darunter: Supabase (Authentifizierung, Datenbank, Dateispeicher, Edge Functions), Stripe (Zahlungen, Connect-Auszahlungen, Terminal / Tap to Pay), Resend (Transaktions-E-Mails), Twilio (optionales WhatsApp/SMS pro Studio) und Netlify (Website-Hosting). Jeder Anbieter verarbeitet Daten vertraglich und gemäß seinen eigenen Datenschutzbedingungen.",
+          "p1": "Wir nutzen vertrauenswürdige Anbieter zum Betrieb von Velbok, darunter: Supabase (Authentifizierung, Datenbank, Dateispeicher, Edge Functions), Stripe (Zahlungen, Connect-Auszahlungen, Terminal / Tap to Pay), Resend (Transaktions-E-Mails), Twilio (optionales WhatsApp/SMS pro Studio), Netlify (Website-Hosting und AI Gateway für Schablonen-Generierung über Google Gemini) und Vapi (optionaler Plattform-Sprachsupport). Jeder Anbieter verarbeitet Daten vertraglich und gemäß seinen eigenen Datenschutzbedingungen.",
           "p2": "Wir verkaufen keine personenbezogenen Daten. Wir teilen Daten nur, soweit dies zur Erbringung des Dienstes, zur Einhaltung gesetzlicher Vorschriften oder zur Betrugsprävention erforderlich ist."
         },
         "transfers": {
@@ -58,7 +58,7 @@
           "consent": "Einwilligung:",
           "consentDesc": "optionale Cookies auf der Website, Marketing-Opt-ins und ausdrückliche Einwilligung für Gesundheitsdaten in Studio-Einwilligungsformularen.",
           "contract": "Vertrag:",
-          "contractDesc": "Bereitstellung des Velbok-Dienstes, Studio-Abonnements, Buchungen, Anzahlungen und Rechnungen.",
+          "contractDesc": "Bereitstellung des Velbok-Dienstes, Studio-Abonnements, Buchungen, Anzahlungen, Rechnungen und auf Ihrem Tarif aktivierte KI-Schablonen-Tools.",
           "legal": "Rechtliche Verpflichtung:",
           "legalDesc": "Steuern, Buchhaltung und rechtmäßige Anfragen von Behörden.",
           "legitimate": "Berechtigte Interessen:",
@@ -68,7 +68,7 @@
         },
         "howUse": {
           "title": "Wie und warum wir Daten nutzen",
-          "p1": "Wir nutzen personenbezogene Daten, um Velbok zu betreiben, Nutzer zu authentifizieren, Studio-Abonnements und Kundenzahlungen zu verarbeiten, Benachrichtigungen zu senden, Studios zu unterstützen, die Zuverlässigkeit zu verbessern und gesetzliche Pflichten zu erfüllen.",
+          "p1": "Wir nutzen personenbezogene Daten, um Velbok zu betreiben, Nutzer zu authentifizieren, Studio-Abonnements und Kundenzahlungen zu verarbeiten, Benachrichtigungen und auf Ihrem Tarif aktivierte KI-Funktionen bereitzustellen, Studios zu unterstützen, die Zuverlässigkeit zu verbessern und gesetzliche Pflichten zu erfüllen.",
           "p2": "{{shopLegalName}} verkauft keine personenbezogenen Daten an Dritte für deren eigenes Marketing."
         },
         "cookies": {
@@ -100,12 +100,18 @@
         "updates": {
           "title": "Aktualisierungen der Richtlinie",
           "p1": "Wir können diesen Hinweis regelmäßig aktualisieren. Wesentliche Änderungen werden unter velbok.com/privacy mit einem überarbeiteten Datum veröffentlicht."
+        },
+        "ai": {
+          "title": "KI-Funktionen und KI-Verarbeitung durch Drittanbieter",
+          "p1": "Velbok bietet optionale KI-gestützte Tools, einschließlich Tattoo-Schablonen-Generierung. Wenn Sie die KI-Schablonen-Generierung wählen, senden wir das von Ihnen hochgeladene Referenzbild und Ihre gewählte Stilpräferenz an Netlify, das die Anfrage über Netlify AI Gateway an Googles Gemini-Bildmodell weiterleitet. Die Verarbeitung ist mit Ihrem angemeldeten Konto verknüpft, unterliegt nutzungsbezogenen Kontolimits und dient ausschließlich der Erstellung der angeforderten Schablone.",
+          "p2": "KI-generierte Schablonen-Vorschauen werden bis zu 24 Stunden in unserem Dateispeicher aufbewahrt und dann automatisch gelöscht. Wir verwenden Ihre Referenzbilder oder KI-Ausgaben nicht zum Training eigener Modelle und verkaufen diese Inhalte nicht an Dritte. Die AGB und Datenschutzrichtlinien von Google und Netlify gelten für deren Verarbeitung. Laden Sie keine Bilder hoch, für die Sie keine Rechte haben, oder Inhalte mit unnötigen personenbezogenen oder besonderen Kategorien personenbezogener Daten.",
+          "p3": "Optionaler telefonischer Velbok-Plattform-Support kann KI-Sprachdienste von Drittanbietern (Vapi) nutzen. Anrufmetadaten und Transkripte können zu Qualitäts- und Supportzwecken protokolliert werden, wie in unserem Abschnitt zu Dienstleistern beschrieben."
         }
       }
     },
     "terms": {
       "title": "Allgemeine Geschäftsbedingungen",
-      "lastUpdated": "18. Juni 2026",
+      "lastUpdated": "16. Juli 2026",
       "sections": {
         "scope": {
           "title": "1. Vertrag",
@@ -122,7 +128,8 @@
         },
         "acceptableUse": {
           "title": "4. Zulässige Nutzung",
-          "p1": "Sie dürfen den Dienst nicht missbrauchen, Sicherheitskontrollen beeinträchtigen, rechtswidrige Inhalte hochladen oder den Dienst in einer Weise nutzen, die geltendes Recht verletzt, einschließlich UK GDPR, EU GDPR und Verbraucherschutzvorschriften."
+          "p1": "Sie dürfen den Dienst nicht missbrauchen, Sicherheitskontrollen beeinträchtigen, rechtswidrige Inhalte hochladen oder den Dienst in einer Weise nutzen, die geltendes Recht verletzt, einschließlich UK GDPR, EU GDPR und Verbraucherschutzvorschriften.",
+          "p2": "Sie dürfen über KI-Funktionen keine rechtswidrigen, rechtsverletzenden oder unnötig sensiblen personenbezogenen Daten übermitteln."
         },
         "bookings": {
           "title": "5. Buchungs- und Zahlungsabläufe",
@@ -142,7 +149,8 @@
         "dataProcessing": {
           "title": "8. Rollen beim Datenschutz",
           "p1": "Für Studio-Konto- und Abrechnungsdaten ist Inkaholics Limited der Verantwortliche. Für Kundenbuchungen, Einwilligungsformulare, Nachrichten und CRM-Daten, die Sie über Ihre Kunden eingeben, sind Sie der Verantwortliche und Inkaholics Limited handelt als Auftragsverarbeiter gemäß Ihren dokumentierten Weisungen, wie in unserem Datenschutzhinweis beschrieben.",
-          "p2": "Sie müssen eine Rechtsgrundlage und, wo erforderlich, angemessene Datenschutzhinweise und Einwilligungen für Kundendaten haben, die Sie über Velbok verarbeiten. Sie dürfen keine rechtswidrigen Inhalte oder besondere Kategorien personenbezogener Daten über das hinaus hochladen, wofür der Dienst ausgelegt ist."
+          "p2": "Sie müssen eine Rechtsgrundlage und, wo erforderlich, angemessene Datenschutzhinweise und Einwilligungen für Kundendaten haben, die Sie über Velbok verarbeiten. Sie dürfen keine rechtswidrigen Inhalte oder besondere Kategorien personenbezogener Daten über das hinaus hochladen, wofür der Dienst ausgelegt ist.",
+          "p3": "Wenn Sie KI-Funktionen (z. B. Schablonen-Generierung) nutzen, weisen Sie uns an, hochgeladene Referenzbilder ausschließlich zur Bereitstellung dieser Funktion über KI-Drittanbieter zu verarbeiten, wie in unserem Datenschutzhinweis beschrieben. Sie sind dafür verantwortlich, dass Sie Rechte an den eingereichten Inhalten haben und dass diese Einreichungen geltendem Recht entsprechen."
         },
         "ip": {
           "title": "9. Geistiges Eigentum",
@@ -155,11 +163,13 @@
         },
         "thirdParty": {
           "title": "11. Drittanbieter-Dienste",
-          "p1": "Der Dienst integriert Drittanbieter wie Stripe (Zahlungen), Supabase (Hosting) und E-Mail-Anbieter. Deren AGB und Datenschutzrichtlinien gelten für deren Dienste. Wir haften nicht für Ausfälle, Fehler oder Handlungen von Drittanbietern außerhalb unserer angemessenen Kontrolle."
+          "p1": "Der Dienst integriert Drittanbieter wie Stripe (Zahlungen), Supabase (Hosting), E-Mail-Anbieter, Netlify AI Gateway mit Google Gemini (KI-Schablonen-Generierung) und Vapi (optionaler Plattform-Sprachsupport). Deren AGB und Datenschutzrichtlinien gelten für deren Dienste. Wir haften nicht für Ausfälle, Fehler oder Handlungen von Drittanbietern außerhalb unserer angemessenen Kontrolle.",
+          "p2": "KI-Drittanbieter verarbeiten Daten nur zur Bereitstellung der angeforderten Funktion. Wir verlangen, dass diese Verarbeitung auf die Erbringung des Dienstes beschränkt ist und Ihre Inhalte nicht für unabhängige Trainingszwecke des Anbieters genutzt werden, vorbehaltlich der jeweiligen Richtlinien des Anbieters."
         },
         "disclaimer": {
           "title": "12. Haftungsausschlüsse",
-          "p1": "Der Dienst wird „wie besehen“ und „wie verfügbar“ bereitgestellt. Wir garantieren keinen unterbrechungsfreien oder fehlerfreien Betrieb. Velbok ist ausschließlich Software — wir erteilen keine Rechts-, Medizin-, Steuer- oder Fachberatung, und der Dienst garantiert nicht Ihre regulatorische Compliance."
+          "p1": "Der Dienst wird „wie besehen“ und „wie verfügbar“ bereitgestellt. Wir garantieren keinen unterbrechungsfreien oder fehlerfreien Betrieb. Velbok ist ausschließlich Software — wir erteilen keine Rechts-, Medizin-, Steuer- oder Fachberatung, und der Dienst garantiert nicht Ihre regulatorische Compliance.",
+          "p2": "KI-generierte Ausgaben (z. B. Schablonen) dienen nur der Designunterstützung. Ausgaben können unvollkommen sein; Sie sind dafür verantwortlich, sie vor dem Einsatz bei Kunden zu prüfen."
         },
         "indemnity": {
           "title": "13. Freistellung",

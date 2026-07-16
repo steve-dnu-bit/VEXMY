@@ -11,7 +11,7 @@
     },
     "privacy": {
       "title": "Informativa sulla privacy (UK/EU GDPR)",
-      "lastUpdated": "18 giugno 2026",
+      "lastUpdated": "16 luglio 2026",
       "sections": {
         "general": {
           "title": "Chi siamo",
@@ -36,7 +36,7 @@
         },
         "whenCollect": {
           "title": "Quando raccogliamo i dati",
-          "p1": "Raccogliamo dati quando crei un account, ti abboni a Velbok, configuri uno studio, gestisci prenotazioni o fatturazione, compili moduli di consenso, utilizzi la messaggistica in-app, contatti l'assistenza o usi le funzioni di pagamento su web o mobile."
+          "p1": "Raccogliamo dati quando crei un account, ti abboni a Velbok, configuri uno studio, gestisci prenotazioni o fatturazione, compili moduli di consenso, usi la messaggistica in-app, usi gli strumenti di stencil IA, contatti il supporto o usi le funzioni di pagamento su web o mobile."
         },
         "mobile": {
           "title": "App mobile (Android / iOS)",
@@ -45,7 +45,7 @@
         },
         "subprocessors": {
           "title": "Fornitori di servizi (sub-responsabili)",
-          "p1": "Utilizziamo fornitori affidabili per gestire Velbok, tra cui: Supabase (autenticazione, database, archiviazione file, edge functions), Stripe (pagamenti, payout Connect, Terminal / Tap to Pay), Resend (email transazionali), Twilio (WhatsApp/SMS facoltativi per studio) e Netlify (hosting del sito web). Ogni fornitore tratta i dati in base a contratto e alle proprie condizioni sulla privacy.",
+          "p1": "Utilizziamo fornitori affidabili per gestire Velbok, tra cui: Supabase (autenticazione, database, archiviazione file, edge functions), Stripe (pagamenti, payout Connect, Terminal / Tap to Pay), Resend (email transazionali), Twilio (WhatsApp/SMS opzionale per studio), Netlify (hosting del sito e AI Gateway per la generazione di stencil tramite Google Gemini) e Vapi (supporto vocale opzionale della piattaforma). Ogni fornitore tratta i dati in base a contratto e alle proprie condizioni privacy.",
           "p2": "Non vendiamo dati personali. Condividiamo i dati solo quando necessario per fornire il servizio, rispettare la legge o prevenire le frodi."
         },
         "transfers": {
@@ -58,7 +58,7 @@
           "consent": "Consenso:",
           "consentDesc": "cookie facoltativi sul sito web, opt-in di marketing e consenso esplicito per i dati sanitari nei moduli di consenso dello studio.",
           "contract": "Contratto:",
-          "contractDesc": "fornitura del servizio Velbok, abbonamenti studio, prenotazioni, depositi e fatture.",
+          "contractDesc": "fornitura del servizio Velbok, abbonamenti studio, prenotazioni, acconti, fatture e strumenti stencil IA abilitati sul tuo piano.",
           "legal": "Obbligo legale:",
           "legalDesc": "fiscale, contabile e richieste legittime delle autorità.",
           "legitimate": "Interessi legittimi:",
@@ -68,7 +68,7 @@
         },
         "howUse": {
           "title": "Come e perché utilizziamo i dati",
-          "p1": "Utilizziamo i dati personali per gestire Velbok, autenticare gli utenti, elaborare abbonamenti studio e pagamenti clienti, inviare notifiche, supportare gli studi, migliorare l'affidabilità e adempiere agli obblighi legali.",
+          "p1": "Utilizziamo i dati personali per gestire Velbok, autenticare gli utenti, elaborare abbonamenti studio e pagamenti clienti, fornire notifiche e funzionalità IA abilitate sul tuo piano, supportare gli studi, migliorare l'affidabilità e adempiere agli obblighi legali.",
           "p2": "{{shopLegalName}} non vende dati personali a terzi per il loro marketing."
         },
         "cookies": {
@@ -100,12 +100,18 @@
         "updates": {
           "title": "Aggiornamenti dell'informativa",
           "p1": "Possiamo aggiornare periodicamente la presente informativa. Le modifiche sostanziali saranno pubblicate su velbok.com/privacy con una data aggiornata."
+        },
+        "ai": {
+          "title": "Funzionalità IA e trattamento tramite fornitori IA di terze parti",
+          "p1": "Velbok offre strumenti opzionali basati sull'IA, inclusa la generazione di stencil per tatuaggi. Quando scegli la generazione stencil IA, inviamo l'immagine di riferimento caricata e la preferenza di stile selezionata a Netlify, che instrada la richiesta al modello immagine Gemini di Google tramite Netlify AI Gateway. Il trattamento è collegato al tuo account connesso, soggetto a limiti di utilizzo per account, e serve solo a generare lo stencil richiesto.",
+          "p2": "Le anteprime di stencil generate dall'IA sono archiviate nel nostro storage file per un massimo di 24 ore e poi eliminate automaticamente. Non usiamo le tue immagini di riferimento o gli output IA per addestrare i nostri modelli e non vendiamo questo contenuto a terzi. Si applicano i termini e le informative privacy di Google e Netlify. Non caricare immagini che non hai il diritto di usare, né contenuti con dati personali o categorie particolari non necessari.",
+          "p3": "Il supporto telefonico opzionale della piattaforma Velbok può usare IA vocale di terze parti (Vapi). Metadati delle chiamate e trascrizioni possono essere registrati per qualità e supporto, come descritto nella sezione sui fornitori di servizi."
         }
       }
     },
     "terms": {
       "title": "Termini e condizioni d'uso",
-      "lastUpdated": "18 giugno 2026",
+      "lastUpdated": "16 luglio 2026",
       "sections": {
         "scope": {
           "title": "1. Accordo",
@@ -122,7 +128,8 @@
         },
         "acceptableUse": {
           "title": "4. Uso accettabile",
-          "p1": "Non devi utilizzare impropriamente il Servizio, interferire con i controlli di sicurezza, caricare contenuti illeciti o utilizzare il Servizio in modo che violi la legge applicabile, inclusi UK GDPR, EU GDPR e le norme sulla protezione dei consumatori."
+          "p1": "Non devi utilizzare impropriamente il Servizio, interferire con i controlli di sicurezza, caricare contenuti illeciti o utilizzare il Servizio in modo che violi la legge applicabile, inclusi UK GDPR, EU GDPR e le norme sulla protezione dei consumatori.",
+          "p2": "Non devi inviare tramite le funzionalità IA dati personali illeciti, lesivi o inutilmente sensibili."
         },
         "bookings": {
           "title": "5. Flussi di prenotazione e pagamento",
@@ -142,7 +149,8 @@
         "dataProcessing": {
           "title": "8. Ruoli nella protezione dei dati",
           "p1": "Per i dati dell'account studio e di fatturazione, Inkaholics Limited è il titolare del trattamento. Per prenotazioni clienti, moduli di consenso, messaggi e dati CRM che inserisci sui tuoi clienti, sei tu il titolare e Inkaholics Limited agisce come responsabile del trattamento secondo le tue istruzioni documentate, come descritto nella nostra Informativa sulla privacy.",
-          "p2": "Devi disporre di una base giuridica e, ove richiesto, di informative sulla privacy e consensi appropriati per i dati clienti trattati tramite Velbok. Non devi caricare contenuti illeciti o dati di categoria particolare oltre quanto previsto dal Servizio."
+          "p2": "Devi disporre di una base giuridica e, ove richiesto, di informative sulla privacy e consensi appropriati per i dati clienti trattati tramite Velbok. Non devi caricare contenuti illeciti o dati di categoria particolare oltre quanto previsto dal Servizio.",
+          "p3": "Quando usi funzionalità IA (come la generazione di stencil), ci istruisci a trattare le immagini di riferimento caricate tramite fornitori IA di terze parti esclusivamente per fornire quella funzionalità, come descritto nella nostra Informativa privacy. Sei responsabile di avere i diritti sui contenuti inviati e che gli invii rispettino la legge applicabile."
         },
         "ip": {
           "title": "9. Proprietà intellettuale",
@@ -155,11 +163,13 @@
         },
         "thirdParty": {
           "title": "11. Servizi di terze parti",
-          "p1": "Il Servizio integra terze parti come Stripe (pagamenti), Supabase (hosting) e provider email. I loro termini e le loro informative sulla privacy si applicano ai rispettivi servizi. Non siamo responsabili per interruzioni, errori o atti di fornitori terzi oltre il nostro ragionevole controllo."
+          "p1": "Il Servizio integra terze parti come Stripe (pagamenti), Supabase (hosting), provider email, Netlify AI Gateway con Google Gemini (generazione stencil IA) e Vapi (supporto vocale opzionale della piattaforma). I loro termini e informative privacy si applicano ai loro servizi. Non siamo responsabili per interruzioni, errori o atti di fornitori terzi oltre il nostro ragionevole controllo.",
+          "p2": "I fornitori IA di terze parti trattano i dati solo per fornire la funzionalità richiesta. Richiediamo che tale trattamento sia limitato all'erogazione del Servizio e non sia usato per addestrare modelli sui tuoi contenuti per scopi non correlati del fornitore, fatto salvo le policy di ciascun fornitore."
         },
         "disclaimer": {
           "title": "12. Esclusioni di garanzia",
-          "p1": "Il Servizio è fornito \"così com'è\" e \"come disponibile\". Non garantiamo un funzionamento ininterrotto o privo di errori. Velbok è solo software — non forniamo consulenza legale, medica, fiscale o professionale, e il Servizio non garantisce la tua conformità normativa."
+          "p1": "Il Servizio è fornito \"così com'è\" e \"come disponibile\". Non garantiamo un funzionamento ininterrotto o privo di errori. Velbok è solo software — non forniamo consulenza legale, medica, fiscale o professionale, e il Servizio non garantisce la tua conformità normativa.",
+          "p2": "Gli output generati dall'IA (come gli stencil) sono forniti solo come assistenza al design. Gli output possono essere imperfetti; sei responsabile di verificarli prima dell'uso sui clienti."
         },
         "indemnity": {
           "title": "13. Manleva",

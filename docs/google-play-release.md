@@ -38,7 +38,7 @@ Velbok is **booking and studio-management software**, not a tattoo parlour. See 
 
 ## Terms acceptance at subscribe
 
-Studios must tick the Terms / Privacy checkbox before Stripe checkout. Acceptance is recorded in `platform_terms_acceptances` (version `2026-06-18`). Bump `PLATFORM_TERMS_VERSION` in `src/lib/legalVersions.ts` and `supabase/functions/_shared/legal-versions.ts` when Terms change.
+Studios must tick the Terms / Privacy checkbox before Stripe checkout. Acceptance is recorded in `platform_terms_acceptances` (version `2026-07-16`). Bump `PLATFORM_TERMS_VERSION` in `src/lib/legalVersions.ts` and `supabase/functions/_shared/legal-versions.ts` when Terms change.
 
 ## Edge function secrets (production)
 

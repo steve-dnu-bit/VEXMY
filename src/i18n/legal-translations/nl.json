@@ -11,7 +11,7 @@
     },
     "privacy": {
       "title": "Privacyverklaring (UK/EU GDPR)",
-      "lastUpdated": "18 juni 2026",
+      "lastUpdated": "16 juli 2026",
       "sections": {
         "general": {
           "title": "Wie wij zijn",
@@ -36,7 +36,7 @@
         },
         "whenCollect": {
           "title": "Wanneer wij gegevens verzamelen",
-          "p1": "Wij verzamelen gegevens wanneer u een account aanmaakt, zich abonneert op Velbok, een studio configureert, boekingen of facturering beheert, toestemmingsformulieren invult, in-app berichten gebruikt, support contacteert of betalingsfuncties gebruikt op web of mobiel."
+          "p1": "Wij verzamelen gegevens wanneer u een account aanmaakt, zich abonneert op Velbok, een studio configureert, boekingen of facturering beheert, toestemmingsformulieren invult, in-app berichten gebruikt, AI-stenciltools gebruikt, support contacteert of betalingsfuncties gebruikt op web of mobiel."
         },
         "mobile": {
           "title": "Mobiele app (Android / iOS)",
@@ -45,7 +45,7 @@
         },
         "subprocessors": {
           "title": "Dienstverleners (subverwerkers)",
-          "p1": "Wij gebruiken betrouwbare leveranciers om Velbok te runnen, waaronder: Supabase (authenticatie, database, bestandsopslag, edge-functies), Stripe (betalingen, Connect-uitbetalingen, Terminal / Tap to Pay), Resend (transactionele e-mail), Twilio (optionele WhatsApp/SMS per studio) en Netlify (websitehosting). Elke leverancier verwerkt gegevens onder contract en hun eigen privacyvoorwaarden.",
+          "p1": "Wij gebruiken betrouwbare leveranciers om Velbok te runnen, waaronder: Supabase (authenticatie, database, bestandsopslag, edge-functies), Stripe (betalingen, Connect-uitbetalingen, Terminal / Tap to Pay), Resend (transactionele e-mail), Twilio (optionele WhatsApp/SMS per studio), Netlify (websitehosting en AI Gateway voor stencilgeneratie via Google Gemini) en Vapi (optionele platformspraakondersteuning). Elke leverancier verwerkt gegevens onder contract en hun eigen privacyvoorwaarden.",
           "p2": "Wij verkopen geen persoonsgegevens. Wij delen gegevens alleen waar nodig om de dienst te leveren, aan de wet te voldoen of fraude te voorkomen."
         },
         "transfers": {
@@ -58,7 +58,7 @@
           "consent": "Toestemming:",
           "consentDesc": "optionele cookies op de website, marketingopt-ins en uitdrukkelijke toestemming voor gezondheidsgegevens in studiottoestemmingsformulieren.",
           "contract": "Contract:",
-          "contractDesc": "levering van de Velbok-dienst, studio-abonnementen, boekingen, aanbetalingen en facturen.",
+          "contractDesc": "levering van de Velbok-dienst, studio-abonnementen, boekingen, aanbetalingen, facturen en AI-stenciltools die op uw abonnement zijn ingeschakeld.",
           "legal": "Wettelijke verplichting:",
           "legalDesc": "belasting, boekhouding en rechtmatige verzoeken van autoriteiten.",
           "legitimate": "Gerechtvaardigde belangen:",
@@ -68,7 +68,7 @@
         },
         "howUse": {
           "title": "Hoe en waarom wij gegevens gebruiken",
-          "p1": "Wij gebruiken persoonsgegevens om Velbok te exploiteren, gebruikers te authenticeren, studio-abonnementen en klantbetalingen te verwerken, meldingen te leveren, studio's te ondersteunen, betrouwbaarheid te verbeteren en aan wettelijke verplichtingen te voldoen.",
+          "p1": "Wij gebruiken persoonsgegevens om Velbok te exploiteren, gebruikers te authenticeren, studio-abonnementen en klantbetalingen te verwerken, meldingen en AI-functies die op uw abonnement zijn ingeschakeld te leveren, studio's te ondersteunen, betrouwbaarheid te verbeteren en aan wettelijke verplichtingen te voldoen.",
           "p2": "{{shopLegalName}} verkoopt geen persoonsgegevens aan derden voor hun eigen marketing."
         },
         "cookies": {
@@ -100,12 +100,18 @@
         "updates": {
           "title": "Updates van de verklaring",
           "p1": "Wij kunnen deze verklaring periodiek bijwerken. Materiële wijzigingen worden gepubliceerd op velbok.com/privacy met een herziene datum."
+        },
+        "ai": {
+          "title": "AI-functies en verwerking door externe AI-aanbieders",
+          "p1": "Velbok biedt optionele AI-gestuurde tools, waaronder het genereren van tatoeage-stencils. Wanneer u kiest voor AI-stencilgeneratie, sturen wij de referentieafbeelding die u uploadt en uw gekozen stijlvoorkeur naar Netlify, dat het verzoek via Netlify AI Gateway doorstuurt naar het Gemini-beeldmodel van Google. Verwerking is gekoppeld aan uw ingelogde account, onderworpen aan gebruikslimieten per account, en wordt alleen gebruikt om het door u gevraagde stencil te genereren.",
+          "p2": "Door AI gegenereerde stencilvoorbeelden worden maximaal 24 uur in onze bestandsopslag bewaard en daarna automatisch verwijderd. Wij gebruiken uw referentieafbeeldingen of AI-uitvoer niet om onze eigen modellen te trainen en verkopen deze inhoud niet aan derden. De voorwaarden en privacybeleid van Google en Netlify zijn van toepassing op hun verwerking. Upload geen afbeeldingen die u niet mag gebruiken, of inhoud met onnodige persoonsgegevens of bijzondere categorieën gegevens.",
+          "p3": "Optionele telefonische Velbok-platformsupport kan gebruikmaken van externe spraak-AI (Vapi). Oproepmetadata en transcripties kunnen worden gelogd voor kwaliteits- en supportdoeleinden, zoals beschreven in onze sectie over dienstverleners."
         }
       }
     },
     "terms": {
       "title": "Gebruiksvoorwaarden",
-      "lastUpdated": "18 juni 2026",
+      "lastUpdated": "16 juli 2026",
       "sections": {
         "scope": {
           "title": "1. Overeenkomst",
@@ -122,7 +128,8 @@
         },
         "acceptableUse": {
           "title": "4. Aanvaardbaar gebruik",
-          "p1": "U mag de Dienst niet misbruiken, beveiligingscontroles verstoren, onwettige inhoud uploaden of de Dienst gebruiken op een manier die in strijd is met toepasselijk recht, inclusief UK GDPR, EU GDPR en consumentenbeschermingsregels."
+          "p1": "U mag de Dienst niet misbruiken, beveiligingscontroles verstoren, onwettige inhoud uploaden of de Dienst gebruiken op een manier die in strijd is met toepasselijk recht, inclusief UK GDPR, EU GDPR en consumentenbeschermingsregels.",
+          "p2": "U mag via AI-functies geen onrechtmatige, inbreukmakende of onnodig gevoelige persoonsgegevens indienen."
         },
         "bookings": {
           "title": "5. Boekings- en betalingsworkflows",
@@ -142,7 +149,8 @@
         "dataProcessing": {
           "title": "8. Gegevensbeschermingsrollen",
           "p1": "Voor studiogegevens en factureringsgegevens is Inkaholics Limited de verwerkingsverantwoordelijke. Voor klantboekingen, toestemmingsformulieren, berichten en CRM-gegevens die u over uw klanten invoert, bent u de verwerkingsverantwoordelijke en treedt Inkaholics Limited op als verwerker volgens uw gedocumenteerde instructies, zoals beschreven in onze Privacyverklaring.",
-          "p2": "U moet een rechtmatige grondslag hebben en, waar vereist, passende privacyverklaringen en toestemmingen voor klantgegevens die u via Velbok verwerkt. U mag geen onwettige inhoud of bijzondere categorieën gegevens uploaden buiten wat de Dienst is ontworpen om te ondersteunen."
+          "p2": "U moet een rechtmatige grondslag hebben en, waar vereist, passende privacyverklaringen en toestemmingen voor klantgegevens die u via Velbok verwerkt. U mag geen onwettige inhoud of bijzondere categorieën gegevens uploaden buiten wat de Dienst is ontworpen om te ondersteunen.",
+          "p3": "Wanneer u AI-functies gebruikt (zoals stencilgeneratie), geeft u ons de opdracht om geüploade referentieafbeeldingen uitsluitend via externe AI-aanbieders te verwerken om die functie te leveren, zoals beschreven in onze Privacyverklaring. U bent verantwoordelijk voor het hebben van rechten op alle ingediende inhoud en dat inzendingen voldoen aan toepasselijk recht."
         },
         "ip": {
           "title": "9. Intellectueel eigendom",
@@ -155,11 +163,13 @@
         },
         "thirdParty": {
           "title": "11. Diensten van derden",
-          "p1": "De Dienst integreert derden zoals Stripe (betalingen), Supabase (hosting) en e-mailproviders. Hun voorwaarden en privacybeleid zijn van toepassing op hun diensten. Wij zijn niet aansprakelijk voor uitval, fouten of handelingen van derde aanbieders buiten onze redelijke controle."
+          "p1": "De Dienst integreert derden zoals Stripe (betalingen), Supabase (hosting), e-mailproviders, Netlify AI Gateway met Google Gemini (AI-stencilgeneratie) en Vapi (optionele platformspraakondersteuning). Hun voorwaarden en privacybeleid zijn van toepassing op hun diensten. Wij zijn niet aansprakelijk voor uitval, fouten of handelingen van derde aanbieders buiten onze redelijke controle.",
+          "p2": "Externe AI-aanbieders verwerken gegevens alleen om de gevraagde functie te leveren. Wij vereisen dat dergelijke verwerking beperkt blijft tot het leveren van de Dienst en niet wordt gebruikt om modellen te trainen op uw inhoud voor niet-gerelateerde doeleinden van de aanbieder, onder voorbehoud van het beleid van elke aanbieder."
         },
         "disclaimer": {
           "title": "12. Disclaimers",
-          "p1": "De Dienst wordt geleverd \"zoals deze is\" en \"zoals beschikbaar\". Wij garanderen geen ononderbroken of foutloze werking. Velbok is alleen software — wij verlenen geen juridisch, medisch, fiscaal of professioneel advies, en de Dienst garandeert niet uw naleving van regelgeving."
+          "p1": "De Dienst wordt geleverd \"zoals deze is\" en \"zoals beschikbaar\". Wij garanderen geen ononderbroken of foutloze werking. Velbok is alleen software — wij verlenen geen juridisch, medisch, fiscaal of professioneel advies, en de Dienst garandeert niet uw naleving van regelgeving.",
+          "p2": "Door AI gegenereerde uitvoer (zoals stencils) wordt alleen geboden als ontwerpondersteuning. Uitvoer kan onvolmaakt zijn; u bent verantwoordelijk voor het controleren ervan vóór gebruik bij klanten."
         },
         "indemnity": {
           "title": "13. Vrijwaring",
