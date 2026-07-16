@@ -1,4 +1,3 @@
-import AppLayout from "@/components/AppLayout";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
 import ContactHub from "@/components/inbox/ContactHub";
 import StaffTicketsPanel from "@/components/tickets/StaffTicketsPanel";
@@ -14,7 +13,6 @@ const InboxPage = () => {
   const openSmsConnect = searchParams.get("connect") === "sms";
 
   return (
-    <AppLayout>
       <SubscriptionGate>
         <div className="p-4 md:p-6 space-y-6">
           <div>
@@ -28,7 +26,6 @@ const InboxPage = () => {
           <ContactHub />
         </div>
       </SubscriptionGate>
-    </AppLayout>
   );
 };
 

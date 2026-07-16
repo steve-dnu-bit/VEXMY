@@ -2,7 +2,6 @@ import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { STAFF_FEATURES, CUSTOMER_FEATURES } from "@/hooks/usePermissions";
-import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -129,7 +128,6 @@ class AdminPageErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <AppLayout>
           <div className="flex flex-col items-center justify-center h-[60vh] gap-3 p-6 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />
             <p className="font-medium">{i18n.t("errors.adminPageFailed")}</p>
@@ -138,7 +136,6 @@ class AdminPageErrorBoundary extends React.Component<
               {i18n.t("routeError.refresh")}
             </Button>
           </div>
-        </AppLayout>
       );
     }
     return this.props.children;
@@ -433,17 +430,14 @@ const AdminPage = () => {
   };
   if (loading) {
     return (
-      <AppLayout>
         <div className="flex items-center justify-center h-[60vh]">
           <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
         </div>
-      </AppLayout>
     );
   }
 
   if (loadError) {
     return (
-      <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3 p-6 text-center">
           <AlertCircle className="h-10 w-10 text-destructive" />
           <p className="font-medium">{i18n.t("errors.adminDataFailed")}</p>
@@ -452,23 +446,19 @@ const AdminPage = () => {
             {t("routeError.refresh")}
           </Button>
         </div>
-      </AppLayout>
     );
   }
 
   if (!isAdmin) {
     return (
-      <AppLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
           <AlertCircle className="h-10 w-10 text-muted-foreground" />
           <p className="text-muted-foreground">{t("admin.accessRequired")}</p>
         </div>
-      </AppLayout>
     );
   }
 
   return (
-    <AppLayout>
       <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto overflow-x-hidden pb-24">
         <div>
           <h1 className="font-display text-2xl font-bold flex items-center gap-2">
@@ -852,7 +842,6 @@ const AdminPage = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
   );
 };
 

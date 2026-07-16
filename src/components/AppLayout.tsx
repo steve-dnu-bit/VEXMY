@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,7 +112,7 @@ function applyPortalTheme(color: string | null, imageUrl: string | null) {
   }
 }
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
+const AppLayout = ({ children }: { children?: ReactNode }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
@@ -343,9 +343,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         />
       )}
 
-      {/* Main content */}
+      {/* Main content — Outlet when used as a persistent route shell */}
       <main className="flex-1 overflow-y-auto header-offset md:pt-0">
-        {children}
+        {children ?? <Outlet />}
       </main>
     </div>
   );

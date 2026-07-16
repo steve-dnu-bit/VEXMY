@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -272,7 +271,6 @@ const DepositsPage = () => {
     .reduce((sum, b) => sum + (b.deposit_amount || defaultDeposit), 0);
 
   return (
-    <AppLayout>
       <SubscriptionGate>
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -490,7 +488,6 @@ const DepositsPage = () => {
         <StripeConnectCard compact returnPath="/deposits" refreshPath="/deposits" />
       </div>
       </SubscriptionGate>
-    </AppLayout>
   );
 };
 

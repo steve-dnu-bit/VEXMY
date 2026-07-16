@@ -18,6 +18,7 @@ import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
 import { isNativeApp } from "@/lib/platform";
+import AppLayout from "./components/AppLayout";
 import MobileAppRoutes from "./MobileAppRoutes";
 
 const CustomerPortalShell = () => (
@@ -97,6 +98,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+/** Persistent staff chrome — stays mounted across schedule/inbox/admin/etc. */
+const ProtectedAppShell = () => (
+  <ProtectedRoute>
+    <AppLayout />
+  </ProtectedRoute>
+);
+
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, mfaVerificationRequired } = useAuth();
   const location = useLocation();
@@ -159,22 +167,24 @@ const App = () => (
                 <Route path="/auth/mobile-oauth-done" element={<Navigate to="/auth" replace />} />
                 <Route path="/embed/customer-login" element={<CustomerEmbedLoginPage />} />
                 <Route path="/deposit-checkout" element={<ProtectedRoute><LegacyDepositCheckoutRedirect /></ProtectedRoute>} />
-                <Route path="/schedule" element={<ProtectedRoute><StaffRoute><SchedulePage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/inbox" element={<ProtectedRoute><StaffRoute><InboxPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/stencil" element={<ProtectedRoute><StaffRoute><StencilPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/clients" element={<ProtectedRoute><StaffRoute><ClientsPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/services" element={<ProtectedRoute><StaffRoute><ServicesPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/deposits" element={<ProtectedRoute><StaffRoute><DepositsPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/billing" element={<ProtectedRoute><StaffRoute><BillingPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/checkout" element={<ProtectedRoute><StaffRoute><PosCheckoutPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/stock" element={<ProtectedRoute><StaffRoute><StockPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><StaffRoute><AdminPage /></StaffRoute></ProtectedRoute>} />
-                <Route path="/platform" element={<ProtectedRoute><PlatformAdminRoute><PlatformAdminPage /></PlatformAdminRoute></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-                <Route path="/artist-profile-settings" element={<ProtectedRoute><ArtistProfileSettingsPage /></ProtectedRoute>} />
+                <Route element={<ProtectedAppShell />}>
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/artist-profile-settings" element={<ArtistProfileSettingsPage />} />
+                  <Route path="/schedule" element={<StaffRoute><SchedulePage /></StaffRoute>} />
+                  <Route path="/inbox" element={<StaffRoute><InboxPage /></StaffRoute>} />
+                  <Route path="/stencil" element={<StaffRoute><StencilPage /></StaffRoute>} />
+                  <Route path="/clients" element={<StaffRoute><ClientsPage /></StaffRoute>} />
+                  <Route path="/services" element={<StaffRoute><ServicesPage /></StaffRoute>} />
+                  <Route path="/deposits" element={<StaffRoute><DepositsPage /></StaffRoute>} />
+                  <Route path="/billing" element={<StaffRoute><BillingPage /></StaffRoute>} />
+                  <Route path="/checkout" element={<StaffRoute><PosCheckoutPage /></StaffRoute>} />
+                  <Route path="/stock" element={<StaffRoute><StockPage /></StaffRoute>} />
+                  <Route path="/admin" element={<StaffRoute><AdminPage /></StaffRoute>} />
+                  <Route path="/dashboard" element={<StaffRoute><DashboardPage /></StaffRoute>} />
+                  <Route path="/platform" element={<PlatformAdminRoute><PlatformAdminPage /></PlatformAdminRoute>} />
+                </Route>
                 <Route path="/shop-setup" element={<ProtectedRoute><ShopSetupWizardPage /></ProtectedRoute>} />
                 <Route path="/customer-profile-setup" element={<ProtectedRoute><CustomerProfileSetupPage /></ProtectedRoute>} />
-                <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
                 )}
