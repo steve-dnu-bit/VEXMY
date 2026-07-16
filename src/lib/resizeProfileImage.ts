@@ -1,8 +1,10 @@
-/** Target sizes for profile uploads — keeps storage and portal loads fast. */
+/** Target sizes for profile / portal theme uploads — keeps storage and portal loads fast.
+ *  Stencil generator images are handled separately and are not resized here. */
 const AVATAR_PX = 512;
-const PORTAL_BG_MAX_WIDTH = 1920;
-const PORTAL_BG_MAX_HEIGHT = 1080;
-const JPEG_QUALITY = 0.85;
+const PORTAL_BG_MAX_WIDTH = 1280;
+const PORTAL_BG_MAX_HEIGHT = 720;
+const AVATAR_JPEG_QUALITY = 0.85;
+const PORTAL_BG_JPEG_QUALITY = 0.7;
 
 export type ProfileImageKind = "avatar" | "portalBackground";
 
@@ -22,7 +24,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function canvasToJpegFile(canvas: HTMLCanvasElement, fileName: string): Promise<File> {
+function canvasToJpegFile(canvas: HTMLCanvasElement, fileName: string, quality: number): Promise<File> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -33,7 +35,7 @@ function canvasToJpegFile(canvas: HTMLCanvasElement, fileName: string): Promise<
         resolve(new File([blob], fileName, { type: "image/jpeg" }));
       },
       "image/jpeg",
-      JPEG_QUALITY,
+      quality,
     );
   });
 }
@@ -55,7 +57,9 @@ function portalBackgroundDimensions(img: HTMLImageElement): { width: number; hei
 
 /**
  * Resize and re-encode artist/staff profile images before upload.
- * Avatars: square center crop at 512×512. Backgrounds: fit within 1920×1080.
+ * Avatars: square center crop at 512×512.
+ * Portal backgrounds: fit within 1280×720 at stronger JPEG compression.
+ * Does not affect stencil generator uploads.
  */
 export async function resizeProfileImageForUpload(file: File, kind: ProfileImageKind): Promise<File> {
   if (!file.type.startsWith("image/")) {
@@ -67,6 +71,7 @@ export async function resizeProfileImageForUpload(file: File, kind: ProfileImage
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not process image");
 
+  let quality = AVATAR_JPEG_QUALITY;
   if (kind === "avatar") {
     canvas.width = AVATAR_PX;
     canvas.height = AVATAR_PX;
@@ -76,8 +81,9 @@ export async function resizeProfileImageForUpload(file: File, kind: ProfileImage
     canvas.width = width;
     canvas.height = height;
     ctx.drawImage(img, 0, 0, width, height);
+    quality = PORTAL_BG_JPEG_QUALITY;
   }
 
   const stem = file.name.replace(/\.[^.]+$/, "").trim() || "image";
-  return canvasToJpegFile(canvas, `${stem}.jpg`);
+  return canvasToJpegFile(canvas, `${stem}.jpg`, quality);
 }

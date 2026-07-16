@@ -26,11 +26,13 @@ Operator: **Inkaholics Limited** (UK) · Website: **https://velbok.com** · Pack
 - Name, email, phone, address, user IDs
 - **Health info** (consent form medical questions)
 - Financial info (invoices/deposits; cards via Stripe)
-- Photos (avatars, chat, signatures)
+- Photos (avatars, chat, signatures, **AI stencil reference images**)
 - **Precise location** (Android — Stripe Terminal / Tap to Pay)
 - App activity (bookings, cookie consent audit)
 
-Shared with: **Stripe**, **Supabase**, **Resend**, **Twilio** (optional per studio).
+Shared with: **Stripe**, **Supabase**, **Resend**, **Twilio** (optional per studio), **Netlify / Google Gemini** (AI stencil generation — declare third-party photo processing), **Vapi** (optional platform voice support).
+
+Privacy / Terms version for checkout acceptance: **2026-07-16** (AI disclosure).
 
 ## Target audience (Play Console)
 

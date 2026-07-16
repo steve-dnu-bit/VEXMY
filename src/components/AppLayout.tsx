@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Calendar, MessageSquare, Image, LayoutDashboard, LogOut, Menu, X, Briefcase, PoundSterling, Building2, Package, Shield, Settings, FileSignature, CreditCard } from "lucide-react";
@@ -140,42 +140,54 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     );
   });
 
-  useLayoutEffect(() => {
-    if (!user?.id) return;
-    const cached = readCachedPortalTheme(user.id);
-    if (!cached) return;
-    setPortalBgColor(cached.color);
-    setPortalBgImageUrl(null);
-    applyPortalTheme(cached.color, null);
-    void resolveUploadUrl(cached.imageRef).then((image) => {
-      setPortalBgImageUrl(image);
-      applyPortalTheme(cached.color, image);
-    });
-  }, [user?.id]);
-
   useEffect(() => {
+    let cancelled = false;
+
+    const applyTheme = (color: string | null, image: string | null) => {
+      if (cancelled) return;
+      setPortalBgColor(color);
+      setPortalBgImageUrl(image);
+      applyPortalTheme(color, image);
+    };
+
     const fetchAndApplyTheme = async () => {
       if (!user) {
-        setPortalBgColor(null);
-        setPortalBgImageUrl(null);
+        applyTheme(null, null);
         clearPortalTheme();
         return;
       }
       const theme = await resolveStaffPortalTheme(user.id);
-      const color = theme.color;
-      const image = theme.image;
-      setPortalBgColor(color);
-      setPortalBgImageUrl(image);
-      applyPortalTheme(color, image);
-      writeCachedPortalTheme(user.id, { color, imageRef: theme.imageRef });
+      if (cancelled) return;
+      applyTheme(theme.color, theme.image);
+      writeCachedPortalTheme(user.id, { color: theme.color, imageRef: theme.imageRef });
     };
 
+    if (!user?.id) {
+      applyTheme(null, null);
+      clearPortalTheme();
+      return;
+    }
+
+    // Instant colour from cache; keep current image until signed URL / server theme arrives.
+    const cached = readCachedPortalTheme(user.id);
+    if (cached) {
+      setPortalBgColor(cached.color);
+      if (cached.color) document.body.style.backgroundColor = cached.color;
+      void resolveUploadUrl(cached.imageRef).then((image) => {
+        if (cancelled) return;
+        setPortalBgImageUrl(image);
+        applyPortalTheme(cached.color, image);
+      });
+    }
+
+    // Load once per signed-in user (and when theme settings change) — not on every route.
     void fetchAndApplyTheme();
     window.addEventListener(PORTAL_THEME_UPDATED_EVENT, fetchAndApplyTheme);
     return () => {
+      cancelled = true;
       window.removeEventListener(PORTAL_THEME_UPDATED_EVENT, fetchAndApplyTheme);
     };
-  }, [user?.id, location.pathname]);
+  }, [user?.id]);
 
   const shellStyle = useMemo(() => {
     const preset = getThemePresetByBgColor(portalBgColor);
