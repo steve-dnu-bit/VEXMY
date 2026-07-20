@@ -106,7 +106,16 @@ serve(async (req) => {
       if (aiResult.status === 503) {
         return jsonResponse({ error: aiResult.detail }, 503);
       }
-      return jsonResponse({ error: "The AI service returned an error. Please try again." }, 502);
+      if (aiResult.code === "STENCIL_CONTENT_BLOCKED" || aiResult.status === 422) {
+        return jsonResponse(
+          { error: aiResult.detail, code: aiResult.code ?? "STENCIL_CONTENT_BLOCKED" },
+          422,
+        );
+      }
+      return jsonResponse(
+        { error: aiResult.detail || "The AI service returned an error. Please try again." },
+        502,
+      );
     }
 
     let responseUrl = aiResult.stencilUrl;

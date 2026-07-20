@@ -178,6 +178,36 @@ function extractStencil(data: any): string | null {
   return null;
 }
 
+const STENCIL_CONTENT_BLOCKED_CODE = "STENCIL_CONTENT_BLOCKED";
+const STENCIL_CONTENT_BLOCKED_MESSAGE =
+  "This photo can’t be turned into a stencil because it looks copyrighted or protected (for example a branded character, logo, celebrity likeness, or published artwork). Try a photo you own or an original drawing instead.";
+
+function explainStencilAiBlock(data: unknown, rawDetail = ""): string | null {
+  const blob = `${typeof rawDetail === "string" ? rawDetail : ""} ${
+    typeof data === "string" ? data : JSON.stringify(data ?? {})
+  }`.toLowerCase();
+
+  const promptBlock = (data as { promptFeedback?: { blockReason?: string } } | null)?.promptFeedback
+    ?.blockReason;
+  const finishReason = (data as { candidates?: { finishReason?: string }[] } | null)?.candidates?.[0]
+    ?.finishReason;
+  const reasons = [promptBlock, finishReason].filter(Boolean).join(" ").toUpperCase();
+
+  const blockedReason =
+    /IMAGE_SAFETY|PROHIBITED_CONTENT|BLOCKLIST|SAFETY|RECITATION|COPYRIGHT/.test(reasons) ||
+    /image_safety|prohibited_content|blocklist|recitation|copyright|protected.?content|celebrity|trademark|branded/.test(
+      blob,
+    );
+
+  if (blockedReason) return STENCIL_CONTENT_BLOCKED_MESSAGE;
+
+  if (/NO_IMAGE|OTHER/.test(reasons) && !extractStencil(data)) {
+    return STENCIL_CONTENT_BLOCKED_MESSAGE;
+  }
+
+  return null;
+}
+
 /** Verify the caller's Supabase session and return their user id (or null). */
 async function getUserId(req: Request): Promise<string | null> {
   const header = req.headers.get("authorization") || "";
@@ -389,6 +419,10 @@ export default async (req: Request): Promise<Response> => {
     }
     const detail = await aiRes.text().catch(() => "");
     console.error("AI Gateway error:", aiRes.status, detail.slice(0, 500));
+    const blocked = explainStencilAiBlock(null, detail);
+    if (blocked) {
+      return json({ error: blocked, code: STENCIL_CONTENT_BLOCKED_CODE }, 422, req);
+    }
     return json({ error: "The AI service returned an error. Please try again." }, 502, req);
   }
 
@@ -397,6 +431,10 @@ export default async (req: Request): Promise<Response> => {
   if (!stencilUrl) {
     await refund();
     console.error("No image in AI response:", JSON.stringify(data).slice(0, 500));
+    const blocked = explainStencilAiBlock(data);
+    if (blocked) {
+      return json({ error: blocked, code: STENCIL_CONTENT_BLOCKED_CODE }, 422, req);
+    }
     return json(
       { error: "No stencil image was generated. Try a clearer reference image." },
       502,

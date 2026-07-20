@@ -100,6 +100,43 @@ export function extractGeminiStencil(data: unknown): string | null {
   return null;
 }
 
+/** Stable code for clients / i18n when Gemini refuses the reference image. */
+export const STENCIL_CONTENT_BLOCKED_CODE = "STENCIL_CONTENT_BLOCKED";
+
+export const STENCIL_CONTENT_BLOCKED_MESSAGE =
+  "This photo can’t be turned into a stencil because it looks copyrighted or protected (for example a branded character, logo, celebrity likeness, or published artwork). Try a photo you own or an original drawing instead.";
+
+/**
+ * Detect Gemini / gateway refusals for copyright, safety, or prohibited image content.
+ * Returns a user-facing message when the model blocked generation instead of returning an image.
+ */
+export function explainStencilAiBlock(data: unknown, rawDetail = ""): string | null {
+  const blob = `${typeof rawDetail === "string" ? rawDetail : ""} ${
+    typeof data === "string" ? data : JSON.stringify(data ?? {})
+  }`.toLowerCase();
+
+  const promptBlock = (data as { promptFeedback?: { blockReason?: string } } | null)?.promptFeedback
+    ?.blockReason;
+  const finishReason = (data as { candidates?: { finishReason?: string }[] } | null)?.candidates?.[0]
+    ?.finishReason;
+  const reasons = [promptBlock, finishReason].filter(Boolean).join(" ").toUpperCase();
+
+  const blockedReason =
+    /IMAGE_SAFETY|PROHIBITED_CONTENT|BLOCKLIST|SAFETY|RECITATION|COPYRIGHT/.test(reasons) ||
+    /image_safety|prohibited_content|blocklist|recitation|copyright|protected.?content|celebrity|trademark|branded/.test(
+      blob,
+    );
+
+  if (blockedReason) return STENCIL_CONTENT_BLOCKED_MESSAGE;
+
+  // Successful HTTP but no image often means a soft safety refuse with NO_IMAGE / OTHER.
+  if (/NO_IMAGE|OTHER/.test(reasons) && !extractGeminiStencil(data)) {
+    return STENCIL_CONTENT_BLOCKED_MESSAGE;
+  }
+
+  return null;
+}
+
 export function extractLovableStencil(data: unknown): string | null {
   const message = (data as { choices?: { message?: unknown }[] })?.choices?.[0]?.message;
   if (!message || typeof message !== "object") return null;
@@ -149,7 +186,7 @@ export function geminiConfig(): { apiKey: string; baseUrl: string } | null {
 export async function generateStencilWithGemini(
   prompt: string,
   parsed: { mimeType: string; base64: string },
-): Promise<{ ok: true; stencilUrl: string } | { ok: false; status: number; detail: string }> {
+): Promise<{ ok: true; stencilUrl: string } | { ok: false; status: number; detail: string; code?: string }> {
   const config = geminiConfig();
   if (!config) {
     return { ok: false, status: 503, detail: "AI image generation is not configured." };
@@ -181,6 +218,10 @@ export async function generateStencilWithGemini(
   if (!aiRes.ok) {
     const detail = await aiRes.text().catch(() => "");
     console.error("Gemini error:", aiRes.status, detail.slice(0, 500));
+    const blocked = explainStencilAiBlock(null, detail);
+    if (blocked) {
+      return { ok: false, status: 422, detail: blocked, code: STENCIL_CONTENT_BLOCKED_CODE };
+    }
     return { ok: false, status: aiRes.status, detail };
   }
 
@@ -188,6 +229,10 @@ export async function generateStencilWithGemini(
   const stencilUrl = data ? extractGeminiStencil(data) : null;
   if (!stencilUrl) {
     console.error("No image in Gemini response:", JSON.stringify(data).slice(0, 500));
+    const blocked = explainStencilAiBlock(data);
+    if (blocked) {
+      return { ok: false, status: 422, detail: blocked, code: STENCIL_CONTENT_BLOCKED_CODE };
+    }
     return { ok: false, status: 502, detail: "No stencil image was generated." };
   }
   return { ok: true, stencilUrl };
@@ -196,7 +241,7 @@ export async function generateStencilWithGemini(
 export async function generateStencilWithLovable(
   prompt: string,
   imageDataUrl: string,
-): Promise<{ ok: true; stencilUrl: string } | { ok: false; status: number; detail: string }> {
+): Promise<{ ok: true; stencilUrl: string } | { ok: false; status: number; detail: string; code?: string }> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) {
     return { ok: false, status: 503, detail: "AI image generation is not configured." };
@@ -231,6 +276,10 @@ export async function generateStencilWithLovable(
   if (!aiRes.ok) {
     const detail = await aiRes.text().catch(() => "");
     console.error("Lovable AI error:", aiRes.status, detail.slice(0, 500));
+    const blocked = explainStencilAiBlock(null, detail);
+    if (blocked) {
+      return { ok: false, status: 422, detail: blocked, code: STENCIL_CONTENT_BLOCKED_CODE };
+    }
     return { ok: false, status: aiRes.status, detail };
   }
 
@@ -241,12 +290,20 @@ export async function generateStencilWithLovable(
       ? (data as { error: string }).error
       : (data as { error: { message?: string } }).error?.message);
   if (embeddedError) {
+    const blocked = explainStencilAiBlock(data, String(embeddedError));
+    if (blocked) {
+      return { ok: false, status: 422, detail: blocked, code: STENCIL_CONTENT_BLOCKED_CODE };
+    }
     return { ok: false, status: 502, detail: String(embeddedError) };
   }
 
   const stencilUrl = data ? extractLovableStencil(data) : null;
   if (!stencilUrl) {
     console.error("No image in Lovable response:", JSON.stringify(data).slice(0, 500));
+    const blocked = explainStencilAiBlock(data);
+    if (blocked) {
+      return { ok: false, status: 422, detail: blocked, code: STENCIL_CONTENT_BLOCKED_CODE };
+    }
     return { ok: false, status: 502, detail: "No stencil image was generated." };
   }
   return { ok: true, stencilUrl };

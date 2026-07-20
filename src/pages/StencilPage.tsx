@@ -6,7 +6,7 @@ import { getStencilMaxForPlan } from "@/lib/pricingPlans";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { StencilCompare } from "@/components/stencil/StencilCompare";
-import { generateAiStencil, STENCIL_STYLES, DEFAULT_STENCIL_STYLE, StencilQuotaError, type StencilStyle } from "@/lib/aiStencil";
+import { generateAiStencil, STENCIL_STYLES, DEFAULT_STENCIL_STYLE, StencilQuotaError, isStencilContentBlockedError, type StencilStyle } from "@/lib/aiStencil";
 import { STENCIL_STYLE_EXAMPLES } from "@/lib/stencilStyleExamples";
 import {
   DEFAULT_STENCIL_SETTINGS,
@@ -209,6 +209,12 @@ const StencilPage = () => {
         toast({
           title: t("stencil.quotaReachedTitle"),
           description: error.message,
+          variant: "destructive",
+        });
+      } else if (isStencilContentBlockedError(error)) {
+        toast({
+          title: t("stencil.contentBlockedTitle"),
+          description: t("stencil.contentBlockedDesc"),
           variant: "destructive",
         });
       } else {

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   parseStencilApiResponse,
   StencilQuotaError,
+  StencilGenerationError,
+  STENCIL_CONTENT_BLOCKED_CODE,
 } from "@/lib/aiStencil";
 
 describe("parseStencilApiResponse", () => {
@@ -27,6 +29,23 @@ describe("parseStencilApiResponse", () => {
         "valoonia",
       ),
     ).toThrow(StencilQuotaError);
+  });
+
+  it("throws content-blocked error on 422 copyright refusal", () => {
+    try {
+      parseStencilApiResponse(
+        422,
+        {
+          error: "This photo can’t be turned into a stencil because it looks copyrighted or protected.",
+          code: STENCIL_CONTENT_BLOCKED_CODE,
+        },
+        "valoonia",
+      );
+      throw new Error("expected StencilGenerationError");
+    } catch (e) {
+      expect(e).toBeInstanceOf(StencilGenerationError);
+      expect((e as StencilGenerationError).code).toBe(STENCIL_CONTENT_BLOCKED_CODE);
+    }
   });
 
   it("accepts a signed HTTPS stencil URL", () => {

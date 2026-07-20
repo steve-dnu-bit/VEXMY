@@ -1879,6 +1879,8 @@
     "generatedDesc": "Drag the slider to compare. Saved for 24 hours, then automatically deleted.",
     "saveFailedDesc": "Stencil rendered, but saving to your account failed:",
     "generationFailedTitle": "Generation failed",
+    "contentBlockedTitle": "This image can’t be used",
+    "contentBlockedDesc": "The AI blocked this photo because it looks copyrighted or protected — for example a branded character, logo, celebrity likeness, or published artwork. Upload a photo you own or an original drawing instead.",
     "failedToReadImage": "Could not read the selected photo. Try another image or take a new photo.",
     "genericFailure": "Something went wrong",
     "downloadStartedTitle": "Download started",

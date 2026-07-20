@@ -42,6 +42,31 @@ export class StencilQuotaError extends Error {
   }
 }
 
+/** Typed generation failure so the UI can show specific copy (e.g. copyright blocks). */
+export class StencilGenerationError extends Error {
+  code?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "StencilGenerationError";
+    this.code = code;
+  }
+}
+
+export const STENCIL_CONTENT_BLOCKED_CODE = "STENCIL_CONTENT_BLOCKED";
+
+export function isStencilContentBlockedError(error: unknown): boolean {
+  if (error instanceof StencilGenerationError && error.code === STENCIL_CONTENT_BLOCKED_CODE) {
+    return true;
+  }
+  if (!(error instanceof Error)) return false;
+  return (
+    error.message.includes(STENCIL_CONTENT_BLOCKED_CODE) ||
+    /copyrighted or protected|branded character|published artwork|IMAGE_SAFETY|PROHIBITED_CONTENT/i.test(
+      error.message,
+    )
+  );
+}
+
 export type AiStencilResult = {
   stencilUrl: string;
   style: string;
@@ -53,6 +78,7 @@ type StencilApiPayload = {
   style?: string;
   quota?: QuotaInfo | null;
   error?: string;
+  code?: string;
 };
 
 type StencilRequestBody = {
@@ -90,7 +116,17 @@ export function parseStencilApiResponse(
     throw new StencilQuotaError(payload.error || "Daily stencil limit reached.", payload.quota);
   }
   if (status < 200 || status >= 300) {
-    throw new Error(payload.error || `Generation failed (${status})`);
+    const message = payload.error || `Generation failed (${status})`;
+    if (
+      status === 422 ||
+      payload.code === STENCIL_CONTENT_BLOCKED_CODE ||
+      /copyrighted or protected|branded character|published artwork|IMAGE_SAFETY|PROHIBITED_CONTENT/i.test(
+        message,
+      )
+    ) {
+      throw new StencilGenerationError(message, payload.code || STENCIL_CONTENT_BLOCKED_CODE);
+    }
+    throw new StencilGenerationError(message, payload.code);
   }
   if (!payload.stencilUrl) {
     throw new Error("No stencil image was returned.");

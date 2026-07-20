@@ -32,11 +32,11 @@ export function buildInstagramDmUrl(handle: string): string | null {
 export function buildMailtoUrl(email: string, subject?: string, body?: string): string | null {
   const address = email.trim();
   if (!address) return null;
-  const params = new URLSearchParams();
-  if (subject?.trim()) params.set("subject", subject.trim());
-  if (body?.trim()) params.set("body", body.trim());
-  const query = params.toString();
-  return query ? `mailto:${address}?${query}` : `mailto:${address}`;
+  // Prefer encodeURIComponent over URLSearchParams — mail apps expect %20, not +.
+  const parts: string[] = [];
+  if (subject?.trim()) parts.push(`subject=${encodeURIComponent(subject.trim())}`);
+  if (body?.trim()) parts.push(`body=${encodeURIComponent(body.trim())}`);
+  return parts.length ? `mailto:${address}?${parts.join("&")}` : `mailto:${address}`;
 }
 
 export function buildSmsUrl(phone: string, body?: string): string | null {
