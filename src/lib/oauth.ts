@@ -5,6 +5,7 @@ import {
   AUTH_SITE_ORIGIN,
   GOOGLE_SIGN_IN_ENABLED,
   NATIVE_OAUTH_HTTPS_CALLBACK_PATH,
+  NATIVE_OAUTH_REDIRECT_URL,
 } from "@/lib/authConfig";
 import { stashAuthIntent, type AuthIntent } from "@/lib/authIntent";
 import { completeStashedAuthProvisioning } from "@/lib/authProvisioning";
@@ -25,12 +26,17 @@ export function getAuthSiteOrigin(): string {
 
 /**
  * Email confirm / recovery / magic-link redirect.
- * Native must use the HTTPS → deep-link passthrough so the PKCE verifier in the app WebView can finish the session.
- * Opening https://velbok.com/auth in Safari causes "PKCE code verifier not found".
+ * Native uses the custom scheme so Mail → Supabase hands tokens/codes straight into the app
+ * (HTTPS Safari alone cannot see the app WebView PKCE verifier / session storage).
  */
 export function emailAuthRedirectUrl(path = "/auth"): string {
   if (isNativeApp()) {
-    return `${getAuthSiteOrigin()}${NATIVE_OAUTH_HTTPS_CALLBACK_PATH}`;
+    // Prefer custom scheme so tokens never stop in Safari. Fallback HTTPS passthrough
+    // remains for OAuth Browser flows and index.html forwarder.
+    if (path.includes("mode=recovery")) {
+      return `${NATIVE_OAUTH_REDIRECT_URL}?mode=recovery`;
+    }
+    return NATIVE_OAUTH_REDIRECT_URL;
   }
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${getAuthSiteOrigin()}${normalized}`;
@@ -163,26 +169,29 @@ export async function startOAuthSignIn(provider: OAuthProvider, intent: AuthInte
 }
 
 function parseCallbackParams(url: string): URLSearchParams {
+  const merged = new URLSearchParams();
   try {
     const parsed = new URL(url.replace(/^com\.velbok\.app:\/\//, "https://com.velbok.app/"));
-    if (parsed.hash.length > 1) {
-      return new URLSearchParams(parsed.hash.slice(1));
-    }
     if (parsed.search.length > 1) {
-      return new URLSearchParams(parsed.search.slice(1));
+      new URLSearchParams(parsed.search.slice(1)).forEach((value, key) => merged.set(key, value));
     }
+    if (parsed.hash.length > 1) {
+      new URLSearchParams(parsed.hash.slice(1)).forEach((value, key) => merged.set(key, value));
+    }
+    if ([...merged.keys()].length > 0) return merged;
   } catch {
     /* fall through */
   }
   const hashIndex = url.indexOf("#");
-  if (hashIndex >= 0) {
-    return new URLSearchParams(url.slice(hashIndex + 1));
-  }
   const queryIndex = url.indexOf("?");
   if (queryIndex >= 0) {
-    return new URLSearchParams(url.slice(queryIndex + 1));
+    const end = hashIndex >= 0 && hashIndex > queryIndex ? hashIndex : url.length;
+    new URLSearchParams(url.slice(queryIndex + 1, end)).forEach((value, key) => merged.set(key, value));
   }
-  return new URLSearchParams();
+  if (hashIndex >= 0) {
+    new URLSearchParams(url.slice(hashIndex + 1)).forEach((value, key) => merged.set(key, value));
+  }
+  return merged;
 }
 
 export function isOAuthCallbackUrl(url: string): boolean {

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { App } from "@capacitor/app";
@@ -12,26 +12,41 @@ const OAuthNativeHandler = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const processedRef = useRef(new Set<string>());
 
   useEffect(() => {
     if (!isNativeApp()) return;
 
     const processUrl = (url: string) => {
       if (!isOAuthCallbackUrl(url)) return;
-      void handleOAuthCallbackUrl(url).catch(() => undefined);
+      // Dedupe — getLaunchUrl + resume used to re-fire the same failed callback and stack error toasts.
+      const key = url.replace(/#.*$/, "");
+      if (processedRef.current.has(key)) return;
+      processedRef.current.add(key);
+      void handleOAuthCallbackUrl(url).catch(() => {
+        window.setTimeout(() => processedRef.current.delete(key), 45_000);
+      });
     };
 
     const onSuccess = () => {
+      processedRef.current.clear();
       navigate("/", { replace: true });
     };
 
     const onError = (event: Event) => {
       const detail = (event as CustomEvent<string>).detail;
       if (/cancelled by user|canceled by user/i.test(detail || "")) return;
+      const friendly = /pkce|code verifier|access.?token/i.test(detail || "")
+        ? t("auth.emailConfirmOpenInApp", {
+            defaultValue:
+              "Open the confirmation link with “Open in Velbok” (or tap Open Velbok app). Don’t finish signup in Safari alone.",
+          })
+        : detail || t("auth.googleSignInFailed");
       toast({
         title: t("common.error"),
-        description: detail || t("auth.googleSignInFailed"),
+        description: friendly,
         variant: "destructive",
+        duration: 8_000,
       });
     };
 
@@ -42,10 +57,9 @@ const OAuthNativeHandler = () => {
       processUrl(event.url);
     });
 
-    const resume = App.addListener("resume", () => {
-      void App.getLaunchUrl().then((launch) => {
-        if (launch?.url) processUrl(launch.url);
-      });
+    // Only process launch URL once on cold start — not on every resume (that re-showed sticky errors).
+    void App.getLaunchUrl().then((launch) => {
+      if (launch?.url) processUrl(launch.url);
     });
 
     const browserFinished = Browser.addListener("browserFinished", () => {
@@ -54,15 +68,10 @@ const OAuthNativeHandler = () => {
       });
     });
 
-    void App.getLaunchUrl().then((launch) => {
-      if (launch?.url) processUrl(launch.url);
-    });
-
     return () => {
       window.removeEventListener("velbok:oauth-success", onSuccess);
       window.removeEventListener("velbok:oauth-error", onError);
       void urlOpen.then((h) => h.remove());
-      void resume.then((h) => h.remove());
       void browserFinished.then((h) => h.remove());
     };
   }, [navigate, toast, t]);

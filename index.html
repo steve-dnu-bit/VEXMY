@@ -27,13 +27,18 @@
   </head>
 
   <body>
-    <!-- Mobile OAuth: never exchange PKCE in Chrome — forward to app deep link first. -->
+    <!-- Auth handoff: forward codes/tokens to the native deep-link passthrough (never exchange in Safari alone). -->
     <script>
       (function () {
-        var q = location.search;
-        var h = location.hash;
-        var hasCode = (q && q.indexOf("code=") >= 0) || (h && h.indexOf("code=") >= 0);
-        if (!hasCode) return;
+        var q = location.search || "";
+        var h = location.hash || "";
+        var blob = q + h;
+        var hasAuth =
+          blob.indexOf("code=") >= 0 ||
+          blob.indexOf("access_token=") >= 0 ||
+          blob.indexOf("refresh_token=") >= 0 ||
+          blob.indexOf("token_hash=") >= 0;
+        if (!hasAuth) return;
         if (location.pathname.indexOf("/auth/app-callback") === 0) return;
         location.replace("/auth/app-callback" + q + h);
       })();

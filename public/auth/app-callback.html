@@ -20,7 +20,16 @@
         padding: 24px;
       }
       a {
-        color: #d4af37;
+        color: #0c0c0f;
+        background: #d4af37;
+        text-decoration: none;
+        display: inline-block;
+        padding: 14px 22px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+      #msg {
+        margin-bottom: 16px;
       }
     </style>
   </head>
@@ -28,31 +37,51 @@
     <div>
       <p id="msg">Returning to Velbok…</p>
       <p id="fallback" hidden>
-        <a id="openApp" href="#">Tap here to open the Velbok app</a>
+        <a id="openApp" href="#">Open Velbok app</a>
       </p>
     </div>
     <script>
       (function () {
         var PACKAGE = "com.velbok.app";
         var SCHEME = "com.velbok.app";
-        var search = window.location.search || "";
-        var hash = window.location.hash || "";
         var msg = document.getElementById("msg");
         var fallback = document.getElementById("fallback");
         var openApp = document.getElementById("openApp");
 
-        if (!search && !hash) {
+        function collectParams() {
+          var merged = new URLSearchParams();
+          try {
+            var fromSearch = new URLSearchParams(window.location.search || "");
+            fromSearch.forEach(function (value, key) {
+              merged.set(key, value);
+            });
+          } catch (e) {}
+          try {
+            var hash = (window.location.hash || "").replace(/^#/, "");
+            if (hash) {
+              var fromHash = new URLSearchParams(hash);
+              fromHash.forEach(function (value, key) {
+                merged.set(key, value);
+              });
+            }
+          } catch (e) {}
+          return merged;
+        }
+
+        var params = collectParams();
+        if (![...params.keys()].length) {
           msg.textContent =
             "Sign-in callback is missing parameters. Close this tab and try again in the app.";
           return;
         }
 
-        var customScheme = SCHEME + "://auth/callback" + search + hash;
+        // Put tokens in the query string — iOS often drops URL fragments on custom-scheme handoff.
+        var query = "?" + params.toString();
+        var customScheme = SCHEME + "://auth/callback" + query;
         var isAndroid = /Android/i.test(navigator.userAgent);
         var intentUrl =
           "intent://auth/callback" +
-          search +
-          hash +
+          query +
           "#Intent;scheme=" +
           SCHEME +
           ";package=" +
@@ -62,19 +91,16 @@
         function showFallback(href) {
           openApp.href = href;
           fallback.hidden = false;
-          msg.textContent = "Return to the Velbok app to finish sign-in.";
+          msg.textContent = "Tap below to finish sign-in in the Velbok app.";
         }
+
+        // Show the button immediately — Mail in-app browsers often block auto custom-scheme opens.
+        showFallback(customScheme);
 
         if (isAndroid) {
           window.location.replace(intentUrl);
-          window.setTimeout(function () {
-            showFallback(customScheme);
-          }, 1200);
         } else {
           window.location.replace(customScheme);
-          window.setTimeout(function () {
-            showFallback(customScheme);
-          }, 2500);
         }
       })();
     </script>
