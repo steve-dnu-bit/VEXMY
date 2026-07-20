@@ -22,7 +22,7 @@ import { authIntentFromSearchParams } from "@/lib/authIntent";
 import { completeStashedAuthProvisioning } from "@/lib/authProvisioning";
 import { handleOAuthCallbackUrl, isOAuthCallbackUrl } from "@/lib/oauth";
 import { isSupabaseAuthLockError } from "@/lib/authErrors";
-import { getAuthSiteOrigin } from "@/lib/oauth";
+import { emailAuthRedirectUrl } from "@/lib/oauth";
 const AuthPage = () => {
   const { t } = useTranslation();
   const { mfaVerificationRequired } = useAuth();
@@ -127,7 +127,7 @@ const AuthPage = () => {
           password,
           options: {
             data: { display_name: displayName },
-            emailRedirectTo: `${getAuthSiteOrigin()}/auth`,
+            emailRedirectTo: emailAuthRedirectUrl("/auth"),
           },
         });
         if (error) throw error;
@@ -181,7 +181,7 @@ const AuthPage = () => {
     setForgotPasswordLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${getAuthSiteOrigin()}/auth?mode=recovery`,
+        redirectTo: emailAuthRedirectUrl("/auth?mode=recovery"),
       });
       if (error) throw error;
       toast({

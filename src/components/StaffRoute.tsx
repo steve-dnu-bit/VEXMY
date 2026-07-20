@@ -37,7 +37,10 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
     let timer: number | undefined;
 
     const finishShopSetupCheck = async () => {
-      const setupRequired = await needsShopSetup(userId);
+      const setupRequired = await Promise.race([
+        needsShopSetup(userId),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 8_000)),
+      ]);
       if (cancelled) return;
       if (setupRequired && location.pathname !== "/shop-setup") {
         setRedirect("shop-setup");
@@ -48,7 +51,16 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
 
     const run = async () => {
       if (staffVerifiedRef.current) {
-        await finishShopSetupCheck();
+        // Always leave "wait" — shop-setup check used to hang with no timeout after force-kill.
+        setRedirect("wait");
+        timer = window.setTimeout(() => {
+          if (!cancelled) setRedirect(null);
+        }, 8_000);
+        try {
+          await finishShopSetupCheck();
+        } finally {
+          if (timer) window.clearTimeout(timer);
+        }
         return;
       }
 
@@ -75,7 +87,10 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
         }
 
         if (isStaff) {
-          const setupRequired = await needsShopSetup(userId);
+          const setupRequired = await Promise.race([
+            needsShopSetup(userId),
+            new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 8_000)),
+          ]);
           if (cancelled) return;
           if (setupRequired && location.pathname !== "/shop-setup") {
             setRedirect("shop-setup");

@@ -15,6 +15,8 @@ import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import OAuthNativeHandler from "./components/auth/OAuthNativeHandler";
 import PushNotificationHandler from "./components/PushNotificationHandler";
 import TapToPayAwarenessHost from "./components/pos/TapToPayAwarenessHost";
+import BiometricUnlockGate from "./components/auth/BiometricUnlockGate";
+import NativeSplashHider from "./components/native/NativeSplashHider";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -123,8 +125,10 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <NativeSplashHider />
             <OAuthNativeHandler />
             <PushNotificationHandler />
+            <BiometricUnlockGate />
             <TapToPayAwarenessHost />
             <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>

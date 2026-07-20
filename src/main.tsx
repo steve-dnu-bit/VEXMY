@@ -51,8 +51,11 @@ async function start() {
         </div>`;
     }
   } finally {
+    // Prefer NativeSplashHider (after auth). Failsafe if React never mounts.
     if (Capacitor.isNativePlatform()) {
-      void SplashScreen.hide();
+      window.setTimeout(() => {
+        void SplashScreen.hide().catch(() => undefined);
+      }, 12_000);
     }
   }
 }

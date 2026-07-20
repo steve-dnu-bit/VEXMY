@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isNativeApp } from "@/lib/platform";
 import { handleOAuthCallbackUrl, isOAuthCallbackUrl } from "@/lib/oauth";
 
-/** Native: complete Supabase OAuth from com.velbok.app://auth/callback deep links. */
+/** Native: complete OAuth / email-confirm / magic-link from com.velbok.app://auth/callback deep links. */
 const OAuthNativeHandler = () => {
   const { toast } = useToast();
   const { t } = useTranslation();

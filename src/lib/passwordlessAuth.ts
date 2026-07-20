@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getAuthSiteOrigin } from "@/lib/oauth";
+import { emailAuthRedirectUrl } from "@/lib/oauth";
 
 /** Normalize user input to E.164 (defaults to UK +44). */
 export function toE164Phone(input: string, defaultCountryCode = "44"): string | null {
@@ -17,7 +17,7 @@ export function toE164Phone(input: string, defaultCountryCode = "44"): string | 
 }
 
 export async function sendEmailMagicLink(email: string, redirectPath = "/auth"): Promise<{ error: Error | null }> {
-  const redirectTo = `${getAuthSiteOrigin()}${redirectPath}`;
+  const redirectTo = emailAuthRedirectUrl(redirectPath);
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),
     options: {

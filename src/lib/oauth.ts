@@ -24,6 +24,19 @@ export function getAuthSiteOrigin(): string {
 }
 
 /**
+ * Email confirm / recovery / magic-link redirect.
+ * Native must use the HTTPS → deep-link passthrough so the PKCE verifier in the app WebView can finish the session.
+ * Opening https://velbok.com/auth in Safari causes "PKCE code verifier not found".
+ */
+export function emailAuthRedirectUrl(path = "/auth"): string {
+  if (isNativeApp()) {
+    return `${getAuthSiteOrigin()}${NATIVE_OAUTH_HTTPS_CALLBACK_PATH}`;
+  }
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${getAuthSiteOrigin()}${normalized}`;
+}
+
+/**
  * Where Supabase OAuth redirects after provider sign-in.
  * Native: HTTPS passthrough on velbok.com → deep link (PKCE verifier stays in the app WebView).
  */
@@ -177,6 +190,7 @@ export function isOAuthCallbackUrl(url: string): boolean {
     url.includes("auth/callback") ||
     url.includes("access_token=") ||
     url.includes("code=") ||
+    url.includes("token_hash=") ||
     url.startsWith("com.velbok.app://")
   );
 }
@@ -213,8 +227,16 @@ export async function establishSessionFromOAuthCallback(url: string): Promise<vo
 
   const params = parseCallbackParams(url);
   const code = params.get("code");
+  const tokenHash = params.get("token_hash");
+  const otpType = params.get("type");
 
-  if (code) {
+  if (tokenHash && otpType) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: otpType as "signup" | "invite" | "magiclink" | "recovery" | "email_change" | "email",
+    });
+    if (error) throw error;
+  } else if (code) {
     await exchangePkceCode(url);
   } else {
     const accessToken = params.get("access_token");

@@ -11,10 +11,11 @@ import {
 } from "@/lib/terminal/tapToPayAwareness";
 import { TapToPayAwarenessSplash } from "@/components/pos/TapToPayAwarenessSplash";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
-import { BiometricUnlockGate } from "@/components/auth/BiometricUnlockGate";
+import { isBiometricSessionUnlocked, isBiometricUnlockEnabled } from "@/lib/biometricUnlock";
 
 /**
  * Staff iOS: one-time Tap to Pay awareness splash + optional Value Proposition push (3.1–3.3 / 6.3).
+ * Never mounts over a locked biometric gate (dark overlay on dark = looks like a dead black screen).
  */
 export function TapToPayAwarenessHost() {
   const { user } = useAuth();
@@ -25,11 +26,17 @@ export function TapToPayAwarenessHost() {
   const organizationId = orgSub?.organizationId ?? null;
   const userId = user?.id ?? null;
 
+  const dismiss = () => {
+    if (organizationId && userId) markTapToPayAwarenessSeen(organizationId, userId);
+    setOpen(false);
+  };
+
   useEffect(() => {
     if (!isNativeApp() || nativePlatform() !== "ios" || isIpadDevice()) return;
     if (!userId || !organizationId || !canManageBilling || !isActive) return;
     if (hasSeenTapToPayAwareness(organizationId, userId)) return;
-    // Avoid interrupting auth / shop setup / checkout mid-flow
+    if (isBiometricUnlockEnabled() && !isBiometricSessionUnlocked()) return;
+
     const path = location.pathname;
     if (
       path.startsWith("/auth") ||
@@ -40,7 +47,7 @@ export function TapToPayAwarenessHost() {
       return;
     }
 
-    const timer = window.setTimeout(() => setOpen(true), 800);
+    const timer = window.setTimeout(() => setOpen(true), 1200);
     return () => window.clearTimeout(timer);
   }, [userId, organizationId, canManageBilling, isActive, location.pathname]);
 
@@ -62,14 +69,14 @@ export function TapToPayAwarenessHost() {
   if (!userId || !organizationId) return null;
 
   return (
-    <>
-      <TapToPayAwarenessSplash
-        open={open}
-        onOpenChange={setOpen}
-        onDismiss={() => markTapToPayAwarenessSeen(organizationId, userId)}
-      />
-      <BiometricUnlockGate />
-    </>
+    <TapToPayAwarenessSplash
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) dismiss();
+        else setOpen(true);
+      }}
+      onDismiss={dismiss}
+    />
   );
 }
 

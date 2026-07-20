@@ -4,12 +4,26 @@ import type { Session, User } from "@supabase/supabase-js";
 import { needsMfaVerification } from "@/lib/mfa";
 import { checkTrustedDeviceBypass } from "@/lib/trustedDevice";
 
-async function trustedDeviceBypassWithTimeout(ms = 4000): Promise<boolean> {
+const SESSION_RESTORE_MS = 8_000;
+const MFA_CHECK_MS = 5_000;
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      checkTrustedDeviceBypass(),
-      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), ms)),
+      promise,
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => resolve(fallback), ms);
+      }),
     ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function trustedDeviceBypassWithTimeout(ms = 4000): Promise<boolean> {
+  try {
+    return await withTimeout(checkTrustedDeviceBypass(), ms, false);
   } catch {
     return false;
   }
@@ -38,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let mfaRequired = false;
       if (nextUser) {
         try {
-          mfaRequired = await needsMfaVerification(session);
+          mfaRequired = await withTimeout(needsMfaVerification(session), MFA_CHECK_MS, false);
           if (mfaRequired) {
             const trusted = await trustedDeviceBypassWithTimeout();
             if (trusted) mfaRequired = false;
@@ -68,17 +82,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       void applySession(session, markLoading);
     });
 
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        void applySession(session, false);
-      })
-      .catch(() => {
-        void applySession(null, false);
-      });
+    // Force-kill cold start: getSession / token refresh can hang via CapacitorHttp.
+    // Never leave the shell on loading forever (looks like a black screen).
+    void (async () => {
+      try {
+        const result = await withTimeout(
+          supabase.auth.getSession(),
+          SESSION_RESTORE_MS,
+          { data: { session: null }, error: null } as Awaited<ReturnType<typeof supabase.auth.getSession>>,
+        );
+        if (cancelled) return;
+        await applySession(result.data.session, false);
+      } catch {
+        if (!cancelled) await applySession(null, false);
+      }
+    })();
+
+    const hardFailsafe = window.setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, SESSION_RESTORE_MS + MFA_CHECK_MS + 1_000);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(hardFailsafe);
       subscription.unsubscribe();
     };
   }, []);
