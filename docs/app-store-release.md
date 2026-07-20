@@ -171,7 +171,13 @@ Requirements (see also `docs/pos-tap-to-pay.md` and `docs/apple-ttpoi/COMPLIANCE
 - “How to Tap” via `TapToPayEducationPlugin` (`ProximityReaderDiscovery`)
 - Publishing entitlement (TestFlight / App Store) still requires Apple’s video + checklist review
 
-Install a **Release** build with a development provisioning profile on a registered iPhone before filming entitlement-review videos.
+Install a **Release** build with a development provisioning profile on a registered iPhone before filming entitlement-review videos. See filming notes in `docs/apple-ttpoi/COMPLIANCE-JOURNEY.md`.
+
+Deploy the awareness/launch helper when ready:
+
+```powershell
+supabase functions deploy ttpoi-awareness-notify --project-ref tkremoxfkgoiuwghtzwd
+```
 
 Internal testers list: `releases/app-versions/ios/testflight-internal-testers.csv`
 
@@ -181,7 +187,8 @@ Internal testers list: `releases/app-versions/ios/testflight-internal-testers.cs
 |-----|---------|
 | `NSBluetoothAlwaysUsageDescription` | WisePad card reader |
 | `NSBluetoothPeripheralUsageDescription` | WisePad card reader |
-| `NSLocationWhenInUseUsageDescription` | Stripe Bluetooth reader discovery |
+| `NSLocationWhenInUseUsageDescription` | Stripe Terminal / Tap to Pay |
+| `NSFaceIDUsageDescription` | Optional Face ID unlock |
 
 ## Encryption export
 

@@ -218,6 +218,9 @@ function IosTapToPayEnvironmentAlert() {
           {t("pos.tapToPayPhoneReadyHint", { version: env.versionName || "?" })}
           {env.deviceModel ? ` · ${env.deviceManufacturer ?? ""} ${env.deviceModel}`.trim() : ""}
         </p>
+        {nativePlatform() === "ios" ? (
+          <p className="text-muted-foreground">{t("pos.awarenessDeviceHint")}</p>
+        ) : null}
       </AlertDescription>
     </Alert>
   );

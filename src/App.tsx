@@ -14,6 +14,7 @@ import PlatformAdminRoute from "./components/PlatformAdminRoute";
 import AuthHomeRedirect from "./components/AuthHomeRedirect";
 import OAuthNativeHandler from "./components/auth/OAuthNativeHandler";
 import PushNotificationHandler from "./components/PushNotificationHandler";
+import TapToPayAwarenessHost from "./components/pos/TapToPayAwarenessHost";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { CustomerShopProvider } from "@/hooks/useCustomerShop";
@@ -124,6 +125,7 @@ const App = () => (
           <BrowserRouter>
             <OAuthNativeHandler />
             <PushNotificationHandler />
+            <TapToPayAwarenessHost />
             <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 {isNativeApp() ? (

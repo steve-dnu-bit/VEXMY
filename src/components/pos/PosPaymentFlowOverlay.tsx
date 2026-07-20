@@ -169,7 +169,13 @@ export function PosPaymentFlowOverlay({
             {amountLabel ? <p className="text-2xl font-bold tabular-nums">{amountLabel}</p> : null}
             {detail ? <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detail}</p> : null}
             {busy && phase === "initializing" ? (
-              <p className="text-sm text-muted-foreground">{t("pos.paymentInitializingHint")}</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">{t("pos.paymentInitializingHint")}</p>
+                <p className="text-xs text-muted-foreground">{t("pos.paymentInitializingProgress")}</p>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-full w-2/3 animate-pulse rounded-full bg-primary/80" />
+                </div>
+              </div>
             ) : null}
             {busy && phase === "processing" ? (
               <p className="text-sm text-muted-foreground">{t("pos.paymentProcessingHint")}</p>

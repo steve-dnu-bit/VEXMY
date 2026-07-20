@@ -82,5 +82,18 @@ export function formatStripeTerminalErrorMessage(raw: string): string {
     return "Tap to Pay on iPhone requires Apple's Tap to Pay entitlement on com.velbok.app. Enable it on the App ID, regenerate a development provisioning profile for your registered test device, then install a new Release build (TestFlight needs the publishing entitlement).";
   }
 
+  // Apple TTPOI 1.4 — PaymentCardReaderError.osVersionNotSupported / Stripe equivalents
+  if (
+    /osVersionNotSupported|os.?version.?not.?supported|SCPErrorOsVersionNotSupported|iOS version.*(not supported|unsupported|too (old|low))/i.test(
+      text,
+    )
+  ) {
+    return "This iPhone needs a newer iOS version for Tap to Pay on iPhone. Open Settings → General → Software Update, install the latest iOS, then reopen Velbok.";
+  }
+
+  if (/iPhone XS|requires iPhone|device.*not supported.*iphone/i.test(text) && /tap to pay|proximity|payment.?acceptance/i.test(text)) {
+    return "Tap to Pay on iPhone requires iPhone XS or later. Use a compatible iPhone, or switch to WisePad (Bluetooth reader) in POS setup.";
+  }
+
   return text;
 }

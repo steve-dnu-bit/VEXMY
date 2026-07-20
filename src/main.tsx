@@ -22,6 +22,12 @@ async function start() {
       } catch (error) {
         console.warn("[velbok] Stripe Terminal bootstrap skipped:", error);
       }
+      try {
+        const { registerTapToPayWarmUpListeners } = await import("@/lib/terminal/warmTapToPay");
+        void registerTapToPayWarmUpListeners();
+      } catch (error) {
+        console.warn("[velbok] Tap to Pay warm-up skipped:", error);
+      }
     }
 
     await preloadStoredLanguage().catch(() => undefined);

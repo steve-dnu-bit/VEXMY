@@ -13,6 +13,10 @@ import { toast } from "sonner";
 import { Building2, Clock, Landmark, LayoutDashboard, MapPin, Palette, CheckCircle2, Users } from "lucide-react";
 import StripeConnectCard from "@/components/subscription/StripeConnectCard";
 import OrgPosSetupChecklist from "@/components/pos/OrgPosSetupChecklist";
+import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
+import { isIpadDevice, isNativeApp, nativePlatform } from "@/lib/platform";
+import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
+import i18n from "@/i18n";
 import {
   completeShopSetup,
   loadShopSettings,
@@ -515,6 +519,23 @@ const ShopSetupWizardPage = () => {
                     <p className="text-xs text-muted-foreground mt-1">{t("setup.stepPosOptionalDesc")}</p>
                   </div>
                   <OrgPosSetupChecklist interactive />
+                  {isNativeApp() && nativePlatform() === "ios" && !isIpadDevice() ? (
+                    <div className="rounded-lg border border-border p-4 space-y-2">
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <TapToPayWaveIcon className="h-4 w-4" />
+                        {t("pos.setupEnableTapToPayTitle")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{t("pos.setupEnableTapToPayDesc")}</p>
+                      <Button
+                        type="button"
+                        variant="gold"
+                        size="sm"
+                        onClick={() => navigate("/checkout?enableTapToPay=1")}
+                      >
+                        {tapToPayOnIphoneLabel(i18n.language)}
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               </>
             ) : null}
@@ -609,6 +630,20 @@ const ShopSetupWizardPage = () => {
                       : "—"}
                 </p>
                 <p><span className="text-muted-foreground">{t("admin.scheduleOpenTime")}:</span> {scheduleHours.openTime} – {scheduleHours.closeTime}</p>
+                {isNativeApp() && nativePlatform() === "ios" && !isIpadDevice() ? (
+                  <div className="rounded-lg border border-gold/40 bg-gold/5 p-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">{t("pos.setupEnableTapToPayReviewHint")}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/checkout?enableTapToPay=1")}
+                    >
+                      <TapToPayWaveIcon className="h-4 w-4 mr-2" />
+                      {t("pos.setupEnableTapToPayCta")}
+                    </Button>
+                  </div>
+                ) : null}
                 <p className="text-xs text-muted-foreground pt-2">{t("setup.reviewHint")}</p>
               </div>
             ) : null}

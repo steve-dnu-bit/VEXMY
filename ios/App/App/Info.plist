@@ -64,6 +64,8 @@
 		<key>TerminalPayment</key>
 		<string>Precise location is required by Stripe to accept in-person card payments securely.</string>
 	</dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Velbok uses Face ID to unlock the app quickly when you return to your studio session.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>

@@ -9,6 +9,7 @@ import { WisePadSetupPanels } from "@/components/pos/WisePadSetupPanels";
 import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
 import { PosPaymentFlowOverlay, type PosPaymentFlowPhase } from "@/components/pos/PosPaymentFlowOverlay";
 import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
+import { TapToPayTryItDialog } from "@/components/pos/TapToPayTryItDialog";
 import BookingClientSearch from "@/components/schedule/BookingClientSearch";
 import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,9 @@ const PosCheckoutPage = () => {
   const prefilledArtistId = searchParams.get("artistId");
   const prefilledClientName = searchParams.get("clientName");
   const prefilledBookingId = searchParams.get("bookingId");
+  const enableTapToPayParam = searchParams.get("enableTapToPay") === "1";
+  const [showTryItAfterEducation, setShowTryItAfterEducation] = useState(false);
+  const enableTapToPayTriggered = useRef(false);
   const [loading, setLoading] = useState(true);
   const [quickItems, setQuickItems] = useState<PosItemTemplate[]>([]);
   const [artists, setArtists] = useState<PosArtistOption[]>([]);
@@ -219,6 +223,32 @@ const PosCheckoutPage = () => {
     document.addEventListener("visibilitychange", refresh);
     return () => document.removeEventListener("visibilitychange", refresh);
   }, [usingTapToPay, tapToPayReady.refresh]);
+
+  useEffect(() => {
+    if (!enableTapToPayParam || loading || !posEnabled || !usingTapToPay) return;
+    if (enableTapToPayTriggered.current) return;
+    if (terminal.status === "connected") return;
+    enableTapToPayTriggered.current = true;
+    void (async () => {
+      try {
+        setPaying(true);
+        const connected = await ensureTapToPayConnected();
+        if (connected) {
+          toast.success(t("pos.tapToPayPhoneReady"));
+          setPaymentFlowPhase("hidden");
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
+        toast.error(msg);
+        setPaymentFlowPhase("declined");
+        setPaymentFlowDetail(msg);
+      } finally {
+        setPaying(false);
+      }
+    })();
+    // ensureTapToPayConnected is stable enough via terminal/canManageBilling closures in this page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableTapToPayParam, loading, posEnabled, usingTapToPay, terminal.status]);
 
   const testStripeServerLink = async () => {
     if (!locationId) {
@@ -788,11 +818,14 @@ function isPaymentOverlayNoise(status: string): boolean {
     }
 
     setPaymentFlowPhase("initializing");
-    setPaymentFlowDetail(null);
+    setPaymentFlowDetail(t("pos.paymentInitializingProgress"));
     await terminal.discoverAndConnect();
     markWisePadFirmwareCompleted();
     setShowWisePadGuide(false);
-    await showTapToPayEducationIfAvailable();
+    const educated = await showTapToPayEducationIfAvailable();
+    if (educated) {
+      setShowTryItAfterEducation(true);
+    }
     return true;
   };
 
@@ -2137,6 +2170,7 @@ function isPaymentOverlayNoise(status: string): boolean {
               : undefined
           }
         />
+        <TapToPayTryItDialog open={showTryItAfterEducation} onOpenChange={setShowTryItAfterEducation} />
       </SubscriptionGate>
     </AppLayout>
   );

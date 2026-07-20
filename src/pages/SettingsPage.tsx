@@ -20,6 +20,8 @@ import { uploadFileToUploads } from "@/lib/uploadStorage";
 import { resizeProfileImageForUpload } from "@/lib/resizeProfileImage";
 import { useResolvedUploadUrl } from "@/hooks/useResolvedUploadUrl";
 import ArtistPosPayoutCard from "@/components/settings/ArtistPosPayoutCard";
+import TapToPaySettingsCard from "@/components/settings/TapToPaySettingsCard";
+import BiometricUnlockSettingsCard from "@/components/settings/BiometricUnlockSettingsCard";
 import AccountDeletionRequestCard from "@/components/settings/AccountDeletionRequestCard";
 
 class SectionErrorBoundary extends React.Component<
@@ -178,6 +180,14 @@ const SettingsPage = () => {
 
           <SectionErrorBoundary title={t("artistStripeConnect.title")}>
             <ArtistPosPayoutCard />
+          </SectionErrorBoundary>
+
+          <SectionErrorBoundary title={t("pos.connectTapToPay")}>
+            <TapToPaySettingsCard />
+          </SectionErrorBoundary>
+
+          <SectionErrorBoundary title={t("settings.biometricTitle")}>
+            <BiometricUnlockSettingsCard />
           </SectionErrorBoundary>
 
           <Card className="bg-card border-border">
