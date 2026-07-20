@@ -5,7 +5,6 @@ import {
   AUTH_SITE_ORIGIN,
   GOOGLE_SIGN_IN_ENABLED,
   NATIVE_OAUTH_HTTPS_CALLBACK_PATH,
-  NATIVE_OAUTH_REDIRECT_URL,
 } from "@/lib/authConfig";
 import { stashAuthIntent, type AuthIntent } from "@/lib/authIntent";
 import { completeStashedAuthProvisioning } from "@/lib/authProvisioning";
@@ -26,17 +25,18 @@ export function getAuthSiteOrigin(): string {
 
 /**
  * Email confirm / recovery / magic-link redirect.
- * Native uses the custom scheme so Mail → Supabase hands tokens/codes straight into the app
- * (HTTPS Safari alone cannot see the app WebView PKCE verifier / session storage).
+ * Native must use HTTPS `/auth/app-callback` (not the custom scheme directly).
+ * iOS strips `#access_token=…` from `com.velbok.app://…` links, which caused
+ * "Sign-in callback did not include session tokens". The HTTPS page copies
+ * hash/query into the custom-scheme query string before opening the app.
  */
 export function emailAuthRedirectUrl(path = "/auth"): string {
   if (isNativeApp()) {
-    // Prefer custom scheme so tokens never stop in Safari. Fallback HTTPS passthrough
-    // remains for OAuth Browser flows and index.html forwarder.
+    const base = `${getAuthSiteOrigin()}${NATIVE_OAUTH_HTTPS_CALLBACK_PATH}`;
     if (path.includes("mode=recovery")) {
-      return `${NATIVE_OAUTH_REDIRECT_URL}?mode=recovery`;
+      return `${base}?mode=recovery`;
     }
-    return NATIVE_OAUTH_REDIRECT_URL;
+    return base;
   }
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${getAuthSiteOrigin()}${normalized}`;
@@ -195,12 +195,13 @@ function parseCallbackParams(url: string): URLSearchParams {
 }
 
 export function isOAuthCallbackUrl(url: string): boolean {
+  // Require real auth payload — bare com.velbok.app://auth/callback (no tokens) must not error.
   return (
-    url.includes("auth/callback") ||
     url.includes("access_token=") ||
+    url.includes("refresh_token=") ||
     url.includes("code=") ||
     url.includes("token_hash=") ||
-    url.startsWith("com.velbok.app://")
+    /[?&#]error=/.test(url)
   );
 }
 
@@ -231,10 +232,15 @@ async function exchangePkceCode(url: string): Promise<void> {
   throw lastError ?? new Error("Could not complete sign-in.");
 }
 
-export async function establishSessionFromOAuthCallback(url: string): Promise<void> {
-  if (!isOAuthCallbackUrl(url)) return;
+export async function establishSessionFromOAuthCallback(url: string): Promise<boolean> {
+  if (!isOAuthCallbackUrl(url)) return false;
 
   const params = parseCallbackParams(url);
+  const oauthError = params.get("error_description") || params.get("error");
+  if (oauthError) {
+    throw new Error(oauthError.replace(/\+/g, " "));
+  }
+
   const code = params.get("code");
   const tokenHash = params.get("token_hash");
   const otpType = params.get("type");
@@ -251,7 +257,9 @@ export async function establishSessionFromOAuthCallback(url: string): Promise<vo
     const accessToken = params.get("access_token");
     const refreshToken = params.get("refresh_token");
     if (!accessToken || !refreshToken) {
-      throw new Error("Sign-in callback did not include session tokens.");
+      // Truncated deep link (iOS dropped the hash) — ignore instead of toasting forever.
+      console.warn("[oauth] callback missing session params:", url.replace(/([?#]).*/, "$1…"));
+      return false;
     }
     const { error } = await supabase.auth.setSession({
       access_token: accessToken,
@@ -261,6 +269,7 @@ export async function establishSessionFromOAuthCallback(url: string): Promise<vo
   }
 
   await completeStashedAuthProvisioning();
+  return true;
 }
 
 export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
@@ -268,7 +277,8 @@ export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
 
   try {
     await Browser.close().catch(() => undefined);
-    await establishSessionFromOAuthCallback(url);
+    const established = await establishSessionFromOAuthCallback(url);
+    if (!established) return false;
 
     if (isNativeAppShell()) {
       window.location.replace(`${window.location.origin}/`);
@@ -277,7 +287,11 @@ export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
     window.dispatchEvent(new CustomEvent("velbok:oauth-success"));
     return true;
   } catch (e) {
-    console.error("[oauth] callback failed:", url, e);
+    console.error(
+      "[oauth] callback failed:",
+      url.replace(/([?#&](?:access_token|refresh_token)=)[^&]+/gi, "$1…"),
+      e,
+    );
     await Browser.close().catch(() => undefined);
     const message = e instanceof Error ? e.message : String(e);
     window.dispatchEvent(new CustomEvent("velbok:oauth-error", { detail: message }));
