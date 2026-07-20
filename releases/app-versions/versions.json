@@ -1,14 +1,32 @@
 {
   "packageId": "com.velbok.app",
-  "exportedAt": "2026-07-16",
-  "note": "1.0.92 (build 92): archived Android release.",
+  "exportedAt": "2026-07-20",
+  "note": "1.0.93 (build 93): archived Android release.",
   "releases": [
+    {
+      "versionName": "1.0.93",
+      "versionCode": 93,
+      "format": "apk",
+      "file": "apk/velbok-1.0.93-build93.apk",
+      "status": "latest",
+      "installable": true,
+      "sizeBytes": 51588026
+    },
+    {
+      "versionName": "1.0.93",
+      "versionCode": 93,
+      "format": "aab",
+      "file": "aab/velbok-1.0.93-build93.aab",
+      "status": "play-store-bundle",
+      "installable": false,
+      "sizeBytes": 52744729
+    },
     {
       "versionName": "1.0.92",
       "versionCode": 92,
       "format": "apk",
       "file": "apk/velbok-1.0.92-build92.apk",
-      "status": "latest",
+      "status": "superseded",
       "installable": true,
       "sizeBytes": 51587242
     },
@@ -17,7 +35,7 @@
       "versionCode": 92,
       "format": "aab",
       "file": "aab/velbok-1.0.92-build92.aab",
-      "status": "play-store-bundle",
+      "status": "superseded",
       "installable": false,
       "sizeBytes": 52743901
     },
