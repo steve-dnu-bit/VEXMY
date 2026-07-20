@@ -142,18 +142,22 @@ const SubscribePage = () => {
           if (!studioName.trim() || studioName.trim().length < 2) {
             throw new Error(t("common.studioName"));
           }
-          const { error } = await supabase.auth.signUp({
+          const { data, error } = await supabase.auth.signUp({
             email: email.trim(),
             password,
             options: { emailRedirectTo: `${window.location.origin}/subscribe/success?plan=${selfServePlan.id}` },
           });
           if (error) throw error;
-          toast({
-            title: t("auth.checkEmail"),
-            description: t("auth.confirmEmailSent"),
-          });
-          setSubmitting(false);
-          return;
+          if (data.session) {
+            // Autoconfirm path — continue into checkout below.
+          } else {
+            toast({
+              title: t("auth.checkEmail"),
+              description: t("auth.confirmEmailSent"),
+            });
+            setSubmitting(false);
+            return;
+          }
         }
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;

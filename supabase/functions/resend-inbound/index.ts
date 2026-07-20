@@ -23,41 +23,117 @@ function matchesInboundDomain(addresses: string[] | undefined): boolean {
   });
 }
 
-function forwardTarget(): string | null {
-  const explicit = (Deno.env.get("RESEND_INBOUND_FORWARD_TO") ?? "").trim();
-  const candidate = explicit || (Deno.env.get("SHOP_SUPPORT_EMAIL") ?? "").trim();
-  if (!candidate) return null;
-
+function sanitizeExternalForward(candidate: string): string | null {
   const { email } = parseEmailAddress(candidate);
+  if (!email) return null;
   // support@velbok.com etc. are receive-only — forwarding there loops on the same MX.
   if (email.endsWith(`@${inboundDomain()}`)) return null;
   return email;
 }
 
-async function forwardInboundEmail(email: Awaited<ReturnType<typeof fetchReceivedEmail>>): Promise<void> {
-  const to = forwardTarget();
-  if (!to) return;
+/** Default inbox for unmapped @velbok.com addresses (e.g. support@). */
+function defaultForwardTarget(): string | null {
+  const explicit = (Deno.env.get("RESEND_INBOUND_FORWARD_TO") ?? "").trim();
+  const candidate = explicit || (Deno.env.get("SHOP_SUPPORT_EMAIL") ?? "").trim();
+  if (!candidate) return null;
+  return sanitizeExternalForward(candidate);
+}
+
+/**
+ * Optional per-address map.
+ * Preferred (shell-safe): appletest@velbok.com=mr.steve.dnu@gmail.com;appletest2@velbok.com=other@gmail.com
+ * Also accepts JSON: {"appletest@velbok.com":"mr.steve.dnu@gmail.com"}
+ */
+function parseForwardMap(raw: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  const trimmed = raw.trim();
+  if (!trimmed) return out;
+
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+      for (const [fromRaw, toRaw] of Object.entries(parsed)) {
+        const from = parseEmailAddress(String(fromRaw)).email.toLowerCase();
+        const to = sanitizeExternalForward(String(toRaw ?? ""));
+        if (from && to) out[from] = to;
+      }
+    } catch {
+      console.error("RESEND_INBOUND_FORWARD_MAP JSON parse failed");
+    }
+    return out;
+  }
+
+  for (const part of trimmed.split(/[;\n]+/)) {
+    const eq = part.indexOf("=");
+    if (eq <= 0) continue;
+    const from = parseEmailAddress(part.slice(0, eq).trim()).email.toLowerCase();
+    const to = sanitizeExternalForward(part.slice(eq + 1).trim());
+    if (from && to) out[from] = to;
+  }
+  return out;
+}
+
+function forwardMap(): Record<string, string> {
+  // Built-in Apple review / test inboxes — always route to Steve's Gmail.
+  const defaults: Record<string, string> = {
+    "appletest@velbok.com": "mr.steve.dnu@gmail.com",
+    "appletest2@velbok.com": "mr.steve.dnu@gmail.com",
+  };
+  const fromEnv = parseForwardMap(Deno.env.get("RESEND_INBOUND_FORWARD_MAP") ?? "");
+  return { ...defaults, ...fromEnv };
+}
+
+/** Resolve unique external inboxes for this message's To: recipients. */
+function resolveForwardTargets(toAddresses: string[] | undefined): string[] {
+  const map = forwardMap();
+  const fallback = defaultForwardTarget();
+  const targets = new Set<string>();
+
+  for (const raw of toAddresses ?? []) {
+    const local = parseEmailAddress(raw).email.toLowerCase();
+    if (!local) continue;
+    const mapped = map[local];
+    if (mapped) {
+      targets.add(mapped);
+    } else if (fallback) {
+      targets.add(fallback);
+    }
+  }
+
+  // No usable To: — still forward to default when configured.
+  if (targets.size === 0 && fallback) targets.add(fallback);
+  return [...targets];
+}
+
+async function forwardInboundEmail(
+  email: Awaited<ReturnType<typeof fetchReceivedEmail>>,
+  targets: string[],
+): Promise<void> {
+  if (!targets.length) return;
 
   const body = emailBodyText(email);
   const fromLine = email.from;
+  const toLine = (email.to ?? []).join(", ") || "(unknown)";
   const subject = email.subject?.trim() || "(No subject)";
   const html = email.html?.trim()
     ? `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;">
-        <p style="margin:0 0 12px;color:#666;">Forwarded from <strong>${fromLine}</strong> via ${inboundDomain()}</p>
+        <p style="margin:0 0 12px;color:#666;">Forwarded from <strong>${fromLine}</strong> to <strong>${toLine}</strong> via ${inboundDomain()}</p>
         ${email.html}
       </div>`
     : `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;">
-        <p style="margin:0 0 12px;color:#666;">Forwarded from <strong>${fromLine}</strong> via ${inboundDomain()}</p>
+        <p style="margin:0 0 12px;color:#666;">Forwarded from <strong>${fromLine}</strong> to <strong>${toLine}</strong> via ${inboundDomain()}</p>
         <pre style="white-space:pre-wrap;font-family:inherit;">${body}</pre>
       </div>`;
 
-  await sendTransactionalEmail({
-    to,
-    subject: `Fwd: ${subject}`,
-    html,
-    replyTo: parseEmailAddress(fromLine).email,
-    fromKind: "notification",
-  });
+  for (const to of targets) {
+    await sendTransactionalEmail({
+      to,
+      subject: `Fwd: ${subject}`,
+      html,
+      replyTo: parseEmailAddress(fromLine).email,
+      fromKind: "notification",
+    });
+  }
 }
 
 async function resolveInboundOrganizationId(
@@ -172,12 +248,13 @@ serve(async (req) => {
 
     const email = await fetchReceivedEmail(emailId);
 
-    // Always forward platform addresses (support@, privacy@, …) to a real inbox when configured.
+    // Forward @velbok.com addresses to real inboxes (per-address map, else default).
+    const forwardTargets = resolveForwardTargets(email.to ?? event.data?.to);
     let forwarded = false;
     let forwardError: string | undefined;
-    if (forwardTarget()) {
+    if (forwardTargets.length) {
       try {
-        await forwardInboundEmail(email);
+        await forwardInboundEmail(email, forwardTargets);
         forwarded = true;
       } catch (e) {
         forwardError = e instanceof Error ? e.message : String(e);
@@ -214,6 +291,7 @@ serve(async (req) => {
         stored: stored.stored,
         message_id: stored.messageId,
         forwarded,
+        forward_to: forwardTargets,
         forward_error: forwardError,
         inbox_skipped: inboxSkipped,
       }),

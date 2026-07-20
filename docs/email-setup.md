@@ -178,7 +178,8 @@ Optional secrets:
 | Secret | Purpose |
 |--------|---------|
 | `RESEND_INBOUND_DOMAIN` | Defaults to `email.velbok.com` |
-| `RESEND_INBOUND_FORWARD_TO` | Forward copies to your personal inbox (else uses `SHOP_SUPPORT_EMAIL`) |
+| `RESEND_INBOUND_FORWARD_TO` | Default forward destination for unmapped addresses (else uses `SHOP_SUPPORT_EMAIL`) |
+| `RESEND_INBOUND_FORWARD_MAP` | Optional per-address forwards. Prefer `addr=dest;addr2=dest2` (or JSON). `appletest@` / `appletest2@` are built-in → `mr.steve.dnu@gmail.com`. |
 
 Inbound mail is stored in the **`messages`** table (`channel: email`, `direction: inbound`) for the staff dashboard unread count. Set `BOOKINGS_REPLY_TO=bookings@email.velbok.com` if you want booking replies to go there.
 

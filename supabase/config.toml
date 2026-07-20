@@ -5,10 +5,20 @@ site_url = "https://velbok.com"
 additional_redirect_urls = [
   "https://velbok.com/**",
   "https://velbok.com/auth/app-callback",
+  "https://velbok.com/auth/mobile-oauth-start",
+  "https://velbok.com/auth/mobile-oauth-done",
+  "https://velbok.com/auth/app-google",
   "com.velbok.app://auth/callback",
   "http://localhost:5173/**",
   "http://localhost:8080/**",
 ]
+
+# Require email confirmation before sign-in (sends Confirm signup via Auth SMTP / Resend).
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+
 
 # TOTP MFA only (no Advanced Phone MFA add-on)
 [auth.mfa]

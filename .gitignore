@@ -35,6 +35,7 @@ android/app/*firebase-adminsdk*.json
 # Play internal tester list (PII — generated locally)
 docs/play-internal-testers.txt
 docs/play-review-credentials.txt
+docs/apple-review-credentials.txt
 
 # Apple TTPOI proprietary materials (local working copies only)
 docs/apple-ttpoi/Tap to Pay on iPhone App Requirements/

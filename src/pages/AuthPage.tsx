@@ -122,19 +122,29 @@ const AuthPage = () => {
 
         // AuthRoute → AuthHomeRedirect picks the destination once the session is active.
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { display_name: displayName },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${getAuthSiteOrigin()}/auth`,
           },
         });
         if (error) throw error;
-        toast({
-          title: t("auth.checkEmail"),
-          description: t("auth.confirmEmailSent"),
-        });
+        // When Auth "Confirm email" is off, Supabase auto-confirms and returns a session (no email).
+        if (data.session) {
+          toast({
+            title: t("auth.accountReady", { defaultValue: "Account ready" }),
+            description: t("auth.accountReadyDesc", {
+              defaultValue: "You're signed in. Continue setting up your studio.",
+            }),
+          });
+        } else {
+          toast({
+            title: t("auth.checkEmail"),
+            description: t("auth.confirmEmailSent"),
+          });
+        }
       }
     } catch (error: any) {
       toast({
