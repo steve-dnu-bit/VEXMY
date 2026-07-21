@@ -78,7 +78,17 @@
         // Put tokens in the query string — iOS often drops URL fragments on custom-scheme handoff.
         var query = "?" + params.toString();
         var customScheme = SCHEME + "://auth/callback" + query;
-        var isAndroid = /Android/i.test(navigator.userAgent);
+        var ua = navigator.userAgent;
+        var isAndroid = /Android/i.test(ua);
+        var isIos = /iPhone|iPad|iPod/i.test(ua);
+
+        // Desktop / laptop browsers: no app to open — finish on the website instead.
+        if (!isAndroid && !isIos) {
+          params.delete("redirect_to");
+          window.location.replace("/auth?" + params.toString());
+          return;
+        }
+
         var intentUrl =
           "intent://auth/callback" +
           query +

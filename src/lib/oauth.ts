@@ -280,8 +280,14 @@ export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
     const established = await establishSessionFromOAuthCallback(url);
     if (!established) return false;
 
+    const params = parseCallbackParams(url);
+    const isRecovery =
+      params.get("mode") === "recovery" || params.get("type") === "recovery";
+
     if (isNativeAppShell()) {
-      window.location.replace(`${window.location.origin}/`);
+      window.location.replace(
+        `${window.location.origin}${isRecovery ? "/auth?mode=recovery" : "/"}`,
+      );
     }
 
     window.dispatchEvent(new CustomEvent("velbok:oauth-success"));

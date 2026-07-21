@@ -49,11 +49,12 @@ function New-EmailHtml {
 "@
 }
 
-$confirmLink = "$callback?token_hash={{ .TokenHash }}&type=signup&redirect_to={{ .RedirectTo }}"
-$recoveryLink = "$callback?token_hash={{ .TokenHash }}&type=recovery&mode=recovery&redirect_to={{ .RedirectTo }}"
-$magicLink = "$callback?token_hash={{ .TokenHash }}&type=magiclink&redirect_to={{ .RedirectTo }}"
-$emailChangeLink = "$callback?token_hash={{ .TokenHash }}&type=email_change&redirect_to={{ .RedirectTo }}"
-$inviteLink = "$callback?token_hash={{ .TokenHash }}&type=invite&redirect_to={{ .RedirectTo }}"
+# NOTE: ${callback} braces required — "$callback?..." parses "callback?token_hash" as one variable name.
+$confirmLink = "${callback}?token_hash={{ .TokenHash }}&type=signup&redirect_to={{ .RedirectTo }}"
+$recoveryLink = "${callback}?token_hash={{ .TokenHash }}&type=recovery&mode=recovery&redirect_to={{ .RedirectTo }}"
+$magicLink = "${callback}?token_hash={{ .TokenHash }}&type=magiclink&redirect_to={{ .RedirectTo }}"
+$emailChangeLink = "${callback}?token_hash={{ .TokenHash }}&type=email_change&redirect_to={{ .RedirectTo }}"
+$inviteLink = "${callback}?token_hash={{ .TokenHash }}&type=invite&redirect_to={{ .RedirectTo }}"
 
 $body = @{
     mailer_subjects_confirmation           = "Confirm your Velbok account"
@@ -77,8 +78,11 @@ Invoke-RestMethod -Method Patch `
 $updated = Invoke-RestMethod -Uri "https://api.supabase.com/v1/projects/$projectRef/config/auth" -Headers $headers
 Write-Host "Done." -ForegroundColor Green
 Write-Host "  Confirmation subject: $($updated.mailer_subjects_confirmation)" -ForegroundColor Green
-if ($updated.mailer_templates_confirmation_content -match "token_hash") {
-    Write-Host "  Confirmation template now uses token_hash via /auth/app-callback" -ForegroundColor Green
+if ($updated.mailer_templates_confirmation_content -match [regex]::Escape("$callback?token_hash")) {
+    Write-Host "  Confirmation template links to $callback?token_hash=..." -ForegroundColor Green
 } else {
-    Write-Host "  WARN - confirmation template does not contain token_hash" -ForegroundColor Red
+    Write-Host "  WARN - confirmation link is wrong:" -ForegroundColor Red
+    if ($updated.mailer_templates_confirmation_content -match 'href="([^"]+)"') {
+        Write-Host "    $($Matches[1])" -ForegroundColor Red
+    }
 }
