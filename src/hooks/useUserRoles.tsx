@@ -80,7 +80,9 @@ export async function resolvePostLoginPath(userId: string, rawNext: string | nul
     return "/schedule";
   }
   if (await fetchHasNoAppRoles(userId)) {
-    return isNativeApp() ? "/billing" : "/subscribe?plan=studio";
+    // Native: /billing is StaffRoute-guarded and rejects no-role users (redirect loop
+    // → black screen). Land on /account, which renders for any signed-in user.
+    return isNativeApp() ? "/account" : "/subscribe?plan=studio";
   }
   return "/account";
 }

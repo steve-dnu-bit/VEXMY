@@ -136,7 +136,9 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   }
   if (redirect === "account") return <Navigate to="/account" replace />;
   if (redirect === "subscribe") {
-    return <Navigate to={isNativeApp() ? "/billing" : "/subscribe?plan=studio"} replace />;
+    // Native must NOT redirect to /billing here: /billing is wrapped in StaffRoute,
+    // so a no-role user would Navigate to the current path forever (black screen).
+    return <Navigate to={isNativeApp() ? "/account" : "/subscribe?plan=studio"} replace />;
   }
   if (redirect === "customer-profile-setup")
     return <Navigate to="/customer-profile-setup" replace />;
