@@ -23,7 +23,8 @@ import { useCustomerShop } from "@/hooks/useCustomerShop";
 import { bookingRequiresDeposit } from "@/lib/serviceDeposit";
 import { DEFAULT_DEPOSIT_AMOUNT, loadShopDefaultDepositAmount } from "@/lib/shopDepositSettings";
 import { hasActiveOrganizationSubscription } from "@/lib/shopSettings";
-import { fetchHasStaffAccess } from "@/hooks/useUserRoles";
+import { fetchHasNoAppRoles, fetchHasStaffAccess } from "@/hooks/useUserRoles";
+import { isNativeApp } from "@/lib/platform";
 import { useTranslation } from "react-i18next";
 
 type BookingRow = {
@@ -70,6 +71,7 @@ const CustomerAccountPage = () => {
   const { hasPermission, loading: permLoading } = usePermissions();
   const { selectedOrgId, shops, hasMultipleShops, loading: shopLoading } = useCustomerShop();
   const [checking, setChecking] = useState(true);
+  const [hasNoRoles, setHasNoRoles] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -140,8 +142,18 @@ const CustomerAccountPage = () => {
     (async () => {
       if (await fetchHasStaffAccess(user.id)) {
         const hasSub = await hasActiveOrganizationSubscription(user.id);
-        navigate(hasSub ? "/schedule" : "/subscribe?plan=studio", { replace: true });
-        return;
+        if (hasSub) {
+          navigate("/schedule", { replace: true });
+          return;
+        }
+        if (!isNativeApp()) {
+          navigate("/subscribe?plan=studio", { replace: true });
+          return;
+        }
+        // Native /subscribe redirects into StaffRoute-guarded /billing — show the invite card instead.
+        setHasNoRoles(true);
+      } else {
+        setHasNoRoles(await fetchHasNoAppRoles(user.id));
       }
       setChecking(false);
       const { data: profile } = await supabase
@@ -244,14 +256,29 @@ const CustomerAccountPage = () => {
     );
   }
 
-  if (!hasPermission("my_bookings")) {
+  if (hasNoRoles || !hasPermission("my_bookings")) {
     return (
       <CustomerLayout portalBrand={portalBrand}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("customer.accessLimited")}</CardTitle>
-            <CardDescription>{t("customer.accessLimitedDesc")}</CardDescription>
+            <CardTitle className="text-base">
+              {hasNoRoles ? t("customer.noStudioTitle") : t("customer.accessLimited")}
+            </CardTitle>
+            <CardDescription>
+              {hasNoRoles ? t("customer.noStudioDesc") : t("customer.accessLimitedDesc")}
+            </CardDescription>
           </CardHeader>
+          {hasNoRoles ? (
+            <CardContent>
+              {isNativeApp() ? (
+                <p className="text-sm text-muted-foreground">{t("customer.noStudioNativeHint")}</p>
+              ) : (
+                <Button variant="gold" asChild>
+                  <Link to="/subscribe?plan=studio">{t("customer.noStudioWebCta")}</Link>
+                </Button>
+              )}
+            </CardContent>
+          ) : null}
         </Card>
       </CustomerLayout>
     );

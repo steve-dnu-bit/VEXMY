@@ -1267,6 +1267,10 @@
     "loadingPortal": "Loading…",
     "accessLimited": "Access limited",
     "accessLimitedDesc": "Your account doesn't include the bookings portal. Contact the studio if this is a mistake.",
+    "noStudioTitle": "Welcome to Velbok",
+    "noStudioDesc": "Your account isn't linked to a studio yet. If you run a studio, a Velbok subscription unlocks scheduling, bookings, POS payments and more. If you're a client, ask your studio to send you an invite.",
+    "noStudioWebCta": "View subscription plans",
+    "noStudioNativeHint": "Studio subscriptions are managed on velbok.com.",
     "profileUpdated": "Profile updated",
     "invoicePaymentReceived": "Invoice payment received. Thank you.",
     "invoicePaymentCancelled": "Invoice payment cancelled."

@@ -194,6 +194,45 @@ function parseCallbackParams(url: string): URLSearchParams {
   return merged;
 }
 
+/**
+ * Consumed-callback memory. Success reloads the WebView (window.location.replace),
+ * and Capacitor's getLaunchUrl still returns the same deep link afterwards — without
+ * persistence the app re-runs the used code/token_hash and toasts a bogus error.
+ */
+const CONSUMED_CALLBACKS_KEY = "velbok-consumed-auth-callbacks";
+
+function callbackConsumedKey(url: string): string | null {
+  const params = parseCallbackParams(url);
+  const raw = params.get("code") || params.get("token_hash") || params.get("access_token");
+  return raw ? raw.slice(0, 64) : null;
+}
+
+function readConsumedCallbacks(): string[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CONSUMED_CALLBACKS_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function wasAuthCallbackConsumed(url: string): boolean {
+  const key = callbackConsumedKey(url);
+  return !!key && readConsumedCallbacks().includes(key);
+}
+
+export function markAuthCallbackConsumed(url: string): void {
+  const key = callbackConsumedKey(url);
+  if (!key) return;
+  try {
+    const list = readConsumedCallbacks().filter((k) => k !== key);
+    list.push(key);
+    localStorage.setItem(CONSUMED_CALLBACKS_KEY, JSON.stringify(list.slice(-10)));
+  } catch {
+    /* private mode */
+  }
+}
+
 export function isOAuthCallbackUrl(url: string): boolean {
   // Require real auth payload — bare com.velbok.app://auth/callback (no tokens) must not error.
   return (
@@ -274,11 +313,14 @@ export async function establishSessionFromOAuthCallback(url: string): Promise<bo
 
 export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
   if (!isOAuthCallbackUrl(url)) return false;
+  // Stale launch URL (already exchanged before a reload/cold start) — never re-run it.
+  if (wasAuthCallbackConsumed(url)) return false;
 
   try {
     await Browser.close().catch(() => undefined);
     const established = await establishSessionFromOAuthCallback(url);
     if (!established) return false;
+    markAuthCallbackConsumed(url);
 
     const params = parseCallbackParams(url);
     const isRecovery =
@@ -299,6 +341,14 @@ export async function handleOAuthCallbackUrl(url: string): Promise<boolean> {
       e,
     );
     await Browser.close().catch(() => undefined);
+
+    // Already signed in? Then this was a stale/re-used link — don't scare the user.
+    const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    if (data.session) {
+      markAuthCallbackConsumed(url);
+      return false;
+    }
+
     const message = e instanceof Error ? e.message : String(e);
     window.dispatchEvent(new CustomEvent("velbok:oauth-error", { detail: message }));
     throw e;
