@@ -605,6 +605,11 @@
   "subscribe": {
     "label": "Subscribe",
     "startWith": "Start with {{plan}}",
+    "mobileTitle": "Choose your plan",
+    "mobileSubtitle": "Every plan includes scheduling, client CRM, consent forms, deposits and the customer portal. Solo, Starter and Studio start with a 14-day free trial.",
+    "waitingForPayment": "Confirming your subscription…",
+    "clientInviteNotice": "Are you a client of a tattoo studio? You don't need a subscription — ask your artist or the shop admin to invite you. Invites unlock the customer portal with your bookings, consent forms and deposits.",
+    "backToAccount": "Back to account",
     "trialNote": "14-day free trial · Cancel anytime",
     "trialNoteImmediate": "Billed immediately · Cancel anytime",
     "secureCheckout": "Secure checkout powered by Stripe. Card details never touch our servers.",
@@ -1268,9 +1273,8 @@
     "accessLimited": "Access limited",
     "accessLimitedDesc": "Your account doesn't include the bookings portal. Contact the studio if this is a mistake.",
     "noStudioTitle": "Welcome to Velbok",
-    "noStudioDesc": "Your account isn't linked to a studio yet. If you run a studio, a Velbok subscription unlocks scheduling, bookings, POS payments and more. If you're a client, ask your studio to send you an invite.",
+    "noStudioDesc": "Your account isn't linked to a studio yet. If you run a studio, a Velbok subscription unlocks scheduling, bookings, POS payments and more. If you're a client of a studio, ask your artist or the shop admin to invite you — invites unlock the customer portal.",
     "noStudioWebCta": "View subscription plans",
-    "noStudioNativeHint": "Studio subscriptions are managed on velbok.com.",
     "profileUpdated": "Profile updated",
     "invoicePaymentReceived": "Invoice payment received. Thank you.",
     "invoicePaymentCancelled": "Invoice payment cancelled."

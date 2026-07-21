@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchHasNoAppRoles, fetchHasStaffAccess, fetchIsOnlyCustomer } from "@/hooks/useUserRoles";
-import { isNativeApp } from "@/lib/platform";
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 import { needsShopSetup } from "@/lib/shopSettings";
 import { useTranslation } from "react-i18next";
@@ -136,9 +135,7 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
   }
   if (redirect === "account") return <Navigate to="/account" replace />;
   if (redirect === "subscribe") {
-    // Native must NOT redirect to /billing here: /billing is wrapped in StaffRoute,
-    // so a no-role user would Navigate to the current path forever (black screen).
-    return <Navigate to={isNativeApp() ? "/account" : "/subscribe?plan=studio"} replace />;
+    return <Navigate to="/subscribe?plan=studio" replace />;
   }
   if (redirect === "customer-profile-setup")
     return <Navigate to="/customer-profile-setup" replace />;

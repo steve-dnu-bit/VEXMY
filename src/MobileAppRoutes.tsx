@@ -34,6 +34,7 @@ const CookiePolicyPage = lazy(() => import("@/pages/CookiePolicyPage"));
 const AccountDeletionPage = lazy(() => import("@/pages/AccountDeletionPage"));
 const CustomerEmbedLoginPage = lazy(() => import("@/pages/CustomerEmbedLoginPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const MobileSubscribePage = lazy(() => import("@/pages/MobileSubscribePage"));
 const PosCheckoutPage = lazy(() => import("@/pages/PosCheckoutPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -113,9 +114,9 @@ const MobileAppRoutes = () => (
     <Route path="/shop-setup" element={<ProtectedRoute><ShopSetupWizardPage /></ProtectedRoute>} />
     <Route path="/customer-profile-setup" element={<ProtectedRoute><CustomerProfileSetupPage /></ProtectedRoute>} />
     <Route path="/dashboard" element={<ProtectedRoute><StaffRoute><DashboardPage /></StaffRoute></ProtectedRoute>} />
-    {/* Marketing / platform / customer portal — not included in the mobile app shell */}
-    <Route path="/pricing" element={<Navigate to="/auth" replace />} />
-    <Route path="/subscribe" element={<Navigate to="/billing" replace />} />
+    {/* Simplified in-app pricing + Stripe checkout for accounts without a studio */}
+    <Route path="/subscribe" element={<ProtectedRoute><MobileSubscribePage /></ProtectedRoute>} />
+    <Route path="/pricing" element={<Navigate to="/subscribe" replace />} />
     <Route path="/platform" element={<Navigate to="/admin" replace />} />
     <Route path="*" element={<NotFound />} />
   </Routes>

@@ -5,8 +5,6 @@ import { getSafeNextPath, needsArtistProfileSetup, canUsePostLoginNext } from "@
 import { needsCustomerProfileSetup } from "@/lib/customerProfileSetup";
 import { hasActiveOrganizationSubscription, needsShopSetup } from "@/lib/shopSettings";
 import { fetchIsPlatformAdmin } from "@/lib/platformAdmin";
-import { isNativeApp } from "@/lib/platform";
-
 export type AppRole = "admin" | "artist" | "customer";
 
 export function useUserRoles() {
@@ -74,15 +72,12 @@ export async function resolvePostLoginPath(userId: string, rawNext: string | nul
   if (await fetchIsOnlyCustomer(userId)) return "/account";
   if (await fetchHasStaffAccess(userId)) {
     if (!(await hasActiveOrganizationSubscription(userId))) {
-      // Mobile app has no /subscribe page — avoid auth ↔ subscribe redirect loop.
-      return isNativeApp() ? "/billing" : "/subscribe?plan=studio";
+      return "/subscribe?plan=studio";
     }
     return "/schedule";
   }
   if (await fetchHasNoAppRoles(userId)) {
-    // Native: /billing is StaffRoute-guarded and rejects no-role users (redirect loop
-    // → black screen). Land on /account, which renders for any signed-in user.
-    return isNativeApp() ? "/account" : "/subscribe?plan=studio";
+    return "/subscribe?plan=studio";
   }
   return "/account";
 }

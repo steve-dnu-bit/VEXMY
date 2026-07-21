@@ -37,7 +37,7 @@ const SubscriptionGate = ({ children }: { children: React.ReactNode }) => {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3">
           <Button variant="gold" asChild>
-            <Link to={isNativeApp() ? "/billing" : "/subscribe?plan=enterprise"}>
+            <Link to={isNativeApp() ? "/subscribe" : "/subscribe?plan=enterprise"}>
               <Crown className="mr-2 h-4 w-4" />
               {t("common.subscribeNow")}
             </Link>
