@@ -9,12 +9,26 @@ import sharp from "sharp";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const masterArg = process.argv[2];
-const defaultMaster =
-  "C:/Users/mrtat/.cursor/projects/c-Users-mrtat-Desktop-velbok-VEXMY/assets/c__Users_mrtat_AppData_Roaming_Cursor_User_workspaceStorage_43b235c9df5aeafc3f25ffcc936f4de7_images_Gemini_Generated_Image_ovq7dbovq7dbovq7-8340aaf1-583e-4676-b75b-a83d5fd392df.png";
-
-const MASTER = masterArg ? join(root, masterArg) : defaultMaster;
 const BRAND_DIR = join(root, "public/brand");
 const DESIGN_DIR = join(root, "design/logo-options");
+
+/** Prefer repo-committed master so Mac/CI builds don't depend on a local Cursor path. */
+function resolveMasterPath() {
+  if (masterArg) {
+    const fromArg = join(root, masterArg);
+    if (existsSync(fromArg)) return fromArg;
+    throw new Error(`Master logo not found at ${fromArg}`);
+  }
+  for (const candidate of [
+    join(BRAND_DIR, "velbok-logo-master.png"),
+    join(root, "public/velbok-logo-source.png"),
+  ]) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+const MASTER = resolveMasterPath();
 const CANVAS = 1024;
 const MARK_SCALE = 0.86;
 const FULL_SCALE = 0.88;
@@ -102,19 +116,24 @@ async function write(path, buffer) {
 }
 
 async function main() {
-  if (!existsSync(MASTER)) {
+  if (!MASTER) {
     const existing = join(root, "public/icon-source.png");
     if (existsSync(existing)) {
       console.log("Master logo not found — keeping existing public/icon-source.png");
       return;
     }
-    throw new Error(`Missing master logo (${MASTER}) and public/icon-source.png`);
+    throw new Error(
+      "Missing master logo. Add public/brand/velbok-logo-master.png (or pass a path): node scripts/prepare-brand-assets.mjs path/to/logo.png",
+    );
   }
+  console.log(`Using master logo: ${MASTER.replace(root + "\\", "").replace(root + "/", "")}`);
   mkdirSync(BRAND_DIR, { recursive: true });
   mkdirSync(DESIGN_DIR, { recursive: true });
 
   const masterDest = join(BRAND_DIR, "velbok-logo-master.png");
-  copyFileSync(MASTER, masterDest);
+  if (MASTER !== masterDest) {
+    copyFileSync(MASTER, masterDest);
+  }
 
   const markTransparent = await toTransparentSquare(MASTER, {
     scale: MARK_SCALE,
