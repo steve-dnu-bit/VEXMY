@@ -605,9 +605,9 @@
   "subscribe": {
     "label": "Subscribe",
     "startWith": "Start with {{plan}}",
-    "mobileTitle": "Choose your plan",
+    "mobilePlansTitle": "Velbok for studios",
     "mobileSubtitle": "Every plan includes scheduling, client CRM, consent forms, deposits and the customer portal. Solo, Starter and Studio start with a 14-day free trial.",
-    "waitingForPayment": "Confirming your subscription…",
+    "manageOnWebNotice": "Studio subscriptions are set up on the Velbok website. Once your studio is subscribed, sign in here with the same account and everything unlocks automatically.",
     "clientInviteNotice": "Are you a client of a tattoo studio? You don't need a subscription — ask your artist or the shop admin to invite you. Invites unlock the customer portal with your bookings, consent forms and deposits.",
     "backToAccount": "Back to account",
     "trialNote": "14-day free trial · Cancel anytime",
