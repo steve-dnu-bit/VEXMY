@@ -177,11 +177,19 @@ serve(async (req) => {
         });
       }
 
-      await admin.from("organization_members").insert({
+      const { error: memberError } = await admin.from("organization_members").insert({
         organization_id: newOrg.id,
         user_id: user.id,
         role: "owner",
       });
+      if (memberError) {
+        // Without a membership row the account can never access the org — abort before payment.
+        await admin.from("organizations").delete().eq("id", newOrg.id);
+        return new Response(JSON.stringify({ error: memberError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       await admin.from("user_roles").upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id,role" });
 

@@ -1,14 +1,19 @@
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 
+export type StripeConnectBusinessType = "individual" | "company";
+
 export type StripeConnectStatus = {
   ok?: boolean;
   organizationId?: string;
+  planId?: string | null;
   accountId: string | null;
   chargesEnabled: boolean;
   payoutsEnabled: boolean;
   detailsSubmitted: boolean;
   onboardedAt: string | null;
   ready: boolean;
+  businessType?: StripeConnectBusinessType | null;
+  requiresBusinessTypeChoice?: boolean;
   error?: string;
 };
 
@@ -24,6 +29,7 @@ export async function fetchStripeConnectStatus(): Promise<StripeConnectStatus> {
 export async function startStripeConnectOnboarding(paths?: {
   returnPath?: string;
   refreshPath?: string;
+  businessType?: StripeConnectBusinessType;
 }): Promise<string> {
   const { data, error } = await invokeEdgeFunctionJson<{ onboardingUrl?: string; error?: string }>(
     "stripe-connect-onboarding",
@@ -31,6 +37,7 @@ export async function startStripeConnectOnboarding(paths?: {
       action: "onboard",
       returnPath: paths?.returnPath,
       refreshPath: paths?.refreshPath,
+      businessType: paths?.businessType,
     },
   );
   if (error || !data.onboardingUrl) {

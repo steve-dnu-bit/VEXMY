@@ -45,8 +45,9 @@ import {
 import { detectShopCountryFromIp, shouldSuggestCountryFromGeo } from "@/lib/detectShopCountry";
 import { THEME_PRESETS } from "@/lib/themePresets";
 import { applyOwnerPractitionerChoice } from "@/lib/ownerPractitioner";
-import { useArtistSeats } from "@/hooks/useSubscription";
+import { useArtistSeats, useSubscription } from "@/hooks/useSubscription";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import type { StripeConnectBusinessType } from "@/lib/stripeConnect";
 
 const STEPS = ["brand", "contact", "team", "billing", "payouts", "hours", "look", "review"] as const;
 type Step = (typeof STEPS)[number];
@@ -80,6 +81,7 @@ const ShopSetupWizardPage = () => {
     country: "UK" as ShopCountryCode,
     company_name: "",
     company_legal_name: "",
+    stripe_business_type: "",
   });
 
   const [scheduleHours, setScheduleHours] = useState<ShopScheduleHours>(defaultShopScheduleHours);
@@ -87,6 +89,8 @@ const ShopSetupWizardPage = () => {
   const [countrySuggestedFromGeo, setCountrySuggestedFromGeo] = useState(false);
   const [ownerIsPractitioner, setOwnerIsPractitioner] = useState<boolean | null>(null);
   const { data: seatUsage } = useArtistSeats();
+  const { data: orgSub } = useSubscription();
+  const isSoloPlan = (orgSub?.plan?.id ?? seatUsage?.planId) === "solo";
 
   useEffect(() => {
     const stepParam = searchParams.get("step");
@@ -217,13 +221,23 @@ const ShopSetupWizardPage = () => {
 
   const persistBilling = async () => {
     if (!shopId) return false;
+    if (isSoloPlan && form.stripe_business_type !== "individual" && form.stripe_business_type !== "company") {
+      toast.error(t("setup.businessTypeRequired"));
+      return false;
+    }
     if (!form.company_name.trim() || !form.company_legal_name.trim()) {
       toast.error(t("setup.billingRequired"));
       return false;
     }
+    const businessType: StripeConnectBusinessType | null = isSoloPlan
+      ? (form.stripe_business_type as StripeConnectBusinessType)
+      : form.stripe_business_type === "individual" || form.stripe_business_type === "company"
+        ? form.stripe_business_type
+        : "company";
     const { error: shopErr } = await saveShopSettings(shopId, {
       legal_name: form.company_legal_name.trim(),
       trading_name: form.company_name.trim(),
+      stripe_business_type: businessType,
     });
     if (shopErr) {
       toast.error(shopErr);
@@ -248,7 +262,7 @@ const ShopSetupWizardPage = () => {
         toast.error(error.message);
         return false;
       }
-      setCompanyId(data.id);
+      if (data?.id) setCompanyId(data.id);
     }
     return true;
   };
@@ -489,15 +503,63 @@ const ShopSetupWizardPage = () => {
 
             {step === "billing" ? (
               <>
+                {isSoloPlan ? (
+                  <div className="space-y-2">
+                    <Label>{t("setup.businessTypeLabel")}</Label>
+                    <RadioGroup
+                      className="mt-2 space-y-3"
+                      value={form.stripe_business_type || undefined}
+                      onValueChange={(value) =>
+                        patchForm({ stripe_business_type: value as StripeConnectBusinessType })
+                      }
+                    >
+                      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 has-[:checked]:border-gold has-[:checked]:bg-gold/5">
+                        <RadioGroupItem value="individual" className="mt-0.5" />
+                        <div>
+                          <p className="font-medium">{t("setup.businessTypeSoleTrader")}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{t("setup.businessTypeSoleTraderHint")}</p>
+                        </div>
+                      </label>
+                      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 has-[:checked]:border-gold has-[:checked]:bg-gold/5">
+                        <RadioGroupItem value="company" className="mt-0.5" />
+                        <div>
+                          <p className="font-medium">{t("setup.businessTypeCompany")}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{t("setup.businessTypeCompanyHint")}</p>
+                        </div>
+                      </label>
+                    </RadioGroup>
+                  </div>
+                ) : null}
                 <div>
-                  <Label>{t("setup.companyDisplayName")}</Label>
+                  <Label>
+                    {form.stripe_business_type === "individual"
+                      ? t("setup.tradingDisplayName")
+                      : t("setup.companyDisplayName")}
+                  </Label>
                   <Input className="mt-1" value={form.company_name} onChange={(e) => patchForm({ company_name: e.target.value })} />
                 </div>
                 <div>
-                  <Label>{t("setup.companyLegalName")}</Label>
-                  <Input className="mt-1" value={form.company_legal_name} onChange={(e) => patchForm({ company_legal_name: e.target.value })} placeholder="Studio Name Ltd" />
+                  <Label>
+                    {form.stripe_business_type === "individual"
+                      ? t("setup.soleTraderLegalName")
+                      : t("setup.companyLegalName")}
+                  </Label>
+                  <Input
+                    className="mt-1"
+                    value={form.company_legal_name}
+                    onChange={(e) => patchForm({ company_legal_name: e.target.value })}
+                    placeholder={
+                      form.stripe_business_type === "individual"
+                        ? t("setup.soleTraderLegalNamePlaceholder")
+                        : "Studio Name Ltd"
+                    }
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground">{t("setup.billingHint")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {form.stripe_business_type === "individual"
+                    ? t("setup.soleTraderBillingHint")
+                    : t("setup.billingHint")}
+                </p>
               </>
             ) : null}
 
@@ -507,6 +569,12 @@ const ShopSetupWizardPage = () => {
                   compact
                   returnPath="/shop-setup?step=payouts"
                   refreshPath="/shop-setup?step=payouts"
+                  businessType={
+                    form.stripe_business_type === "individual" || form.stripe_business_type === "company"
+                      ? form.stripe_business_type
+                      : null
+                  }
+                  onBusinessTypeChange={(value) => patchForm({ stripe_business_type: value })}
                 />
                 <p className="text-xs text-muted-foreground">{t("setup.stepPayoutsSkipHint")}</p>
                 <div className="pt-4 border-t border-border space-y-3">
@@ -600,6 +668,14 @@ const ShopSetupWizardPage = () => {
                 <p><span className="text-muted-foreground">{t("setup.phone")}:</span> {form.phone || "—"}</p>
                 <p><span className="text-muted-foreground">{t("setup.website")}:</span> {form.website_url || "—"}</p>
                 <p><span className="text-muted-foreground">{t("setup.companyLegalName")}:</span> {form.company_legal_name}</p>
+                {isSoloPlan && form.stripe_business_type ? (
+                  <p>
+                    <span className="text-muted-foreground">{t("setup.businessTypeLabel")}:</span>{" "}
+                    {form.stripe_business_type === "individual"
+                      ? t("setup.businessTypeSoleTrader")
+                      : t("setup.businessTypeCompany")}
+                  </p>
+                ) : null}
                 <p>
                   <span className="text-muted-foreground">{t("setup.practitionerReview")}:</span>{" "}
                   {ownerIsPractitioner === true

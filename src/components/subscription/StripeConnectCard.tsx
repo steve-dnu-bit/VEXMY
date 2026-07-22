@@ -4,12 +4,15 @@ import { useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertCircle, CheckCircle2, ExternalLink, Landmark, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   fetchStripeConnectStatus,
   openStripeConnectDashboard,
   startStripeConnectOnboarding,
+  type StripeConnectBusinessType,
   type StripeConnectStatus,
 } from "@/lib/stripeConnect";
 
@@ -17,20 +20,33 @@ type StripeConnectCardProps = {
   compact?: boolean;
   returnPath?: string;
   refreshPath?: string;
+  /** Pre-selected from shop setup; used when creating the Connect account. */
+  businessType?: StripeConnectBusinessType | "" | null;
+  onBusinessTypeChange?: (value: StripeConnectBusinessType) => void;
 };
 
-const StripeConnectCard = ({ compact = false, returnPath, refreshPath }: StripeConnectCardProps) => {
+const StripeConnectCard = ({
+  compact = false,
+  returnPath,
+  refreshPath,
+  businessType,
+  onBusinessTypeChange,
+}: StripeConnectCardProps) => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StripeConnectStatus | null>(null);
+  const [localBusinessType, setLocalBusinessType] = useState<StripeConnectBusinessType | "">("");
 
   const loadStatus = useCallback(async () => {
     setLoading(true);
     try {
       const next = await fetchStripeConnectStatus();
       setStatus(next);
+      if (next.businessType && !businessType) {
+        setLocalBusinessType(next.businessType);
+      }
     } catch (e) {
       setStatus(null);
       if (!compact) {
@@ -39,11 +55,17 @@ const StripeConnectCard = ({ compact = false, returnPath, refreshPath }: StripeC
     } finally {
       setLoading(false);
     }
-  }, [compact, t]);
+  }, [businessType, compact, t]);
 
   useEffect(() => {
     void loadStatus();
   }, [loadStatus]);
+
+  useEffect(() => {
+    if (businessType === "individual" || businessType === "company") {
+      setLocalBusinessType(businessType);
+    }
+  }, [businessType]);
 
   useEffect(() => {
     const connect = searchParams.get("connect");
@@ -60,12 +82,33 @@ const StripeConnectCard = ({ compact = false, returnPath, refreshPath }: StripeC
     setSearchParams(next, { replace: true });
   }, [loadStatus, searchParams, setSearchParams, t]);
 
+  const selectedBusinessType =
+    businessType === "individual" || businessType === "company"
+      ? businessType
+      : localBusinessType || status?.businessType || "";
+
+  const showBusinessTypeChoice =
+    !!status?.requiresBusinessTypeChoice && !status?.accountId;
+
+  const handleBusinessTypeChange = (value: StripeConnectBusinessType) => {
+    setLocalBusinessType(value);
+    onBusinessTypeChange?.(value);
+  };
+
   const handleOnboard = async () => {
+    if (showBusinessTypeChoice && selectedBusinessType !== "individual" && selectedBusinessType !== "company") {
+      toast.error(t("stripeConnect.businessTypeRequired"));
+      return;
+    }
     setBusy(true);
     try {
       const url = await startStripeConnectOnboarding({
         returnPath: returnPath ?? "/admin",
         refreshPath: refreshPath ?? returnPath ?? "/admin",
+        businessType:
+          selectedBusinessType === "individual" || selectedBusinessType === "company"
+            ? selectedBusinessType
+            : undefined,
       });
       window.location.href = url;
     } catch (e) {
@@ -104,6 +147,32 @@ const StripeConnectCard = ({ compact = false, returnPath, refreshPath }: StripeC
     <Badge variant="outline">{t("stripeConnect.statusNotStarted")}</Badge>
   );
 
+  const businessTypePicker = showBusinessTypeChoice ? (
+    <div className="space-y-2">
+      <Label className="text-sm">{t("stripeConnect.businessTypeLabel")}</Label>
+      <RadioGroup
+        className="space-y-2"
+        value={selectedBusinessType || undefined}
+        onValueChange={(value) => handleBusinessTypeChange(value as StripeConnectBusinessType)}
+      >
+        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-gold has-[:checked]:bg-gold/5">
+          <RadioGroupItem value="individual" className="mt-0.5" />
+          <div>
+            <p className="text-sm font-medium">{t("stripeConnect.businessTypeSoleTrader")}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("stripeConnect.businessTypeSoleTraderHint")}</p>
+          </div>
+        </label>
+        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-gold has-[:checked]:bg-gold/5">
+          <RadioGroupItem value="company" className="mt-0.5" />
+          <div>
+            <p className="text-sm font-medium">{t("stripeConnect.businessTypeCompany")}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("stripeConnect.businessTypeCompanyHint")}</p>
+          </div>
+        </label>
+      </RadioGroup>
+    </div>
+  ) : null;
+
   if (compact) {
     return (
       <div className="space-y-3 rounded-lg border border-border bg-secondary/30 p-4">
@@ -114,6 +183,7 @@ const StripeConnectCard = ({ compact = false, returnPath, refreshPath }: StripeC
           </div>
           {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : statusBadge}
         </div>
+        {businessTypePicker}
         <div className="flex flex-wrap gap-2">
           {!ready ? (
             <Button type="button" variant="gold" size="sm" onClick={() => void handleOnboard()} disabled={busy || loading}>
@@ -160,6 +230,7 @@ const StripeConnectCard = ({ compact = false, returnPath, refreshPath }: StripeC
                   ? t("stripeConnect.incompleteBody")
                   : t("stripeConnect.notStartedBody")}
             </p>
+            {businessTypePicker}
             <div className="flex flex-wrap gap-2">
               {!ready ? (
                 <Button type="button" variant="gold" size="sm" onClick={() => void handleOnboard()} disabled={busy}>

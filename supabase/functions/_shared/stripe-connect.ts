@@ -21,6 +21,8 @@ export function mapShopCountryToStripe(country: string | null | undefined): stri
   return stripeCountryForShopCountry(country);
 }
 
+export type StripeConnectBusinessType = "individual" | "company";
+
 type ShopConnectProfile = {
   shop_name?: string | null;
   legal_name?: string | null;
@@ -28,7 +30,16 @@ type ShopConnectProfile = {
   support_email?: string | null;
   website_url?: string | null;
   country?: string | null;
+  stripe_business_type?: string | null;
 };
+
+export function resolveConnectBusinessType(
+  shop: ShopConnectProfile | null | undefined,
+  explicit?: string | null,
+): StripeConnectBusinessType {
+  const raw = (explicit ?? shop?.stripe_business_type ?? "company").trim().toLowerCase();
+  return raw === "individual" ? "individual" : "company";
+}
 
 /** Express connected account under the Velbok Connect platform (one per shop org). */
 export function buildConnectExpressAccountParams(
@@ -36,10 +47,12 @@ export function buildConnectExpressAccountParams(
   orgName: string,
   shop: ShopConnectProfile | null | undefined,
   fallbackEmail?: string | null,
+  businessTypeOverride?: string | null,
 ) {
   const tradingName = shop?.trading_name?.trim() || shop?.shop_name?.trim() || orgName;
   const legalName = shop?.legal_name?.trim() || tradingName;
   const supportEmail = shop?.support_email?.trim() || fallbackEmail?.trim() || undefined;
+  const businessType = resolveConnectBusinessType(shop, businessTypeOverride);
 
   return {
     type: "express" as const,
@@ -49,12 +62,15 @@ export function buildConnectExpressAccountParams(
       card_payments: { requested: true },
       transfers: { requested: true },
     },
-    business_type: "company" as const,
-    company: { name: legalName },
+    business_type: businessType,
+    ...(businessType === "company"
+      ? { company: { name: legalName } }
+      : {}),
     metadata: {
       organization_id: organizationId,
       legal_name: legalName,
       trading_name: tradingName,
+      stripe_business_type: businessType,
     },
     business_profile: {
       name: tradingName,

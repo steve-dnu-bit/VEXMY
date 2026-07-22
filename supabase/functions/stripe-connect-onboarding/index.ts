@@ -220,11 +220,25 @@ serve(async (req) => {
 
       .from("shop_settings")
 
-      .select("shop_name, legal_name, trading_name, support_email, website_url, country")
+      .select("shop_name, legal_name, trading_name, support_email, website_url, country, stripe_business_type")
 
       .eq("organization_id", organizationId)
 
       .maybeSingle();
+
+
+
+    const { data: subRow } = await admin
+
+      .from("platform_subscriptions")
+
+      .select("plan_id")
+
+      .eq("organization_id", organizationId)
+
+      .maybeSingle();
+
+    const planId = typeof subRow?.plan_id === "string" ? subRow.plan_id.toLowerCase() : null;
 
 
 
@@ -246,9 +260,15 @@ serve(async (req) => {
 
           organizationId,
 
+          planId,
+
           legalName: shop?.legal_name ?? null,
 
           tradingName: shop?.trading_name ?? shop?.shop_name ?? org.name,
+
+          businessType: shop?.stripe_business_type ?? null,
+
+          requiresBusinessTypeChoice: planId === "solo" && !status.accountId,
 
           ...status,
 
@@ -284,13 +304,50 @@ serve(async (req) => {
 
     } else {
 
+      const bodyBusinessType =
+        typeof body.businessType === "string" ? body.businessType.trim().toLowerCase() : null;
+      const businessType =
+        bodyBusinessType === "individual" || bodyBusinessType === "company"
+          ? bodyBusinessType
+          : shop?.stripe_business_type === "individual" || shop?.stripe_business_type === "company"
+            ? shop.stripe_business_type
+            : null;
+
+      if (planId === "solo" && !businessType) {
+        return new Response(
+          JSON.stringify({
+            error: "Choose sole trader or limited company before setting up payouts.",
+            code: "business_type_required",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const resolvedBusinessType = businessType ?? "company";
+
+      if (shop && businessType && shop.stripe_business_type !== businessType) {
+        await admin
+          .from("shop_settings")
+          .update({ stripe_business_type: businessType })
+          .eq("organization_id", organizationId);
+      }
+
       await assertConnectPlatformReady(stripe);
 
       const account = await stripe.accounts.create(
 
-        buildConnectExpressAccountParams(organizationId, org.name, shop, user.email),
+        buildConnectExpressAccountParams(
+          organizationId,
+          org.name,
+          { ...shop, stripe_business_type: resolvedBusinessType },
+          user.email,
+          resolvedBusinessType,
+        ),
 
-        { idempotencyKey: `velbok-connect-express-v2-${organizationId}` },
+        { idempotencyKey: `velbok-connect-express-v3-${organizationId}-${resolvedBusinessType}` },
 
       );
 

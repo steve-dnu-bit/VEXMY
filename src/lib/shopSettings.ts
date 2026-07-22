@@ -21,6 +21,7 @@ export interface ShopSettingsRow {
   logo_url: string | null;
   setup_completed_at: string | null;
   owner_is_practitioner: boolean | null;
+  stripe_business_type?: "individual" | "company" | null;
 }
 
 export async function getUserOrganizationId(userId?: string): Promise<string | null> {
@@ -35,7 +36,7 @@ export async function loadShopSettingsForOrganization(orgId: string): Promise<Sh
   const { data, error } = await supabase
     .from("shop_settings" as any)
     .select(
-      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at, owner_is_practitioner",
+      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at, owner_is_practitioner, stripe_business_type",
     )
     .eq("organization_id", orgId)
     .maybeSingle();
@@ -50,7 +51,7 @@ export async function loadShopSettings(userId?: string): Promise<ShopSettingsRow
     const { data, error } = await supabase
       .from("shop_settings" as any)
       .select(
-        "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at, owner_is_practitioner",
+        "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at, owner_is_practitioner, stripe_business_type",
       )
       .eq("organization_id", orgId)
       .maybeSingle();
@@ -60,7 +61,7 @@ export async function loadShopSettings(userId?: string): Promise<ShopSettingsRow
   const { data, error } = await supabase
     .from("shop_settings" as any)
     .select(
-      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at, owner_is_practitioner",
+      "id, organization_id, shop_name, legal_name, trading_name, support_email, privacy_email, phone, website_url, address_line1, address_line2, city, postcode, country, country_code, logo_url, setup_completed_at, owner_is_practitioner, stripe_business_type",
     )
     .order("created_at", { ascending: true })
     .limit(1)
@@ -130,6 +131,7 @@ export type ShopSetupWizardData = {
   country: string;
   company_name: string;
   company_legal_name: string;
+  stripe_business_type: "individual" | "company" | "";
 };
 
 export function shopRowToWizardData(
@@ -151,5 +153,6 @@ export function shopRowToWizardData(
     country: normalizeShopCountryCode(shop?.country),
     company_name: company?.name ?? shop?.trading_name ?? shop?.shop_name ?? "",
     company_legal_name: company?.legal_name ?? shop?.legal_name ?? "",
+    stripe_business_type: shop?.stripe_business_type ?? "",
   };
 }

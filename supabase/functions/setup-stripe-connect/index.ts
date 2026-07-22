@@ -76,7 +76,7 @@ serve(async (req) => {
     for (const org of orgs ?? []) {
       const { data: shop } = await admin
         .from("shop_settings")
-        .select("shop_name, legal_name, trading_name, support_email, website_url, country")
+        .select("shop_name, legal_name, trading_name, support_email, website_url, country, stripe_business_type")
         .eq("organization_id", org.id)
         .maybeSingle();
 
@@ -98,7 +98,11 @@ serve(async (req) => {
       } else {
         const account = await stripe.accounts.create(
           buildConnectExpressAccountParams(org.id, org.name, shop),
-          { idempotencyKey: `velbok-connect-express-v2-${org.id}` },
+          {
+            idempotencyKey: `velbok-connect-express-v3-${org.id}-${
+              shop?.stripe_business_type === "individual" ? "individual" : "company"
+            }`,
+          },
         );
         accountId = account.id;
         createdAccount = true;
