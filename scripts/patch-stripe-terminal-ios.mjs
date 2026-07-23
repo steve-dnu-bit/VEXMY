@@ -471,7 +471,9 @@ if (!source.includes(markerV4)) {
                 .build()
         } else if TerminalConnectTypes.Bluetooth.rawValue == connectType {
             self.type = DiscoveryMethod.bluetoothScan
-            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(self.isTest!).build()
+            // Do NOT tie simulated to isTest — test-mode keys must still find a real WisePad.
+            let simulated = call.getBool("simulated", false) ?? false
+            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         } else if TerminalConnectTypes.Simulated.rawValue == connectType {
             // Plugin has no dedicated Simulated discovery method — use Bluetooth + simulated.
             self.type = DiscoveryMethod.bluetoothScan
@@ -490,6 +492,31 @@ if (!source.includes(markerV4)) {
   }
 } else {
   console.log("[patch-stripe-terminal-ios] Tap to Pay never-simulated fix (v4) already present.");
+}
+
+const markerV5 = "// velbok: ios bluetooth simulated flag v5";
+if (!source.includes(markerV5)) {
+  // Older v4 still tied Bluetooth simulated to isTest — break real WisePad in Stripe test mode.
+  const oldBt = `        } else if TerminalConnectTypes.Bluetooth.rawValue == connectType {
+            self.type = DiscoveryMethod.bluetoothScan
+            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(self.isTest!).build()
+        } else if TerminalConnectTypes.Simulated.rawValue == connectType {`;
+  const newBt = `        } else if TerminalConnectTypes.Bluetooth.rawValue == connectType {
+            ${markerV5}
+            self.type = DiscoveryMethod.bluetoothScan
+            // Do NOT tie simulated to isTest — test-mode keys must still find a real WisePad.
+            let simulated = call.getBool("simulated", false) ?? false
+            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        } else if TerminalConnectTypes.Simulated.rawValue == connectType {`;
+  if (!source.includes(oldBt)) {
+    console.warn("[patch-stripe-terminal-ios] Bluetooth simulated v5 pattern not found — plugin may have changed.");
+  } else {
+    source = source.replace(oldBt, newBt);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Applied Bluetooth explicit simulated flag (v5).");
+  }
+} else {
+  console.log("[patch-stripe-terminal-ios] Bluetooth simulated flag (v5) already present.");
 }
 
 if (applied > 0) {

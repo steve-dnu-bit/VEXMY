@@ -370,6 +370,63 @@ if (!source.includes(markerV6)) {
   }
 }
 
+const markerV7 = "// velbok: patch v7 bluetooth/ttp simulated";
+if (!source.includes(markerV7)) {
+  const fromV7 = `        if (call.getString("type") == TerminalConnectTypes.TapToPay.webEventName) {
+            config = DiscoveryConfiguration.TapToPayDiscoveryConfiguration(this.isTest!!)
+            this.terminalConnectType = TerminalConnectTypes.TapToPay
+        } else if (call.getString("type") == TerminalConnectTypes.Internet.webEventName) {
+            config = DiscoveryConfiguration.InternetDiscoveryConfiguration(
+                0,
+                this.locationId,
+                this.isTest!!
+            )
+            this.terminalConnectType = TerminalConnectTypes.Internet
+        } else if (call.getString("type") == TerminalConnectTypes.Usb.webEventName) {
+            config = DiscoveryConfiguration.UsbDiscoveryConfiguration(0, this.isTest!!)
+            this.terminalConnectType = TerminalConnectTypes.Usb
+        } else if (call.getString("type") == TerminalConnectTypes.Bluetooth.webEventName || call.getString(
+                "type"
+            ) == TerminalConnectTypes.Simulated.webEventName
+        ) {
+            config = DiscoveryConfiguration.BluetoothDiscoveryConfiguration(0, this.isTest!!)
+            this.terminalConnectType = TerminalConnectTypes.Bluetooth
+        }`;
+  const toV7 = `        ${markerV7}
+        if (call.getString("type") == TerminalConnectTypes.TapToPay.webEventName) {
+            // Tap to Pay does not support simulated discovery on current Stripe SDKs.
+            config = DiscoveryConfiguration.TapToPayDiscoveryConfiguration(false)
+            this.terminalConnectType = TerminalConnectTypes.TapToPay
+        } else if (call.getString("type") == TerminalConnectTypes.Internet.webEventName) {
+            config = DiscoveryConfiguration.InternetDiscoveryConfiguration(
+                0,
+                this.locationId,
+                this.isTest!!
+            )
+            this.terminalConnectType = TerminalConnectTypes.Internet
+        } else if (call.getString("type") == TerminalConnectTypes.Usb.webEventName) {
+            config = DiscoveryConfiguration.UsbDiscoveryConfiguration(0, this.isTest!!)
+            this.terminalConnectType = TerminalConnectTypes.Usb
+        } else if (call.getString("type") == TerminalConnectTypes.Bluetooth.webEventName || call.getString(
+                "type"
+            ) == TerminalConnectTypes.Simulated.webEventName
+        ) {
+            // Simulated type OR explicit simulated:true → fake reader; else real WisePad even in test mode.
+            val connectType = call.getString("type")
+            val simulated = connectType == TerminalConnectTypes.Simulated.webEventName ||
+                (call.getBoolean("simulated", false) ?: false)
+            config = DiscoveryConfiguration.BluetoothDiscoveryConfiguration(0, simulated)
+            this.terminalConnectType = TerminalConnectTypes.Bluetooth
+        }`;
+  if (!source.includes(fromV7)) {
+    console.warn("[patch-stripe-terminal-android] Skip v7 discovery simulated flags — pattern not found.");
+  } else {
+    source = source.replace(fromV7, toV7);
+    changed = true;
+    console.log("[patch-stripe-terminal-android] Applied v7 discovery simulated flags");
+  }
+}
+
 if (changed) {
   fs.writeFileSync(target, source, "utf8");
   console.log("[patch-stripe-terminal-android] Done.");

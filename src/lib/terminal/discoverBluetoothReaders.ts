@@ -31,6 +31,7 @@ export async function discoverBluetoothReaders(locationId: string): Promise<Read
     const discoveryPromise = StripeTerminal.discoverReaders({
       type: TerminalConnectTypes.Bluetooth,
       locationId,
+      simulated: false,
       ...(nativePlatform() === "ios" ? { bluetoothScanWaitTime: 10 } : {}),
     })
       .then((result) => {
