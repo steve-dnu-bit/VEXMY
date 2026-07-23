@@ -546,14 +546,17 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
             : "Searching for reader…",
         );
 
-        const readers = options.simulated
-          ? (await StripeTerminal.discoverReaders({
-              type: TerminalConnectTypes.Simulated,
-              locationId: locationId || "",
-            })).readers ?? []
-          : options.readerMode === "tap_to_pay"
+        // Tap to Pay must never use the Simulated discovery type — iOS plugin rejects it
+        // ("simulated is not support now"). Use real phone NFC; Stripe test mode still works with test cards.
+        const readers =
+          options.readerMode === "tap_to_pay"
             ? await discoverTapToPayReaders(locationId, (message) => options.onReaderStatus?.(message))
-            : await discoverBluetoothReaders(locationId);
+            : options.simulated
+              ? (await StripeTerminal.discoverReaders({
+                  type: TerminalConnectTypes.Simulated,
+                  locationId: locationId || "",
+                })).readers ?? []
+              : await discoverBluetoothReaders(locationId);
 
         if (!readers.length) {
           if (options.simulated) throw new Error("No simulated reader found");

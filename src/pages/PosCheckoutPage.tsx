@@ -197,7 +197,7 @@ const PosCheckoutPage = () => {
       : null;
 
   const terminal = useStripeTerminal({
-    simulated: simulatedReader,
+    simulated: simulatedReader && readerMode !== "tap_to_pay",
     readerMode,
     locationId,
     onConnectionTokenError: (message) => toast.error(message),

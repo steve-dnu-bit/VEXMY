@@ -426,6 +426,72 @@ if (!source.includes(markerV3)) {
   console.log("[patch-stripe-terminal-ios] Listener payload JSON-safe fix (v3) already present.");
 }
 
+const markerV4 = "// velbok: ios tap-to-pay never simulated v4";
+if (!source.includes(markerV4)) {
+  // Capacitor plugin maps isTest → setSimulated(true) for Tap to Pay, which Stripe iOS
+  // rejects ("simulated is not support"). Simulated discovery type is also unimplemented.
+  const oldDiscover = `    func discoverReaders(_ call: CAPPluginCall) throws {
+        let connectType = call.getString("type")
+        let config: DiscoveryConfiguration
+        self.locationId = call.getString("locationId")
+
+        if TerminalConnectTypes.TapToPay.rawValue == connectType {
+            self.type = .tapToPay
+            config = try TapToPayDiscoveryConfigurationBuilder().setSimulated(self.isTest!).build()
+        } else if TerminalConnectTypes.Internet.rawValue == connectType {
+            self.type = .internet
+            config = try InternetDiscoveryConfigurationBuilder()
+                .setLocationId(self.locationId)
+                .setSimulated(self.isTest!)
+                .build()
+        } else if TerminalConnectTypes.Bluetooth.rawValue == connectType {
+            self.type = DiscoveryMethod.bluetoothScan
+            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(self.isTest!).build()
+        } else {
+            call.unimplemented(connectType! + " is not support now")
+            return
+        }`;
+
+  const newDiscover = `    func discoverReaders(_ call: CAPPluginCall) throws {
+        ${markerV4}
+        let connectType = call.getString("type")
+        let config: DiscoveryConfiguration
+        self.locationId = call.getString("locationId")
+
+        if TerminalConnectTypes.TapToPay.rawValue == connectType {
+            // Tap to Pay on iPhone does not support simulated discovery — even in Stripe test mode.
+            // Test payments use the real phone reader + Stripe test cards (sk_test).
+            self.type = .tapToPay
+            config = try TapToPayDiscoveryConfigurationBuilder().setSimulated(false).build()
+        } else if TerminalConnectTypes.Internet.rawValue == connectType {
+            self.type = .internet
+            config = try InternetDiscoveryConfigurationBuilder()
+                .setLocationId(self.locationId)
+                .setSimulated(self.isTest!)
+                .build()
+        } else if TerminalConnectTypes.Bluetooth.rawValue == connectType {
+            self.type = DiscoveryMethod.bluetoothScan
+            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(self.isTest!).build()
+        } else if TerminalConnectTypes.Simulated.rawValue == connectType {
+            // Plugin has no dedicated Simulated discovery method — use Bluetooth + simulated.
+            self.type = DiscoveryMethod.bluetoothScan
+            config = try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(true).build()
+        } else {
+            call.unimplemented((connectType ?? "unknown") + " is not support now")
+            return
+        }`;
+
+  if (!source.includes(oldDiscover)) {
+    console.warn("[patch-stripe-terminal-ios] discoverReaders pattern not found — plugin may have changed.");
+  } else {
+    source = source.replace(oldDiscover, newDiscover);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Applied Tap to Pay never-simulated + Simulated discovery fix (v4).");
+  }
+} else {
+  console.log("[patch-stripe-terminal-ios] Tap to Pay never-simulated fix (v4) already present.");
+}
+
 if (applied > 0) {
   fs.writeFileSync(target, source);
   console.log(`[patch-stripe-terminal-ios] Wrote ${applied} patch(es).`);
