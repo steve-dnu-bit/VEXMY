@@ -9,7 +9,6 @@ import { formatTerminalError } from "@/lib/terminal/formatTerminalError";
 import { checkTapToPayEnvironment } from "@/lib/terminal/tapToPayReadiness";
 import { isNativeTerminalInitialized, isTerminalOperationAborted } from "@/lib/terminal/nativeTerminalState";
 import { formatConnectionStatusForStaff } from "@/lib/terminal/terminalConnectionStatus";
-import { fetchTerminalConfig } from "@/lib/terminal/fetchTerminalConfig";
 
 /** Tap to Pay discovery can be slow on first run. */
 const DISCOVERY_TIMEOUT_MS = 90_000;
@@ -133,13 +132,9 @@ export async function discoverTapToPayReaders(
       throw new Error("Terminal connection token failed — check internet and Stripe Connect setup.");
     }
 
-    let tapToPaySimulated = false;
-    try {
-      const config = await fetchTerminalConfig();
-      tapToPaySimulated = config.isTest;
-    } catch {
-      /* native plugin falls back to initialize isTest when simulated is omitted */
-    }
+    // Tap to Pay must never use simulated discovery — native SDKs reject it
+    // ("_simulated is not supported"). Test mode still uses the real phone reader
+    // with Stripe test cards; simulated readers are Bluetooth-only via TerminalConnectTypes.Simulated.
 
     let resultReaders: ReaderInterface[] = [];
     try {
@@ -147,8 +142,7 @@ export async function discoverTapToPayReaders(
         StripeTerminal.discoverReaders({
           type: TerminalConnectTypes.TapToPay,
           locationId,
-          simulated: tapToPaySimulated,
-        } as Parameters<typeof StripeTerminal.discoverReaders>[0] & { simulated?: boolean }),
+        }),
         DISCOVERY_TIMEOUT_MS,
         "Tap to Pay discovery timed out. Keep Velbok open in the foreground with Location allowed and try mobile data.",
       );
