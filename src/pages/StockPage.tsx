@@ -13,6 +13,7 @@ import { format, parseISO } from "date-fns";
 import { Package, Plus, CheckCircle, Clock, XCircle, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import SubscriptionGate from "@/components/subscription/SubscriptionGate";
+import { loadOrganizationMemberIds } from "@/lib/organizationMembers";
 import { useTranslation } from "react-i18next";
 
 interface StockItem {
@@ -97,10 +98,15 @@ const StockPage = () => {
   };
 
   const fetchAll = async () => {
+    const orgMemberIds = await loadOrganizationMemberIds();
+    const memberIdList = [...orgMemberIds];
+
     const [itemsRes, requestsRes, profilesRes, supplierLinksRes] = await Promise.all([
       supabase.from("stock_items").select("*").eq("is_active", true).order("category").order("name"),
       supabase.from("stock_requests").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("user_id, display_name"),
+      memberIdList.length > 0
+        ? supabase.from("profiles").select("user_id, display_name").in("user_id", memberIdList)
+        : Promise.resolve({ data: [] as Array<{ user_id: string; display_name: string | null }> }),
       supabase
         .from("stock_supplier_links")
         .select("id, stock_item_id, supplier_name, supplier_url, created_at")

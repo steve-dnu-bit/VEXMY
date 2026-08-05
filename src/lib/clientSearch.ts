@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { loadOrganizationMemberIds } from "@/lib/organizationMembers";
 
 export type ClientPick = {
   client_name: string;
@@ -21,6 +22,19 @@ export async function searchOrganizationClients(query: string, limit = 28): Prom
   if (q.length < 2) return [];
 
   const pattern = `%${escapeIlike(q)}%`;
+  const orgMemberIds = await loadOrganizationMemberIds();
+  const memberIdList = [...orgMemberIds];
+
+  const profilesQuery =
+    memberIdList.length > 0
+      ? supabase
+          .from("profiles")
+          .select("user_id, display_name, phone")
+          .ilike("display_name", pattern)
+          .in("user_id", memberIdList)
+          .limit(20)
+      : Promise.resolve({ data: [] as Array<{ user_id: string; display_name: string | null; phone: string | null }> });
+
   const [byName, byEmail, profs, importedContacts] = await Promise.all([
     supabase
       .from("bookings")
@@ -34,7 +48,7 @@ export async function searchOrganizationClients(query: string, limit = 28): Prom
       .ilike("client_email", pattern)
       .order("starts_at", { ascending: false })
       .limit(45),
-    supabase.from("profiles").select("user_id, display_name, phone").ilike("display_name", pattern).limit(20),
+    profilesQuery,
     supabase
       .from("contacts_import" as any)
       .select("name, email, phone")

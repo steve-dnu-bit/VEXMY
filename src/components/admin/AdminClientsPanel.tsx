@@ -26,7 +26,7 @@ import {
 import { useArtistDataPrivacy } from "@/hooks/useArtistDataPrivacy";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { loadOrganizationCustomerIds, loadOrganizationMemberIds } from "@/lib/organizationMembers";
+import { loadOrganizationCustomerIds } from "@/lib/organizationMembers";
 import { getUserOrganizationId } from "@/lib/shopSettings";
 import { Link } from "react-router-dom";
 import ExternalMessageActions from "@/components/messaging/ExternalMessageActions";
@@ -165,8 +165,7 @@ const AdminClientsPanel = () => {
       }
     }
 
-    // Signed-up customer accounts (shop admins see all; privacy-restricted artists only linked clients).
-    const orgMemberIds = await loadOrganizationMemberIds();
+    // Signed-up customer accounts (org-scoped; privacy-restricted artists only linked clients).
     let customerIds: string[];
     if (artistPrivacyRestricted && user?.id) {
       customerIds = [
@@ -174,11 +173,8 @@ const AdminClientsPanel = () => {
           bookingRows.map((b) => b.client_user_id).filter((id): id is string => Boolean(id)),
         ),
       ];
-    } else if (orgMemberIds) {
-      customerIds = [...(await loadOrganizationCustomerIds())];
     } else {
-      const { data: customerRoles } = await supabase.from("user_roles").select("user_id").eq("role", "customer");
-      customerIds = (customerRoles ?? []).map((r) => r.user_id).filter(Boolean);
+      customerIds = [...(await loadOrganizationCustomerIds())];
     }
 
     if (customerIds.length > 0) {

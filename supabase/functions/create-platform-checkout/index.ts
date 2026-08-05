@@ -177,6 +177,16 @@ serve(async (req) => {
         });
       }
 
+      // Leave any prior studio (e.g. client membership) so this account is ringfenced to the new org.
+      const { error: detachRpcError } = await admin.rpc("detach_user_from_other_organizations", {
+        _user_id: user.id,
+        _keep_org_id: newOrg.id,
+      });
+      if (detachRpcError) {
+        // Migration may not be applied yet — fall back to direct delete.
+        await admin.from("organization_members").delete().eq("user_id", user.id);
+      }
+
       const { error: memberError } = await admin.from("organization_members").insert({
         organization_id: newOrg.id,
         user_id: user.id,

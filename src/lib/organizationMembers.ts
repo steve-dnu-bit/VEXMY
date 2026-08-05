@@ -10,7 +10,7 @@ export type OrganizationArtistProfile = {
 /** Artists who belong to the current studio org (not every artist in the database). */
 export async function loadOrganizationArtists(orgId?: string | null): Promise<OrganizationArtistProfile[]> {
   const memberIds = await loadOrganizationMemberIds(orgId);
-  if (!memberIds || memberIds.size === 0) return [];
+  if (memberIds.size === 0) return [];
 
   const memberIdList = [...memberIds];
   const { data: roleRows, error: rolesError } = await supabase
@@ -33,24 +33,27 @@ export async function loadOrganizationArtists(orgId?: string | null): Promise<Or
   return (profiles ?? []) as OrganizationArtistProfile[];
 }
 
-/** Org member user IDs for the current studio, or null when org scoping does not apply. */
-export async function loadOrganizationMemberIds(orgId?: string | null): Promise<Set<string> | null> {
+/**
+ * Org member user IDs for the current studio.
+ * Returns an empty set when org scoping cannot be resolved (fail closed — never "all users").
+ */
+export async function loadOrganizationMemberIds(orgId?: string | null): Promise<Set<string>> {
   const resolved = orgId ?? (await getUserOrganizationId());
-  if (!resolved) return null;
+  if (!resolved) return new Set();
 
   const { data, error } = await supabase
     .from("organization_members")
     .select("user_id")
     .eq("organization_id", resolved);
 
-  if (error) return null;
+  if (error) return new Set();
   return new Set((data ?? []).map((row) => row.user_id));
 }
 
 /** Customer user IDs linked to the current studio organization. */
 export async function loadOrganizationCustomerIds(orgId?: string | null): Promise<Set<string>> {
   const memberIds = await loadOrganizationMemberIds(orgId);
-  if (!memberIds || memberIds.size === 0) return new Set();
+  if (memberIds.size === 0) return new Set();
 
   const ids = [...memberIds];
   const { data: roleRows } = await supabase.from("user_roles").select("user_id").eq("role", "customer").in("user_id", ids);
@@ -58,15 +61,19 @@ export async function loadOrganizationCustomerIds(orgId?: string | null): Promis
   return new Set((roleRows ?? []).map((row) => row.user_id));
 }
 
+/** Keep only rows whose user_id is in the org member set. Empty/missing set => no rows. */
 export function filterByOrganizationMembers<T extends { user_id: string }>(
   rows: T[],
-  memberIds: Set<string> | null,
+  memberIds: Set<string> | null | undefined,
 ): T[] {
-  if (!memberIds) return rows;
+  if (!memberIds || memberIds.size === 0) return [];
   return rows.filter((row) => memberIds.has(row.user_id));
 }
 
-export function filterUserIdsByOrganization(userIds: string[], memberIds: Set<string> | null): string[] {
-  if (!memberIds) return userIds;
+export function filterUserIdsByOrganization(
+  userIds: string[],
+  memberIds: Set<string> | null | undefined,
+): string[] {
+  if (!memberIds || memberIds.size === 0) return [];
   return userIds.filter((id) => memberIds.has(id));
 }

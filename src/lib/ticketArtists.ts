@@ -8,9 +8,15 @@ export async function loadStudioArtists(organizationId: string | null | undefine
   if (!organizationId) return [];
 
   const orgMemberIds = await loadOrganizationMemberIds(organizationId);
+  if (orgMemberIds.size === 0) return [];
+  const memberIdList = [...orgMemberIds];
+
   const [{ data: roleRows }, { data: profileRows }] = await Promise.all([
-    supabase.from("user_roles").select("user_id, role"),
-    supabase.from("profiles").select("user_id, display_name, public_profile_completed, customer_profile_completed"),
+    supabase.from("user_roles").select("user_id, role").in("user_id", memberIdList),
+    supabase
+      .from("profiles")
+      .select("user_id, display_name, public_profile_completed, customer_profile_completed")
+      .in("user_id", memberIdList),
   ]);
 
   const rolesByUser = new Map<string, string[]>();

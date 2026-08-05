@@ -196,9 +196,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId, customerOrganizationId 
     let visibleRows = rows;
     if (mode === "customer" && customerOrganizationId) {
       const orgMemberIds = await loadOrganizationMemberIds(customerOrganizationId);
-      if (orgMemberIds) {
-        visibleRows = rows.filter((r) => orgMemberIds.has(r.artist_id));
-      }
+      visibleRows = rows.filter((r) => orgMemberIds.has(r.artist_id));
     }
     const names = await resolveProfileNamesForThreads(visibleRows);
     setProfileNames(names);
@@ -213,9 +211,17 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId, customerOrganizationId 
   const fetchArtists = async () => {
     if (!user || mode !== "customer") return;
     const orgMemberIds = await loadOrganizationMemberIds(customerOrganizationId ?? undefined);
+    if (orgMemberIds.size === 0) {
+      setArtists([]);
+      return;
+    }
+    const memberIdList = [...orgMemberIds];
     const [{ data: roleRows }, { data: profileRows }] = await Promise.all([
-      supabase.from("user_roles").select("user_id, role"),
-      supabase.from("profiles").select("user_id, display_name, public_profile_completed, customer_profile_completed"),
+      supabase.from("user_roles").select("user_id, role").in("user_id", memberIdList),
+      supabase
+        .from("profiles")
+        .select("user_id, display_name, public_profile_completed, customer_profile_completed")
+        .in("user_id", memberIdList),
     ]);
     const rolesByUser = new Map<string, string[]>();
     (roleRows || []).forEach((r: any) => {
@@ -257,13 +263,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId, customerOrganizationId 
     const byId = new Map<string, CustomerOption>();
 
     const orgMemberIds = await loadOrganizationMemberIds();
-    let customerIds: string[];
-    if (orgMemberIds) {
-      customerIds = [...(await loadOrganizationCustomerIds())];
-    } else {
-      const { data: roleRows } = await supabase.from("user_roles").select("user_id, role").eq("role", "customer");
-      customerIds = [...new Set((roleRows || []).map((r: any) => r.user_id).filter(Boolean))] as string[];
-    }
+    const customerIds = [...(await loadOrganizationCustomerIds())];
 
     if (customerIds.length > 0) {
       const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", customerIds);
@@ -282,7 +282,8 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId, customerOrganizationId 
     const { data: bookingLinks } = await bookingQuery;
 
     const bookingUserIds = [...new Set((bookingLinks || []).map((b: any) => b.client_user_id).filter(Boolean))] as string[];
-    const missingProfileIds = bookingUserIds.filter((id) => !byId.has(id));
+    const scopedBookingIds = filterUserIdsByOrganization(bookingUserIds, orgMemberIds);
+    const missingProfileIds = scopedBookingIds.filter((id) => !byId.has(id));
 
     if (missingProfileIds.length > 0) {
       const { data: linkedProfiles } = await supabase
@@ -296,6 +297,7 @@ const UnifiedChatWorkspace = ({ mode, initialCustomerId, customerOrganizationId 
 
     (bookingLinks || []).forEach((b: any) => {
       if (!b.client_user_id || byId.has(b.client_user_id)) return;
+      if (orgMemberIds.size > 0 && !orgMemberIds.has(b.client_user_id)) return;
       byId.set(b.client_user_id, {
         id: b.client_user_id,
         name: (b.client_name || "").trim() || b.client_user_id,

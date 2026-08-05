@@ -70,7 +70,7 @@ export async function loadAdminTeamData(): Promise<AdminTeamData> {
 
   const defaults = (defRes.data ?? []) as AdminDefaultRow[];
 
-  if (!orgMemberIds || orgMemberIds.size === 0) {
+  if (orgMemberIds.size === 0) {
     return {
       profiles: [],
       permissions: [],

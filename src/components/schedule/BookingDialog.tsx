@@ -515,7 +515,7 @@ const BookingDialog = ({
       setLinkAccountSuggestions(
         profs
           .filter((p) => ok.has(p.user_id))
-          .filter((p) => !orgMemberIds || orgCustomerIds.has(p.user_id))
+          .filter((p) => orgCustomerIds.has(p.user_id) || orgMemberIds.has(p.user_id))
           .slice(0, 20),
       );
     } catch {

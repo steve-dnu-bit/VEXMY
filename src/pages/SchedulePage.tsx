@@ -200,10 +200,20 @@ const SchedulePage = () => {
 
   const fetchProfiles = async () => {
     const orgMemberIds = await loadOrganizationMemberIds();
+    const memberIdList = [...orgMemberIds];
+
+    if (memberIdList.length === 0) {
+      setProfiles([]);
+      setProfilesReady(true);
+      return;
+    }
 
     const [{ data: allProfiles, error: profilesErr }, { data: allRoles, error: roleErr }] = await Promise.all([
-      supabase.from("profiles").select("user_id, display_name, avatar_url, portal_bg_color"),
-      supabase.from("user_roles").select("user_id, role"),
+      supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url, portal_bg_color")
+        .in("user_id", memberIdList),
+      supabase.from("user_roles").select("user_id, role").in("user_id", memberIdList),
     ]);
 
     if (profilesErr) {
@@ -218,7 +228,7 @@ const SchedulePage = () => {
       if (row?.artist_id) bookingArtistIds.add(row.artist_id);
     }
 
-    // Can't tell customer vs staff — show every profile so the schedule stays usable.
+    // Can't tell customer vs staff — show org profiles so the schedule stays usable.
     if (roleErr) {
       const list = filterByOrganizationMembers((allProfiles || []) as Profile[], orgMemberIds);
       setProfiles(list);
