@@ -1,7 +1,53 @@
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { isNativeApp, nativePlatform } from "@/lib/platform";
+import { loadTapToPaySfSymbolDataUrl } from "@/lib/terminal/tapToPayEducation";
 
-/** Approximates SF Symbol wave.3.right.circle for Apple TTPOI button iconography (req 5.5). */
-export function TapToPayWaveIcon({ className }: { className?: string }) {
+type TapToPayWaveIconProps = {
+  className?: string;
+  /** Prefer filled for primary checkout CTA (Apple HIG wave.3.right.circle.fill). */
+  filled?: boolean;
+};
+
+/**
+ * Apple TTPOI 5.5 — on iOS uses the real SF Symbol wave.3.right.circle(.fill)
+ * rendered by UIKit. Fallback SVG is only for web/Android (not entitlement UI).
+ */
+export function TapToPayWaveIcon({ className, filled = true }: TapToPayWaveIconProps) {
+  const [src, setSrc] = useState<string | null>(null);
+  const symbolName = filled ? "wave.3.right.circle.fill" : "wave.3.right.circle";
+
+  useEffect(() => {
+    if (!isNativeApp() || nativePlatform() !== "ios") return;
+    let cancelled = false;
+    void loadTapToPaySfSymbolDataUrl(symbolName).then((url) => {
+      if (!cancelled && url) setSrc(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [symbolName]);
+
+  if (src) {
+    return (
+      <span
+        aria-hidden
+        className={cn("shrink-0 inline-block align-middle", className)}
+        style={{
+          backgroundColor: "currentColor",
+          WebkitMaskImage: `url(${src})`,
+          maskImage: `url(${src})`,
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+        }}
+      />
+    );
+  }
+
   return (
     <svg
       viewBox="0 0 24 24"

@@ -10,6 +10,7 @@ import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
 import { PosPaymentFlowOverlay, type PosPaymentFlowPhase } from "@/components/pos/PosPaymentFlowOverlay";
 import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
 import { TapToPayTryItDialog } from "@/components/pos/TapToPayTryItDialog";
+import { TapToPayEnableDialog } from "@/components/pos/TapToPayEnableDialog";
 import BookingClientSearch from "@/components/schedule/BookingClientSearch";
 import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
@@ -88,6 +89,10 @@ import {
   hasTapToPayHardBlockers,
 } from "@/lib/terminal/tapToPayReadiness";
 import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
+import {
+  hasCompletedTapToPaySetup,
+  markTapToPaySetupCompleted,
+} from "@/lib/terminal/tapToPaySetupStorage";
 
 interface CartEntry {
   key: string;
@@ -108,6 +113,8 @@ const PosCheckoutPage = () => {
   const prefilledBookingId = searchParams.get("bookingId");
   const enableTapToPayParam = searchParams.get("enableTapToPay") === "1";
   const [showTryItAfterEducation, setShowTryItAfterEducation] = useState(false);
+  const [enableTermsOpen, setEnableTermsOpen] = useState(false);
+  const [enableTermsBusy, setEnableTermsBusy] = useState(false);
   const enableTapToPayTriggered = useRef(false);
   const [loading, setLoading] = useState(true);
   const [quickItems, setQuickItems] = useState<PosItemTemplate[]>([]);
@@ -225,30 +232,17 @@ const PosCheckoutPage = () => {
   }, [usingTapToPay, tapToPayReady.refresh]);
 
   useEffect(() => {
+    // Apple 3.5: show an explicit Terms/setup prompt — do not auto-connect silently.
     if (!enableTapToPayParam || loading || !posEnabled || !usingTapToPay) return;
     if (enableTapToPayTriggered.current) return;
-    if (terminal.status === "connected") return;
     enableTapToPayTriggered.current = true;
-    void (async () => {
-      try {
-        setPaying(true);
-        const connected = await ensureTapToPayConnected();
-        if (connected) {
-          toast.success(t("pos.tapToPayPhoneReady"));
-          setPaymentFlowPhase("hidden");
-        }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
-        toast.error(msg);
-        setPaymentFlowPhase("declined");
-        setPaymentFlowDetail(msg);
-      } finally {
-        setPaying(false);
-      }
-    })();
-    // ensureTapToPayConnected is stable enough via terminal/canManageBilling closures in this page
+    if (!canManageBilling) {
+      toast.error(t("pos.tapToPayContactAdmin"));
+      return;
+    }
+    setEnableTermsOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enableTapToPayParam, loading, posEnabled, usingTapToPay, terminal.status]);
+  }, [enableTapToPayParam, loading, posEnabled, usingTapToPay, canManageBilling]);
 
   const testStripeServerLink = async () => {
     if (!locationId) {
@@ -798,7 +792,9 @@ function isPaymentOverlayNoise(status: string): boolean {
     })();
   };
 
-  const ensureTapToPayConnected = async (): Promise<boolean> => {
+  const ensureTapToPayConnected = async (options?: {
+    skipEducation?: boolean;
+  }): Promise<boolean> => {
     if (terminal.status === "connected") return true;
 
     if (!canManageBilling) {
@@ -822,12 +818,91 @@ function isPaymentOverlayNoise(status: string): boolean {
     await terminal.discoverAndConnect();
     markWisePadFirmwareCompleted();
     setShowWisePadGuide(false);
-    const educated = await showTapToPayEducationIfAvailable();
-    if (educated) {
-      setShowTryItAfterEducation(true);
+
+    if (!options?.skipEducation) {
+      // Hide payment overlay so Apple education is on top (req 4.1).
+      setPaymentFlowPhase("hidden");
+      try {
+        const educated = await showTapToPayEducationIfAvailable();
+        if (educated) {
+          markTapToPaySetupCompleted();
+          setShowTryItAfterEducation(true);
+        } else {
+          toast.message(t("pos.enableTermsEducationFailed"));
+        }
+      } catch (eduErr) {
+        const msg = eduErr instanceof Error ? eduErr.message : t("pos.enableTermsEducationFailed");
+        toast.error(msg);
+      }
     }
     return true;
   };
+
+  /** Apple 3.5 + 4.1: explicit Terms CTA → Apple T&Cs on connect → How to Tap immediately. */
+  const runTapToPayEnableWithTerms = async (): Promise<boolean> => {
+    if (!canManageBilling) {
+      toast.error(t("pos.tapToPayContactAdmin"));
+      return false;
+    }
+    if (connectBlockedReason) {
+      toast.error(connectBlockedReason);
+      return false;
+    }
+
+    setEnableTermsBusy(true);
+    setPaying(true);
+    try {
+      setEnableTermsOpen(false);
+      setPaymentFlowPhase("initializing");
+      setPaymentFlowDetail(t("pos.paymentInitializingProgress"));
+
+      if (terminal.status !== "connected") {
+        const env = await checkTapToPayEnvironment();
+        if (env && hasTapToPayHardBlockers(env)) {
+          const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
+          setPaymentFlowPhase("declined");
+          setPaymentFlowDetail(message);
+          toast.error(message);
+          return false;
+        }
+        // Stripe/Apple present T&Cs on first Tap to Pay connect.
+        await terminal.discoverAndConnect();
+        markWisePadFirmwareCompleted();
+        setShowWisePadGuide(false);
+      }
+
+      setPaymentFlowPhase("hidden");
+      try {
+        const educated = await showTapToPayEducationIfAvailable();
+        if (educated) {
+          markTapToPaySetupCompleted();
+          setShowTryItAfterEducation(true);
+        } else {
+          toast.message(t("pos.enableTermsEducationFailed"));
+          // Still mark setup attempted so checkout can proceed; education re-entry in Settings.
+          markTapToPaySetupCompleted();
+        }
+      } catch (eduErr) {
+        const msg = eduErr instanceof Error ? eduErr.message : t("pos.enableTermsEducationFailed");
+        toast.error(msg);
+        markTapToPaySetupCompleted();
+      }
+
+      toast.success(t("pos.tapToPayPhoneReady"));
+      return true;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
+      setPaymentFlowPhase(classifyPaymentFailure(msg));
+      setPaymentFlowDetail(msg);
+      toast.error(msg);
+      return false;
+    } finally {
+      setEnableTermsBusy(false);
+      setPaying(false);
+    }
+  };
+
+  const needsTapToPayTermsSetup = () => usingTapToPay && !hasCompletedTapToPaySetup();
 
   const shareDigitalReceipt = async (overrideEmail?: string) => {
     const email = (overrideEmail || clientEmail).trim();
@@ -972,8 +1047,13 @@ function isPaymentOverlayNoise(status: string): boolean {
     activeSaleIdRef.current = null;
     let saleId: string | null = null;
     try {
+      if (amountDue > 0 && usingTapToPay && needsTapToPayTermsSetup()) {
+        setEnableTermsOpen(true);
+        return;
+      }
+
       if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
-        const connected = await ensureTapToPayConnected();
+        const connected = await ensureTapToPayConnected({ skipEducation: hasCompletedTapToPaySetup() });
         if (!connected) return;
       }
 
@@ -1139,16 +1219,29 @@ function isPaymentOverlayNoise(status: string): boolean {
   };
 
   const handleTapToPayPrimary = async () => {
-    if (readerFirmwareUpdating || paying) return;
+    if (readerFirmwareUpdating || paying || enableTermsBusy) return;
 
     if (amountDue <= 0 && depositCredit > 0) {
       void handlePay();
       return;
     }
 
+    // Apple 3.5: never start a payment until Terms + setup have been accepted.
+    if (needsTapToPayTermsSetup()) {
+      if (!canManageBilling) {
+        toast.error(t("pos.tapToPayContactAdmin"));
+        return;
+      }
+      if (connectBlockedReason) {
+        toast.error(connectBlockedReason);
+        return;
+      }
+      setEnableTermsOpen(true);
+      return;
+    }
+
     if (cart.length === 0) {
-      // Apple 5.3: button stays enabled — if not ready to charge, still allow enable/Terms path.
-      if (terminal.status === "connected") {
+      if (terminal.status === "connected" && hasCompletedTapToPaySetup()) {
         toast.error(t("pos.addItemsToCharge"));
         return;
       }
@@ -1156,20 +1249,7 @@ function isPaymentOverlayNoise(status: string): boolean {
         toast.error(connectBlockedReason);
         return;
       }
-      try {
-        setPaying(true);
-        const connected = await ensureTapToPayConnected();
-        if (connected) {
-          toast.success(t("pos.tapToPayPhoneReady"));
-          setPaymentFlowPhase("hidden");
-        }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
-        setPaymentFlowPhase(classifyPaymentFailure(msg));
-        setPaymentFlowDetail(msg);
-      } finally {
-        setPaying(false);
-      }
+      setEnableTermsOpen(true);
       return;
     }
 
@@ -1685,7 +1765,7 @@ function isPaymentOverlayNoise(status: string): boolean {
                           terminal.status === "connecting" ? (
                             <Loader2 className="h-5 w-5 animate-spin mr-2" />
                           ) : (
-                            <TapToPayWaveIcon className="h-5 w-5 mr-2" />
+                            <TapToPayWaveIcon className="h-5 w-5 mr-2" filled />
                           )}
                           {amountDue <= 0 && depositCredit > 0
                             ? t("pos.completeNoCharge")
@@ -2169,6 +2249,12 @@ function isPaymentOverlayNoise(status: string): boolean {
               ? sendReceiptSms
               : undefined
           }
+        />
+        <TapToPayEnableDialog
+          open={enableTermsOpen}
+          onOpenChange={setEnableTermsOpen}
+          busy={enableTermsBusy}
+          onAcceptTermsAndEnable={() => void runTapToPayEnableWithTerms()}
         />
         <TapToPayTryItDialog open={showTryItAfterEducation} onOpenChange={setShowTryItAfterEducation} />
       </SubscriptionGate>

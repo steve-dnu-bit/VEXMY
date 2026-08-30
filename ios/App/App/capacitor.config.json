@@ -35,6 +35,9 @@
 		"CAPCameraPlugin",
 		"GeolocationPlugin",
 		"PushNotificationsPlugin",
-		"SplashScreenPlugin"
+		"SplashScreenPlugin",
+		"TapToPayEducationPlugin",
+		"TapToPayReadinessPlugin",
+		"TerminalPermissionsPlugin"
 	]
 }

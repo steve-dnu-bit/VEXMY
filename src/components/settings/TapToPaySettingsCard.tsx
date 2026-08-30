@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { isIpadDevice, isNativeApp, nativePlatform } from "@/lib/platform";
 import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
 import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
+import { clearTapToPaySetupCompleted } from "@/lib/terminal/tapToPaySetupStorage";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import i18n from "@/i18n";
@@ -40,6 +41,9 @@ export function TapToPaySettingsCard() {
       toast.error(t("pos.tapToPayContactAdmin"));
       return;
     }
+    // Clear local flag so Checkout shows the Terms CTA again (Apple Business merchant
+    // ID must still be removed separately if Apple T&Cs were already accepted).
+    clearTapToPaySetupCompleted();
     navigate("/checkout?enableTapToPay=1");
   };
 
@@ -52,6 +56,8 @@ export function TapToPaySettingsCard() {
         return;
       }
       setShowTryIt(true);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("pos.enableTermsEducationFailed"));
     } finally {
       setBusy(false);
     }
@@ -79,7 +85,7 @@ export function TapToPaySettingsCard() {
       <Card className="bg-card border-border">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <TapToPayWaveIcon className="h-5 w-5 text-primary" />
+            <TapToPayWaveIcon className="h-5 w-5 text-primary" filled />
             <CardTitle className="text-base">{label}</CardTitle>
           </div>
           <CardDescription>{t("pos.settingsTapToPayDesc")}</CardDescription>
@@ -101,6 +107,7 @@ export function TapToPaySettingsCard() {
             <div className="flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="button" variant="gold" onClick={enable} disabled={busy}>
+                  <TapToPayWaveIcon className="h-4 w-4 mr-2" filled />
                   {t("pos.connectTapToPay")}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => void showEducation()} disabled={busy}>
