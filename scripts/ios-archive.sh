@@ -19,6 +19,15 @@ if [[ ! -f "ios/App/App/GoogleService-Info.plist" ]]; then
   fi
 fi
 
+BRANCH="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")"
+HEAD_SHORT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo "?")"
+echo "==> git branch=$BRANCH HEAD=$HEAD_SHORT"
+if [[ "$BRANCH" != "apple-app-store" ]]; then
+  echo "WARNING: not on apple-app-store (currently $BRANCH)."
+  echo "         main / other branches often have older MARKETING_VERSION."
+  echo "         Prefer: git fetch origin && git checkout apple-app-store && git reset --hard origin/apple-app-store"
+fi
+
 if [[ -z "${SKIP_NPM_INSTALL:-}" ]]; then
   echo "==> Installing npm dependencies"
   npm ci
@@ -26,10 +35,24 @@ fi
 
 npm run ios:prepare
 
+EXPECTED_VERSION="$(node -e "console.log(JSON.parse(require('fs').readFileSync('scripts/mobile-version.json','utf8')).versionName)")"
+EXPECTED_BUILD="$(node -e "console.log(JSON.parse(require('fs').readFileSync('scripts/mobile-version.json','utf8')).versionCode)")"
+PBX_VERSION="$(grep -m1 'MARKETING_VERSION' "$ROOT/ios/App/App.xcodeproj/project.pbxproj" | sed -E 's/.*=[[:space:]]*([^;]+);/\1/' | tr -d '[:space:]')"
+PBX_BUILD="$(grep -m1 'CURRENT_PROJECT_VERSION' "$ROOT/ios/App/App.xcodeproj/project.pbxproj" | sed -E 's/.*=[[:space:]]*([^;]+);/\1/' | tr -d '[:space:]')"
+echo "==> Version gate after ios:prepare"
+echo "    mobile-version.json: $EXPECTED_VERSION ($EXPECTED_BUILD)"
+echo "    project.pbxproj:     $PBX_VERSION ($PBX_BUILD)"
+if [[ "$PBX_VERSION" != "$EXPECTED_VERSION" || "$PBX_BUILD" != "$EXPECTED_BUILD" ]]; then
+  echo "ERROR: project.pbxproj version ($PBX_VERSION / $PBX_BUILD) != mobile-version.json ($EXPECTED_VERSION / $EXPECTED_BUILD)"
+  echo "       Refuse to archive. Fix scripts/mobile-version.json or re-run sync."
+  exit 1
+fi
+
 ARCHIVE_DIR="$ROOT/releases/app-versions/ios"
 ARCHIVE_PATH="$ARCHIVE_DIR/Velbok.xcarchive"
 EXPORT_PATH="$ARCHIVE_DIR/export"
 mkdir -p "$ARCHIVE_DIR"
+rm -rf "$ARCHIVE_PATH"
 
 cd ios/App
 
@@ -46,7 +69,7 @@ fi
 mkdir -p "$REAL_PROFILES"
 chmod -R u+rwx "$(dirname "$REAL_PROFILES")" 2>/dev/null || true
 
-echo "Archiving Velbok (Release) with team $TEAM_ID and profile 'Velbok App Store'..."
+echo "Archiving Velbok (Release) $EXPECTED_VERSION ($EXPECTED_BUILD) with team $TEAM_ID and profile 'Velbok App Store'..."
 xcodebuild \
   -project App.xcodeproj \
   -scheme App \
@@ -57,7 +80,23 @@ xcodebuild \
   CODE_SIGN_STYLE=Manual \
   PROVISIONING_PROFILE_SPECIFIER=f4346d1d-7aa3-4729-907f-2df189f33e29 \
   CODE_SIGN_IDENTITY="Apple Distribution" \
+  MARKETING_VERSION="$EXPECTED_VERSION" \
+  CURRENT_PROJECT_VERSION="$EXPECTED_BUILD" \
   archive
+
+INFO_PLIST="$ARCHIVE_PATH/Products/Applications/App.app/Info.plist"
+ARCHIVED_VERSION="?"
+ARCHIVED_BUILD="?"
+if [[ -f "$INFO_PLIST" ]]; then
+  ARCHIVED_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST" 2>/dev/null || echo "?")"
+  ARCHIVED_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST" 2>/dev/null || echo "?")"
+fi
+echo "==> Archived Info.plist: CFBundleShortVersionString=$ARCHIVED_VERSION CFBundleVersion=$ARCHIVED_BUILD"
+if [[ "$ARCHIVED_VERSION" != "$EXPECTED_VERSION" || "$ARCHIVED_BUILD" != "$EXPECTED_BUILD" ]]; then
+  echo "ERROR: archive stamped $ARCHIVED_VERSION ($ARCHIVED_BUILD), expected $EXPECTED_VERSION ($EXPECTED_BUILD)"
+  echo "       Clean DerivedData and rebuild. Do not upload this archive."
+  exit 1
+fi
 
 if [[ -n "${SKIP_UPLOAD:-}" ]]; then
   echo "==> SKIP_UPLOAD set — exporting IPA locally only"
@@ -72,6 +111,6 @@ xcodebuild \
   -exportOptionsPlist "$ROOT/ios/ExportOptions.plist" \
   -allowProvisioningUpdates
 
-echo "Done. IPA: $EXPORT_PATH/App.ipa"
+echo "Done. IPA: $EXPORT_PATH/App.ipa (version $ARCHIVED_VERSION / $ARCHIVED_BUILD)"
 echo "Check App Store Connect → TestFlight / App Store for build processing."
 echo "Enable 'Upload your app's symbols' if prompted — dSYMs help crash reports."
