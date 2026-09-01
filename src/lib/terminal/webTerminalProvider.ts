@@ -1,5 +1,10 @@
 import { fetchTerminalConnectionToken } from "@/lib/terminal/fetchConnectionToken";
-import type { TerminalProvider, TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
+import type {
+  DiscoverAndConnectOptions,
+  TerminalProvider,
+  TerminalProviderOptions,
+  TerminalReaderInfo,
+} from "@/lib/terminal/types";
 
 type TerminalInstance = {
   discoverReaders: (config: Record<string, unknown>) => Promise<{
@@ -34,7 +39,7 @@ export function createWebTerminalProvider(options: TerminalProviderOptions): Ter
   return {
     getConnectedReader: () => connectedReader ?? terminal?.getConnectedReader() ?? null,
 
-    async discoverAndConnect() {
+    async discoverAndConnect(_connectOptions?: DiscoverAndConnectOptions) {
       const t = await initTerminal();
       const discoverConfig: Record<string, unknown> = options.simulated
         ? { simulated: true }

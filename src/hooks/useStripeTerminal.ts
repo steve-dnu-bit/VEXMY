@@ -3,7 +3,7 @@ import { createTerminalProvider, type TerminalProvider, type TerminalProviderSta
 import { formatTerminalError } from "@/lib/terminal/formatTerminalError";
 import { getNativeConnectedReader } from "@/lib/terminal/getNativeConnectedReader";
 import { abortTerminalOperation, isNativeTerminalInitialized } from "@/lib/terminal/nativeTerminalState";
-import type { TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
+import type { DiscoverAndConnectOptions, TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
 
 const PHONE_PAYMENTS_OPERATION_MS = 150_000;
 
@@ -114,14 +114,14 @@ export function useStripeTerminal(options: {
     }
   }, [options.locationId, options.readerMode, options.simulated]);
 
-  const discoverAndConnect = useCallback(async () => {
+  const discoverAndConnect = useCallback(async (connectOptions?: DiscoverAndConnectOptions) => {
     setError(null);
     setStatus("discovering");
     try {
       const provider = await ensureProvider();
       setStatus("connecting");
       await withTimeout(
-        provider.discoverAndConnect(),
+        provider.discoverAndConnect(connectOptions),
         PHONE_PAYMENTS_OPERATION_MS,
         "Phone payments timed out. Allow Location for Velbok, turn Developer options OFF, check internet, then try again.",
       );

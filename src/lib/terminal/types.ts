@@ -22,8 +22,14 @@ export type TerminalCollectResult = {
   readerId: string | null;
 };
 
+/** Options for native Tap to Pay connect (Apple TTPOI 3.5 Terms on connectReader). */
+export type DiscoverAndConnectOptions = {
+  /** Disconnect first so connectReader can present Apple Terms when SDK still reports connected. */
+  forceReconnect?: boolean;
+};
+
 export interface TerminalProvider {
-  discoverAndConnect(): Promise<TerminalReaderInfo>;
+  discoverAndConnect(options?: DiscoverAndConnectOptions): Promise<TerminalReaderInfo>;
   disconnect(): Promise<void>;
   collectAndProcess(clientSecret: string): Promise<TerminalCollectResult>;
   /** Cancel an in-flight collectPaymentMethod (Tap to Pay / WisePad). */

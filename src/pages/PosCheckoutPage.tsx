@@ -795,7 +795,7 @@ function isPaymentOverlayNoise(status: string): boolean {
   const ensureTapToPayConnected = async (options?: {
     skipEducation?: boolean;
   }): Promise<boolean> => {
-    if (terminal.status === "connected") return true;
+    if (terminal.status === "connected" && options?.skipEducation) return true;
 
     if (!canManageBilling) {
       setPaymentFlowPhase("declined");
@@ -852,42 +852,33 @@ function isPaymentOverlayNoise(status: string): boolean {
     setEnableTermsBusy(true);
     setPaying(true);
     try {
+      // Keep payment overlay hidden so Apple's Terms sheet can present on top.
       setEnableTermsOpen(false);
-      setPaymentFlowPhase("initializing");
-      setPaymentFlowDetail(t("pos.paymentInitializingProgress"));
-
-      if (terminal.status !== "connected") {
-        const env = await checkTapToPayEnvironment();
-        if (env && hasTapToPayHardBlockers(env)) {
-          const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
-          setPaymentFlowPhase("declined");
-          setPaymentFlowDetail(message);
-          toast.error(message);
-          return false;
-        }
-        // Stripe/Apple present T&Cs on first Tap to Pay connect.
-        await terminal.discoverAndConnect();
-        markWisePadFirmwareCompleted();
-        setShowWisePadGuide(false);
-      }
-
       setPaymentFlowPhase("hidden");
-      try {
-        const educated = await showTapToPayEducationIfAvailable();
-        if (educated) {
-          markTapToPaySetupCompleted();
-          setShowTryItAfterEducation(true);
-        } else {
-          toast.message(t("pos.enableTermsEducationFailed"));
-          // Still mark setup attempted so checkout can proceed; education re-entry in Settings.
-          markTapToPaySetupCompleted();
-        }
-      } catch (eduErr) {
-        const msg = eduErr instanceof Error ? eduErr.message : t("pos.enableTermsEducationFailed");
-        toast.error(msg);
-        markTapToPaySetupCompleted();
+      setPaymentFlowDetail(null);
+
+      const env = await checkTapToPayEnvironment();
+      if (env && hasTapToPayHardBlockers(env)) {
+        const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
+        setPaymentFlowPhase("declined");
+        setPaymentFlowDetail(message);
+        toast.error(message);
+        return false;
       }
 
+      // Always connect — Apple Terms appear on connectReader, not when SDK reports connected.
+      await terminal.discoverAndConnect({ forceReconnect: true });
+      markWisePadFirmwareCompleted();
+      setShowWisePadGuide(false);
+
+      const educated = await showTapToPayEducationIfAvailable();
+      if (!educated) {
+        toast.message(t("pos.enableTermsEducationFailed"));
+        return false;
+      }
+
+      markTapToPaySetupCompleted();
+      setShowTryItAfterEducation(true);
       toast.success(t("pos.tapToPayPhoneReady"));
       return true;
     } catch (e) {

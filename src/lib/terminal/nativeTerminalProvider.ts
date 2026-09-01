@@ -31,7 +31,12 @@ import {
   markTerminalConnectionEstablished,
 } from "@/lib/terminal/terminalConnectionStatus";
 import { waitForTerminalConnected } from "@/lib/terminal/waitForTerminalConnected";
-import type { TerminalProvider, TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
+import type {
+  DiscoverAndConnectOptions,
+  TerminalProvider,
+  TerminalProviderOptions,
+  TerminalReaderInfo,
+} from "@/lib/terminal/types";
 
 let connectionTokenListenerRegistered = false;
 let terminalEventListenersRegistered = false;
@@ -504,7 +509,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       await pushDisplay(cart);
     },
 
-    async discoverAndConnect() {
+    async discoverAndConnect(connectOptions?: DiscoverAndConnectOptions) {
       const options = activeOptions();
       readerConnectInFlight = true;
       try {
@@ -529,8 +534,18 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
 
         await ensureNativeTerminalInitialized();
 
+        if (
+          connectOptions?.forceReconnect &&
+          options.readerMode === "tap_to_pay" &&
+          !options.simulated
+        ) {
+          await StripeTerminal.disconnectReader().catch(() => undefined);
+          sdkConnectedReader = null;
+          clearTerminalConnectionEstablished();
+        }
+
         const alreadyConnected = await refreshConnectedReaderFromSdk();
-        if (alreadyConnected) {
+        if (alreadyConnected && !connectOptions?.forceReconnect) {
           markTerminalConnectionEstablished();
           return alreadyConnected;
         }
