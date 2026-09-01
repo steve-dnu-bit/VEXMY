@@ -9,6 +9,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+VELBOK_ROOT="$ROOT"
+# shellcheck source=scripts/ios-archive-lib.sh
+source "$ROOT/scripts/ios-archive-lib.sh"
+
 if [[ ! -f "ios/App/App/GoogleService-Info.plist" ]]; then
   echo "Warning: ios/App/App/GoogleService-Info.plist is missing."
   echo "Push notifications will not work until you add it from Firebase Console."
@@ -77,7 +81,7 @@ xcodebuild \
   CODE_SIGN_IDENTITY="Apple Distribution" \
   MARKETING_VERSION="$EXPECTED_VERSION" \
   CURRENT_PROJECT_VERSION="$EXPECTED_BUILD" \
-  archive
+  clean archive
 
 INFO_PLIST="$ARCHIVE_PATH/Products/Applications/App.app/Info.plist"
 ARCHIVED_VERSION="?"
@@ -106,6 +110,69 @@ xcodebuild \
   -exportOptionsPlist "$ROOT/ios/ExportOptions.plist" \
   -allowProvisioningUpdates
 
-echo "Done. IPA: $EXPORT_PATH/App.ipa (version $ARCHIVED_VERSION / $ARCHIVED_BUILD)"
-echo "Check App Store Connect → TestFlight / App Store for build processing."
+IPA_PATH="$EXPORT_PATH/App.ipa"
+IPA_VERSION="?"
+IPA_BUILD="?"
+if [[ -f "$IPA_PATH" ]]; then
+  IPA_WORK="$(mktemp -d)"
+  if unzip -q -o "$IPA_PATH" -d "$IPA_WORK" 2>/dev/null; then
+    IPA_PLIST="$(find "$IPA_WORK/Payload" -maxdepth 2 -name Info.plist -print -quit)"
+    if [[ -n "$IPA_PLIST" ]]; then
+      IPA_VERSION="$(velbok_plist_get "$IPA_PLIST" CFBundleShortVersionString)"
+      IPA_BUILD="$(velbok_plist_get "$IPA_PLIST" CFBundleVersion)"
+    fi
+  fi
+  rm -rf "$IPA_WORK"
+  if [[ "$IPA_VERSION" != "$EXPECTED_VERSION" || "$IPA_BUILD" != "$EXPECTED_BUILD" ]]; then
+    echo "ERROR: exported IPA is $IPA_VERSION ($IPA_BUILD), expected $EXPECTED_VERSION ($EXPECTED_BUILD)."
+    echo "       Check manageAppVersionAndBuildNumber in ios/ExportOptions.plist. Do not upload."
+    exit 1
+  fi
+fi
+
+ORGANIZER_LATEST="$(velbok_newest_organizer_archive)"
+
+echo ""
+echo "########################################################################"
+echo "#                                                                      #"
+echo "#   ARCHIVE BUILT AND VERIFIED:  $EXPECTED_VERSION ($EXPECTED_BUILD)"
+echo "#                                                                      #"
+echo "########################################################################"
+echo "#"
+echo "#  .xcarchive : $ARCHIVE_PATH"
+echo "#  .ipa       : $IPA_PATH"
+echo "#  stamped    : CFBundleShortVersionString=$ARCHIVED_VERSION CFBundleVersion=$ARCHIVED_BUILD"
+echo "#  ipa stamped: CFBundleShortVersionString=$IPA_VERSION CFBundleVersion=$IPA_BUILD"
+echo "#"
+echo "########################################################################"
+echo "#  READ THIS — XCODE ORGANIZER WILL NOT SHOW THE ARCHIVE ABOVE.        #"
+echo "########################################################################"
+echo "#"
+echo "#  Organizer only lists archives under:"
+echo "#    ~/Library/Developer/Xcode/Archives/"
+echo "#  This script deliberately writes into the repo instead, so the archive"
+echo "#  is reproducible and version-gated. If you open Organizer now you will"
+echo "#  see a DIFFERENT, OLDER archive and you will ship the wrong version."
+if [[ -n "$ORGANIZER_LATEST" ]]; then
+  ORG_PLIST="$ORGANIZER_LATEST/Products/Applications/App.app/Info.plist"
+  ORG_VERSION="$(velbok_plist_get "$ORG_PLIST" CFBundleShortVersionString)"
+  ORG_BUILD="$(velbok_plist_get "$ORG_PLIST" CFBundleVersion)"
+  echo "#"
+  echo "#  Newest archive Organizer WILL show you (ignore it):"
+  echo "#    $ORGANIZER_LATEST"
+  echo "#    stamped $ORG_VERSION ($ORG_BUILD)"
+  if [[ "$ORG_VERSION" != "$EXPECTED_VERSION" || "$ORG_BUILD" != "$EXPECTED_BUILD" ]]; then
+    echo "#    ^^^ THIS IS THE WRONG VERSION. Delete it:"
+    echo "#        rm -rf ~/Library/Developer/Xcode/Archives/*"
+  fi
+fi
+echo "#"
+echo "#  To ship, upload the IPA above with Transporter:"
+echo "#    open -a Transporter"
+echo "#    drag $IPA_PATH  ->  Deliver"
+echo "#"
+echo "#  To re-verify at any time:"
+echo "#    bash scripts/ios-verify-archive.sh"
+echo "#"
+echo "########################################################################"
 echo "Enable 'Upload your app's symbols' if prompted — dSYMs help crash reports."

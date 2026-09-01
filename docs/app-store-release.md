@@ -96,10 +96,49 @@ If `ios:build-simulator` hangs for more than 20 minutes with **no new lines**, c
 4. Prepare the iOS bundle: `npm run ios:prepare` (icons, mobile web build, `cap sync`)
 5. On a **Mac with Xcode 15+**, open the project: `npm run cap:ios`
 6. In Xcode → **Signing & Capabilities**: select your Apple Developer team and confirm bundle ID `com.velbok.app`. Build on an **iOS Simulator** first to verify the project compiles. **Tap to Pay on iPhone** development entitlement is granted for `com.velbok.app` — use a **Release** build with a development provisioning profile on a **registered test device** (publishing/TestFlight entitlement still requires Apple’s video review).
-7. Archive: Product → **Archive** → **Distribute App** → App Store Connect  
-   Or from the repo root on macOS: `npm run ios:archive`
+7. Archive with `npm run ios:archive` from the repo root on macOS. Prefer this over the Xcode GUI — see below.
 
-Output IPA (when using the script): `releases/app-versions/ios/export/App.ipa`
+Output IPA: `releases/app-versions/ios/export/App.ipa`
+
+## Two archive locations — the wrong-version trap
+
+There are two places a `.xcarchive` can live, and shipping the wrong version has
+happened by confusing them:
+
+| | Written by | Path | Shown in Xcode Organizer? |
+|---|---|---|---|
+| Repo archive | `npm run ios:archive` | `releases/app-versions/ios/Velbok.xcarchive` | **No** |
+| GUI archive | Xcode Product → Archive | `~/Library/Developer/Xcode/Archives/<date>/App.xcarchive` | Yes |
+
+`npm run verify:version` only checks **source files**. It passes at the new
+version while a stale GUI archive from a previous release still sits in
+Organizer at the old version. If you archive with the script and then open
+Organizer, Organizer shows you the old archive and you upload the old build.
+
+**Use the script, upload with Transporter, never upload from Organizer:**
+
+```bash
+npm run ios:archive        # builds + verifies the repo archive and IPA
+npm run ios:verify-archive # prints the version inside every archive/IPA on the Mac
+open -a Transporter        # drag releases/app-versions/ios/export/App.ipa → Deliver
+```
+
+If you must use the Xcode GUI, purge stale state first, otherwise DerivedData or
+an old Organizer entry can resurface:
+
+```bash
+rm -rf ~/Library/Developer/Xcode/DerivedData/*
+rm -rf ~/Library/Developer/Xcode/Archives/*
+```
+
+Read the version out of the real artifacts at any time:
+
+```bash
+ARCH=releases/app-versions/ios/Velbok.xcarchive
+/usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleShortVersionString' "$ARCH/Info.plist"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$ARCH/Products/Applications/App.app/Info.plist"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion'            "$ARCH/Products/Applications/App.app/Info.plist"
+```
 
 ## App Store Connect setup
 

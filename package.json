@@ -41,6 +41,7 @@
     "ios:archive": "bash scripts/ios-archive.sh",
     "ios:export": "bash scripts/ios-export-archive.sh",
     "ios:ipa": "bash scripts/ios-ipa-from-archive.sh",
+    "ios:verify-archive": "bash scripts/ios-verify-archive.sh",
     "macincloud:setup": "bash scripts/macincloud-ios-setup.sh",
     "android:bundle": "npm run cap:sync && cd android && gradlew.bat bundleRelease",
     "android:release": "npm run cap:sync && cd android && gradlew.bat assembleRelease"
