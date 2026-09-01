@@ -26,9 +26,11 @@ export interface TapToPayEnvironment {
 
 interface TapToPayReadinessPlugin {
   checkEnvironment(): Promise<TapToPayEnvironment>;
+  /** Mirrors a WebView diagnostic line into the Xcode device console. */
+  log(options: { line: string }): Promise<void>;
 }
 
-const TapToPayReadiness = registerPlugin<TapToPayReadinessPlugin>("TapToPayReadiness", {
+export const TapToPayReadiness = registerPlugin<TapToPayReadinessPlugin>("TapToPayReadiness", {
   web: {
     checkEnvironment: async () => ({
       ready: true,
@@ -36,6 +38,7 @@ const TapToPayReadiness = registerPlugin<TapToPayReadinessPlugin>("TapToPayReadi
       developerOptionsEnabled: false,
       usbDebuggingEnabled: false,
     }),
+    log: async () => undefined,
   },
 });
 

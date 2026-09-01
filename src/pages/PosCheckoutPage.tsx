@@ -92,6 +92,7 @@ import {
   hasShownTapToPayEducation,
   markTapToPayEducationShown,
 } from "@/lib/terminal/tapToPaySetupStorage";
+import { ttpLog, ttpLogError } from "@/lib/terminal/tapToPayDiagnostics";
 
 interface CartEntry {
   key: string;
@@ -245,19 +246,72 @@ const PosCheckoutPage = () => {
     return () => document.removeEventListener("visibilitychange", refresh);
   }, [usingTapToPay, tapToPayReady.refresh]);
 
+  /** Phones that can run Tap to Pay at all — reader mode is a local preference, not a capability. */
+  const tapToPayCapableDevice =
+    isNativeApp() && (nativePlatform() === "ios" || nativePlatform() === "android") && !isIpadDevice();
+
+  useEffect(() => {
+    // Apple 3.5: the enable deep link must still reach connectReader when this phone was
+    // last used with a WisePad. Reader mode is a device-local preference, so switch it
+    // instead of silently doing nothing and leaving the merchant on a dead button.
+    if (!enableTapToPayParam || loading || !posEnabled) return;
+    if (!tapToPayCapableDevice || readerMode === "tap_to_pay") return;
+    ttpLog("checkout.deeplink.readerModeCorrected", { from: readerMode, to: "tap_to_pay" });
+    setReaderMode("tap_to_pay");
+    saveTerminalReaderMode("tap_to_pay");
+  }, [enableTapToPayParam, loading, posEnabled, tapToPayCapableDevice, readerMode]);
+
   useEffect(() => {
     // Apple 3.5: the merchant asked to enable, so go straight to connectReader —
     // Apple's own Terms and Conditions sheet is the next thing on screen.
-    if (!enableTapToPayParam || loading || !posEnabled || !usingTapToPay) return;
+    if (!enableTapToPayParam) return;
+    ttpLog("checkout.deeplink.evaluate", {
+      loading,
+      posEnabled,
+      usingTapToPay,
+      tapToPayCapableDevice,
+      readerMode,
+      simulatedReader,
+      canManageBilling,
+      platform: nativePlatform(),
+      alreadyTriggered: enableTapToPayTriggered.current,
+    });
+    if (loading || !posEnabled) return;
     if (enableTapToPayTriggered.current) return;
+    if (!usingTapToPay) {
+      // Reader mode is corrected by the effect above; only a simulated-reader shop or a
+      // non-phone device can still land here, and both need saying out loud.
+      if (!tapToPayCapableDevice || readerMode === "tap_to_pay") {
+        enableTapToPayTriggered.current = true;
+        const reason = simulatedReader
+          ? "shop POS settings use a simulated reader"
+          : !tapToPayCapableDevice
+            ? "device is not a supported Tap to Pay phone"
+            : "Tap to Pay is unavailable on this device";
+        ttpLog("checkout.deeplink.skipped", { reason });
+        toast.error(t("pos.tapToPayFailed"));
+      }
+      return;
+    }
     enableTapToPayTriggered.current = true;
     if (!canManageBilling) {
+      ttpLog("checkout.deeplink.skipped", { reason: "user cannot manage billing" });
       toast.error(t("pos.tapToPayContactAdmin"));
       return;
     }
+    ttpLog("checkout.deeplink.trigger");
     void runTapToPayEnable();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enableTapToPayParam, loading, posEnabled, usingTapToPay, canManageBilling]);
+  }, [
+    enableTapToPayParam,
+    loading,
+    posEnabled,
+    usingTapToPay,
+    tapToPayCapableDevice,
+    readerMode,
+    simulatedReader,
+    canManageBilling,
+  ]);
 
   const testStripeServerLink = async () => {
     if (!locationId) {
@@ -814,16 +868,24 @@ function isPaymentOverlayNoise(status: string): boolean {
     setPaymentFlowDetail(null);
     setShowWisePadGuide(false);
     await waitForAppOverlaysToClose();
+    ttpLog("education.start", { terminalStatus: terminal.status });
+    const startedAt = Date.now();
     try {
       const educated = await showTapToPayEducationIfAvailable();
       if (!educated) {
+        ttpLog("education.unavailable", {
+          ms: Date.now() - startedAt,
+          note: "native plugin reported How to Tap is unavailable (iPad, iOS < 18, or missing entitlement)",
+        });
         toast.message(t("pos.tapToPayEducationFailed"));
         return false;
       }
+      ttpLog("education.presented", { ms: Date.now() - startedAt });
       markTapToPayEducationShown();
       setShowTryItAfterEducation(true);
       return true;
     } catch (eduErr) {
+      ttpLogError("education.failed", eduErr, { ms: Date.now() - startedAt });
       const msg = eduErr instanceof Error ? eduErr.message : t("pos.tapToPayEducationFailed");
       toast.error(msg);
       return false;
@@ -831,7 +893,16 @@ function isPaymentOverlayNoise(status: string): boolean {
   };
 
   const ensureTapToPayConnected = async (): Promise<boolean> => {
-    if (terminal.status === "connected") return true;
+    ttpLog("charge.ensureConnected", {
+      terminalStatus: terminal.status,
+      educationAlreadyShown: hasShownTapToPayEducation(),
+    });
+    if (terminal.status === "connected") {
+      ttpLog("charge.ensureConnected.alreadyConnected", {
+        note: "connectReader NOT called — Apple's Terms sheet cannot appear on the charge path",
+      });
+      return true;
+    }
 
     if (!canManageBilling) {
       setPaymentFlowPhase("declined");
@@ -877,11 +948,21 @@ function isPaymentOverlayNoise(status: string): boolean {
    * Apple's How to Tap education opens immediately. Velbok never renders "terms".
    */
   const runTapToPayEnable = async (): Promise<boolean> => {
+    ttpLog("enable.start", {
+      terminalStatus: terminal.status,
+      educationAlreadyShown: hasShownTapToPayEducation(),
+      canManageBilling,
+      connectBlockedReason,
+      readerMode,
+      locationId,
+    });
     if (!canManageBilling) {
+      ttpLog("enable.blocked", { reason: "user cannot manage billing" });
       toast.error(t("pos.tapToPayContactAdmin"));
       return false;
     }
     if (connectBlockedReason) {
+      ttpLog("enable.blocked", { reason: connectBlockedReason });
       toast.error(connectBlockedReason);
       return false;
     }
@@ -897,8 +978,18 @@ function isPaymentOverlayNoise(status: string): boolean {
       setShowWisePadGuide(false);
 
       const env = await checkTapToPayEnvironment();
+      ttpLog("enable.environment", {
+        ready: env?.ready ?? null,
+        entitlement: env?.tapToPayEntitlementGranted ?? null,
+        locationGranted: env?.locationGranted ?? null,
+        debugBuild: env?.debugBuild ?? null,
+        isPad: env?.isPad ?? null,
+        versionName: env?.versionName ?? null,
+        versionCode: env?.versionCode ?? null,
+      });
       if (env && hasTapToPayHardBlockers(env)) {
         const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
+        ttpLog("enable.blocked", { reason: message });
         setPaymentFlowPhase("declined");
         setPaymentFlowDetail(message);
         toast.error(message);
@@ -912,13 +1003,17 @@ function isPaymentOverlayNoise(status: string): boolean {
 
       // Always reconnect — Apple's Terms sheet is raised by connectReader, so a cached
       // "connected" reader must never short-circuit it.
+      ttpLog("enable.connect.start", { forceReconnect: true, terminalStatus: terminal.status });
       await terminal.discoverAndConnect({ forceReconnect: true });
+      ttpLog("enable.connect.ok");
       markWisePadFirmwareCompleted();
 
       const educated = await presentTapToPayEducation();
+      ttpLog("enable.done", { educated });
       if (educated) toast.success(t("pos.tapToPayPhoneReady"));
       return educated;
     } catch (e) {
+      ttpLogError("enable.failed", e);
       const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
       setPaymentFlowPhase(classifyPaymentFailure(msg));
       setPaymentFlowDetail(msg);
@@ -1240,9 +1335,24 @@ function isPaymentOverlayNoise(status: string): boolean {
   };
 
   const handleTapToPayPrimary = async () => {
-    if (readerFirmwareUpdating || paying || enablingTapToPay) return;
+    ttpLog("button.tapped", {
+      cartSize: cart.length,
+      amountDue,
+      depositCredit,
+      terminalStatus: terminal.status,
+      educationAlreadyShown: hasShownTapToPayEducation(),
+      readerFirmwareUpdating,
+      paying,
+      enablingTapToPay,
+      connectBlockedReason,
+    });
+    if (readerFirmwareUpdating || paying || enablingTapToPay) {
+      ttpLog("button.ignored", { reason: "another Tap to Pay operation is already running" });
+      return;
+    }
 
     if (amountDue <= 0 && depositCredit > 0) {
+      ttpLog("button.route", { route: "complete-with-deposit" });
       void handlePay();
       return;
     }
@@ -1251,17 +1361,21 @@ function isPaymentOverlayNoise(status: string): boolean {
       // Apple 5.3: the button stays enabled with an empty cart and becomes the
       // enable path — tapping it hands straight over to Apple's Terms sheet.
       if (terminal.status === "connected" && hasShownTapToPayEducation()) {
+        ttpLog("button.route", { route: "add-items", note: "already connected and educated" });
         toast.error(t("pos.addItemsToCharge"));
         return;
       }
       if (connectBlockedReason) {
+        ttpLog("button.route", { route: "blocked", reason: connectBlockedReason });
         toast.error(connectBlockedReason);
         return;
       }
+      ttpLog("button.route", { route: "enable" });
       void runTapToPayEnable();
       return;
     }
 
+    ttpLog("button.route", { route: "charge" });
     void handlePay();
   };
 

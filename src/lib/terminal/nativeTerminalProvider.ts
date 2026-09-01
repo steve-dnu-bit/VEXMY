@@ -31,6 +31,7 @@ import {
   markTerminalConnectionEstablished,
 } from "@/lib/terminal/terminalConnectionStatus";
 import { waitForTerminalConnected } from "@/lib/terminal/waitForTerminalConnected";
+import { describeConnectDuration, ttpLog, ttpLogError } from "@/lib/terminal/tapToPayDiagnostics";
 import type {
   DiscoverAndConnectOptions,
   TerminalProvider,
@@ -512,6 +513,11 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
     async discoverAndConnect(connectOptions?: DiscoverAndConnectOptions) {
       const options = activeOptions();
       readerConnectInFlight = true;
+      ttpLog("provider.discoverAndConnect.start", {
+        readerMode: options.readerMode,
+        simulated: !!options.simulated,
+        forceReconnect: !!connectOptions?.forceReconnect,
+      });
       try {
         beginTerminalOperation();
 
@@ -542,11 +548,16 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           await StripeTerminal.disconnectReader().catch(() => undefined);
           sdkConnectedReader = null;
           clearTerminalConnectionEstablished();
+          ttpLog("provider.forceReconnect.disconnected");
         }
 
         const alreadyConnected = await refreshConnectedReaderFromSdk();
         if (alreadyConnected && !connectOptions?.forceReconnect) {
           markTerminalConnectionEstablished();
+          ttpLog("provider.alreadyConnected.shortCircuit", {
+            readerId: alreadyConnected.id,
+            note: "connectReader NOT called — Apple cannot present its Terms sheet on this path",
+          });
           return alreadyConnected;
         }
 
@@ -585,6 +596,8 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           throw new Error(wisePadNotFoundMessage());
         }
 
+        ttpLog("provider.discovered", { count: readers.length, readerMode: options.readerMode });
+
         // Let discovery cancel settle before connect — overlapping commands crash Stripe Terminal on iOS.
         await new Promise((resolve) => window.setTimeout(resolve, 600));
         beginConnectionHold(20_000);
@@ -612,6 +625,15 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
             connectPayload.tapToPay = true;
             connectPayload.discoveryMethod = "tap-to-pay";
           }
+          // Apple's Terms and Conditions sheet is raised from inside this call, so this line
+          // is the single source of truth for "did the app give Apple a chance to ask?".
+          ttpLog("provider.connectReader.call", {
+            readerMode: options.readerMode,
+            tapToPay: !!connectPayload.tapToPay,
+            locationId: activeLocationId,
+            serialNumber: readers[0]?.serialNumber ?? null,
+          });
+          const connectStartedAt = Date.now();
           const connectPromise = StripeTerminal.connectReader(
             connectPayload as Parameters<typeof StripeTerminal.connectReader>[0] & {
               locationId: string;
@@ -625,13 +647,19 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
               ? TAP_TO_PAY_CONNECT_TIMEOUT_MS
               : 90_000;
 
-          await withOperationTimeout(
-            connectPromise,
-            timeoutMs,
-            options.readerMode === "bluetooth"
-              ? "WisePad connection timed out. Keep the reader powered on and within 1 metre, then try again."
-              : "Tap to Pay connection timed out. Keep Velbok in the foreground, allow Location, and try mobile data.",
-          );
+          try {
+            await withOperationTimeout(
+              connectPromise,
+              timeoutMs,
+              options.readerMode === "bluetooth"
+                ? "WisePad connection timed out. Keep the reader powered on and within 1 metre, then try again."
+                : "Tap to Pay connection timed out. Keep Velbok in the foreground, allow Location, and try mobile data.",
+            );
+          } catch (error) {
+            ttpLogError("provider.connectReader.rejected", error, describeConnectDuration(Date.now() - connectStartedAt));
+            throw error;
+          }
+          ttpLog("provider.connectReader.resolved", describeConnectDuration(Date.now() - connectStartedAt));
         };
 
         try {
@@ -674,10 +702,13 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           options.readerMode === "bluetooth" ? "WisePad connected" : "Tap to Pay ready",
         );
 
+        ttpLog("provider.discoverAndConnect.connected", { readerId: connectedReader.id });
+
         // Never push cart display immediately after WisePad connect — it drops the BT session.
         return connectedReader;
       } catch (error) {
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
+        ttpLogError("provider.discoverAndConnect.failed", error);
         throw new Error(formatTerminalError(error, "Reader connection failed"));
       } finally {
         readerConnectInFlight = false;

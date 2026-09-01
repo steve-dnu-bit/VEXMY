@@ -2,6 +2,7 @@ import Foundation
 import Capacitor
 import CoreLocation
 import UIKit
+import os
 
 @objc(TapToPayReadinessPlugin)
 public class TapToPayReadinessPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -9,21 +10,43 @@ public class TapToPayReadinessPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "TapToPayReadiness"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "checkEnvironment", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "log", returnType: CAPPluginReturnPromise),
     ]
 
+    static let logger = Logger(subsystem: "com.velbok.app", category: "TapToPay")
+
     /// SecTask entitlement APIs are macOS-only; on iOS scan the embedded profile when present.
-    private func hasTapToPayEntitlement() -> Bool {
+    static func hasTapToPayEntitlement() -> Bool {
         if UIDevice.current.userInterfaceIdiom == .pad { return false }
         #if targetEnvironment(simulator)
         return false
         #else
-        if let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
-           let data = try? Data(contentsOf: url),
-           let text = String(data: data, encoding: .ascii) ?? String(data: data, encoding: .utf8) {
-            return text.contains("com.apple.developer.proximity-reader.payment.acceptance")
+        guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+              let data = try? Data(contentsOf: url) else {
+            // Signed device builds may omit a readable provision; App.entitlements carries the key.
+            return true
         }
-        return true
+        // A .mobileprovision is a CMS blob, so decoding the whole file as ASCII/UTF-8 fails and
+        // would silently report "no entitlement". Search the raw bytes for the key instead.
+        guard let needle = "com.apple.developer.proximity-reader.payment.acceptance".data(using: .utf8) else {
+            return true
+        }
+        return data.range(of: needle) != nil
         #endif
+    }
+
+    private func hasTapToPayEntitlement() -> Bool {
+        Self.hasTapToPayEntitlement()
+    }
+
+    /// Mirror the WebView's Tap to Pay trace into the Xcode device console / Console.app.
+    @objc func log(_ call: CAPPluginCall) {
+        let line = call.getString("line") ?? ""
+        if !line.isEmpty {
+            Self.logger.notice("\(line, privacy: .public)")
+            NSLog("%@", line)
+        }
+        call.resolve()
     }
 
     private func locationGranted() -> Bool {

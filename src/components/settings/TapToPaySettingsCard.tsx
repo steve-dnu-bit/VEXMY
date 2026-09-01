@@ -13,6 +13,8 @@ import { isIpadDevice, isNativeApp, nativePlatform } from "@/lib/platform";
 import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
 import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
 import { clearTapToPayEducationShown } from "@/lib/terminal/tapToPaySetupStorage";
+import { saveTerminalReaderMode } from "@/lib/terminal/terminalReaderModeStorage";
+import { formatTapToPayDiagnostics, ttpLog, ttpLogError } from "@/lib/terminal/tapToPayDiagnostics";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import i18n from "@/i18n";
@@ -37,10 +39,14 @@ export function TapToPaySettingsCard() {
   const label = tapToPayOnIphoneLabel(i18n.language);
 
   const enable = () => {
+    ttpLog("settings.enable.tapped", { canManageBilling });
     if (!canManageBilling) {
       toast.error(t("pos.tapToPayContactAdmin"));
       return;
     }
+    // Checkout only runs the enable path in Tap to Pay reader mode, so a phone last used
+    // with a WisePad would otherwise land on a dead button.
+    saveTerminalReaderMode("tap_to_pay");
     // Replay Apple's How to Tap after this run. Apple's Terms sheet itself only
     // reappears once the merchant ID is removed in Apple Business Register.
     clearTapToPayEducationShown();
@@ -49,17 +55,32 @@ export function TapToPaySettingsCard() {
 
   const showEducation = async () => {
     setBusy(true);
+    ttpLog("settings.education.tapped");
     try {
       const shown = await showTapToPayEducationIfAvailable();
+      ttpLog("settings.education.result", { shown });
       if (!shown) {
         toast.message(t("pos.tapToPayHowToUnavailable"));
         return;
       }
       setShowTryIt(true);
     } catch (e) {
+      ttpLogError("settings.education.failed", e);
       toast.error(e instanceof Error ? e.message : t("pos.tapToPayEducationFailed"));
     } finally {
       setBusy(false);
+    }
+  };
+
+  const copyDiagnostics = async () => {
+    const report = formatTapToPayDiagnostics();
+    try {
+      await navigator.clipboard.writeText(report);
+      toast.success(t("pos.tapToPayDiagnosticsCopied"));
+    } catch {
+      // Clipboard is unavailable in some WebView contexts — the console copy still helps.
+      console.info(report);
+      toast.message(t("pos.tapToPayDiagnosticsCopyFailed"));
     }
   };
 
@@ -117,6 +138,9 @@ export function TapToPaySettingsCard() {
               </div>
               <Button type="button" variant="ghost" size="sm" className="self-start" disabled={busy} onClick={() => void sendLaunchEmail()}>
                 {t("pos.launchEmailCta")}
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="self-start" onClick={() => void copyDiagnostics()}>
+                {t("pos.tapToPayCopyDiagnostics")}
               </Button>
             </div>
           )}

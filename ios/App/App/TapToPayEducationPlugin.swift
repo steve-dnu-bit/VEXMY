@@ -1,6 +1,7 @@
 import Foundation
 import Capacitor
 import UIKit
+import os
 
 #if canImport(ProximityReader)
 import ProximityReader
@@ -18,38 +19,28 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "sfSymbolPng", returnType: CAPPluginReturnPromise),
     ]
 
-    /// SecTask entitlement APIs are macOS-only; on iOS scan the embedded profile when present.
     private func hasTapToPayEntitlement() -> Bool {
-        if UIDevice.current.userInterfaceIdiom == .pad { return false }
-        #if targetEnvironment(simulator)
-        return false
-        #else
-        if let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
-           let data = try? Data(contentsOf: url),
-           let text = String(data: data, encoding: .ascii) ?? String(data: data, encoding: .utf8) {
-            return text.contains("com.apple.developer.proximity-reader.payment.acceptance")
-        }
-        // Signed device builds may omit a readable provision; App.entitlements carries the key.
-        return true
-        #endif
+        TapToPayReadinessPlugin.hasTapToPayEntitlement()
+    }
+
+    private func trace(_ line: String) {
+        let message = "[VELBOK-TTP] \(line)"
+        TapToPayReadinessPlugin.logger.notice("\(message, privacy: .public)")
+        NSLog("%@", message)
     }
 
     @objc func isAvailable(_ call: CAPPluginCall) {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            call.resolve(["available": false])
-            return
-        }
-        guard hasTapToPayEntitlement() else {
-            call.resolve(["available": false])
-            return
-        }
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        let entitlement = hasTapToPayEntitlement()
+        var iOS18 = false
         if #available(iOS 18.0, *) {
             #if canImport(ProximityReader)
-            call.resolve(["available": true])
-            return
+            iOS18 = true
             #endif
         }
-        call.resolve(["available": false])
+        let available = !isPad && entitlement && iOS18
+        trace("native.education.isAvailable available=\(available) isPad=\(isPad) entitlement=\(entitlement) iOS18AndProximityReader=\(iOS18)")
+        call.resolve(["available": available])
     }
 
     /// Renders an official SF Symbol as PNG for WebView HIG compliance (req 5.5).
@@ -82,7 +73,9 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func showHowToTap(_ call: CAPPluginCall) {
+        trace("native.education.showHowToTap.start")
         guard hasTapToPayEntitlement() else {
+            trace("native.education.showHowToTap.rejected reason=missing-entitlement")
             call.reject(
                 "Tap to Pay on iPhone requires Apple's com.apple.developer.proximity-reader.payment.acceptance entitlement on com.velbok.app. Enable Tap to Pay on iPhone under Additional Capabilities, use a Development profile that includes it, then rebuild."
             )
@@ -90,6 +83,7 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         guard #available(iOS 18.0, *) else {
+            trace("native.education.showHowToTap.rejected reason=ios-below-18")
             call.reject("How to Tap education requires iOS 18 or later")
             return
         }
@@ -98,6 +92,7 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
         Task { @MainActor in
             do {
                 guard let rootViewController = self.bridge?.viewController else {
+                    self.trace("native.education.showHowToTap.rejected reason=no-root-view-controller")
                     call.reject("Could not find root view controller")
                     return
                 }
@@ -109,20 +104,25 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
 
                 let discovery = ProximityReaderDiscovery()
                 let content = try await discovery.content(for: .payment(.howToTap))
+                self.trace("native.education.showHowToTap.presenting host=\(type(of: host))")
                 do {
                     try await discovery.presentContent(content, from: host)
                 } catch {
                     // One retry covers a sheet that finished dismissing a beat late.
+                    self.trace("native.education.showHowToTap.retry error=\(error.localizedDescription)")
                     try? await Task.sleep(nanoseconds: 700_000_000)
                     let retryHost = await Self.settledPresentationHost(from: rootViewController)
                     try await discovery.presentContent(content, from: retryHost)
                 }
+                self.trace("native.education.showHowToTap.presented")
                 call.resolve()
             } catch {
+                self.trace("native.education.showHowToTap.failed error=\(error.localizedDescription)")
                 call.reject("Could not present How to Tap education", nil, error)
             }
         }
         #else
+        trace("native.education.showHowToTap.rejected reason=proximityreader-missing")
         call.reject("ProximityReader framework is not available in this build")
         #endif
     }
