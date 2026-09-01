@@ -10,7 +10,6 @@ import { useTapToPayReady } from "@/components/pos/TapToPayReadinessAlert";
 import { PosPaymentFlowOverlay, type PosPaymentFlowPhase } from "@/components/pos/PosPaymentFlowOverlay";
 import { TapToPayWaveIcon } from "@/components/pos/TapToPayWaveIcon";
 import { TapToPayTryItDialog } from "@/components/pos/TapToPayTryItDialog";
-import { TapToPayEnableDialog } from "@/components/pos/TapToPayEnableDialog";
 import BookingClientSearch from "@/components/schedule/BookingClientSearch";
 import { useClientNameSearch } from "@/hooks/useClientNameSearch";
 import { Button } from "@/components/ui/button";
@@ -90,8 +89,8 @@ import {
 } from "@/lib/terminal/tapToPayReadiness";
 import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
 import {
-  hasCompletedTapToPaySetup,
-  markTapToPaySetupCompleted,
+  hasShownTapToPayEducation,
+  markTapToPayEducationShown,
 } from "@/lib/terminal/tapToPaySetupStorage";
 
 interface CartEntry {
@@ -101,6 +100,22 @@ interface CartEntry {
   unitPrice: number;
   quantity: number;
   unitType: PosUnitType;
+}
+
+/** Radix exit animation length plus a frame — long enough for our modals to unmount. */
+const APP_OVERLAY_DISMISS_MS = 280;
+
+/**
+ * Apple's Tap to Pay Terms sheet and How to Tap overlay are presented by ProximityReader
+ * from the top view controller. A Velbok modal still on screen can win that slot, so let
+ * React unmount ours before handing control to Apple.
+ */
+function waitForAppOverlaysToClose(): Promise<void> {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.setTimeout(resolve, APP_OVERLAY_DISMISS_MS);
+    });
+  });
 }
 
 const PosCheckoutPage = () => {
@@ -113,8 +128,7 @@ const PosCheckoutPage = () => {
   const prefilledBookingId = searchParams.get("bookingId");
   const enableTapToPayParam = searchParams.get("enableTapToPay") === "1";
   const [showTryItAfterEducation, setShowTryItAfterEducation] = useState(false);
-  const [enableTermsOpen, setEnableTermsOpen] = useState(false);
-  const [enableTermsBusy, setEnableTermsBusy] = useState(false);
+  const [enablingTapToPay, setEnablingTapToPay] = useState(false);
   const enableTapToPayTriggered = useRef(false);
   const [loading, setLoading] = useState(true);
   const [quickItems, setQuickItems] = useState<PosItemTemplate[]>([]);
@@ -232,7 +246,8 @@ const PosCheckoutPage = () => {
   }, [usingTapToPay, tapToPayReady.refresh]);
 
   useEffect(() => {
-    // Apple 3.5: show an explicit Terms/setup prompt — do not auto-connect silently.
+    // Apple 3.5: the merchant asked to enable, so go straight to connectReader —
+    // Apple's own Terms and Conditions sheet is the next thing on screen.
     if (!enableTapToPayParam || loading || !posEnabled || !usingTapToPay) return;
     if (enableTapToPayTriggered.current) return;
     enableTapToPayTriggered.current = true;
@@ -240,7 +255,7 @@ const PosCheckoutPage = () => {
       toast.error(t("pos.tapToPayContactAdmin"));
       return;
     }
-    setEnableTermsOpen(true);
+    void runTapToPayEnable();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enableTapToPayParam, loading, posEnabled, usingTapToPay, canManageBilling]);
 
@@ -792,10 +807,31 @@ function isPaymentOverlayNoise(status: string): boolean {
     })();
   };
 
-  const ensureTapToPayConnected = async (options?: {
-    skipEducation?: boolean;
-  }): Promise<boolean> => {
-    if (terminal.status === "connected" && options?.skipEducation) return true;
+  /** Apple 4.1: Apple's How to Tap overlay, right after Apple's Terms sheet closed. */
+  const presentTapToPayEducation = async (): Promise<boolean> => {
+    // Nothing of ours may be on screen — Apple presents from the top view controller.
+    setPaymentFlowPhase("hidden");
+    setPaymentFlowDetail(null);
+    setShowWisePadGuide(false);
+    await waitForAppOverlaysToClose();
+    try {
+      const educated = await showTapToPayEducationIfAvailable();
+      if (!educated) {
+        toast.message(t("pos.tapToPayEducationFailed"));
+        return false;
+      }
+      markTapToPayEducationShown();
+      setShowTryItAfterEducation(true);
+      return true;
+    } catch (eduErr) {
+      const msg = eduErr instanceof Error ? eduErr.message : t("pos.tapToPayEducationFailed");
+      toast.error(msg);
+      return false;
+    }
+  };
+
+  const ensureTapToPayConnected = async (): Promise<boolean> => {
+    if (terminal.status === "connected") return true;
 
     if (!canManageBilling) {
       setPaymentFlowPhase("declined");
@@ -813,33 +849,34 @@ function isPaymentOverlayNoise(status: string): boolean {
       return false;
     }
 
-    setPaymentFlowPhase("initializing");
-    setPaymentFlowDetail(t("pos.paymentInitializingProgress"));
+    // First connect on this device is also the first Terms acceptance — Apple's sheet
+    // appears inside connectReader, so keep our overlays off the screen for it.
+    const firstEverConnect = usingTapToPay && !hasShownTapToPayEducation();
+    if (firstEverConnect) {
+      setPaymentFlowPhase("hidden");
+      setPaymentFlowDetail(null);
+      await waitForAppOverlaysToClose();
+    } else {
+      setPaymentFlowPhase("initializing");
+      setPaymentFlowDetail(t("pos.paymentInitializingProgress"));
+    }
+
     await terminal.discoverAndConnect();
     markWisePadFirmwareCompleted();
     setShowWisePadGuide(false);
 
-    if (!options?.skipEducation) {
-      // Hide payment overlay so Apple education is on top (req 4.1).
-      setPaymentFlowPhase("hidden");
-      try {
-        const educated = await showTapToPayEducationIfAvailable();
-        if (educated) {
-          markTapToPaySetupCompleted();
-          setShowTryItAfterEducation(true);
-        } else {
-          toast.message(t("pos.enableTermsEducationFailed"));
-        }
-      } catch (eduErr) {
-        const msg = eduErr instanceof Error ? eduErr.message : t("pos.enableTermsEducationFailed");
-        toast.error(msg);
-      }
+    if (firstEverConnect) {
+      await presentTapToPayEducation();
     }
     return true;
   };
 
-  /** Apple 3.5 + 4.1: explicit Terms CTA → Apple T&Cs on connect → How to Tap immediately. */
-  const runTapToPayEnableWithTerms = async (): Promise<boolean> => {
+  /**
+   * Apple 3.5 + 4.1: the enable CTA goes straight to connectReader so Apple's own
+   * native Terms and Conditions sheet is what the merchant reads and accepts, then
+   * Apple's How to Tap education opens immediately. Velbok never renders "terms".
+   */
+  const runTapToPayEnable = async (): Promise<boolean> => {
     if (!canManageBilling) {
       toast.error(t("pos.tapToPayContactAdmin"));
       return false;
@@ -849,13 +886,15 @@ function isPaymentOverlayNoise(status: string): boolean {
       return false;
     }
 
-    setEnableTermsBusy(true);
+    setEnablingTapToPay(true);
     setPaying(true);
     try {
-      // Keep payment overlay hidden so Apple's Terms sheet can present on top.
-      setEnableTermsOpen(false);
+      // Every Velbok surface must be closed before connectReader: Apple's Terms sheet
+      // is presented by ProximityReader from the top view controller.
       setPaymentFlowPhase("hidden");
       setPaymentFlowDetail(null);
+      setShowTryItAfterEducation(false);
+      setShowWisePadGuide(false);
 
       const env = await checkTapToPayEnvironment();
       if (env && hasTapToPayHardBlockers(env)) {
@@ -866,21 +905,19 @@ function isPaymentOverlayNoise(status: string): boolean {
         return false;
       }
 
-      // Always connect — Apple Terms appear on connectReader, not when SDK reports connected.
+      // Non-blocking lead-in only. This is a toast, never a dialog, so it can never be
+      // mistaken for (or cover) Apple's Terms and Conditions.
+      toast.message(t("pos.tapToPayAppleTermsNext"));
+      await waitForAppOverlaysToClose();
+
+      // Always reconnect — Apple's Terms sheet is raised by connectReader, so a cached
+      // "connected" reader must never short-circuit it.
       await terminal.discoverAndConnect({ forceReconnect: true });
       markWisePadFirmwareCompleted();
-      setShowWisePadGuide(false);
 
-      const educated = await showTapToPayEducationIfAvailable();
-      if (!educated) {
-        toast.message(t("pos.enableTermsEducationFailed"));
-        return false;
-      }
-
-      markTapToPaySetupCompleted();
-      setShowTryItAfterEducation(true);
-      toast.success(t("pos.tapToPayPhoneReady"));
-      return true;
+      const educated = await presentTapToPayEducation();
+      if (educated) toast.success(t("pos.tapToPayPhoneReady"));
+      return educated;
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
       setPaymentFlowPhase(classifyPaymentFailure(msg));
@@ -888,12 +925,10 @@ function isPaymentOverlayNoise(status: string): boolean {
       toast.error(msg);
       return false;
     } finally {
-      setEnableTermsBusy(false);
+      setEnablingTapToPay(false);
       setPaying(false);
     }
   };
-
-  const needsTapToPayTermsSetup = () => usingTapToPay && !hasCompletedTapToPaySetup();
 
   const shareDigitalReceipt = async (overrideEmail?: string) => {
     const email = (overrideEmail || clientEmail).trim();
@@ -1038,13 +1073,8 @@ function isPaymentOverlayNoise(status: string): boolean {
     activeSaleIdRef.current = null;
     let saleId: string | null = null;
     try {
-      if (amountDue > 0 && usingTapToPay && needsTapToPayTermsSetup()) {
-        setEnableTermsOpen(true);
-        return;
-      }
-
       if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
-        const connected = await ensureTapToPayConnected({ skipEducation: hasCompletedTapToPaySetup() });
+        const connected = await ensureTapToPayConnected();
         if (!connected) return;
       }
 
@@ -1210,29 +1240,17 @@ function isPaymentOverlayNoise(status: string): boolean {
   };
 
   const handleTapToPayPrimary = async () => {
-    if (readerFirmwareUpdating || paying || enableTermsBusy) return;
+    if (readerFirmwareUpdating || paying || enablingTapToPay) return;
 
     if (amountDue <= 0 && depositCredit > 0) {
       void handlePay();
       return;
     }
 
-    // Apple 3.5: never start a payment until Terms + setup have been accepted.
-    if (needsTapToPayTermsSetup()) {
-      if (!canManageBilling) {
-        toast.error(t("pos.tapToPayContactAdmin"));
-        return;
-      }
-      if (connectBlockedReason) {
-        toast.error(connectBlockedReason);
-        return;
-      }
-      setEnableTermsOpen(true);
-      return;
-    }
-
     if (cart.length === 0) {
-      if (terminal.status === "connected" && hasCompletedTapToPaySetup()) {
+      // Apple 5.3: the button stays enabled with an empty cart and becomes the
+      // enable path — tapping it hands straight over to Apple's Terms sheet.
+      if (terminal.status === "connected" && hasShownTapToPayEducation()) {
         toast.error(t("pos.addItemsToCharge"));
         return;
       }
@@ -1240,7 +1258,7 @@ function isPaymentOverlayNoise(status: string): boolean {
         toast.error(connectBlockedReason);
         return;
       }
-      setEnableTermsOpen(true);
+      void runTapToPayEnable();
       return;
     }
 
@@ -2240,12 +2258,6 @@ function isPaymentOverlayNoise(status: string): boolean {
               ? sendReceiptSms
               : undefined
           }
-        />
-        <TapToPayEnableDialog
-          open={enableTermsOpen}
-          onOpenChange={setEnableTermsOpen}
-          busy={enableTermsBusy}
-          onAcceptTermsAndEnable={() => void runTapToPayEnableWithTerms()}
         />
         <TapToPayTryItDialog open={showTryItAfterEducation} onOpenChange={setShowTryItAfterEducation} />
       </SubscriptionGate>

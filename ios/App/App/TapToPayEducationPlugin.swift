@@ -102,15 +102,21 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
                     return
                 }
 
-                // Dismiss any app overlay so Apple education is visible immediately after Terms.
-                var topViewController = rootViewController
-                while let presented = topViewController.presentedViewController {
-                    topViewController = presented
-                }
+                // Apple 4.1: this runs right after Apple's Terms and Conditions sheet was
+                // accepted, and that sheet is still animating away. Presenting from a view
+                // controller mid-dismissal silently drops the education overlay.
+                let host = await Self.settledPresentationHost(from: rootViewController)
 
                 let discovery = ProximityReaderDiscovery()
                 let content = try await discovery.content(for: .payment(.howToTap))
-                try await discovery.presentContent(content, from: topViewController)
+                do {
+                    try await discovery.presentContent(content, from: host)
+                } catch {
+                    // One retry covers a sheet that finished dismissing a beat late.
+                    try? await Task.sleep(nanoseconds: 700_000_000)
+                    let retryHost = await Self.settledPresentationHost(from: rootViewController)
+                    try await discovery.presentContent(content, from: retryHost)
+                }
                 call.resolve()
             } catch {
                 call.reject("Could not present How to Tap education", nil, error)
@@ -119,5 +125,26 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
         #else
         call.reject("ProximityReader framework is not available in this build")
         #endif
+    }
+
+    /// Waits for Apple's Terms sheet (or any other sheet) to finish dismissing, then
+    /// returns the view controller that can safely present the education overlay.
+    @MainActor
+    private static func settledPresentationHost(
+        from root: UIViewController,
+        timeout: TimeInterval = 6
+    ) async -> UIViewController {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            guard let presented = root.presentedViewController else { return root }
+            if !presented.isBeingDismissed { break }
+            try? await Task.sleep(nanoseconds: 150_000_000)
+        }
+
+        var top = root
+        while let presented = top.presentedViewController, !presented.isBeingDismissed {
+            top = presented
+        }
+        return top
     }
 }

@@ -12,7 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { isIpadDevice, isNativeApp, nativePlatform } from "@/lib/platform";
 import { showTapToPayEducationIfAvailable } from "@/lib/terminal/tapToPayEducation";
 import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
-import { clearTapToPaySetupCompleted } from "@/lib/terminal/tapToPaySetupStorage";
+import { clearTapToPayEducationShown } from "@/lib/terminal/tapToPaySetupStorage";
 import { invokeEdgeFunctionJson } from "@/lib/edgeFunctions";
 import { toast } from "sonner";
 import i18n from "@/i18n";
@@ -41,9 +41,9 @@ export function TapToPaySettingsCard() {
       toast.error(t("pos.tapToPayContactAdmin"));
       return;
     }
-    // Clear local flag so Checkout shows the Terms CTA again (Apple Business merchant
-    // ID must still be removed separately if Apple T&Cs were already accepted).
-    clearTapToPaySetupCompleted();
+    // Replay Apple's How to Tap after this run. Apple's Terms sheet itself only
+    // reappears once the merchant ID is removed in Apple Business Register.
+    clearTapToPayEducationShown();
     navigate("/checkout?enableTapToPay=1");
   };
 
@@ -57,7 +57,7 @@ export function TapToPaySettingsCard() {
       }
       setShowTryIt(true);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("pos.enableTermsEducationFailed"));
+      toast.error(e instanceof Error ? e.message : t("pos.tapToPayEducationFailed"));
     } finally {
       setBusy(false);
     }
