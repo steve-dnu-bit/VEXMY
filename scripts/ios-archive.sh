@@ -37,14 +37,9 @@ npm run ios:prepare
 
 EXPECTED_VERSION="$(node -e "console.log(JSON.parse(require('fs').readFileSync('scripts/mobile-version.json','utf8')).versionName)")"
 EXPECTED_BUILD="$(node -e "console.log(JSON.parse(require('fs').readFileSync('scripts/mobile-version.json','utf8')).versionCode)")"
-PBX_VERSION="$(grep -m1 'MARKETING_VERSION' "$ROOT/ios/App/App.xcodeproj/project.pbxproj" | sed -E 's/.*=[[:space:]]*([^;]+);/\1/' | tr -d '[:space:]')"
-PBX_BUILD="$(grep -m1 'CURRENT_PROJECT_VERSION' "$ROOT/ios/App/App.xcodeproj/project.pbxproj" | sed -E 's/.*=[[:space:]]*([^;]+);/\1/' | tr -d '[:space:]')"
 echo "==> Version gate after ios:prepare"
-echo "    mobile-version.json: $EXPECTED_VERSION ($EXPECTED_BUILD)"
-echo "    project.pbxproj:     $PBX_VERSION ($PBX_BUILD)"
-if [[ "$PBX_VERSION" != "$EXPECTED_VERSION" || "$PBX_BUILD" != "$EXPECTED_BUILD" ]]; then
-  echo "ERROR: project.pbxproj version ($PBX_VERSION / $PBX_BUILD) != mobile-version.json ($EXPECTED_VERSION / $EXPECTED_BUILD)"
-  echo "       Refuse to archive. Fix scripts/mobile-version.json or re-run sync."
+if ! node "$ROOT/scripts/verify-mobile-version.mjs"; then
+  echo "ERROR: version mismatch — refusing to archive."
   exit 1
 fi
 

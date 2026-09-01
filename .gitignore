@@ -22,6 +22,12 @@ dist-ssr
 *.local
 .netlify
 
+# Capacitor web bundles — generated from dist by `cap sync`.
+# Tracking these shipped 1.0.100 JavaScript inside 1.0.101-1.0.105 archives.
+# Regenerate with `npm run ios:prepare` before any archive.
+ios/App/App/public/
+android/app/src/main/assets/public/
+
 # Firebase service account (server push — never commit)
 **/*firebase-adminsdk*.json
 android/app/*firebase-adminsdk*.json

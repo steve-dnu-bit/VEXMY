@@ -14,7 +14,8 @@ if (!fs.existsSync(capacitorConfig)) missing.push("ios/App/App/capacitor.config.
 if (missing.length > 0) {
   console.error("[verify-ios-bundle] Missing iOS web bundle:");
   for (const file of missing) console.error(`  - ${file}`);
-  console.error("Run: npm run ios:prepare");
+  console.error("The bundle is generated, not committed — a fresh clone has none until you run:");
+  console.error("  npm run ios:prepare");
   process.exit(1);
 }
 
