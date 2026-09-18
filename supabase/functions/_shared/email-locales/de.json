@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: Terminerinnerung mit {{artist}} am {{when}}. Antworten Sie, wenn Sie einen neuen Termin vereinbaren müssen.",
+      "appointment": "{{shopName}}: Terminerinnerung mit {{artist}} am {{when}}. Bitte antworten Sie nicht auf diese SMS. Zum Umplanen kontaktieren Sie uns per WhatsApp oder E-Mail.",
       "deposit": "{{shopName}}: Anzahlungserinnerung für Ihren Termin am {{when}}. Fälliger Betrag: {{amount}}. Kontaktieren Sie uns, um zu bezahlen."
     }
   }

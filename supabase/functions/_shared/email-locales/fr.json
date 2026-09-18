@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}} : Rappel de rendez-vous avec {{artist}} le {{when}}. Répondez si vous devez reporter.",
+      "appointment": "{{shopName}} : Rappel de rendez-vous avec {{artist}} le {{when}}. Merci de ne pas répondre à ce SMS. Pour reporter, contactez-nous par WhatsApp ou e-mail.",
       "deposit": "{{shopName}} : Rappel de dépôt pour votre rendez-vous du {{when}}. Montant dû : {{amount}}. Contactez-nous pour payer."
     }
   }

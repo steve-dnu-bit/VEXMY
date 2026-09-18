@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: Påminnelse om möte med {{artist}} på {{when}}. Svara om du behöver boka om.",
+      "appointment": "{{shopName}}: Påminnelse om möte med {{artist}} den {{when}}. Svara inte på detta SMS. För att boka om, kontakta oss via WhatsApp eller e-post.",
       "deposit": "{{shopName}}: Insättningspåminnelse för ditt möte den {{when}}. Förfallna belopp: {{amount}}. Kontakta oss för att betala."
     }
   }

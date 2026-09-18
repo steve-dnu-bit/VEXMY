@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: Memento de întâlnire cu {{artist}} pe {{when}}. Răspundeți dacă trebuie să reprogramați.",
+      "appointment": "{{shopName}}: Memento de întâlnire cu {{artist}} pe {{when}}. Vă rugăm să nu răspundeți la acest SMS. Pentru reprogramare, contactați-ne pe WhatsApp sau e-mail.",
       "deposit": "{{shopName}}: Memento de depunere pentru programarea dvs. pe {{when}}. Suma datorată: {{amount}}. Contactează-ne pentru a plăti."
     }
   }

@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: Påminnelse om avtale med {{artist}} på {{when}}. Svar hvis du trenger å ombestille.",
+      "appointment": "{{shopName}}: Påminnelse om avtale med {{artist}} den {{when}}. Ikke svar på denne SMS-en. For å ombestille, kontakt oss på WhatsApp eller e-post.",
       "deposit": "{{shopName}}: Innskuddspåminnelse for din avtale på {{when}}. Forfalt beløp: {{amount}}. Kontakt oss for å betale."
     }
   }

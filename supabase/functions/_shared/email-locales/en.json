@@ -238,7 +238,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: Appointment reminder with {{artist}} on {{when}}. Reply if you need to reschedule.",
+      "appointment": "{{shopName}}: Appointment reminder with {{artist}} on {{when}}. Please do not reply to this SMS. To reschedule, contact us on WhatsApp or email.",
       "deposit": "{{shopName}}: Deposit reminder for your appointment on {{when}}. Amount due: {{amount}}. Contact us to pay."
     }
   }

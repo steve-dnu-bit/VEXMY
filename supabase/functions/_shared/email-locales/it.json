@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: promemoria appuntamento con {{artist}} il {{when}}. Rispondi se hai bisogno di riprogrammare.",
+      "appointment": "{{shopName}}: promemoria appuntamento con {{artist}} il {{when}}. Non rispondere a questo SMS. Per riprogrammare, contattaci su WhatsApp o via e-mail.",
       "deposit": "{{shopName}}: promemoria di deposito per l'appuntamento del {{when}}. Importo dovuto: {{amount}}. Contattaci per pagare."
     }
   }

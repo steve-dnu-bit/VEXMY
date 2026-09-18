@@ -224,7 +224,7 @@
   },
   "sms": {
     "reminders": {
-      "appointment": "{{shopName}}: Afspraakherinnering met {{artist}} op {{when}}. Reageer als u een nieuwe afspraak wilt maken.",
+      "appointment": "{{shopName}}: Afspraakherinnering met {{artist}} op {{when}}. Reageer niet op deze sms. Om te verzetten, neem contact met ons op via WhatsApp of e-mail.",
       "deposit": "{{shopName}}: Herinnering aanbetaling voor uw afspraak op {{when}}. Verschuldigd bedrag: {{amount}}. Neem contact met ons op om te betalen."
     }
   }
