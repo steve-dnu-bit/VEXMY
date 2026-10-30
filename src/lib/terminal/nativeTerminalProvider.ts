@@ -363,9 +363,12 @@ async function registerTerminalEventListeners(): Promise<void> {
       }
       notifyFirmwareUpdate(false);
       if (liveTapToPay) {
-        // Update attempt is over (success, or a nil update mis-reported as failure).
-        // How to Tap can run now, without waiting for a later charge.
-        scheduleTapToPayEducation(nilFalseFailure ? "readerUpdate.nilIgnored" : "readerUpdate.finished");
+        // A nil configuration step only runs after Apple's Terms. Remember that so a
+        // later connect rejection still presents How to Tap. Do not present it here —
+        // the Terms sheet is still up, and presenting now drops the education overlay.
+        if (tapToPayConnectSession && (updateNil || nilFalseFailure)) {
+          tapToPayConnectSession.termsAccepted = true;
+        }
         return;
       }
       beginConnectionHold(20_000);
@@ -374,13 +377,15 @@ async function registerTerminalEventListeners(): Promise<void> {
       void refreshConnectedReaderFromSdk();
       return;
     }
+    const userFacing = `Reader update failed: ${errorText}`;
     ttpLog("readerUpdate.failed", { error: errorText, updateNil, tapToPay: liveTapToPay });
+    ttpLog("userFacingError", { message: userFacing, deferredUntilEducation: !!(liveTapToPay && tapToPayConnectSession) });
     notifyFirmwareUpdate(false);
     if (liveTapToPay && tapToPayConnectSession) {
       tapToPayConnectSession.updateFailedMessage = errorText;
-      scheduleTapToPayEducation("readerUpdate.failed");
+      return;
     }
-    latestProviderOptions?.onReaderStatus?.(`Reader update failed: ${errorText}`);
+    latestProviderOptions?.onReaderStatus?.(userFacing);
   });
 
   await (
@@ -560,12 +565,17 @@ function scheduleTapToPayEducation(reason: string): void {
   });
 }
 
-/** Stripe reports a successful configuration step with no update object, sometimes as "not connected". */
+/**
+ * Stripe reports a successful Tap to Pay configuration step with a nil update, sometimes
+ * as "No reader connected". That is not a failed install and must not abort connect.
+ */
 function isNilUpdateFalseFailure(message: string, updateNil: boolean): boolean {
   if (!updateNil) return false;
   const text = message.trim();
   if (!text) return true;
-  return /no reader connected|not connected to (a )?reader|not_connected_to_reader|^nil$|^null$/i.test(text);
+  return /no reader connected|not connected to (a )?reader|reader is not connected|not_connected_to_reader|notconnectedtoreader|^nil$|^null$/i.test(
+    text,
+  );
 }
 
 function finishUpdatePayload(args: unknown): { errorText: string; updateNil: boolean } {

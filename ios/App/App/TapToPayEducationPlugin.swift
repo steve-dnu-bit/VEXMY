@@ -108,9 +108,9 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
                 do {
                     try await discovery.presentContent(content, from: host)
                 } catch {
-                    // One retry covers a sheet that finished dismissing a beat late.
+                    // One retry covers a Terms sheet that finished dismissing a beat late.
                     self.trace("native.education.showHowToTap.retry error=\(error.localizedDescription)")
-                    try? await Task.sleep(nanoseconds: 700_000_000)
+                    try? await Task.sleep(nanoseconds: 1_200_000_000)
                     let retryHost = await Self.settledPresentationHost(from: rootViewController)
                     try await discovery.presentContent(content, from: retryHost)
                 }
@@ -127,17 +127,16 @@ public class TapToPayEducationPlugin: CAPPlugin, CAPBridgedPlugin {
         #endif
     }
 
-    /// Waits for Apple's Terms sheet (or any other sheet) to finish dismissing, then
-    /// returns the view controller that can safely present the education overlay.
+    /// Waits until Apple's Terms sheet is fully gone. Presenting How to Tap from that
+    /// sheet, or from a controller that is about to dismiss, drops the education overlay.
     @MainActor
     private static func settledPresentationHost(
         from root: UIViewController,
-        timeout: TimeInterval = 6
+        timeout: TimeInterval = 8
     ) async -> UIViewController {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            guard let presented = root.presentedViewController else { return root }
-            if !presented.isBeingDismissed { break }
+            if root.presentedViewController == nil { return root }
             try? await Task.sleep(nanoseconds: 150_000_000)
         }
 

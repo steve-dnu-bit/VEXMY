@@ -884,8 +884,9 @@ function isPaymentOverlayNoise(status: string): boolean {
       try {
         const educated = await showTapToPayEducationIfAvailable();
         if (!educated) {
-          ttpLog("education.unavailable", {
+          ttpLog("education.failed", {
             ms: Date.now() - startedAt,
+            reason: "unavailable",
             note: "native plugin reported How to Tap is unavailable (iPad, iOS < 18, or missing entitlement)",
           });
           if (announce) toast.error(t("pos.tapToPayEducationFailed"));

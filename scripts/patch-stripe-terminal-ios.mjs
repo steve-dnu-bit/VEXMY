@@ -697,6 +697,230 @@ if (!source.includes("native.terms.accepted")) {
   }
 }
 
+const markerV7 = "// velbok: ios nil-update connect v7";
+
+if (!source.includes("velbokTapToPayNilUpdateDuringConnect")) {
+  const oldFields = `    var discoveredReadersList: [Reader]?`;
+  const newFields = `    var discoveredReadersList: [Reader]?
+    /// Nil Tap to Pay configuration update seen during this connect. Not a failed install.
+    var velbokTapToPayNilUpdateDuringConnect = false`;
+  if (!source.includes(oldFields)) {
+    console.warn("[patch-stripe-terminal-ios] Tap to Pay nil-update field anchor not found.");
+  } else {
+    source = source.replace(oldFields, newFields);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Added nil-update connect flag (v7).");
+  }
+}
+
+if (!source.includes("func velbokIsNotConnectedReaderError")) {
+  const oldHelperAnchor = `    private func connectLocalMobileReader(_ call: CAPPluginCall) {`;
+  const newHelperAnchor = `    private func velbokIsNotConnectedReaderError(_ error: Error) -> Bool {
+        let message = error.localizedDescription
+        if message.range(of: "no reader connected", options: .caseInsensitive) != nil { return true }
+        if message.range(of: "not connected to", options: .caseInsensitive) != nil { return true }
+        if message.range(of: "reader is not connected", options: .caseInsensitive) != nil { return true }
+        return String(describing: error).lowercased().contains("notconnectedtoreader")
+    }
+
+    private func velbokResolveTapToPayConnect(_ call: CAPPluginCall) {
+        self.velbokTapToPayNilUpdateDuringConnect = false
+        NSLog("[VELBOK-TTP] native.connect.resolved")
+        self.plugin?.notifyListeners(TerminalEvents.ConnectedReader.rawValue, data: [:])
+        call.resolve()
+    }
+
+    /// A nil FinishInstallingUpdate is a finished configuration step. If Stripe then
+    /// completes connectReader with "No reader connected", connect once more — Terms
+    /// are already accepted — instead of aborting before How to Tap.
+    private func velbokFinishTapToPayConnect(
+        _ call: CAPPluginCall,
+        foundReader: Reader,
+        connectionConfig: TapToPayConnectionConfiguration,
+        connectedReader: Reader?,
+        error: Error?,
+        allowNilUpdateRetry: Bool
+    ) {
+        if connectedReader != nil || Terminal.shared.connectedReader != nil {
+            if error != nil && connectedReader == nil {
+                NSLog("[VELBOK-TTP] native.connect.recovered error=\\(error!.localizedDescription)")
+            }
+            self.velbokResolveTapToPayConnect(call)
+            return
+        }
+        if let error = error {
+            let message = error.localizedDescription
+            if allowNilUpdateRetry && self.velbokTapToPayNilUpdateDuringConnect && self.velbokIsNotConnectedReaderError(error) {
+                NSLog("[VELBOK-TTP] native.connect.retry reason=nil-update-not-connected error=\\(message)")
+                self.velbokTapToPayNilUpdateDuringConnect = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    Terminal.shared.connectReader(foundReader, connectionConfig: connectionConfig) { retriedReader, retryError in
+                        self.velbokFinishTapToPayConnect(
+                            call,
+                            foundReader: foundReader,
+                            connectionConfig: connectionConfig,
+                            connectedReader: retriedReader,
+                            error: retryError,
+                            allowNilUpdateRetry: false
+                        )
+                    }
+                }
+                return
+            }
+            NSLog("[VELBOK-TTP] native.connect.rejected error=\\(message)")
+            self.velbokTapToPayNilUpdateDuringConnect = false
+            call.reject(message)
+            return
+        }
+        NSLog("[VELBOK-TTP] native.connect.rejected error=no-details")
+        self.velbokTapToPayNilUpdateDuringConnect = false
+        call.reject("Tap to Pay connect failed with no error details.")
+    }
+
+    private func connectLocalMobileReader(_ call: CAPPluginCall) {`;
+  if (!source.includes(oldHelperAnchor)) {
+    console.warn("[patch-stripe-terminal-ios] Tap to Pay helper anchor not found.");
+  } else {
+    source = source.replace(oldHelperAnchor, newHelperAnchor);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Added nil-update connect retry helpers (v7).");
+  }
+}
+
+const connectStartV7 = `    private func connectLocalMobileReader(_ call: CAPPluginCall) {
+        // velbok: ios tap-to-pay connect fix v1
+`;
+const connectStartResetV7 = `    private func connectLocalMobileReader(_ call: CAPPluginCall) {
+        // velbok: ios tap-to-pay connect fix v1
+        self.velbokTapToPayNilUpdateDuringConnect = false
+`;
+if (source.includes("velbokTapToPayNilUpdateDuringConnect") && source.includes(connectStartV7) && !source.includes(connectStartResetV7)) {
+  source = source.replace(connectStartV7, connectStartResetV7);
+  applied += 1;
+  console.log("[patch-stripe-terminal-ios] Reset nil-update flag at Tap to Pay connect start (v7).");
+}
+
+if (!source.includes("allowNilUpdateRetry: true")) {
+  const oldConnectDoneV7 = `        Terminal.shared.connectReader(foundReader, connectionConfig: connectionConfig) { connectedReader, error in
+            ${markerV6}
+            // A nil configuration update can finish with "No reader connected" while the
+            // reader is already attached. That must not abort connect before How to Tap.
+            if connectedReader != nil {
+                NSLog("[VELBOK-TTP] native.connect.resolved")
+                self.plugin?.notifyListeners(TerminalEvents.ConnectedReader.rawValue, data: [:])
+                call.resolve()
+                return
+            }
+            if let error = error {
+                let message = error.localizedDescription
+                let notConnected = message.range(of: "no reader connected", options: .caseInsensitive) != nil
+                    || message.range(of: "not connected to", options: .caseInsensitive) != nil
+                if notConnected && Terminal.shared.connectedReader != nil {
+                    NSLog("[VELBOK-TTP] native.connect.recovered error=\\(message)")
+                    self.plugin?.notifyListeners(TerminalEvents.ConnectedReader.rawValue, data: [:])
+                    call.resolve()
+                    return
+                }
+                NSLog("[VELBOK-TTP] native.connect.rejected error=\\(message)")
+                call.reject(message)
+                return
+            }
+            NSLog("[VELBOK-TTP] native.connect.rejected error=no-details")
+            call.reject("Tap to Pay connect failed with no error details.")
+        }`;
+  const newConnectDoneV7 = `        Terminal.shared.connectReader(foundReader, connectionConfig: connectionConfig) { connectedReader, error in
+            ${markerV7}
+            self.velbokFinishTapToPayConnect(
+                call,
+                foundReader: foundReader,
+                connectionConfig: connectionConfig,
+                connectedReader: connectedReader,
+                error: error,
+                allowNilUpdateRetry: true
+            )
+        }`;
+  if (!source.includes(oldConnectDoneV7)) {
+    console.warn("[patch-stripe-terminal-ios] Tap to Pay connect completion v7 pattern not found.");
+  } else {
+    source = source.replace(oldConnectDoneV7, newConnectDoneV7);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Applied Tap to Pay nil-update connect retry (v7).");
+  }
+}
+
+if (!source.includes("native.readerUpdate.nilIgnored")) {
+  const oldTapFinishV7 = `    public func tapToPayReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
+        ${markerV2}
+        ${markerV6}
+        let updateNil = update == nil
+        if let error {
+            let message = error.localizedDescription
+            NSLog("[VELBOK-TTP] native.readerUpdate.failed reader=tapToPay updateNil=\\(updateNil) error=\\(message)")
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "error": message,
+                "updateNil": updateNil
+            ])
+            return
+        }
+        // Nil update + nil error is a successful configuration step, not a failed install.
+        NSLog("[VELBOK-TTP] native.readerUpdate.finished reader=tapToPay updateNil=\\(updateNil)")
+        if let update {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "update": self.convertReaderSoftwareUpdate(update: update),
+                "updateNil": false
+            ])
+        } else {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "updateNil": true
+            ])
+        }
+    }`;
+  const newTapFinishV7 = `    public func tapToPayReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
+        ${markerV2}
+        ${markerV7}
+        let updateNil = update == nil
+        if updateNil {
+            let falseFailure = error == nil || self.velbokIsNotConnectedReaderError(error!)
+            if falseFailure {
+                self.velbokTapToPayNilUpdateDuringConnect = true
+                let detail = error?.localizedDescription ?? "nil"
+                NSLog("[VELBOK-TTP] native.readerUpdate.nilIgnored reader=tapToPay error=\\(detail)")
+                self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                    "updateNil": true
+                ])
+                return
+            }
+        }
+        if let error {
+            let message = error.localizedDescription
+            NSLog("[VELBOK-TTP] native.readerUpdate.failed reader=tapToPay updateNil=\\(updateNil) error=\\(message)")
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "error": message,
+                "updateNil": updateNil
+            ])
+            return
+        }
+        NSLog("[VELBOK-TTP] native.readerUpdate.finished reader=tapToPay updateNil=\\(updateNil)")
+        if let update {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "update": self.convertReaderSoftwareUpdate(update: update),
+                "updateNil": false
+            ])
+        } else {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "updateNil": true
+            ])
+        }
+    }`;
+  if (!source.includes(oldTapFinishV7)) {
+    console.warn("[patch-stripe-terminal-ios] tapToPay FinishInstallingUpdate v7 pattern not found.");
+  } else {
+    source = source.replace(oldTapFinishV7, newTapFinishV7);
+    applied += 1;
+    console.log("[patch-stripe-terminal-ios] Applied tapToPay nil FinishInstallingUpdate success path (v7).");
+  }
+}
+
 if (applied > 0) {
   fs.writeFileSync(target, source);
   console.log(`[patch-stripe-terminal-ios] Wrote ${applied} patch(es).`);
