@@ -82,6 +82,7 @@ import type { TerminalReaderMode } from "@/lib/terminal/types";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useSearchParams } from "react-router-dom";
 import { getNativeConnectedReader } from "@/lib/terminal/getNativeConnectedReader";
+import { consumeTapToPayConnectSession, waitForScheduledTapToPayEducation } from "@/lib/terminal/nativeTerminalProvider";
 import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
 import {
   checkTapToPayEnvironment,
@@ -132,6 +133,7 @@ const PosCheckoutPage = () => {
   const [showTryItAfterEducation, setShowTryItAfterEducation] = useState(false);
   const [enablingTapToPay, setEnablingTapToPay] = useState(false);
   const enableTapToPayTriggered = useRef(false);
+  const educationFlightRef = useRef<Promise<boolean> | null>(null);
   const [loading, setLoading] = useState(true);
   const [quickItems, setQuickItems] = useState<PosItemTemplate[]>([]);
   const [artists, setArtists] = useState<PosArtistOption[]>([]);
@@ -868,34 +870,46 @@ function isPaymentOverlayNoise(status: string): boolean {
    * once without two error toasts.
    */
   const presentTapToPayEducation = async (announce = true): Promise<boolean> => {
-    // Nothing of ours may be on screen — Apple presents from the top view controller.
-    setPaymentFlowPhase("hidden");
-    setPaymentFlowDetail(null);
-    setShowWisePadGuide(false);
-    await waitForAppOverlaysToClose();
-    ttpLog("education.start", { terminalStatus: terminal.status });
-    const startedAt = Date.now();
-    try {
-      const educated = await showTapToPayEducationIfAvailable();
-      if (!educated) {
-        ttpLog("education.unavailable", {
-          ms: Date.now() - startedAt,
-          note: "native plugin reported How to Tap is unavailable (iPad, iOS < 18, or missing entitlement)",
-        });
-        if (announce) toast.error(t("pos.tapToPayEducationFailed"));
+    if (hasShownTapToPayEducation()) return true;
+    if (educationFlightRef.current) return educationFlightRef.current;
+    const flight = (async (): Promise<boolean> => {
+      // Nothing of ours may be on screen — Apple presents from the top view controller.
+      // Enable is not a payment: never open the checkout overlay and never collect.
+      setPaymentFlowPhase("hidden");
+      setPaymentFlowDetail(null);
+      setShowWisePadGuide(false);
+      await waitForAppOverlaysToClose();
+      ttpLog("education.start", { terminalStatus: terminal.status });
+      const startedAt = Date.now();
+      try {
+        const educated = await showTapToPayEducationIfAvailable();
+        if (!educated) {
+          ttpLog("education.unavailable", {
+            ms: Date.now() - startedAt,
+            note: "native plugin reported How to Tap is unavailable (iPad, iOS < 18, or missing entitlement)",
+          });
+          if (announce) toast.error(t("pos.tapToPayEducationFailed"));
+          return false;
+        }
+        ttpLog("education.presented", { ms: Date.now() - startedAt });
+        markTapToPayEducationShown();
+        setShowTryItAfterEducation(true);
+        return true;
+      } catch (eduErr) {
+        ttpLogError("education.failed", eduErr, { ms: Date.now() - startedAt });
+        if (announce) {
+          const msg = eduErr instanceof Error ? eduErr.message : t("pos.tapToPayEducationFailed");
+          ttpLog("userFacingError", { message: msg, source: "education" });
+          toast.error(msg);
+        }
         return false;
       }
-      ttpLog("education.presented", { ms: Date.now() - startedAt });
-      markTapToPayEducationShown();
-      setShowTryItAfterEducation(true);
-      return true;
-    } catch (eduErr) {
-      ttpLogError("education.failed", eduErr, { ms: Date.now() - startedAt });
-      if (announce) {
-        const msg = eduErr instanceof Error ? eduErr.message : t("pos.tapToPayEducationFailed");
-        toast.error(msg);
-      }
-      return false;
+    })();
+    educationFlightRef.current = flight;
+    try {
+      return await flight;
+    } finally {
+      educationFlightRef.current = null;
     }
   };
 
@@ -1031,17 +1045,36 @@ function isPaymentOverlayNoise(status: string): boolean {
           educationPresented = await presentTapToPayEducation(false);
         },
       });
-      ttpLog("enable.connect.ok", { educationPresented });
+      await waitForScheduledTapToPayEducation();
+      const session = consumeTapToPayConnectSession();
+      ttpLog("enable.connect.ok", { educationPresented, updateFailed: session.updateFailedMessage });
       markWisePadFirmwareCompleted();
 
       if (!educationPresented) {
         educationPresented = await presentTapToPayEducation();
       }
       ttpLog("enable.done", { educated: educationPresented });
+      if (session.updateFailedMessage) {
+        const msg = `Reader update failed: ${session.updateFailedMessage}`;
+        ttpLog("userFacingError", { message: msg, educated: educationPresented });
+        toast.error(msg);
+        return false;
+      }
       if (educationPresented) toast.success(t("pos.tapToPayPhoneReady"));
       return educationPresented;
     } catch (e) {
       ttpLogError("enable.failed", e);
+      setPaymentFlowPhase("hidden");
+      setPaymentFlowDetail(null);
+      await waitForScheduledTapToPayEducation();
+      const session = consumeTapToPayConnectSession();
+      if (!educationPresented && (session.termsAccepted || session.updateStarted || session.educationStarted)) {
+        ttpLog("enable.recoverEducation", {
+          termsAccepted: session.termsAccepted,
+          updateStarted: session.updateStarted,
+        });
+        educationPresented = await presentTapToPayEducation(false);
+      }
       if (!educationPresented) {
         const reader = await getNativeConnectedReader();
         if (reader) {
@@ -1049,15 +1082,23 @@ function isPaymentOverlayNoise(status: string): boolean {
           educationPresented = await presentTapToPayEducation();
         }
       }
-      if (educationPresented) {
+      if (session.updateFailedMessage) {
+        const msg = `Reader update failed: ${session.updateFailedMessage}`;
+        ttpLog("userFacingError", { message: msg, educated: educationPresented });
+        toast.error(msg);
+        return false;
+      }
+      if (educationPresented && !session.termsAccepted && !session.updateStarted) {
         ttpLog("enable.done", { educated: true, recoveredAfterError: true });
         toast.success(t("pos.tapToPayPhoneReady"));
         return true;
       }
       const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
+      ttpLog("userFacingError", { message: msg, educated: educationPresented });
       toast.error(msg);
       return false;
     } finally {
+      consumeTapToPayConnectSession();
       setEnablingTapToPay(false);
       if (!paySessionActiveRef.current) {
         setPaymentFlowPhase("hidden");

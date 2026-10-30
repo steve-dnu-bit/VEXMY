@@ -321,6 +321,18 @@ async function registerTerminalEventListeners(): Promise<void> {
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, () => {
+    const liveTapToPay = isLiveTapToPayConnect();
+    ttpLog("readerUpdate.started", {
+      readerMode: latestProviderOptions?.readerMode ?? null,
+      tapToPay: liveTapToPay,
+    });
+    if (tapToPayConnectSession) tapToPayConnectSession.updateStarted = true;
+    if (liveTapToPay) {
+      // Configuration runs after Apple's Terms. Let it finish before How to Tap so the
+      // education sheet does not interrupt the install and produce "No reader connected".
+      latestProviderOptions?.onReaderStatus?.("Preparing Tap to Pay on this iPhone…");
+      return;
+    }
     notifyFirmwareUpdate(true, 0);
     beginConnectionHold(120_000);
     latestProviderOptions?.onReaderStatus?.(
@@ -338,16 +350,46 @@ async function registerTerminalEventListeners(): Promise<void> {
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.FinishInstallingUpdate, (args) => {
-    if ("error" in args && args.error) {
+    const { errorText, updateNil } = finishUpdatePayload(args);
+    const liveTapToPay =
+      isLiveTapToPayConnect() ||
+      (latestProviderOptions?.readerMode === "tap_to_pay" && !latestProviderOptions?.simulated);
+    const nilFalseFailure = !!errorText && liveTapToPay && isNilUpdateFalseFailure(errorText, updateNil);
+    if (!errorText || nilFalseFailure) {
+      if (nilFalseFailure) {
+        ttpLog("readerUpdate.nilIgnored", { error: errorText, updateNil });
+      } else {
+        ttpLog("readerUpdate.finished", { updateNil, tapToPay: liveTapToPay });
+      }
       notifyFirmwareUpdate(false);
-      latestProviderOptions?.onReaderStatus?.(`Reader update failed: ${args.error}`);
+      if (liveTapToPay) {
+        // Update attempt is over (success, or a nil update mis-reported as failure).
+        // How to Tap can run now, without waiting for a later charge.
+        scheduleTapToPayEducation(nilFalseFailure ? "readerUpdate.nilIgnored" : "readerUpdate.finished");
+        return;
+      }
+      beginConnectionHold(20_000);
+      latestProviderOptions?.onReaderStatus?.("WisePad firmware update complete — stay on this screen.");
+      latestProviderOptions?.onFirmwareUpdateChange?.({ active: false, progress: 100, completed: true });
+      void refreshConnectedReaderFromSdk();
       return;
     }
+    ttpLog("readerUpdate.failed", { error: errorText, updateNil, tapToPay: liveTapToPay });
     notifyFirmwareUpdate(false);
-    beginConnectionHold(20_000);
-    latestProviderOptions?.onReaderStatus?.("WisePad firmware update complete — stay on this screen.");
-    latestProviderOptions?.onFirmwareUpdateChange?.({ active: false, progress: 100, completed: true });
-    void refreshConnectedReaderFromSdk();
+    if (liveTapToPay && tapToPayConnectSession) {
+      tapToPayConnectSession.updateFailedMessage = errorText;
+      scheduleTapToPayEducation("readerUpdate.failed");
+    }
+    latestProviderOptions?.onReaderStatus?.(`Reader update failed: ${errorText}`);
+  });
+
+  await (
+    StripeTerminal as unknown as {
+      addListener: (eventName: string, listener: () => void) => Promise<{ remove: () => Promise<void> }>;
+    }
+  ).addListener(TTP_TERMS_ACCEPTED_EVENT, () => {
+    ttpLog("terms.accepted");
+    if (tapToPayConnectSession) tapToPayConnectSession.termsAccepted = true;
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.DisconnectedReader, ({ reason }) => {
@@ -450,6 +492,103 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+const TTP_TERMS_ACCEPTED_EVENT = "terminalTapToPayTermsAccepted";
+
+type TapToPayConnectSession = {
+  termsAccepted: boolean;
+  updateStarted: boolean;
+  /** Set only for a real install failure. A nil update is not a failure. */
+  updateFailedMessage: string | null;
+  educationStarted: boolean;
+  educationHook: (() => Promise<void>) | null;
+};
+
+let tapToPayConnectSession: TapToPayConnectSession | null = null;
+let tapToPayEducationPromise: Promise<void> | null = null;
+
+function isLiveTapToPayConnect(): boolean {
+  const options = latestProviderOptions;
+  return readerConnectInFlight && !!options && options.readerMode === "tap_to_pay" && !options.simulated;
+}
+
+/** Enable should toast after How to Tap, not paint the connect alert over Apple's sheet. */
+export function tapToPayConnectShouldDeferErrorUi(): boolean {
+  const session = tapToPayConnectSession;
+  return !!session && (session.termsAccepted || session.updateStarted || session.educationStarted);
+}
+
+export function waitForScheduledTapToPayEducation(): Promise<void> {
+  return tapToPayEducationPromise ?? Promise.resolve();
+}
+
+export function consumeTapToPayConnectSession(): {
+  termsAccepted: boolean;
+  updateStarted: boolean;
+  updateFailedMessage: string | null;
+  educationStarted: boolean;
+} {
+  const session = tapToPayConnectSession;
+  tapToPayConnectSession = null;
+  tapToPayEducationPromise = null;
+  return {
+    termsAccepted: !!session?.termsAccepted,
+    updateStarted: !!session?.updateStarted,
+    updateFailedMessage: session?.updateFailedMessage ?? null,
+    educationStarted: !!session?.educationStarted,
+  };
+}
+
+function beginTapToPayConnectSession(educationHook: (() => Promise<void>) | null): void {
+  tapToPayConnectSession = {
+    termsAccepted: false,
+    updateStarted: false,
+    updateFailedMessage: null,
+    educationStarted: false,
+    educationHook,
+  };
+  tapToPayEducationPromise = null;
+}
+
+function scheduleTapToPayEducation(reason: string): void {
+  const session = tapToPayConnectSession;
+  if (!session || session.educationStarted || !session.educationHook) return;
+  session.educationStarted = true;
+  const hook = session.educationHook;
+  ttpLog("education.schedule", { reason });
+  tapToPayEducationPromise = hook().catch((error) => {
+    ttpLogError("education.failed", error, { reason: "schedule" });
+  });
+}
+
+/** Stripe reports a successful configuration step with no update object, sometimes as "not connected". */
+function isNilUpdateFalseFailure(message: string, updateNil: boolean): boolean {
+  if (!updateNil) return false;
+  const text = message.trim();
+  if (!text) return true;
+  return /no reader connected|not connected to (a )?reader|not_connected_to_reader|^nil$|^null$/i.test(text);
+}
+
+function finishUpdatePayload(args: unknown): { errorText: string; updateNil: boolean } {
+  const payload =
+    args && typeof args === "object"
+      ? (args as { error?: unknown; update?: unknown; updateNil?: unknown })
+      : {};
+  const errorText = typeof payload.error === "string" ? payload.error.trim() : "";
+  const hasUpdate = payload.update != null;
+  const updateNil = hasUpdate ? false : payload.updateNil === true || payload.update == null;
+  return { errorText, updateNil };
+}
+
+async function presentEducationBeforeConnectFailure(): Promise<void> {
+  const session = tapToPayConnectSession;
+  if (!session) return;
+  if (!session.termsAccepted && !session.updateStarted && !session.educationStarted) return;
+  if (!session.educationStarted) {
+    scheduleTapToPayEducation("connect.failed");
+  }
+  await waitForScheduledTapToPayEducation();
+}
+
 function isLivePhoneReader(mode: TerminalProviderOptions["readerMode"], simulated: boolean): boolean {
   return !simulated && (mode === "tap_to_pay" || mode === "bluetooth");
 }
@@ -513,6 +652,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
     async discoverAndConnect(connectOptions?: DiscoverAndConnectOptions) {
       const options = activeOptions();
       readerConnectInFlight = true;
+      consumeTapToPayConnectSession();
       ttpLog("provider.discoverAndConnect.start", {
         readerMode: options.readerMode,
         simulated: !!options.simulated,
@@ -660,7 +800,13 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
             throw error;
           }
           ttpLog("provider.connectReader.resolved", describeConnectDuration(Date.now() - connectStartedAt));
+          ttpLog("connect.resolved", describeConnectDuration(Date.now() - connectStartedAt));
         };
+
+        const liveTapToPay = options.readerMode === "tap_to_pay" && !options.simulated;
+        if (liveTapToPay) {
+          beginTapToPayConnectSession(connectOptions?.onTapToPayReadyForEducation ?? null);
+        }
 
         try {
           await connectOnce(locationId);
@@ -675,15 +821,14 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           }
         }
 
-        // Apple 4.1: Terms were just accepted inside connectReader. Present How to Tap
-        // before confirmation can fail and before checkout is allowed to charge.
-        if (
-          options.readerMode === "tap_to_pay" &&
-          !options.simulated &&
-          connectOptions?.onTapToPayReadyForEducation
-        ) {
+        // How to Tap runs once the reader update has finished (or as soon as connect
+        // returns, if Stripe skipped the update). It must not wait for a charge tap.
+        if (liveTapToPay && connectOptions?.onTapToPayReadyForEducation) {
+          if (!tapToPayConnectSession?.educationStarted) {
+            scheduleTapToPayEducation("connect.resolved");
+          }
           ttpLog("provider.education.afterTerms");
-          await connectOptions.onTapToPayReadyForEducation();
+          await waitForScheduledTapToPayEducation();
         }
 
         // Discovery was already cancelled in discoverBluetoothReaders/discoverTapToPayReaders.
@@ -720,6 +865,7 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
       } catch (error) {
         await StripeTerminal.cancelDiscoverReaders().catch(() => undefined);
         ttpLogError("provider.discoverAndConnect.failed", error);
+        await presentEducationBeforeConnectFailure();
         throw new Error(formatTerminalError(error, "Reader connection failed"));
       } finally {
         readerConnectInFlight = false;

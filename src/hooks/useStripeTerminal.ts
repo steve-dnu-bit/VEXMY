@@ -3,6 +3,8 @@ import { createTerminalProvider, type TerminalProvider, type TerminalProviderSta
 import { formatTerminalError } from "@/lib/terminal/formatTerminalError";
 import { getNativeConnectedReader } from "@/lib/terminal/getNativeConnectedReader";
 import { abortTerminalOperation, isNativeTerminalInitialized } from "@/lib/terminal/nativeTerminalState";
+import { tapToPayConnectShouldDeferErrorUi } from "@/lib/terminal/nativeTerminalProvider";
+import { ttpLog } from "@/lib/terminal/tapToPayDiagnostics";
 import type { DiscoverAndConnectOptions, TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
 
 const PHONE_PAYMENTS_OPERATION_MS = 150_000;
@@ -152,8 +154,14 @@ export function useStripeTerminal(options: {
         return stillConnected;
       }
       const msg = formatTerminalError(e, "Reader connection failed");
-      setError(msg);
-      setStatus("error");
+      const deferErrorUi = tapToPayConnectShouldDeferErrorUi();
+      if (deferErrorUi) {
+        setStatus("idle");
+      } else {
+        ttpLog("userFacingError", { message: msg });
+        setError(msg);
+        setStatus("error");
+      }
       throw new Error(msg);
     }
   }, [ensureProvider, options.readerMode, options.simulated, syncReaderFromSdk]);
