@@ -27,11 +27,21 @@ export type DiscoverAndConnectOptions = {
   /** Disconnect first so connectReader can present Apple Terms when SDK still reports connected. */
   forceReconnect?: boolean;
   /**
-   * Tap to Pay only. Called once connectReader has returned — Apple's Terms sheet
-   * was accepted — and before any later confirmation. Present How to Tap here.
-   * Must not collect a payment.
+   * Tap to Pay only. Present How to Tap here. Called when Apple's Terms are
+   * accepted (the native presenter waits until that sheet is gone) and again
+   * after connectReader returns if education has not started. Must not collect
+   * a payment or open the payment overlay.
    */
   onTapToPayReadyForEducation?: () => Promise<void>;
+};
+
+/** Tap to Pay reader software install inside connectReader (not WisePad firmware). */
+export type TapToPayInstallState = {
+  active: boolean;
+  /** 0–100 mapped from the SDK fraction. Null until the first progress callback. */
+  progress: number | null;
+  /** How to Tap is being presented. The install popup must stay hidden. */
+  educationInFlight: boolean;
 };
 
 export interface TerminalProvider {
@@ -52,4 +62,5 @@ export type TerminalProviderOptions = {
   onConnectionTokenError?: (message: string) => void;
   onReaderStatus?: (message: string) => void;
   onFirmwareUpdateChange?: (state: { active: boolean; progress: number; completed?: boolean }) => void;
+  onTapToPayInstallChange?: (state: TapToPayInstallState) => void;
 };

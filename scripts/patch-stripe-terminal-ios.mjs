@@ -921,6 +921,261 @@ if (!source.includes("native.readerUpdate.nilIgnored")) {
   }
 }
 
+const markerV8 = "// velbok: ios education-before-update v8";
+if (!source.includes(markerV8)) {
+  const v8Replacements = [
+    {
+      label: "Tap to Pay connect in-flight flag",
+      old: `    var velbokTapToPayNilUpdateDuringConnect = false`,
+      next: `    var velbokTapToPayNilUpdateDuringConnect = false
+    /// True only while Tap to Pay connectReader is in flight.
+    var velbokTapToPayConnectInFlight = false
+    /// A WisePad install was cancelled because Tap to Pay connect is in flight. Swallow its finish event.
+    var velbokRefusedWisePadUpdateDuringTapToPay = false`,
+    },
+    {
+      label: "clear Tap to Pay connect flag on resolve",
+      old: `    private func velbokResolveTapToPayConnect(_ call: CAPPluginCall) {
+        self.velbokTapToPayNilUpdateDuringConnect = false
+        NSLog("[VELBOK-TTP] native.connect.resolved")`,
+      next: `    private func velbokResolveTapToPayConnect(_ call: CAPPluginCall) {
+        self.velbokTapToPayNilUpdateDuringConnect = false
+        self.velbokTapToPayConnectInFlight = false
+        NSLog("[VELBOK-TTP] native.connect.resolved")`,
+    },
+    {
+      label: "clear Tap to Pay connect flag on reject",
+      old: `            self.velbokTapToPayNilUpdateDuringConnect = false
+            call.reject(message)`,
+      next: `            self.velbokTapToPayNilUpdateDuringConnect = false
+            self.velbokTapToPayConnectInFlight = false
+            call.reject(message)`,
+    },
+    {
+      label: "clear Tap to Pay connect flag on empty reject",
+      old: `        self.velbokTapToPayNilUpdateDuringConnect = false
+        call.reject("Tap to Pay connect failed with no error details.")`,
+      next: `        self.velbokTapToPayNilUpdateDuringConnect = false
+        self.velbokTapToPayConnectInFlight = false
+        call.reject("Tap to Pay connect failed with no error details.")`,
+    },
+    {
+      label: "set Tap to Pay connect flag",
+      old: `        Terminal.shared.connectReader(foundReader, connectionConfig: connectionConfig) { connectedReader, error in
+            ${markerV7}`,
+      next: `        self.velbokTapToPayConnectInFlight = true
+        Terminal.shared.connectReader(foundReader, connectionConfig: connectionConfig) { connectedReader, error in
+            ${markerV7}`,
+    },
+    {
+      label: "tag Tap to Pay reader software update events",
+      old: `        self.installUpdateCancelable = cancelable
+        NSLog("[VELBOK-TTP] native.readerUpdate.started reader=tapToPay")
+        self.plugin?.notifyListeners(TerminalEvents.StartInstallingUpdate.rawValue, data: [
+            "update": self.convertReaderSoftwareUpdate(update: update)
+        ])
+    }
+
+    public func tapToPayReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
+        self.plugin?.notifyListeners(TerminalEvents.ReaderSoftwareUpdateProgress.rawValue, data: ["progress": progress])
+    }`,
+      next: `        ${markerV8}
+        self.installUpdateCancelable = cancelable
+        NSLog("[VELBOK-TTP] native.readerUpdate.started reader=tapToPay")
+        self.plugin?.notifyListeners(TerminalEvents.StartInstallingUpdate.rawValue, data: [
+            "update": self.convertReaderSoftwareUpdate(update: update),
+            "readerKind": "tapToPay"
+        ])
+    }
+
+    public func tapToPayReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
+        ${markerV8}
+        self.plugin?.notifyListeners(TerminalEvents.ReaderSoftwareUpdateProgress.rawValue, data: [
+            "progress": progress,
+            "readerKind": "tapToPay"
+        ])
+    }`,
+    },
+    {
+      label: "tag Tap to Pay finish nil-ignored",
+      old: `                self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                    "updateNil": true
+                ])
+                return
+            }
+        }
+        if let error {
+            let message = error.localizedDescription
+            NSLog("[VELBOK-TTP] native.readerUpdate.failed reader=tapToPay updateNil=\\(updateNil) error=\\(message)")
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "error": message,
+                "updateNil": updateNil
+            ])`,
+      next: `                self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                    "updateNil": true,
+                    "readerKind": "tapToPay"
+                ])
+                return
+            }
+        }
+        if let error {
+            let message = error.localizedDescription
+            NSLog("[VELBOK-TTP] native.readerUpdate.failed reader=tapToPay updateNil=\\(updateNil) error=\\(message)")
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "error": message,
+                "updateNil": updateNil,
+                "readerKind": "tapToPay"
+            ])`,
+    },
+    {
+      label: "tag Tap to Pay finish success",
+      old: `        if let update {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "update": self.convertReaderSoftwareUpdate(update: update),
+                "updateNil": false
+            ])
+        } else {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "updateNil": true
+            ])
+        }
+    }
+
+    public func tapToPayReaderDidAcceptTermsOfService(_ reader: Reader) {`,
+      next: `        if let update {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "update": self.convertReaderSoftwareUpdate(update: update),
+                "updateNil": false,
+                "readerKind": "tapToPay"
+            ])
+        } else {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "updateNil": true,
+                "readerKind": "tapToPay"
+            ])
+        }
+    }
+
+    public func tapToPayReaderDidAcceptTermsOfService(_ reader: Reader) {`,
+    },
+    {
+      label: "refuse WisePad firmware during Tap to Pay connect",
+      old: `    public func reader(_: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
+        self.installUpdateCancelable = cancelable
+        self.plugin?.notifyListeners(TerminalEvents.StartInstallingUpdate.rawValue, data: [
+            "update": self.convertReaderSoftwareUpdate(update: update)
+        ])
+    }
+
+    public func reader(_: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
+        self.plugin?.notifyListeners(TerminalEvents.ReaderSoftwareUpdateProgress.rawValue, data: ["progress": progress])
+    }`,
+      next: `    public func reader(_: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
+        ${markerV8}
+        if self.velbokTapToPayConnectInFlight {
+            self.velbokRefusedWisePadUpdateDuringTapToPay = true
+            NSLog("[VELBOK-TTP] native.readerUpdate.refused reader=bluetooth reason=during-tap-to-pay-connect")
+            cancelable?.cancel { _ in }
+            return
+        }
+        self.installUpdateCancelable = cancelable
+        self.plugin?.notifyListeners(TerminalEvents.StartInstallingUpdate.rawValue, data: [
+            "update": self.convertReaderSoftwareUpdate(update: update),
+            "readerKind": "bluetooth"
+        ])
+    }
+
+    public func reader(_: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
+        if self.velbokTapToPayConnectInFlight || self.velbokRefusedWisePadUpdateDuringTapToPay {
+            return
+        }
+        self.plugin?.notifyListeners(TerminalEvents.ReaderSoftwareUpdateProgress.rawValue, data: [
+            "progress": progress,
+            "readerKind": "bluetooth"
+        ])
+    }`,
+    },
+    {
+      label: "swallow refused WisePad finish and tag bluetooth updates",
+      old: `    public func reader(_: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
+        ${markerV2}
+        ${markerV6}
+        let updateNil = update == nil
+        if let error {
+            let message = error.localizedDescription
+            NSLog("[VELBOK-TTP] native.readerUpdate.failed reader=bluetooth updateNil=\\(updateNil) error=\\(message)")
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "error": message,
+                "updateNil": updateNil
+            ])
+            return
+        }
+        // Stripe may finish with a nil update (nothing pending, or Tap to Pay configuration).
+        // Force-unwrapping here crashes connect. A nil update with no error is success.
+        NSLog("[VELBOK-TTP] native.readerUpdate.finished reader=bluetooth updateNil=\\(updateNil)")
+        if let update {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "update": self.convertReaderSoftwareUpdate(update: update),
+                "updateNil": false
+            ])
+        } else {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "updateNil": true
+            ])
+        }
+    }`,
+      next: `    public func reader(_: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
+        ${markerV2}
+        ${markerV6}
+        ${markerV8}
+        if self.velbokRefusedWisePadUpdateDuringTapToPay {
+            self.velbokRefusedWisePadUpdateDuringTapToPay = false
+            NSLog("[VELBOK-TTP] native.readerUpdate.refusedFinished reader=bluetooth")
+            return
+        }
+        let updateNil = update == nil
+        if let error {
+            let message = error.localizedDescription
+            NSLog("[VELBOK-TTP] native.readerUpdate.failed reader=bluetooth updateNil=\\(updateNil) error=\\(message)")
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "error": message,
+                "updateNil": updateNil,
+                "readerKind": "bluetooth"
+            ])
+            return
+        }
+        // Stripe may finish with a nil update (nothing pending, or Tap to Pay configuration).
+        // Force-unwrapping here crashes connect. A nil update with no error is success.
+        NSLog("[VELBOK-TTP] native.readerUpdate.finished reader=bluetooth updateNil=\\(updateNil)")
+        if let update {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "update": self.convertReaderSoftwareUpdate(update: update),
+                "updateNil": false,
+                "readerKind": "bluetooth"
+            ])
+        } else {
+            self.plugin?.notifyListeners(TerminalEvents.FinishInstallingUpdate.rawValue, data: [
+                "updateNil": true,
+                "readerKind": "bluetooth"
+            ])
+        }
+    }`,
+    },
+  ];
+
+  for (const { label, old, next } of v8Replacements) {
+    if (!source.includes(old)) {
+      console.warn(`[patch-stripe-terminal-ios] ${label} pattern not found — plugin may have changed.`);
+      continue;
+    }
+    source = source.replace(old, next);
+    applied += 1;
+    console.log(`[patch-stripe-terminal-ios] Applied ${label} (v8).`);
+  }
+} else {
+  console.log("[patch-stripe-terminal-ios] Education-before-update (v8) already present.");
+}
+
 if (applied > 0) {
   fs.writeFileSync(target, source);
   console.log(`[patch-stripe-terminal-ios] Wrote ${applied} patch(es).`);

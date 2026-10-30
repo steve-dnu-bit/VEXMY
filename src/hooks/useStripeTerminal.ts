@@ -5,7 +5,7 @@ import { getNativeConnectedReader } from "@/lib/terminal/getNativeConnectedReade
 import { abortTerminalOperation, isNativeTerminalInitialized } from "@/lib/terminal/nativeTerminalState";
 import { tapToPayConnectShouldDeferErrorUi } from "@/lib/terminal/nativeTerminalProvider";
 import { ttpLog } from "@/lib/terminal/tapToPayDiagnostics";
-import type { DiscoverAndConnectOptions, TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
+import type { DiscoverAndConnectOptions, TapToPayInstallState, TerminalProviderOptions, TerminalReaderInfo } from "@/lib/terminal/types";
 
 const PHONE_PAYMENTS_OPERATION_MS = 150_000;
 
@@ -34,6 +34,11 @@ export function useStripeTerminal(options: {
   onReaderStatus?: (message: string) => void;
   onFirmwareUpdateChange?: (state: { active: boolean; progress: number; completed?: boolean }) => void;
 }) {
+  const [tapToPayInstall, setTapToPayInstall] = useState<TapToPayInstallState>({
+    active: false,
+    progress: null,
+    educationInFlight: false,
+  });
   const [status, setStatus] = useState<TerminalProviderStatus>("idle");
   const [reader, setReader] = useState<TerminalReaderInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +80,9 @@ export function useStripeTerminal(options: {
         setFirmwareUpdate({ active: state.active, progress: state.progress });
         onFirmwareUpdateChangeRef.current?.(state);
       },
+      onTapToPayInstallChange: (state) => {
+        setTapToPayInstall(state);
+      },
     }),
     [options.locationId, options.readerMode, options.simulated],
   );
@@ -113,6 +121,7 @@ export function useStripeTerminal(options: {
       setError(null);
       setReaderStatus(null);
       setFirmwareUpdate({ active: false, progress: 0 });
+      setTapToPayInstall({ active: false, progress: null, educationInFlight: false });
     }
   }, [options.locationId, options.readerMode, options.simulated]);
 
@@ -270,6 +279,7 @@ export function useStripeTerminal(options: {
     error,
     readerStatus,
     firmwareUpdate,
+    tapToPayInstall,
     discoverAndConnect,
     cancelConnect,
     cancelCollectPayment,

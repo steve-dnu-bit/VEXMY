@@ -2162,6 +2162,8 @@
     "tapToPayFailed": "Impossibile avviare Tocca per pagare",
     "tapToPayCheckingPhone": "Controllo della funzionalità Tocca per pagare su questo telefono…",
     "tapToPayPhoneReady": "Questo telefono è pronto per Tocca per pagare",
+    "tapToPayInstallingTitle": "Installazione di {{label}}",
+    "tapToPayInstallingBody": "Tieni Velbok aperto mentre questo iPhone prepara Tap to Pay. Non è un pagamento.",
     "tapToPayPhoneReadyHint": "Velbok {{version}} · rilasciare build. Tocca Abilita pagamenti telefonici: Stripe verifica la sicurezza del telefono.",
     "tapToPayPhoneBlocked": "Risolvi questo problema sul tuo telefono prima di abilitare i pagamenti",
     "tapToPayPhoneBlockedHint": "Dopo aver risolto il problema, chiudi completamente Velbok (scorri lontano dalle app recenti) e riapri questa schermata.",

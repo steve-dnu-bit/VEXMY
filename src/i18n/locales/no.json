@@ -2162,6 +2162,8 @@
     "tapToPayFailed": "Trykk for å betale kunne ikke starte",
     "tapToPayCheckingPhone": "Sjekker denne telefonen for trykk for å betale …",
     "tapToPayPhoneReady": "Denne telefonen er klar for Trykk for å betale",
+    "tapToPayInstallingTitle": "Installerer {{label}}",
+    "tapToPayInstallingBody": "Hold Velbok åpen mens denne iPhonen klargjør Tap to Pay. Dette er ikke en betaling.",
     "tapToPayPhoneReadyHint": "Velbok {{version}} · release build. Trykk på Aktiver telefonbetalinger — Stripe bekrefter sikkerheten på telefonen.",
     "tapToPayPhoneBlocked": "Løs dette på telefonen før du aktiverer betalinger",
     "tapToPayPhoneBlockedHint": "Etter å ha fikset, lukker du Velbok helt (sveip bort fra nylige apper) og åpner denne skjermen på nytt.",

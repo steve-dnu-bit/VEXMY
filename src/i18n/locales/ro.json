@@ -2162,6 +2162,8 @@
     "tapToPayFailed": "Atingeți pentru a plăti nu a putut începe",
     "tapToPayCheckingPhone": "Se verifică acest telefon pentru Atinge pentru a plăti...",
     "tapToPayPhoneReady": "Acest telefon este pregătit pentru Tap to Pay",
+    "tapToPayInstallingTitle": "Se instalează {{label}}",
+    "tapToPayInstallingBody": "Lăsați Velbok deschis cât timp acest iPhone pregătește Tap to Pay. Nu este o plată.",
     "tapToPayPhoneReadyHint": "Velbok {{version}} · lansare build. Atingeți Activați plățile telefonice — Stripe verifică securitatea telefonului.",
     "tapToPayPhoneBlocked": "Remediați acest lucru pe telefon înainte de a activa plățile",
     "tapToPayPhoneBlockedHint": "După remediere, închideți complet Velbok (glisați departe de aplicațiile recente) și redeschideți acest ecran.",

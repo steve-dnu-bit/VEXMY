@@ -34,6 +34,7 @@ import { waitForTerminalConnected } from "@/lib/terminal/waitForTerminalConnecte
 import { describeConnectDuration, ttpLog, ttpLogError } from "@/lib/terminal/tapToPayDiagnostics";
 import type {
   DiscoverAndConnectOptions,
+  TapToPayInstallState,
   TerminalProvider,
   TerminalProviderOptions,
   TerminalReaderInfo,
@@ -123,6 +124,45 @@ function notifyFirmwareUpdate(active: boolean, progress = 0): void {
     active,
     progress: active ? progress : 0,
   });
+}
+
+const idleTapToPayInstall: TapToPayInstallState = {
+  active: false,
+  progress: null,
+  educationInFlight: false,
+};
+
+let tapToPayInstallUi: TapToPayInstallState = { ...idleTapToPayInstall };
+
+function emitTapToPayInstall(next: Partial<TapToPayInstallState>): void {
+  tapToPayInstallUi = { ...tapToPayInstallUi, ...next };
+  latestProviderOptions?.onTapToPayInstallChange?.({ ...tapToPayInstallUi });
+}
+
+/** Stripe sends a 0–1 fraction. Values already in 0–100 are passed through. */
+function readerSoftwareProgressPercent(progress: unknown): number | null {
+  const raw = typeof progress === "number" ? progress : Number(progress);
+  if (!Number.isFinite(raw)) return null;
+  if (raw > 1) return Math.round(Math.min(100, raw));
+  return Math.round(Math.max(0, Math.min(1, raw)) * 100);
+}
+
+function readerUpdateKind(payload: unknown): "tapToPay" | "bluetooth" | null {
+  if (!payload || typeof payload !== "object") return null;
+  const kind = (payload as { readerKind?: unknown }).readerKind;
+  if (kind === "tapToPay" || kind === "bluetooth") return kind;
+  return null;
+}
+
+/** Bluetooth WisePad firmware must not run during the Tap to Pay Terms → education connect. */
+function isWisePadUpdateDuringTapToPay(payload: unknown): boolean {
+  if (readerUpdateKind(payload) !== "bluetooth") return false;
+  return (
+    isLiveTapToPayConnect() ||
+    (!!tapToPayConnectSession &&
+      latestProviderOptions?.readerMode === "tap_to_pay" &&
+      !latestProviderOptions?.simulated)
+  );
 }
 
 /** True while discover/connect is running — ignore transient disconnect noise. */
@@ -320,17 +360,26 @@ async function registerTerminalEventListeners(): Promise<void> {
     );
   });
 
-  await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, () => {
-    const liveTapToPay = isLiveTapToPayConnect();
+  await StripeTerminal.addListener(TerminalEventsEnum.StartInstallingUpdate, (payload) => {
+    if (isWisePadUpdateDuringTapToPay(payload)) {
+      ttpLog("readerUpdate.refused", { source: "bluetooth", reason: "tap-to-pay-connect" });
+      return;
+    }
+    const kind = readerUpdateKind(payload);
+    const liveTapToPay = kind === "tapToPay" || (kind == null && isLiveTapToPayConnect());
     ttpLog("readerUpdate.started", {
       readerMode: latestProviderOptions?.readerMode ?? null,
       tapToPay: liveTapToPay,
+      source: liveTapToPay ? "tapToPayReaderSoftware" : "bluetoothReader",
     });
     if (tapToPayConnectSession) tapToPayConnectSession.updateStarted = true;
     if (liveTapToPay) {
-      // Configuration runs after Apple's Terms. Let it finish before How to Tap so the
-      // education sheet does not interrupt the install and produce "No reader connected".
-      latestProviderOptions?.onReaderStatus?.("Preparing Tap to Pay on this iPhone…");
+      // Stripe installs Tap to Pay reader software inside connectReader after Terms.
+      // Do not present How to Tap from this callback — the Terms sheet may still be up.
+      // Education is scheduled from terms acceptance. Progress is shown only once that
+      // education is no longer on screen.
+      emitTapToPayInstall({ active: true });
+      beginConnectionHold(120_000);
       return;
     }
     notifyFirmwareUpdate(true, 0);
@@ -341,19 +390,34 @@ async function registerTerminalEventListeners(): Promise<void> {
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.ReaderSoftwareUpdateProgress, (payload) => {
-    const raw = typeof payload?.progress === "number" ? payload.progress : Number(payload?.progress);
-    if (!Number.isFinite(raw)) return;
-    const percent = raw > 1 ? Math.round(Math.min(100, raw)) : Math.round(Math.max(0, Math.min(1, raw)) * 100);
-    notifyFirmwareUpdate(true, percent);
+    if (isWisePadUpdateDuringTapToPay(payload)) return;
+    const percent = readerSoftwareProgressPercent(payload?.progress);
+    if (percent == null) return;
+    const kind = readerUpdateKind(payload);
+    const liveTapToPay = kind === "tapToPay" || (kind == null && isLiveTapToPayConnect());
     beginConnectionHold(120_000);
+    if (liveTapToPay) {
+      if (!readerConnectInFlight) return;
+      emitTapToPayInstall({ active: true, progress: percent });
+      latestProviderOptions?.onReaderStatus?.(`Installing Tap to Pay on iPhone… ${percent}%`);
+      return;
+    }
+    notifyFirmwareUpdate(true, percent);
     latestProviderOptions?.onReaderStatus?.(`Installing WisePad firmware… ${percent}%`);
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.FinishInstallingUpdate, (args) => {
+    if (isWisePadUpdateDuringTapToPay(args)) {
+      ttpLog("readerUpdate.ignored", { source: "bluetooth", reason: "tap-to-pay-connect" });
+      return;
+    }
     const { errorText, updateNil } = finishUpdatePayload(args);
+    const kind = readerUpdateKind(args);
     const liveTapToPay =
-      isLiveTapToPayConnect() ||
-      (latestProviderOptions?.readerMode === "tap_to_pay" && !latestProviderOptions?.simulated);
+      kind === "tapToPay" ||
+      (kind == null &&
+        (isLiveTapToPayConnect() ||
+          (latestProviderOptions?.readerMode === "tap_to_pay" && !latestProviderOptions?.simulated)));
     const nilFalseFailure = !!errorText && liveTapToPay && isNilUpdateFalseFailure(errorText, updateNil);
     if (!errorText || nilFalseFailure) {
       if (nilFalseFailure) {
@@ -363,6 +427,7 @@ async function registerTerminalEventListeners(): Promise<void> {
       }
       notifyFirmwareUpdate(false);
       if (liveTapToPay) {
+        emitTapToPayInstall({ active: false, progress: null });
         // A nil configuration step only runs after Apple's Terms. Remember that so a
         // later connect rejection still presents How to Tap. Do not present it here —
         // the Terms sheet is still up, and presenting now drops the education overlay.
@@ -382,6 +447,7 @@ async function registerTerminalEventListeners(): Promise<void> {
     ttpLog("userFacingError", { message: userFacing, deferredUntilEducation: !!(liveTapToPay && tapToPayConnectSession) });
     notifyFirmwareUpdate(false);
     if (liveTapToPay && tapToPayConnectSession) {
+      emitTapToPayInstall({ active: false, progress: null });
       tapToPayConnectSession.updateFailedMessage = errorText;
       return;
     }
@@ -395,6 +461,10 @@ async function registerTerminalEventListeners(): Promise<void> {
   ).addListener(TTP_TERMS_ACCEPTED_EVENT, () => {
     ttpLog("terms.accepted");
     if (tapToPayConnectSession) tapToPayConnectSession.termsAccepted = true;
+    // Apple 4.1: How to Tap as soon as the Terms sheet can finish dismissing.
+    // showHowToTap waits until that sheet is gone. Do not wait for the Tap to Pay
+    // reader software update that connectReader runs after acceptance.
+    scheduleTapToPayEducation("terms.accepted");
   });
 
   await StripeTerminal.addListener(TerminalEventsEnum.DisconnectedReader, ({ reason }) => {
@@ -560,9 +630,14 @@ function scheduleTapToPayEducation(reason: string): void {
   session.educationStarted = true;
   const hook = session.educationHook;
   ttpLog("education.schedule", { reason });
-  tapToPayEducationPromise = hook().catch((error) => {
-    ttpLogError("education.failed", error, { reason: "schedule" });
-  });
+  emitTapToPayInstall({ educationInFlight: true });
+  tapToPayEducationPromise = hook()
+    .catch((error) => {
+      ttpLogError("education.failed", error, { reason: "schedule" });
+    })
+    .finally(() => {
+      emitTapToPayInstall({ educationInFlight: false });
+    });
 }
 
 /**
@@ -831,8 +906,8 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           }
         }
 
-        // How to Tap runs once the reader update has finished (or as soon as connect
-        // returns, if Stripe skipped the update). It must not wait for a charge tap.
+        // Terms acceptance already schedules How to Tap. This covers a reconnect
+        // where Apple did not show Terms. Education must not wait on a charge tap.
         if (liveTapToPay && connectOptions?.onTapToPayReadyForEducation) {
           if (!tapToPayConnectSession?.educationStarted) {
             scheduleTapToPayEducation("connect.resolved");
@@ -879,6 +954,9 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
         throw new Error(formatTerminalError(error, "Reader connection failed"));
       } finally {
         readerConnectInFlight = false;
+        if (tapToPayInstallUi.active) {
+          emitTapToPayInstall({ active: false, progress: null });
+        }
       }
     },
 

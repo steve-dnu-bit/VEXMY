@@ -1,15 +1,19 @@
-/** Apple Tap to Pay on iPhone button copy — only Velbok app languages (PDF v1.6 table). */
+/**
+ * Apple Tap to Pay on iPhone long-form button copy.
+ * Exact strings from "Getting Started App Requirements and Review" v1.6
+ * (Localization strings table). Only languages Velbok offers.
+ */
 const LONG_FORM: Record<string, string> = {
   en: "Tap to Pay on iPhone",
   de: "Tap to Pay auf dem iPhone",
   fr: "Tap to Pay sur iPhone",
   ro: "Tap to Pay pe iPhone",
   it: "Tap to Pay su iPhone",
-  es: "Tap to Pay en el iPhone",
+  es: "Tap to Pay en iPhone",
   sv: "Tap to Pay på iPhone",
   no: "Tap to Pay på iPhone",
   nb: "Tap to Pay på iPhone",
-  nl: "Tap to Pay op de iPhone",
+  nl: "Tap to Pay op iPhone",
   bg: "Tap to Pay на iPhone",
 };
 

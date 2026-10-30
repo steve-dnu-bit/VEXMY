@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -2467,6 +2468,27 @@ function isPaymentOverlayNoise(status: string): boolean {
           }
         />
         <TapToPayTryItDialog open={showTryItAfterEducation} onOpenChange={setShowTryItAfterEducation} />
+        {usingTapToPay && terminal.tapToPayInstall.active && !terminal.tapToPayInstall.educationInFlight ? (
+          <div
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ttp-install-title"
+          >
+            <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-lg">
+              <h2 id="ttp-install-title" className="text-lg font-semibold leading-snug">
+                {t("pos.tapToPayInstallingTitle", { label: tapToPayOnIphoneLabel(i18n.language) })}
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">{t("pos.tapToPayInstallingBody")}</p>
+              <Progress value={terminal.tapToPayInstall.progress ?? 0} className="mt-4 h-2" />
+              {terminal.tapToPayInstall.progress != null ? (
+                <p className="mt-2 text-center text-sm font-medium tabular-nums">
+                  {terminal.tapToPayInstall.progress}%
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </SubscriptionGate>
     </AppLayout>
   );

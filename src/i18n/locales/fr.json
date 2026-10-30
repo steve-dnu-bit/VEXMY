@@ -2162,6 +2162,8 @@
     "tapToPayFailed": "Tap to Pay n'a pas pu démarrer",
     "tapToPayCheckingPhone": "Vérification de ce téléphone pour Tap to Pay…",
     "tapToPayPhoneReady": "Ce téléphone est prêt pour Tap to Pay",
+    "tapToPayInstallingTitle": "Installation de {{label}}",
+    "tapToPayInstallingBody": "Laissez Velbok ouvert pendant que cet iPhone prépare Tap to Pay. Ce n’est pas un paiement.",
     "tapToPayPhoneReadyHint": "Velbok {{version}} · version de version. Appuyez sur Activer les paiements par téléphone – Stripe vérifie la sécurité du téléphone.",
     "tapToPayPhoneBlocked": "Corrigez ce problème sur votre téléphone avant d'activer les paiements",
     "tapToPayPhoneBlockedHint": "Après la correction, fermez complètement Velbok (éloignez-vous des applications récentes) et rouvrez cet écran.",
