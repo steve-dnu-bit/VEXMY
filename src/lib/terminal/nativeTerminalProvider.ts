@@ -675,6 +675,17 @@ export function createNativeTerminalProvider(options: TerminalProviderOptions): 
           }
         }
 
+        // Apple 4.1: Terms were just accepted inside connectReader. Present How to Tap
+        // before confirmation can fail and before checkout is allowed to charge.
+        if (
+          options.readerMode === "tap_to_pay" &&
+          !options.simulated &&
+          connectOptions?.onTapToPayReadyForEducation
+        ) {
+          ttpLog("provider.education.afterTerms");
+          await connectOptions.onTapToPayReadyForEducation();
+        }
+
         // Discovery was already cancelled in discoverBluetoothReaders/discoverTapToPayReaders.
         // Do not cancel again after connect — that can drop the live WisePad session on iOS.
 

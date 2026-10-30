@@ -120,11 +120,21 @@ export function useStripeTerminal(options: {
     try {
       const provider = await ensureProvider();
       setStatus("connecting");
-      await withTimeout(
-        provider.discoverAndConnect(connectOptions),
-        PHONE_PAYMENTS_OPERATION_MS,
-        "Phone payments timed out. Allow Location for Velbok, turn Developer options OFF, check internet, then try again.",
-      );
+      const connectPromise = provider.discoverAndConnect(connectOptions);
+      // Tap to Pay's own connect timeout is 180s and includes Apple's Terms sheet.
+      // This 150s wrapper was firing while Terms were still up (or just accepted),
+      // rejecting with "Phone payments timed out" before How to Tap could run.
+      // Checkout then painted that rejection as a declined payment.
+      const isLiveTapToPay = options.readerMode === "tap_to_pay" && !options.simulated;
+      if (isLiveTapToPay) {
+        await connectPromise;
+      } else {
+        await withTimeout(
+          connectPromise,
+          PHONE_PAYMENTS_OPERATION_MS,
+          "Phone payments timed out. Allow Location for Velbok, turn Developer options OFF, check internet, then try again.",
+        );
+      }
       const sdkReader = await syncReaderFromSdk();
       if (!sdkReader) {
         throw new Error(
@@ -146,7 +156,7 @@ export function useStripeTerminal(options: {
       setStatus("error");
       throw new Error(msg);
     }
-  }, [ensureProvider, syncReaderFromSdk]);
+  }, [ensureProvider, options.readerMode, options.simulated, syncReaderFromSdk]);
 
   const disconnect = useCallback(async () => {
     if (!providerRef.current) return;

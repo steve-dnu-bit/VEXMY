@@ -81,6 +81,7 @@ import {
 import type { TerminalReaderMode } from "@/lib/terminal/types";
 import { readScheduleArtistColors, writeScheduleArtistColors } from "@/lib/artistThemeCache";
 import { useSearchParams } from "react-router-dom";
+import { getNativeConnectedReader } from "@/lib/terminal/getNativeConnectedReader";
 import { tapToPayOnIphoneLabel } from "@/lib/terminal/tapToPayLabels";
 import {
   checkTapToPayEnvironment,
@@ -861,8 +862,12 @@ function isPaymentOverlayNoise(status: string): boolean {
     })();
   };
 
-  /** Apple 4.1: Apple's How to Tap overlay, right after Apple's Terms sheet closed. */
-  const presentTapToPayEducation = async (): Promise<boolean> => {
+  /**
+   * Apple 4.1: Apple's How to Tap overlay, right after Apple's Terms sheet closed.
+   * `announce` is false for the in-connect attempt so a sheet-dismiss race can retry
+   * once without two error toasts.
+   */
+  const presentTapToPayEducation = async (announce = true): Promise<boolean> => {
     // Nothing of ours may be on screen — Apple presents from the top view controller.
     setPaymentFlowPhase("hidden");
     setPaymentFlowDetail(null);
@@ -877,7 +882,7 @@ function isPaymentOverlayNoise(status: string): boolean {
           ms: Date.now() - startedAt,
           note: "native plugin reported How to Tap is unavailable (iPad, iOS < 18, or missing entitlement)",
         });
-        toast.message(t("pos.tapToPayEducationFailed"));
+        if (announce) toast.error(t("pos.tapToPayEducationFailed"));
         return false;
       }
       ttpLog("education.presented", { ms: Date.now() - startedAt });
@@ -886,8 +891,10 @@ function isPaymentOverlayNoise(status: string): boolean {
       return true;
     } catch (eduErr) {
       ttpLogError("education.failed", eduErr, { ms: Date.now() - startedAt });
-      const msg = eduErr instanceof Error ? eduErr.message : t("pos.tapToPayEducationFailed");
-      toast.error(msg);
+      if (announce) {
+        const msg = eduErr instanceof Error ? eduErr.message : t("pos.tapToPayEducationFailed");
+        toast.error(msg);
+      }
       return false;
     }
   };
@@ -900,7 +907,12 @@ function isPaymentOverlayNoise(status: string): boolean {
     if (terminal.status === "connected") {
       ttpLog("charge.ensureConnected.alreadyConnected", {
         note: "connectReader NOT called — Apple's Terms sheet cannot appear on the charge path",
+        educationAlreadyShown: hasShownTapToPayEducation(),
       });
+      if (usingTapToPay && !hasShownTapToPayEducation()) {
+        const educated = await presentTapToPayEducation();
+        if (!educated) return false;
+      }
       return true;
     }
 
@@ -932,13 +944,24 @@ function isPaymentOverlayNoise(status: string): boolean {
       setPaymentFlowDetail(t("pos.paymentInitializingProgress"));
     }
 
-    await terminal.discoverAndConnect();
+    let educationPresented = !firstEverConnect;
+    await terminal.discoverAndConnect(
+      firstEverConnect
+        ? {
+            onTapToPayReadyForEducation: async () => {
+              educationPresented = await presentTapToPayEducation(false);
+            },
+          }
+        : undefined,
+    );
     markWisePadFirmwareCompleted();
     setShowWisePadGuide(false);
 
-    if (firstEverConnect) {
-      await presentTapToPayEducation();
+    if (firstEverConnect && !educationPresented) {
+      educationPresented = await presentTapToPayEducation();
     }
+    // A failed How to Tap must not continue into collectPaymentMethod.
+    if (firstEverConnect && !educationPresented) return false;
     return true;
   };
 
@@ -968,10 +991,9 @@ function isPaymentOverlayNoise(status: string): boolean {
     }
 
     setEnablingTapToPay(true);
-    setPaying(true);
+    let educationPresented = false;
     try {
-      // Every Velbok surface must be closed before connectReader: Apple's Terms sheet
-      // is presented by ProximityReader from the top view controller.
+      // Enable is not a payment. Never open the declined/processing overlay for it.
       setPaymentFlowPhase("hidden");
       setPaymentFlowDetail(null);
       setShowTryItAfterEducation(false);
@@ -990,8 +1012,6 @@ function isPaymentOverlayNoise(status: string): boolean {
       if (env && hasTapToPayHardBlockers(env)) {
         const message = formatTapToPayBlockersMessage(env) || t("pos.tapToPayPhoneBlocked");
         ttpLog("enable.blocked", { reason: message });
-        setPaymentFlowPhase("declined");
-        setPaymentFlowDetail(message);
         toast.error(message);
         return false;
       }
@@ -1002,26 +1022,47 @@ function isPaymentOverlayNoise(status: string): boolean {
       await waitForAppOverlaysToClose();
 
       // Always reconnect — Apple's Terms sheet is raised by connectReader, so a cached
-      // "connected" reader must never short-circuit it.
+      // "connected" reader must never short-circuit it. Education runs inside this call,
+      // the moment connectReader returns, before confirmation or any charge.
       ttpLog("enable.connect.start", { forceReconnect: true, terminalStatus: terminal.status });
-      await terminal.discoverAndConnect({ forceReconnect: true });
-      ttpLog("enable.connect.ok");
+      await terminal.discoverAndConnect({
+        forceReconnect: true,
+        onTapToPayReadyForEducation: async () => {
+          educationPresented = await presentTapToPayEducation(false);
+        },
+      });
+      ttpLog("enable.connect.ok", { educationPresented });
       markWisePadFirmwareCompleted();
 
-      const educated = await presentTapToPayEducation();
-      ttpLog("enable.done", { educated });
-      if (educated) toast.success(t("pos.tapToPayPhoneReady"));
-      return educated;
+      if (!educationPresented) {
+        educationPresented = await presentTapToPayEducation();
+      }
+      ttpLog("enable.done", { educated: educationPresented });
+      if (educationPresented) toast.success(t("pos.tapToPayPhoneReady"));
+      return educationPresented;
     } catch (e) {
       ttpLogError("enable.failed", e);
+      if (!educationPresented) {
+        const reader = await getNativeConnectedReader();
+        if (reader) {
+          ttpLog("enable.recoverEducation", { readerId: reader.id });
+          educationPresented = await presentTapToPayEducation();
+        }
+      }
+      if (educationPresented) {
+        ttpLog("enable.done", { educated: true, recoveredAfterError: true });
+        toast.success(t("pos.tapToPayPhoneReady"));
+        return true;
+      }
       const msg = e instanceof Error ? e.message : t("pos.tapToPayFailed");
-      setPaymentFlowPhase(classifyPaymentFailure(msg));
-      setPaymentFlowDetail(msg);
       toast.error(msg);
       return false;
     } finally {
       setEnablingTapToPay(false);
-      setPaying(false);
+      if (!paySessionActiveRef.current) {
+        setPaymentFlowPhase("hidden");
+        setPaymentFlowDetail(null);
+      }
     }
   };
 
@@ -1168,7 +1209,11 @@ function isPaymentOverlayNoise(status: string): boolean {
     activeSaleIdRef.current = null;
     let saleId: string | null = null;
     try {
-      if (amountDue > 0 && usingTapToPay && terminal.status !== "connected") {
+      if (
+        amountDue > 0 &&
+        usingTapToPay &&
+        (terminal.status !== "connected" || !hasShownTapToPayEducation())
+      ) {
         const connected = await ensureTapToPayConnected();
         if (!connected) return;
       }
@@ -1878,23 +1923,27 @@ function isPaymentOverlayNoise(status: string): boolean {
                         <Button
                           type="button"
                           variant="gold"
-                          className="w-full h-14 text-base font-semibold"
-                          disabled={paying || readerFirmwareUpdating || terminal.status === "processing"}
+                          className="h-auto min-h-14 w-full whitespace-normal px-3 py-3 text-base font-semibold"
+                          disabled={
+                            paying ||
+                            enablingTapToPay ||
+                            readerFirmwareUpdating ||
+                            terminal.status === "processing"
+                          }
                           onClick={() => void handleTapToPayPrimary()}
                         >
-                          {paying ||
-                          terminal.status === "processing" ||
-                          terminal.status === "discovering" ||
-                          terminal.status === "connecting" ? (
-                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                          ) : (
-                            <TapToPayWaveIcon className="h-5 w-5 mr-2" filled />
-                          )}
-                          {amountDue <= 0 && depositCredit > 0
-                            ? t("pos.completeNoCharge")
-                            : terminal.status === "discovering" || terminal.status === "connecting"
-                              ? t("pos.connectTapToPayProgress")
-                              : tapToPayOnIphoneLabel(i18n.language)}
+                          <span className="flex w-full min-w-0 items-center justify-center gap-2">
+                            {paying || terminal.status === "processing" ? (
+                              <Loader2 className="h-5 w-5 shrink-0 animate-spin" />
+                            ) : (
+                              <TapToPayWaveIcon className="h-5 w-5 shrink-0" filled />
+                            )}
+                            <span className="min-w-0 whitespace-normal text-center leading-snug">
+                              {amountDue <= 0 && depositCredit > 0
+                                ? t("pos.completeNoCharge")
+                                : tapToPayOnIphoneLabel(i18n.language)}
+                            </span>
+                          </span>
                         </Button>
                         {amountDue > 0 ? (
                           <p className="text-center text-sm font-medium tabular-nums text-muted-foreground">
@@ -2334,11 +2383,13 @@ function isPaymentOverlayNoise(status: string): boolean {
 
         <PosPaymentFlowOverlay
           phase={
-            (usingTapToPay || usingWisePad) &&
-            paymentFlowPhase === "hidden" &&
-            (terminal.status === "discovering" || terminal.status === "connecting")
-              ? "initializing"
-              : paymentFlowPhase
+            enablingTapToPay || (usingTapToPay && !hasShownTapToPayEducation())
+              ? "hidden"
+              : (usingTapToPay || usingWisePad) &&
+                  paymentFlowPhase === "hidden" &&
+                  (terminal.status === "discovering" || terminal.status === "connecting")
+                ? "initializing"
+                : paymentFlowPhase
           }
           amountLabel={
             paymentFlowPhase === "approved" || paymentFlowPhase === "declined" || paymentFlowPhase === "timed_out"

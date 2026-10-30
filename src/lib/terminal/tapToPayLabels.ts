@@ -5,10 +5,11 @@ const LONG_FORM: Record<string, string> = {
   fr: "Tap to Pay sur iPhone",
   ro: "Tap to Pay pe iPhone",
   it: "Tap to Pay su iPhone",
-  es: "Tap to Pay en iPhone",
+  es: "Tap to Pay en el iPhone",
   sv: "Tap to Pay på iPhone",
   no: "Tap to Pay på iPhone",
-  nl: "Tap to Pay op iPhone",
+  nb: "Tap to Pay på iPhone",
+  nl: "Tap to Pay op de iPhone",
   bg: "Tap to Pay на iPhone",
 };
 
@@ -21,6 +22,7 @@ const SHORT_FORM: Record<string, string> = {
   es: "Tap to Pay",
   sv: "Tap to Pay",
   no: "Tap to Pay",
+  nb: "Tap to Pay",
   nl: "Tap to Pay",
   bg: "Tap to Pay",
 };
@@ -29,6 +31,8 @@ function normalizeLang(language: string): string {
   const raw = (language || "en").replace("_", "-");
   if (LONG_FORM[raw]) return raw;
   const base = raw.split("-")[0] || "en";
+  // iOS reports Norwegian Bokmål as nb; Velbok's language code is no.
+  if (base === "nb" || base === "nn") return "no";
   return LONG_FORM[base] ? base : "en";
 }
 

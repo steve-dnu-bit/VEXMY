@@ -29,14 +29,19 @@ export function TapToPayWaveIcon({ className, filled = true }: TapToPayWaveIconP
   }, [symbolName]);
 
   if (src) {
+    // Quoted data-URL so WebKit does not drop the mask. flexShrink is inline because
+    // the checkout button only forces shrink-0 on SVG children, and a nowrap label
+    // in a longer locale was clipping this span off the button.
+    const mask = `url("${src}")`;
     return (
       <span
         aria-hidden
-        className={cn("shrink-0 inline-block align-middle", className)}
+        className={cn("inline-block shrink-0 align-middle", className)}
         style={{
+          flexShrink: 0,
           backgroundColor: "currentColor",
-          WebkitMaskImage: `url(${src})`,
-          maskImage: `url(${src})`,
+          WebkitMaskImage: mask,
+          maskImage: mask,
           WebkitMaskSize: "contain",
           maskSize: "contain",
           WebkitMaskRepeat: "no-repeat",
@@ -54,6 +59,7 @@ export function TapToPayWaveIcon({ className, filled = true }: TapToPayWaveIconP
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("shrink-0", className)}
+      style={{ flexShrink: 0 }}
       aria-hidden
     >
       <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth="1.5" />

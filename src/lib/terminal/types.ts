@@ -26,6 +26,12 @@ export type TerminalCollectResult = {
 export type DiscoverAndConnectOptions = {
   /** Disconnect first so connectReader can present Apple Terms when SDK still reports connected. */
   forceReconnect?: boolean;
+  /**
+   * Tap to Pay only. Called once connectReader has returned — Apple's Terms sheet
+   * was accepted — and before any later confirmation. Present How to Tap here.
+   * Must not collect a payment.
+   */
+  onTapToPayReadyForEducation?: () => Promise<void>;
 };
 
 export interface TerminalProvider {
